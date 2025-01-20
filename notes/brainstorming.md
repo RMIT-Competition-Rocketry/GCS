@@ -68,11 +68,11 @@ project-root/
 │   ├── app/
 │   │   ├── main.?             
 │   │   ├── ...
-│   └── static/				    # USE SUGGESTED WEB STACK LAYOUT. Example only
+│   └── static/                 # USE SUGGESTED WEB STACK LAYOUT. Example only
 │       ├── index.html         
 │       └── ...
 ├── tests/
-│   └── ...						# Could use CI tests too. Figure out later
+│   └── ...                     # Could use CI tests too. Figure out later
 ├── .env                       
 ├── .gitignore                 
 ├── README.md                  
