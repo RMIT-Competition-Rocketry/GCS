@@ -51,11 +51,15 @@ Now I'm thinking we use unix sockets to just talk from the ingestion system to t
 - Docker for development and native for production
 	- I want to be able to pick this up on any machine and just have it work. for devleopment at least. Docker overhead cannot be afforded in production.
 	- Docker can limit resources. Such as [RAM](https://docs.docker.com/engine/containers/resource_constraints/#limit-a-containers-access-to-memory) and [CPUs](https://docs.docker.com/engine/containers/resource_constraints/#cpu)
-- Easy CLI interface
+- Easy CLI interface. (Python [Click?](https://click.palletsprojects.com/en/stable/))
 	- Use an executable script for starting the software
 		- `$ rocket run dev` - 2 positional arguments here
 		- `$ rocket run` - run production server
 		- `$ rocket run dev -v --hardware` - run dev environment with hardware limits in verbose mode
+  - Have a bare bones `$ rocket run --cli` developed first for an MVP.
+- Handle all production (use docker in dev) program launches from python (db, web server). be resilient of they're already open and maybe note the PID. Then log all of them in the `rocket` CLI window and handle keyboard interrupt, `SIGTERM`, `SIGKILL`, etc.
+
+
 
 Example repo tree
 
