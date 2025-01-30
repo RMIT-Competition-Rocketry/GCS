@@ -6,8 +6,9 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 
 ### Documentation
 
-- [Setup](documentation/setup.md)
-- [Usage](documentation/usage.md)
+- [Setup](docs/setup.md)
+- [Usage](docs/usage.md)
+- [Application Layers](docs/application_layers.md)
 
 ### Notes
 

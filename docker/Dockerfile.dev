@@ -1,0 +1,18 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY . /app
+
+# Install dev dependencies and regular CLI dependancies too
+RUN pip install --no-cache-dir -r docker/requirements.docker.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install system services 
+RUN apt update && apt install -y socat
+
+# NOTE: Do not start any services from docker as they will be started from the rocket CLI file 
+
+# Do not containerise from the CLI `rocket` because it would be recursive.
+# Do do this properly, run with the --nodocker flag 
+CMD ["python", "rocket.py", "dev", "--nodocker"]
