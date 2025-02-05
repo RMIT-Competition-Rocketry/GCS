@@ -1,7 +1,8 @@
-import logging
-from backend.config import load_config
+from __future__ import absolute_import
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
+from backend import config
+import logging
 
 
 logger = logging.getLogger('rocket')
@@ -56,7 +57,8 @@ class DummyPacket(MockPacket):
 
 
 def main():
-    MockPacket.initialize_settings(load_config()['emulation'])
+    logger.debug("Emulator starting")
+    MockPacket.initialize_settings(config.load_config()['emulation'])
 
 
 if __name__ == '__main__':

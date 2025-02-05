@@ -14,6 +14,29 @@
                 "dev",
                 "--nodocker"
             ]
+        },
+        // {
+        //     "name": "Python Debugger: emulator",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "program": "${workspaceFolder}/backend/tools/device_emulator.py",
+        //     "console": "integratedTerminal",
+        //     // "env": {
+        //     //     "PYTHONPATH": "${workspaceFolder}/backend"
+        //     // },
+        //     "args": []
+        // }
+        {
+            "name": "Python Debugger: emulator",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "module": "backend.tools.device_emulator",
+            "console": "integratedTerminal",
+            // "env": {
+            //     "PYTHONPATH": "${workspaceFolder}/backend"
+            // },
+            "args": []
         }
     ]
 }
