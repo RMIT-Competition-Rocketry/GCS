@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import click
-import rocket_logging
+import cli.rocket_logging as rocket_logging
 import logging
 import cli.proccess as process
 import subprocess
