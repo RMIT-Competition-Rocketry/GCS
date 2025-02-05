@@ -40,9 +40,13 @@ class LoggedSubProcess:
         self.logger_adapter.info(
             f"Started subprocess: {self.name} (PID: {self.process.pid})")
         self.stdout_thread = threading.Thread(
-            target=self._monitor_stream, args=(self.process.stdout, "STDOUT"))
+            target=self._monitor_stream,
+            args=(self.process.stdout, "STDOUT"),
+            name=f"{self.name}_STDOUT")
         self.stderr_thread = threading.Thread(
-            target=self._monitor_stream, args=(self.process.stderr, "STDERR"))
+            target=self._monitor_stream,
+            args=(self.process.stderr, "STDERR"),
+            name=f"{self.name}_STDERR")
         self.stdout_thread.daemon = True
         self.stderr_thread.daemon = True
         self.stdout_thread.start()
@@ -77,6 +81,8 @@ class LoggedSubProcess:
     @classmethod
     def cleanup(cls):
         """Stop all instances unless debugger is active or auto_cleanup is False"""
+        # Note to self that this applies to subclasses that don't override this method
+
         if not cls._auto_cleanup:
             return
         # Check if a debugger is active (e.g., pdb.set_trace())

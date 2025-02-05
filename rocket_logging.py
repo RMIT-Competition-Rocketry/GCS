@@ -11,7 +11,7 @@ class CustomFormatter(logging.Formatter):
     BOLD_RED = "\x1b[31;1m"
     RESET = "\x1b[0m"
     # Maybe add %(asctime)s later if needed
-    FORMAT = "[%(levelname)s]\t %(filename)s.%(subprocess_name)s:\t %(message)s"
+    FORMAT = "[%(levelname)-7s] %(filename)s.%(subprocess_name)s: %(message)s"
 
     FORMATS = {
         logging.DEBUG: GREY + FORMAT + RESET,
@@ -27,6 +27,16 @@ class CustomFormatter(logging.Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
+
+
+def create_handler() -> logging.StreamHandler:
+    """Create console handler with a highest log level"""
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+
+    ch.setFormatter(CustomFormatter())
+
+    return ch
 
 
 def initialise():
@@ -53,10 +63,4 @@ def initialise():
 
     logger.setLevel(LOG_LEVEL_OBJECT)
 
-    # Create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    ch.setFormatter(CustomFormatter())
-
-    logger.addHandler(ch)
+    logger.addHandler(create_handler())

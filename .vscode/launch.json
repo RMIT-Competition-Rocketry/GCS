@@ -10,22 +10,15 @@
             "request": "launch",
             "program": "${workspaceFolder}/rocket.py",
             "console": "integratedTerminal",
+            // I think this is the default value anyway.
+            // But you can debug python subprocess with this which is great
+            // Just need to use the CALL STACK menu on the left in VSCode
+            "subProcess": true,
             "args": [
                 "dev",
                 "--nodocker"
             ]
         },
-        // {
-        //     "name": "Python Debugger: emulator",
-        //     "type": "debugpy",
-        //     "request": "launch",
-        //     "program": "${workspaceFolder}/backend/tools/device_emulator.py",
-        //     "console": "integratedTerminal",
-        //     // "env": {
-        //     //     "PYTHONPATH": "${workspaceFolder}/backend"
-        //     // },
-        //     "args": []
-        // }
         {
             "name": "Python Debugger: emulator",
             "type": "debugpy",
@@ -33,10 +26,7 @@
             "cwd": "${workspaceFolder}",
             "module": "backend.tools.device_emulator",
             "console": "integratedTerminal",
-            // "env": {
-            //     "PYTHONPATH": "${workspaceFolder}/backend"
-            // },
             "args": []
-        }
-    ]
+        },
+    ],
 }

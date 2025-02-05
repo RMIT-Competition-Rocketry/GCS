@@ -1,11 +1,23 @@
 from __future__ import absolute_import
 from abc import ABC, abstractmethod
-from configparser import ConfigParser
 from backend import config
 import logging
 
+import time  # for debugging
 
 logger = logging.getLogger('rocket')
+
+# If you're running directly, this will create a logger for you for testing purposes
+if not logger.hasHandlers():
+
+    handler = logging.StreamHandler()
+    # This logger is regurgitated by the upstream rocket cli logger. So it can be minimal
+    formatter = logging.Formatter('%(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+    # logger.warning(
+    #     "Created manual logger for device emulator for testing purposes")
 
 
 class MockPacket(ABC):
@@ -60,7 +72,11 @@ def main():
     logger.debug("Emulator starting")
     MockPacket.initialize_settings(config.load_config()['emulation'])
 
+    for i in range(5):
+        logger.debug(f"Doing thread work {i}")
+
+    logger.debug("Emulator finished")
+
 
 if __name__ == '__main__':
-    logger.info("Running device emulator")
     main()
