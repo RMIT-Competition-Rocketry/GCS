@@ -90,6 +90,10 @@ def dev(nodocker):
                            "rocket-dev"], check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to start Docker container: {e}")
+            DOCKER_WARNING_TEXT = "PLEASE ENSURE DOCKER ENGINE IS RUNNING"
+            logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
+            logger.error(DOCKER_WARNING_TEXT)
+            logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
             raise
 
     if nodocker:
