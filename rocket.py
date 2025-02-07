@@ -8,11 +8,11 @@ import subprocess
 import sys
 import time
 import signal
+from cli.start_socat import start_fake_serial_device
+from cli.start_emulator import start_fake_serial_device_emulator
 
-logger: str = None
+logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
-# # Event flag to avoid busy waiting after CLI work is done
-# shutdown_event: bool = False
 
 
 @click.group()
@@ -26,54 +26,6 @@ def run():
     """Start software for production usage in native environment. Indented for usage on GCS only"""
     logger.error("Production mode attempted. Not supported")
     raise NotImplementedError("Production setup not currently supported")
-
-
-def start_fake_serial_device():
-    """
-    Starts a fake serial device using socat and logs the output.
-    Returns a tuple containing the paths of the two generated pseudo-terminals.
-    """
-    try:
-
-        SOCAT_COMMAND = ["socat", "-d", "-d",
-                         "pty,raw,echo=0", "pty,raw,echo=0"]
-        logger.debug(f"Starting socat with: {SOCAT_COMMAND}")
-        socat_proccess = process.ERRLoggedSubProcess(
-            SOCAT_COMMAND, name="socat")
-        socat_proccess.start()
-
-    except Exception as e:
-        logger.error(
-            f"An error occurred while starting a Socat fake serial device: {e}")
-        return None, None
-
-
-def start_fake_serial_device_emulator():
-    try:
-
-        # os.path.join("backend", "tools", "device_emulator.py")
-        EMULATOR_COMMAND = [
-            "python3", "-u", "-Xfrozen_modules=off", "-m", "backend.tools.device_emulator"
-        ]
-
-        logger.debug(f"Starting emulator module with: {EMULATOR_COMMAND}")
-
-        # Add project root to PYTHONPATH for the subprocess
-        # project_root = os.getcwd()
-        # env = os.environ.copy()
-        # env["PYTHONPATH"] = f"{project_root}{os.pathsep}{env.get('PYTHONPATH', '')}"
-
-        emulator_process = process.LoggedSubProcess(
-            EMULATOR_COMMAND,
-            name="emulator",
-            # env=env
-        )
-        emulator_process.start()
-
-    except Exception as e:
-        logger.error(
-            f"An error occurred while starting the rocket AV emulator: {e}")
-        return None, None
 
 
 @click.command()
@@ -106,10 +58,8 @@ def dev(nodocker):
         logger.info("Starting dev container in Docker")
         start_docker_container()
 
-    # TODO: Check this, use device name from config. Extract logs on debug level.
-
-    start_fake_serial_device()
-    start_fake_serial_device_emulator()
+    start_fake_serial_device(logger)
+    start_fake_serial_device_emulator(logger)
 
 
 def signal_handler(signum, frame):
