@@ -1,7 +1,7 @@
 import logging
 import re
 import cli.proccess as process
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 class SocatSubprocess(process.ERRLoggedSubProcess):
@@ -46,7 +46,7 @@ def device_name_callback(line: str, stream_name: str):
         return match.group(1)
 
 
-def start_fake_serial_device(logger: logging.Logger) -> Tuple[str, str]:
+def start_fake_serial_device(logger: logging.Logger) -> Tuple[Optional[str], Optional[str]]:
     """
     Starts a fake serial device using socat and logs the output.
     Returns a tuple containing the paths of the two generated pseudo-terminals.
@@ -72,3 +72,5 @@ def start_fake_serial_device(logger: logging.Logger) -> Tuple[str, str]:
         logger.error(
             f"An error occurred while starting a Socat fake serial device: {e}")
         return None, None
+
+    return devices

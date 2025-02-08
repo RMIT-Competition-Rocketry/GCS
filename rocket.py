@@ -8,6 +8,7 @@ import subprocess
 import sys
 import time
 import signal
+from typing import Tuple, Optional
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 
@@ -58,8 +59,10 @@ def dev(nodocker):
         logger.info("Starting dev container in Docker")
         start_docker_container()
 
-    start_fake_serial_device(logger)
-    start_fake_serial_device_emulator(logger)
+    devices = start_fake_serial_device(logger)
+    if devices == (None, None):
+        raise RuntimeError("Failed to start fake serial device. Exiting")
+    start_fake_serial_device_emulator(logger, devices)
 
 
 def signal_handler(signum, frame):
@@ -85,6 +88,7 @@ def cleanup():
     """Run cleanup tasks before the program exits"""
     logger.warning(f"Running cleanup tasks - Reason: {cleanup_reason}")
     process.LoggedSubProcess.cleanup()
+    logger.info("All cleanup tasks completed")
 
 
 def main():
