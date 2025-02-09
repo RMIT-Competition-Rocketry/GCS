@@ -2,8 +2,9 @@ from __future__ import absolute_import
 from abc import ABC, abstractmethod
 from backend import config
 import logging
-from typing import Optional
+from typing import Optional, List
 import sys
+from backend.tools import metric
 
 logger = logging.getLogger('rocket')
 
@@ -53,24 +54,50 @@ class MockPacket(ABC):
         if not self._INITIALISED:
             raise RuntimeError(
                 "Cannot create instances of MockPacket or its subclasses before initializing class settings.")
+        self.ID: Optional[int] = None  # Packet ID
+        # High level payload builder
+        self.payload_after_id: Optional[List[bytes]] = None
 
-    def write_bytes(self, data_bytes: bytes):
-        """Writes a list of bytes to the device stream"""
-        if not isinstance(data_bytes, bytes):
-            raise ValueError(
-                "data_bytes must be bytes")
+    def write_payload(self):
+        """Writes payload of bytes to device"""
 
         try:
             with open(self._FAKE_DEVICE_NAME, 'wb') as device:
-                device.write(data_bytes)
+                device.write(metric.Metric._int_to_byte(self.ID))
+                for byte in self.payload_after_id:
+                    device.write(byte)
         except Exception as e:
             logger.error(
                 f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}")
             raise
 
 
-class DummyPacket(MockPacket):
-    pass
+class GCStoAVStateCMD(MockPacket):
+    def __init__(
+        self,
+        MAIN_SECONDARY_TEST: bool = False,
+        MAIN_PRIMARY_TEST: bool = True,
+        APOGEE_SECONDARY_TEST: bool = False,
+        APROGEE_PRIMARY_TEST: bool = False,
+        BEGIN_BROADCAST: bool = False,
+    ):
+        super().__init__()
+        self.ID = 0x01
+        self.payload_after_id = [
+            metric.Metric.continuityCheckCMDFlags(
+                MAIN_SECONDARY_TEST,
+                MAIN_PRIMARY_TEST,
+                APOGEE_SECONDARY_TEST,
+                APROGEE_PRIMARY_TEST,
+            ),
+            metric.Metric.continuityCheckCMDFlagsINVERTED(
+                MAIN_SECONDARY_TEST,
+                MAIN_PRIMARY_TEST,
+                APOGEE_SECONDARY_TEST,
+                APROGEE_PRIMARY_TEST,
+            ),
+            metric.Metric.BroadcastBeginCMDFlags(BEGIN_BROADCAST)
+        ]
 
 
 def main():
@@ -90,8 +117,8 @@ def main():
         FAKE_DEVICE_NAME_MONITOR=FAKE_DEVICE_NAME_MONITOR
     )
 
-    test_packet = DummyPacket()
-    test_packet.write_bytes(b"Hello, world!")
+    test_packet = GCStoAVStateCMD()
+    test_packet.write_payload()
 
     logger.debug("Emulator finished")
 

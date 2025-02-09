@@ -1,7 +1,9 @@
 
 # Development notes
 
-## Device Emulation 
+## Device Ports
+
+### Device Emulation 
 
 Example output from `socat` at startup. This shows what the device names are
 
@@ -22,6 +24,19 @@ $ echo "Hello Serial" > /dev/ttys01
 ```
 
 Please note that both fake serial devices are linked, but when you read from one the buffer is cleared. That means that you use one as the 'fake device' and the other can just be for montitoring because nothing will steal the bytes going to it from the other linked device
+
+### Reading Bytes
+
+As we're not within the ascii table range, but within the entire range of bytes (0-255) we can't use screen or any ascii rendering method. You need to view the data in hex or binary.
+
+Get the device port as the **second** listed device in the debug logs:
+
+![socat device parsing output](./assets/socatDeviceParse.png)
+
+Then use `xxd` on unix systems (This may need to be installed). Use the `-b` flag for binary instead of hex if needed. The `-c 1` argument will do one byte per line. 
+
+![xxdOutput1](./assets/xxdOutput1.png)
+![xxdOutput1binary](./assets/xxdOutput1binary.png)
 
 ---
 
