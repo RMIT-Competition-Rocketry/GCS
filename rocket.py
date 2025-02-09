@@ -7,6 +7,7 @@ import cli.proccess as process
 import subprocess
 import sys
 import time
+import os
 import signal
 from typing import Tuple, Optional
 from cli.start_socat import start_fake_serial_device
@@ -27,6 +28,7 @@ def run():
     """Start software for production usage in native environment. Indented for usage on GCS only"""
     logger.error("Production mode attempted. Not supported")
     raise NotImplementedError("Production setup not currently supported")
+    print_splash()
 
 
 @click.command()
@@ -49,6 +51,8 @@ def dev(nodocker):
             logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
             raise
 
+    print_splash()
+
     if nodocker:
         # This is called in Docker anyway.
         # Just to avoid recursive containerisation
@@ -63,6 +67,23 @@ def dev(nodocker):
     if devices == (None, None):
         raise RuntimeError("Failed to start fake serial device. Exiting")
     start_fake_serial_device_emulator(logger, devices)
+
+
+def print_splash():
+    """Prints a logo and splash screen for decoration"""
+    with open(os.path.join("cli", "ascii_art_logo.txt"), "r") as r:
+        print(r.read())
+
+    print("\n\n")
+    print("RMIT High Velocty Rocket GCS CLI")
+    print("Version: ", end='')
+    with open("VERSION", "r") as r:
+        print(r.read())
+
+    print("Local Timestamp: ", time.strftime(
+        "%Y-%m-%d %H:%M:%S", time.localtime()))
+
+    print("\n")
 
 
 def signal_handler(signum, frame):
