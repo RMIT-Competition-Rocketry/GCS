@@ -100,6 +100,78 @@ class GCStoAVStateCMD(MockPacket):
         ]
 
 
+class AVtoGCSData1(MockPacket):
+    def __init__(
+        self,
+        FLIGHT_STATE_MSB=False,
+        FLIGHT_STATE_1=False,
+        FLIGHT_STATE_LSB=False,
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
+        GPS_FIX_FLAG=False,
+        PAYLOAD_CONNECTION_FLAG=True,
+        CAMERA_CONTROLLER_CONNECTION=True,
+        ACCEL_LOW_X=12345,
+        ACCEL_LOW_Y=12345,
+        ACCEL_LOW_Z=12345,
+        ACCEL_HIGH_X=12345,
+        ACCEL_HIGH_Y=12345,
+        ACCEL_HIGH_Z=12345,
+        GYRO_X=12345,
+        GYRO_Y=12345,
+        GYRO_Z=12345,
+        ALTITUDE=1234567,
+        VELOCITY=1234567,
+        APOGEE_PRIMARY_TEST_COMPETE=True,
+        APOGEE_SECONDARY_TEST_COMPETE=False,
+        APOGEE_PRIMARY_TEST_RESULTS=False,
+        APOGEE_SECONDARY_TEST_RESULTS=False,
+        MAIN_PRIMARY_TEST_COMPETE=True,
+        MAIN_SECONDARY_TEST_COMPETE=False,
+        MAIN_PRIMARY_TEST_RESULTS=False,
+        MAIN_SECONDARY_TEST_RESULTS=False,
+        MOVE_TO_BRAODCAST=False
+    ):
+        super().    __init__()
+        self.ID = 0x03
+        self.payload_after_id = [
+            metric.Metric.StateFlags3p0(
+                FLIGHT_STATE_MSB,
+                FLIGHT_STATE_1,
+                FLIGHT_STATE_LSB,
+                DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
+                RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
+                GPS_FIX_FLAG,
+                PAYLOAD_CONNECTION_FLAG,
+                CAMERA_CONTROLLER_CONNECTION,
+            ),
+            metric.Metric.ACCEL_LOW_X(ACCEL_LOW_X),
+            metric.Metric.ACCEL_LOW_Y(ACCEL_LOW_Y),
+            metric.Metric.ACCEL_LOW_Z(ACCEL_LOW_Z),
+            metric.Metric.ACCEL_HIGH_X(ACCEL_HIGH_X),
+            metric.Metric.ACCEL_HIGH_Y(ACCEL_HIGH_Y),
+            metric.Metric.ACCEL_HIGH_Z(ACCEL_HIGH_Z),
+            metric.Metric.GYRO_X(GYRO_X),
+            metric.Metric.GYRO_Y(GYRO_Y),
+            metric.Metric.GYRO_Z(GYRO_Z),
+            metric.Metric.ALTITUDE(ALTITUDE),
+            metric.Metric.VELOCITY(VELOCITY),
+            metric.Metric.continuityCheckResultsApogee(
+                APOGEE_PRIMARY_TEST_COMPETE,
+                APOGEE_SECONDARY_TEST_COMPETE,
+                APOGEE_PRIMARY_TEST_RESULTS,
+                APOGEE_SECONDARY_TEST_RESULTS,
+            ),
+            metric.Metric.continuityCheckResultsMain(
+                MAIN_PRIMARY_TEST_COMPETE,
+                MAIN_SECONDARY_TEST_COMPETE,
+                MAIN_PRIMARY_TEST_RESULTS,
+                MAIN_SECONDARY_TEST_RESULTS,
+            ),
+            metric.Metric.MovingToBroadCastFlag(MOVE_TO_BRAODCAST),
+        ]
+
+
 def main():
     logger.debug("Emulator starting")
 
@@ -117,7 +189,9 @@ def main():
         FAKE_DEVICE_NAME_MONITOR=FAKE_DEVICE_NAME_MONITOR
     )
 
-    test_packet = GCStoAVStateCMD()
+    # Also, this is the ROCKET emulator.
+    # Packets written to the device should be packets that are sent from AV
+    test_packet = AVtoGCSData1()
     test_packet.write_payload()
 
     logger.debug("Emulator finished")

@@ -27,9 +27,13 @@ Please note that both fake serial devices are linked, but when you read from one
 
 ### Reading Bytes
 
+> [!WARNING]
+> In the future this debug option should be **deprecated**. There should be a logging process that eats all the data from the buffer so you can't see anything. When that happens, these notes *should* be updated.
+
 As we're not within the ascii table range, but within the entire range of bytes (0-255) we can't use screen or any ascii rendering method. You need to view the data in hex or binary.
 
 Get the device port as the **second** listed device in the debug logs:
+
 
 ![socat device parsing output](./assets/socatDeviceParse.png)
 
