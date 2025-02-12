@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message PacketID {
+    enum PacketType {
+        GCS_TO_AV_STATE_CMD = 0; // ID = 0x01
+        GCS_TO_GSE_STATE_CMD = 1; // ID = 0x02
+        AV_TO_GCS_DATA_1 = 2; // ID = 0x03
+        AV_TO_GCS_DATA_2 = 3; // ID = 0x04
+        AV_TO_GCS_DATA_3 = 4; // ID = 0x05
+        GSE_TO_GCS_DATA_1 = 5; // ID = 0x06
+        GSE_TO_GCS_DATA_2 = 6; // ID = 0x07
+        GSE_TO_GCS_DATA_3 = 7; // ID = 0x08
+    }
+}

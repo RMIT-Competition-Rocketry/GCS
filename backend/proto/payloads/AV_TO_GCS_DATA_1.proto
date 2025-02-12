@@ -1,0 +1,38 @@
+message AV_TO_GCS_DATA_1 {
+    // Note 3
+    enum FlightState {
+        PRE_FLIGHT_NO_FLIGHT_READY = 0;
+        PRE_FLIGHT_FLIGHT_READY = 1;
+        LAUNCH = 2;
+        COAST = 3;
+        APOGEE = 4;
+        DECENT = 5;
+        LANDED = 5;
+        OH_NO = 5; // I'm going with the data sheet ong
+    }
+
+    FlightState flightState = 1;
+    float accelerationLOWX = 2;
+    float accelerationLOWY = 3;
+    float accelerationLOWZ = 4;
+    float accelerationHIGHX = 5;
+    float accelerationHIGHY = 6;
+    float accelerationHIGHZ = 7;
+    float gyroX = 8;
+    float gyroY = 8;
+    float gyroZ = 8;
+    float altitude = 9;
+    float velocity = 10;
+
+    bool apogeePrimaryTestComplete = 11; // Note 4
+    bool apogeeSecondaryTestComplete = 12; // Note 4
+    bool apogeePrimaryTestResults = 13; // True means continuity. (Note 4)
+    bool apogeeSecondaryTestResults = 14; // True means continuity. (Note 4)
+
+    bool mainPrimaryTestComplete = 15; // Note 5
+    bool mainSecondaryTestComplete = 16; // Note 5
+    bool mainPrimaryTestResults = 17; // Note 5
+    bool mainSecondaryTestResults = 18; // Note 5
+
+    bool broadcastFlag = 19; // Note 6
+}
