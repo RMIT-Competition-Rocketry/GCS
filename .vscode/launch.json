@@ -5,6 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(lldb) Launch middleware",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/middleware",
+            "args": [
+                // 3 args please
+                "UART",
+                "/dev/ttys033",
+                // Note that usinf /var/run requires elevated privleges
+                "/tmp/gcs_rocket.sock",
+            ],
+            "preLaunchTask": "middleware build-dev",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
             "name": "Python Debugger: cli dev --nodocker",
             "type": "debugpy",
             "request": "launch",

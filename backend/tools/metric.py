@@ -161,6 +161,7 @@ class Metric:
 
         return Metric._int_to_byte(result)
 
+    @staticmethod
     def continuityCheckCMDFlagsINVERTED(
         MAIN_SECONDARY_TEST: bool,
         MAIN_PRIMARY_TEST: bool,

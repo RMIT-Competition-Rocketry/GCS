@@ -29,6 +29,8 @@ def run():
     logger.error("Production mode attempted. Not supported")
     raise NotImplementedError("Production setup not currently supported")
     print_splash()
+    # Run a check to make sure the binaries are there.
+    # If not raise a FileNotFoundError
 
 
 @click.command()
@@ -66,6 +68,11 @@ def dev(nodocker):
     devices = start_fake_serial_device(logger)
     if devices == (None, None):
         raise RuntimeError("Failed to start fake serial device. Exiting")
+    # Run make file in dev build mode for middleware.
+    # Make this blocking, and make it run before the emulator
+
+    # Start the middleware, pass device name to it
+
     start_fake_serial_device_emulator(logger, devices)
 
 

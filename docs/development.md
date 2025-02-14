@@ -1,7 +1,13 @@
 
 # Development notes
 
-## Device Ports
+## Ports
+
+Currently, the ports opened by this program are:
+
+| Name | Address | Description |
+| --- | --- | --- |
+|TODO|TODO|TODO
 
 ### Device Emulation 
 
