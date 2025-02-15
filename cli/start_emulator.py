@@ -3,12 +3,12 @@ import cli.proccess as process
 from typing import Tuple
 
 
-def start_fake_serial_device_emulator(logger: logging.Logger, devices: Tuple[str, str]):
+def start_fake_serial_device_emulator(logger: logging.Logger, DEVICE: str):
     try:
 
         EMULATOR_COMMAND = [
             "python3", "-u", "-Xfrozen_modules=off", "-m", "backend.tools.device_emulator",
-            "--device-rocket", devices[0], "--device-monitor", devices[1]
+            "--device-rocket", DEVICE
         ]
 
         logger.debug(f"Starting emulator module with: {EMULATOR_COMMAND}")

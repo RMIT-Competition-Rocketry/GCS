@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "middleware build-dev",
+            "type": "shell",
+            "command": "cmake -DCMAKE_BUILD_TYPE=Debug . && make ",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "dark": "resources/dark/build.svg",
+                "light": "resources/light/build.svg"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "start socat manually",
+            "type": "shell",
+            "command": "socat -d -d pty,raw,echo=0 pty,raw,echo=0",
+            "icon": {
+                "id": "debug-console"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

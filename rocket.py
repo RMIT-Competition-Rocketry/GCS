@@ -12,6 +12,9 @@ import signal
 from typing import Tuple, Optional
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
+from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
+from cli.start_middleware import start_middleware, InterfaceType
+
 
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
@@ -29,6 +32,8 @@ def run():
     logger.error("Production mode attempted. Not supported")
     raise NotImplementedError("Production setup not currently supported")
     print_splash()
+    # Run a check to make sure the binaries are there.
+    # If not raise a FileNotFoundError
 
 
 @click.command()
@@ -63,10 +68,33 @@ def dev(nodocker):
         logger.info("Starting dev container in Docker")
         start_docker_container()
 
+    # 1. Build C++ middleware
+    try:
+        start_middleware_build(logger, CMakeBuildModes.DEBUG)
+    except Exception as e:
+        logger.error(
+            f"Failed to build middleware: {e}\nPropogating fatal error")
+        raise
+
+    # 2.
     devices = start_fake_serial_device(logger)
     if devices == (None, None):
         raise RuntimeError("Failed to start fake serial device. Exiting")
-    start_fake_serial_device_emulator(logger, devices)
+
+    # 3. Run C++ middleware
+    # Note that devices are paired pseudo-ttys
+    try:
+        start_middleware(logger,
+                         InterfaceType.UART,
+                         devices[0],
+                         "gcs_rocket")
+    except Exception as e:
+        logger.error(
+            f"Failed to start middleware: {e}\nPropogating fatal error")
+        raise
+
+    # 4. Start device emulator
+    start_fake_serial_device_emulator(logger, devices[1])
 
 
 def print_splash():

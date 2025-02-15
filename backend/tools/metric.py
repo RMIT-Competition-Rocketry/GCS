@@ -93,7 +93,7 @@ class Metric:
         """
         result = 0
 
-        result = (result << 3) | 0b1010  # Add fixed bits
+        result = (result << 4) | 0b1010  # Add fixed bits
         result = (result << 1) | MAIN_SECONDARY_TEST
         result = (result << 1) | MAIN_PRIMARY_TEST
         result = (result << 1) | APOGEE_SECONDARY_TEST
@@ -125,7 +125,7 @@ class Metric:
 
         result = (result << 1) | APOGEE_PRIMARY_TEST_COMPETE
         result = (result << 1) | APOGEE_SECONDARY_TEST_COMPETE
-        result = (result << 3) | 0b1010  # Add fixed bits
+        result = (result << 4) | 0b1010  # Add fixed bits
         result = (result << 1) | APOGEE_PRIMARY_TEST_RESULTS
         result = (result << 1) | APOGEE_SECONDARY_TEST_RESULTS
 
@@ -155,12 +155,13 @@ class Metric:
 
         result = (result << 1) | MAIN_PRIMARY_TEST_COMPETE
         result = (result << 1) | MAIN_SECONDARY_TEST_COMPETE
-        result = (result << 3) | 0b1010  # Add fixed bits
+        result = (result << 4) | 0b1010  # Add fixed bits
         result = (result << 1) | MAIN_PRIMARY_TEST_RESULTS
         result = (result << 1) | MAIN_SECONDARY_TEST_RESULTS
 
         return Metric._int_to_byte(result)
 
+    @staticmethod
     def continuityCheckCMDFlagsINVERTED(
         MAIN_SECONDARY_TEST: bool,
         MAIN_PRIMARY_TEST: bool,

@@ -5,6 +5,8 @@ import logging
 from typing import Optional, List
 import sys
 from backend.tools import metric
+import datetime
+import time
 
 logger = logging.getLogger('rocket')
 
@@ -24,15 +26,12 @@ if not logger.hasHandlers():
 class MockPacket(ABC):
     # Name of the fake device socat has made
     _FAKE_DEVICE_NAME: Optional[str] = None
-    # Name of the fake device socat has made for monitoring
-    _FAKE_DEVICE_NAME_MONITOR: Optional[str] = None
     _INITIALISED: bool = False  # Flag to check if the settings have been initialized
 
     @classmethod
     def initialize_settings(cls,
                             EMULATION_CONFIG: dict,
-                            FAKE_DEVICE_NAME: str,
-                            FAKE_DEVICE_NAME_MONITOR: str):
+                            FAKE_DEVICE_NAME: str):
         """Initialise settings for the MockPacket object
 
         Args:
@@ -47,7 +46,6 @@ class MockPacket(ABC):
 
         # Set static class values
         cls._FAKE_DEVICE_NAME = FAKE_DEVICE_NAME
-        cls._FAKE_DEVICE_NAME_MONITOR = FAKE_DEVICE_NAME_MONITOR
         cls._INITIALISED = True
 
     def __init__(self):
@@ -130,7 +128,7 @@ class AVtoGCSData1(MockPacket):
         MAIN_SECONDARY_TEST_COMPETE=False,
         MAIN_PRIMARY_TEST_RESULTS=False,
         MAIN_SECONDARY_TEST_RESULTS=False,
-        MOVE_TO_BRAODCAST=False
+        MOVE_TO_BROADCAST=False
     ):
         super().    __init__()
         self.ID = 0x03
@@ -168,7 +166,7 @@ class AVtoGCSData1(MockPacket):
                 MAIN_PRIMARY_TEST_RESULTS,
                 MAIN_SECONDARY_TEST_RESULTS,
             ),
-            metric.Metric.MovingToBroadCastFlag(MOVE_TO_BRAODCAST),
+            metric.Metric.MovingToBroadCastFlag(MOVE_TO_BROADCAST),
         ]
 
 
@@ -177,8 +175,6 @@ def main():
 
     try:
         FAKE_DEVICE_NAME = sys.argv[sys.argv.index('--device-rocket') + 1]
-        FAKE_DEVICE_NAME_MONITOR = \
-            sys.argv[sys.argv.index('--device-monitor') + 1]
     except ValueError:
         logger.error("Failed to find device names in arguments for emulator")
         raise
@@ -186,13 +182,16 @@ def main():
     MockPacket.initialize_settings(
         config.load_config()['emulation'],
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
-        FAKE_DEVICE_NAME_MONITOR=FAKE_DEVICE_NAME_MONITOR
     )
 
     # Also, this is the ROCKET emulator.
     # Packets written to the device should be packets that are sent from AV
     test_packet = AVtoGCSData1()
-    test_packet.write_payload()
+
+    START = datetime.datetime.now()
+    while (datetime.datetime.now() - START).seconds < 60*10:  # 10 minute debug session
+        test_packet.write_payload()
+        time.sleep(1)
 
     logger.debug("Emulator finished")
 

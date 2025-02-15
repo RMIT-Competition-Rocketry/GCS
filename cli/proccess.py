@@ -46,6 +46,9 @@ class LoggedSubProcess:
 
     def register_callback(self, callback: Callable[[str, str], None]):
         """Register a callback to be called when a specific line is detected"""
+        if self._process is not None:
+            self._logger_adapter.warning(
+                "You have added callbacks after process has started. Race conditions possible")
         self._logger_adapter.debug(
             f"Registering callback: {callback.__name__}")
         self._callbacks.append(callback)

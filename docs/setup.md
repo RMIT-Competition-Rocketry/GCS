@@ -5,8 +5,6 @@ The GSE software is run by using a Python based CLI.
 
 ## Prerequisites
 
-## Prerequisites
-
 > [!NOTE]
 > Items denoted with 🐳 are installed in the Docker container. They do not require manual installation.
 
@@ -16,10 +14,12 @@ The GSE software is run by using a Python based CLI.
 | Python >= 3.6 | ✅        | ✅                  | ✅                  |
 | Docker        | ❌       | ✅                  | ❌                  |
 | Socat         | ❌        |  🐳                 | ✅                  |
+| g++ |✅|🐳|✅|
+| [ZeroMQ](https://zeromq.org/download/) |✅|🐳|✅| 
 
 ## Setup Instructions
 
-Firstly navigate into the repository directory and ensure you have Python 3 installed
+Firstly navigate into this repository directory and ensure you have Python 3 installed
 
 ```shell
 $ python3 --version

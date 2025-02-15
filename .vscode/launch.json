@@ -5,6 +5,32 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(lldb) Attach PID",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/build/middleware",
+            "MIMode": "lldb"
+        },
+        {
+            "name": "(lldb) Launch middleware",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/middleware",
+            "args": [
+                // 3 args please
+                "UART",
+                "/dev/ttys021", // socat device. Either is fine
+                // Note that usinf /var/run requires elevated privleges
+                "/tmp/gcs_rocket.sock",
+            ],
+            "preLaunchTask": "middleware build-dev",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
             "name": "Python Debugger: cli dev --nodocker",
             "type": "debugpy",
             "request": "launch",

@@ -59,9 +59,10 @@ def start_fake_serial_device(logger: logging.Logger) -> Tuple[Optional[str], Opt
                          "pty,raw,echo=0", "pty,raw,echo=0"]
         logger.debug(f"Starting socat with: {SOCAT_COMMAND}")
         socat_proccess = SocatSubprocess(SOCAT_COMMAND, name="socat")
+        socat_proccess.register_callback(device_name_callback)
+
         socat_proccess.start()
 
-        socat_proccess.register_callback(device_name_callback)
         devices = []
         while len(devices) < 2:
             devices += socat_proccess.get_parsed_data()
