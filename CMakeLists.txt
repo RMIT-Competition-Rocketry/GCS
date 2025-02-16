@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.12)
 project(middleware LANGUAGES CXX)
 
+find_package(Protobuf CONFIG REQUIRED)
+
+# Set proto file path correctly
+set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path
+set(PROTO_FILE "${PROTO_DIR}/AV_TO_GCS_DATA_1.proto")
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
@@ -14,27 +20,52 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra")
 
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
 set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
+
 file(GLOB SRCS "${SRC_DIR}/*.cpp")
 
-# This line has to be before add_executable
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 
 add_executable(middleware ${SRCS})
 
-# Find cppzmq for this project
-# This line will need to be edited on different systems most likely
+# Generate protobuf sources with proper paths #18
+# https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
+# protobuf_generate(
+# TARGET middleware
+# PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated
+# IMPORT_DIRS ${PROTO_DIR}
+# SOURCES ${PROTO_FILE}
+# )
+
+# Find cppzmq
 find_path(ZMQ_INCLUDE_DIR zmq.hpp
     HINTS /usr/local/include /opt/local/include /usr/include /opt/homebrew/Cellar/cppzmq/4.10.0/include
 )
 
-if(NOT ZMQ_INCLUDE_DIR OR NOT ZMQ_LIBRARY)
-    message(FATAL_ERROR "ZeroMQ not found. Please install ZeroMQ or set ZMQ_INCLUDE_DIR and ZMQ_LIBRARY manually.")
+if(NOT ZMQ_INCLUDE_DIR)
+    message(FATAL_ERROR "ZeroMQ headers not found")
 endif()
 
-# Include ZeroMQ headers
-target_include_directories(middleware PRIVATE ${ZMQ_INCLUDE_DIR})
+# Find ZMQ library
+find_library(ZMQ_LIBRARY NAMES zmq
+    HINTS /usr/local/lib /opt/local/lib /usr/lib /opt/homebrew/Cellar/zeromq/4.3.4/lib
+)
 
-# Link against ZeroMQ
-target_link_libraries(middleware PRIVATE ${ZMQ_LIBRARY})
+if(NOT ZMQ_LIBRARY)
+    message(FATAL_ERROR "ZeroMQ library not found")
+endif()
+
+# Include directories
+target_include_directories(middleware PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}/generated # Protobuf generated headers
+    ${Protobuf_INCLUDE_DIRS}
+    ${ZMQ_INCLUDE_DIR}
+    ${PROTO_DIR} # For proto file imports
+)
+
+# Link libraries
+target_link_libraries(middleware PRIVATE
+    protobuf::libprotobuf # Modern target-based linking
+    ${ZMQ_LIBRARY}
+)
 
 install(TARGETS middleware DESTINATION bin)
