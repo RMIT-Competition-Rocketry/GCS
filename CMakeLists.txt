@@ -27,14 +27,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 
 add_executable(middleware ${SRCS})
 
-# Generate protobuf sources with proper paths #18
+# Protobuf generation #18
 # https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
-# protobuf_generate(
-# TARGET middleware
-# PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated
-# IMPORT_DIRS ${PROTO_DIR}
-# SOURCES ${PROTO_FILE}
-# )
+add_library(proto-objects OBJECT "${CMAKE_CURRENT_LIST_DIR}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto")
+target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated")
+target_include_directories(proto-objects PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
+
+protobuf_generate(
+    TARGET proto-objects
+    IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/backend/proto"
+    PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
+)
 
 # Find cppzmq
 find_path(ZMQ_INCLUDE_DIR zmq.hpp
