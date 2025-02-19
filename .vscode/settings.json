@@ -74,6 +74,12 @@
         "utility": "cpp",
         "format": "cpp",
         "stop_token": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "__tree": "cpp",
+        "set": "cpp",
+        "any": "cpp",
+        "condition_variable": "cpp",
+        "map": "cpp",
+        "span": "cpp"
     }
 }

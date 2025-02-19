@@ -1,6 +1,71 @@
 
 # Development notes
 
+## Writing a Payload Reader
+
+Payload readers are found in `backend/middleware/payloads/*.hpp` with the excpetion of the `ByteParser.hpp` helper
+
+They follow a typical template of:
+
+```cpp
+#pragma once
+#include "ByteParser.hpp"
+#include <cstdint>
+#include <iostream>
+#include <bit>
+#include <cstdint>
+// TODO add this to import path and make linter happy
+#include "../../proto/generated/payloads/AV_TO_GCS_DATA_1.pb.h"
+
+#define SET_PROTO_FIELD(proto, field) proto.set_##field(field())
+
+class PacketName
+{
+public:
+    // Amount of bytes in this payload
+    static constexpr ssize_t SIZE = 31;      // 32 including ID and TBC byte
+    static constexpr unsigned int ID = 0x03; // 8 bits reserved in packet
+
+    /// @brief See LoRa packet structure spreadsheet for more information.
+    /// @param DATA
+    PacketName(const uint8_t *DATA)
+    {
+        ByteParser parser(DATA, SIZE);
+
+        // DON'T EXTRACT BITS FOR ID!!!!
+        // ID is handled seperatly in main loop for packet type identification
+
+        bool_field_ = static_cast<bool>(parser.extract_bits(1));
+        float_field_ = std::bit_cast<float>(parser.extract_signed_bits(32));
+    }
+
+    // Getters for the private members
+    constexpr unsigned int id_val() const { return ID; }
+    bool bool_field() const { return bool_field_; }
+    float float_field() const { return float_field_; }
+
+
+    // Protobuf serialization
+
+    payload::AV_TO_GCS_DATA_1 toProtobuf() const
+    {
+        payload::AV_TO_GCS_DATA_1 proto_data;
+
+        // Use the macro for simple fields with same name
+        SET_PROTO_FIELD(proto_data, bool_field);
+        SET_PROTO_FIELD(proto_data, float_field);
+
+        return proto_data;
+    }
+
+private:
+    
+    // Static conversion functions here too
+    bool bool_field_;
+    float float_field_;
+};
+```
+
 ## Ports and Sockets
 
 For debug, so far we've only opened temporary `/tmp/gcs_rocket_pub.sock` and `/tmp/gcs_rocket_sub.sock` sockets. They should be formalised with the config.ini file at some point perhaps? or maybe just best to document it here and hard code it into the file. 

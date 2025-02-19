@@ -2,6 +2,7 @@ import zmq
 import argparse
 from datetime import datetime
 import signal
+import hashlib
 
 # Subscribes to the ZeroMQ PUB socket and prints received messages in hex and ASCII format
 
@@ -11,9 +12,18 @@ def format_hex(data):
     return ' '.join(f"{byte:02x}" for byte in data)
 
 
-def format_ascii(data):
-    """Convert bytes to readable ASCII format, using '.' for non-readable characters"""
-    return ''.join(chr(byte) if 32 <= byte <= 126 else '.' for byte in data)
+def get_sha(data, length=8):
+    """Compute the SHA-1 hash of data and return the first `length` characters of its hex digest.
+
+    Args:
+        data (bytes): The data to hash.
+        length (int): Number of characters to return from the digest (default 8).
+
+    Returns:
+        str: The first `length` characters of the SHA-1 hash in hexadecimal.
+    """
+    sha_full = hashlib.sha1(data, usedforsecurity=False).hexdigest()
+    return sha_full[:length]
 
 
 def signal_handler(sig, frame):
@@ -45,9 +55,9 @@ def main(socket_path):
             message = sub_socket.recv(flags=zmq.NOBLOCK)
             timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
             hex_data = format_hex(message)
-            ascii_data = format_ascii(message)
+            sha_data = get_sha(message)
             print(f"[{timestamp}] Received {len(message)} bytes:")
-            print(f"({ascii_data}) {hex_data}")
+            print(f"({sha_data}) {hex_data}")
         except zmq.Again:
             # No message received, sleep to prevent CPU spin
             pass

@@ -9,7 +9,6 @@ import sys
 import time
 import os
 import signal
-from typing import Tuple, Optional
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
@@ -96,6 +95,12 @@ def dev(nodocker):
     # 4. Start device emulator
     start_fake_serial_device_emulator(logger, devices[1])
 
+    # 5. I'm not sure. Maybe start the event viewer?
+
+    # 6. Could start the pendent emulator
+
+    # 7. Database stuff in future
+
 
 def print_splash():
     """Prints a logo and splash screen for decoration"""
@@ -135,6 +140,8 @@ def signal_handler(signum, frame):
 
 def cleanup():
     """Run cleanup tasks before the program exits"""
+    if "Keyboard Interrupt" in cleanup_reason:
+        print()  # Print a newline after the ^C
     logger.warning(f"Running cleanup tasks - Reason: {cleanup_reason}")
     process.LoggedSubProcess.cleanup()
     logger.info("All cleanup tasks completed")
@@ -167,7 +174,9 @@ def main():
             # Keep program alive, but it doesn't need to do anything
             time.sleep(1)
     except KeyboardInterrupt:
+        # I have a feeling this will never execute with the signal handlers?
         cleanup_reason = "Keyboard Interrupt (Ctrl+C)"
+        print()  # Print a newline after the ^C
         cleanup()
         sys.exit(130)  # Standard exit code for Ctrl+C
     except Exception as e:

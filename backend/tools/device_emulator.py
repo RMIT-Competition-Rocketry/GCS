@@ -61,7 +61,7 @@ class MockPacket(ABC):
 
         try:
             with open(self._FAKE_DEVICE_NAME, 'wb') as device:
-                device.write(metric.Metric._int_to_byte(self.ID))
+                device.write(metric.Metric._int_to_byte_unsigned(self.ID))
                 for byte in self.payload_after_id:
                     device.write(byte)
         except Exception as e:
@@ -109,17 +109,17 @@ class AVtoGCSData1(MockPacket):
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        ACCEL_LOW_X=12345,
-        ACCEL_LOW_Y=12345,
-        ACCEL_LOW_Z=12345,
-        ACCEL_HIGH_X=12345,
-        ACCEL_HIGH_Y=12345,
-        ACCEL_HIGH_Z=12345,
-        GYRO_X=12345,
-        GYRO_Y=12345,
-        GYRO_Z=12345,
-        ALTITUDE=1234567,
-        VELOCITY=1234567,
+        ACCEL_LOW_X=2048*1,
+        ACCEL_LOW_Y=2048*2,
+        ACCEL_LOW_Z=-2048*3,
+        ACCEL_HIGH_X=-1024*1,
+        ACCEL_HIGH_Y=-1024*2,
+        ACCEL_HIGH_Z=1024*3,
+        GYRO_X=int(1/0.00875),
+        GYRO_Y=int(2/0.00875),
+        GYRO_Z=int(3/0.00875),
+        ALTITUDE=1234,
+        VELOCITY=1234,
         APOGEE_PRIMARY_TEST_COMPETE=True,
         APOGEE_SECONDARY_TEST_COMPETE=False,
         APOGEE_PRIMARY_TEST_RESULTS=False,
@@ -167,6 +167,8 @@ class AVtoGCSData1(MockPacket):
                 MAIN_SECONDARY_TEST_RESULTS,
             ),
             metric.Metric.MovingToBroadCastFlag(MOVE_TO_BROADCAST),
+            # Note the dummy byte here for TBC purposes
+            metric.Metric.dummyByte()
         ]
 
 
@@ -189,9 +191,12 @@ def main():
     test_packet = AVtoGCSData1()
 
     START = datetime.datetime.now()
-    while (datetime.datetime.now() - START).seconds < 60*10:  # 10 minute debug session
-        test_packet.write_payload()
-        time.sleep(1)
+    try:
+        while (datetime.datetime.now() - START).seconds < 60*10:  # 10 minute debug session
+            test_packet.write_payload()
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.debug("Emulator interrupted by user")
 
     logger.debug("Emulator finished")
 

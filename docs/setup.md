@@ -8,6 +8,7 @@ The GSE software is run by using a Python based CLI.
 > [!NOTE]
 > Items denoted with 🐳 are installed in the Docker container. They do not require manual installation.
 
+**TODO: update this when you do the first fresh install**
 
 | Requirement   | Required | Docker Development | Native Development |
 |---------------|----------|--------------------|--------------------|
@@ -16,6 +17,7 @@ The GSE software is run by using a Python based CLI.
 | Socat         | ❌        |  🐳                 | ✅                  |
 | g++ |✅|🐳|✅|
 | [ZeroMQ](https://zeromq.org/download/) |✅|🐳|✅| 
+| Protobuf |✅|🐳|✅| 
 
 ## Setup Instructions
 
