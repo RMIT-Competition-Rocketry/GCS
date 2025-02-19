@@ -126,6 +126,7 @@ class LoggedSubProcess:
         """
         if stream_name == "STDERR":
             self._logger_adapter.error(
+                # ╰─
                 f"[{stream_name}] {stripped_line}")
         else:
             self._logger_adapter.debug(

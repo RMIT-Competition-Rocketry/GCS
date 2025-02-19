@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "middleware build-dev",
+            "label": "middleware build-dev + generate proto",
             "type": "shell",
-            "command": "cmake -DCMAKE_BUILD_TYPE=Debug . && make ",
+            "command": "cmake -DCMAKE_BUILD_TYPE=Debug . && make", // VERBOSE = 1
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -25,6 +25,75 @@
                 "id": "debug-console"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "start emulator manually",
+            "type": "shell",
+            "command": "python3 -u -Xfrozen_modules=off -m backend.tools.device_emulator --device-rocket ${input:terminalPath}",
+            "icon": {
+                "id": "debug-console"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start ZeroMQ debug subscriber",
+            "type": "shell",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/tools/zeromq_debug_sub_raw.py",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile Manual Protobuf Payload",
+            "type": "shell",
+            "command": "protoc",
+            "args": [
+                "-I=${workspaceFolder}/backend/proto/payloads",
+                "--cpp_out=${workspaceFolder}/backend/proto/generated/payloads",
+                "${workspaceFolder}/backend/proto/payloads/${input:outputPath}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                {
+                    "owner": "protobuf",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/backend/proto/payloads"
+                    ],
+                    "pattern": {
+                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "message": 4
+                    }
+                }
+            ],
+            "icon": {
+                "id": "code"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "outputPath",
+            "type": "promptString",
+            "description": "Enter the proto file path relative to backend/proto/payloads/",
+            "default": "AV_TO_GCS_DATA_1.proto"
+        },
+        {
+            "id": "terminalPath",
+            "type": "promptString",
+            "description": "Enter the psuedoterminal /dev path",
+            "default": "/dev/ttys..."
         }
     ]
 }

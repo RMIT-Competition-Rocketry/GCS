@@ -3,20 +3,32 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <unistd.h> // For debug sleep()
 #include <signal.h>
+#include "payloads/AV_TO_GCS_DATA_1.hpp"
 
 // This file hosts the ZeroMQ IPC server stuff
 
 std::atomic<bool> running{true};
+volatile bool debugger_attached = false;
 
 // Thread safe signal handler
 void signal_handler(int)
 {
+    std::cout << "Signal received, stopping server" << std::endl;
     running = false;
+}
+
+void set_thread_name(const char *name)
+{
+#ifdef __APPLE__
+    pthread_setname_np(name);
+#endif
 }
 
 void uart_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pub_socket)
 {
+    set_thread_name("uart_read_loop");
     std::vector<uint8_t> buffer(256);
 
     while (running)
@@ -24,20 +36,42 @@ void uart_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pub
         ssize_t count = interface->read_data(buffer);
         if (count > 0)
         {
-            zmq::message_t msg(count);
-            memcpy(msg.data(), buffer.data(), count);
-            pub_socket.send(msg, zmq::send_flags::none);
+            // Check if we have enough bytes for the ID
+            if (count >= 1)
+            {
+                unsigned int packet_id = buffer[0];
 
-            // When working with container like vectors, use:
-            // zmq::message_t msg(data.begin(), data.end());
+                // Check if this is an AV_TO_GCS_DATA_1 packet
+                if (packet_id == AV_TO_GCS_DATA_1::ID)
+                {
+                    // Ensure we have enough bytes for the full payload
+                    if (count >= AV_TO_GCS_DATA_1::SIZE) // This includes the byte already read
+                    {
+                        try
+                        {
+                            // Create payload object from buffer (skipping ID byte)
+                            AV_TO_GCS_DATA_1 payload(&buffer[1]);
 
-            // And things like strings use:
-            // zmq::message_t msg(data.size());
+                            // Convert to protobuf
+                            auto proto_msg = payload.toProtobuf();
 
-            // std::string data = "hello";
-            // zmq::message_t msg(data.size());
-            // memcpy(msg.data(), data.data(), data.size());
-            // pub_socket.send(msg, zmq::send_flags::none);
+                            // Serialize protobuf to string
+                            std::string serialized;
+                            if (proto_msg.SerializeToString(&serialized))
+                            {
+                                // Send via ZMQ
+                                zmq::message_t msg(serialized.data(), serialized.size());
+                                pub_socket.send(msg, zmq::send_flags::none);
+                            }
+                        }
+                        catch (const std::exception &e)
+                        {
+                            std::cerr << "Error processing payload: " << e.what() << std::endl;
+                        }
+                    } // TODO: What are you gonna do if the buffer needs to be filled again for more bytes? Or is it hardware controlled?
+                }
+                // Add handling for other packet types here
+            }
         }
         else
         {
@@ -67,6 +101,18 @@ std::unique_ptr<LoraInterface> create_interface(
 // ./file <interface type> <device path> <socket path>
 int main(int argc, char *argv[])
 {
+
+#ifdef DEBUG
+    std::cout << "Debug: Starting server in DEBUG mode." << std::endl;
+    // while (!debugger_attached)
+    // {
+    //     sleep(1);
+    // }
+    // std::cout << "Debug: Debugger attached" << std::endl;
+#endif
+
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
     // Pick interface based on the first argument
     if (argc < 4)
     {
@@ -94,6 +140,7 @@ int main(int argc, char *argv[])
             DEVICE_PATH);
 
         interface->initialize();
+        std::cout << "Interface initialised" << std::endl;
 
         // ZeroMQ setup
         zmq::context_t context(1);
@@ -120,7 +167,7 @@ int main(int argc, char *argv[])
             if (items[0].revents & ZMQ_POLLIN)
             {
                 zmq::message_t msg;
-                pull_socket.recv(msg, zmq::recv_flags::none);
+                zmq::recv_result_t result = pull_socket.recv(msg, zmq::recv_flags::none);
 
                 // Process command (example: echo back)
                 std::vector<uint8_t> cmd_data(

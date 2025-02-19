@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(middleware LANGUAGES CXX)
 
+option(BUILD_TESTS "Build the test suite" OFF)
+
 find_package(Protobuf CONFIG REQUIRED)
 
 # Set proto file path correctly
@@ -11,7 +13,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20) # For std::bit_cast
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -38,6 +40,24 @@ protobuf_generate(
     TARGET proto-objects
     IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/backend/proto"
     PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
+)
+
+# Get all generated protobuf source files
+# TODO this might need to be edited after you start using things outside of payloads
+file(GLOB PROTO_SOURCES "${PROTO_BINARY_DIR}/payloads/*.pb.cc")
+
+# Define DEBUG macro in debug builds
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(middleware PRIVATE DEBUG)
+endif()
+
+# Add the generated sources to your middleware executable
+target_sources(middleware PRIVATE ${PROTO_SOURCES})
+
+# Make sure middleware can find the generated headers
+target_include_directories(middleware PRIVATE
+    ${PROTO_BINARY_DIR}
+    ${Protobuf_INCLUDE_DIRS}
 )
 
 # Find cppzmq

@@ -19,11 +19,11 @@
             "args": [
                 // 3 args please
                 "UART",
-                "/dev/ttys021", // socat device. Either is fine
-                // Note that usinf /var/run requires elevated privleges
+                "/dev/ttys052", // socat device. Either is fine
+                // Note that using /var/run requires elevated privleges
                 "/tmp/gcs_rocket.sock",
             ],
-            "preLaunchTask": "middleware build-dev",
+            "preLaunchTask": "middleware build-dev + generate proto",
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

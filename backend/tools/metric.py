@@ -1,10 +1,11 @@
 from typing import Annotated, Literal
 import math
+import struct
 
 
 class Metric:
     """The metric class will generate byte payloads to be used by the device emulator.
-    AFAIK everything is little endian"""
+    AFAIK everything is big endian"""
 
     SIGNED_INT = Annotated[int, Literal['signed']]
 
@@ -22,20 +23,100 @@ class Metric:
         return bytes([~data[0] & 0xFF])
 
     @staticmethod
-    def _int_to_byte(value: int) -> bytes:
-        """Converts an integer to a single byte (8 bits). Raises ValueError if out of range."""
-        if not (0 <= value <= 0xFF):  # 0xFF == 255 (8-bit max)
-            raise ValueError("Value must be between 0 and 255 (8-bit range).")
-        # Convert to a single byte
-        return value.to_bytes(1, byteorder='little')
-
-    @staticmethod
-    def _int_to_multiple_bytes(value: int, NUM_BYTES: int) -> bytes:
-        """Converts an integer to a specified number of bytes.
+    def _float_to_bytes(value: float, NUM_BYTES: int = 4) -> bytes:
+        """Converts a float to bytes (default 32-bit/4 bytes).
 
         Args:
-            value (int): The integer to convert.
-            num_bytes (int): The number of bytes to convert the integer into.
+            value (float): The float value to convert
+            NUM_BYTES (int): Number of bytes (4 for float32, 8 for float64)
+
+        Returns:
+            bytes: The float represented as bytes
+
+        Raises:
+            ValueError: If NUM_BYTES is not 4 (float32) or 8 (float64)
+        """
+
+        if NUM_BYTES == 4:
+            # https://docs.python.org/3/library/struct.html#byte-order-size-and-alignment
+            return struct.pack('>f', value)  # big-endian float32
+        elif NUM_BYTES == 8:  # Double?
+            return struct.pack('>d', value)  # big-endian float64
+        else:
+            raise ValueError("NUM_BYTES must be 4 (float32) or 8 (float64)")
+
+    @staticmethod
+    def _float32_to_bytes(value: float) -> bytes:
+        """Converts a float to a 32-bit (4 byte) representation.
+
+        Args:
+            value (float): The float value to convert
+
+        Returns:
+            bytes: The float32 represented as 4 bytes
+
+        Raises:
+            ValueError: If value cannot be represented as float32
+        """
+        if not Metric.is_valid_float32(value):
+            raise ValueError("Value must be a valid 32-bit float")
+        return Metric._float_to_bytes(value, 4)
+
+    @staticmethod
+    def _float64_to_bytes(value: float) -> bytes:
+        """Converts a float to a 64-bit (8 byte) representation.
+
+        Args:
+            value (float): The float value to convert
+
+        Returns:
+            bytes: The float64 represented as 8 bytes
+        """
+        return Metric._float_to_bytes(value, 8)
+
+    @staticmethod
+    def _int_to_byte_unsigned(value: int) -> bytes:
+        """Converts an unsigned integer to a single byte (8 bits).
+
+        Args:
+            value (int): The unsigned integer to convert (0-255).
+
+        Returns:
+            bytes: The integer represented as a single byte.
+
+        Raises:
+            ValueError: If value is outside the valid unsigned byte range.
+        """
+        if not (0 <= value <= 0xFF):  # 0xFF == 255 (8-bit max)
+            raise ValueError(
+                "Value must be between 0 and 255 (8-bit unsigned range).")
+        return value.to_bytes(1, byteorder='big', signed=False)
+
+    @staticmethod
+    def _int_to_byte_signed(value: int) -> bytes:
+        """Converts a signed integer to a single byte (8 bits).
+
+        Args:
+            value (int): The signed integer to convert (-128 to 127).
+
+        Returns:
+            bytes: The integer represented as a single byte.
+
+        Raises:
+            ValueError: If value is outside the valid signed byte range.
+        """
+        if not (-128 <= value <= 127):
+            raise ValueError(
+                "Value must be between -128 and 127 (8-bit signed range).")
+        return value.to_bytes(1, byteorder='big', signed=True)
+
+    @staticmethod
+    def _int_to_multiple_bytes_unsigned(value: int, NUM_BYTES: int) -> bytes:
+        """Converts an unsigned integer to a specified number of bytes.
+
+        Args:
+            value (int): The unsigned integer to convert.
+            NUM_BYTES (int): The number of bytes to convert the integer into.
 
         Returns:
             bytes: The integer represented as bytes.
@@ -43,26 +124,54 @@ class Metric:
         Raises:
             ValueError: If the value is out of range for the specified number of bytes.
         """
-        # Calculate the maximum value for the given number of bytes
-        # Equivalent to 2^(8*num_bytes) - 1
         max_value = (1 << (8 * NUM_BYTES)) - 1
 
-        # Check if the value is within the valid range
         if not (0 <= value <= max_value):
             raise ValueError(
                 f"Value must be between 0 and {max_value} for {NUM_BYTES} byte(s).")
 
-        # Convert the integer to the specified number of bytes
-        return value.to_bytes(NUM_BYTES, byteorder='little')
+        return value.to_bytes(NUM_BYTES, byteorder='big', signed=False)
 
     @staticmethod
-    def is_valid_int16(VALUE: int) -> bool:
-        """Check if a value is within the valid range of a 2-byte integer (int16)."""
+    def _int_to_multiple_bytes_signed(value: int, NUM_BYTES: int) -> bytes:
+        """Converts a signed integer to a specified number of bytes.
+
+        Args:
+            value (int): The signed integer to convert.
+            NUM_BYTES (int): The number of bytes to convert the integer into.
+
+        Returns:
+            bytes: The integer represented as bytes.
+
+        Raises:
+            ValueError: If the value is out of range for the specified number of bytes.
+        """
+        max_value = (1 << (8 * NUM_BYTES - 1)) - 1
+        min_value = -(1 << (8 * NUM_BYTES - 1))
+
+        if not (min_value <= value <= max_value):
+            raise ValueError(
+                f"Value must be between {min_value} and {max_value} for {NUM_BYTES} byte(s).")
+
+        return value.to_bytes(NUM_BYTES, byteorder='big', signed=True)
+
+    @staticmethod
+    def is_valid_int16_singed(VALUE: int) -> bool:
+        """Check if a value is within the valid range of a signed 2-byte integer (int16)."""
+        if not isinstance(VALUE, int):
+            return False
         return -32_768 <= VALUE <= 32_767
 
     @staticmethod
+    def is_valid_int16_unsigned(VALUE: int) -> bool:
+        """Check if a value is within the valid range of an unsigned 2-byte integer (uint16)."""
+        if not isinstance(VALUE, int):
+            return False
+        return 0 <= VALUE <= 65_535
+
+    @staticmethod
     def is_valid_float32(VALUE: float) -> bool:
-        """Check if a value is within the valid range of a 32-bit float.
+        """Check if a value is within the valid range of a 32-bit float. All floats are signed
 
         Args:
             VALUE (float): The value to check.
@@ -70,8 +179,32 @@ class Metric:
         Returns:
             bool: True if the value is a valid 32-bit float, False otherwise.
         """
+        if not isinstance(VALUE, (int, float)):
+            return False
+        return (-3.4028235e+38 <= VALUE <= 3.4028235e+38 and
+                not math.isinf(VALUE) and
+                not math.isnan(VALUE))
 
-        return -3.4028235e+38 <= VALUE <= 3.4028235e+38 and not math.isinf(VALUE) and not math.isnan(VALUE)
+    @staticmethod
+    def is_valid_float64(VALUE: float) -> bool:
+        """Check if a value is within the valid range of a 64-bit float.
+
+        Args:
+            VALUE (float): The value to check.
+
+        Returns:
+            bool: True if the value is a valid 64-bit float, False otherwise.
+        """
+        if not isinstance(VALUE, (int, float)):
+            return False
+        return (not math.isinf(VALUE) and
+                not math.isnan(VALUE))
+
+    @staticmethod
+    def dummyByte() -> bytes:
+        """ Just returns 0x00 """
+        result = 0
+        return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def continuityCheckCMDFlags(
@@ -99,7 +232,7 @@ class Metric:
         result = (result << 1) | APOGEE_SECONDARY_TEST
         result = (result << 1) | APROGEE_PRIMARY_TEST
 
-        return Metric._int_to_byte(result)
+        return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def continuityCheckResultsApogee(
@@ -129,7 +262,7 @@ class Metric:
         result = (result << 1) | APOGEE_PRIMARY_TEST_RESULTS
         result = (result << 1) | APOGEE_SECONDARY_TEST_RESULTS
 
-        return Metric._int_to_byte(result)
+        return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def continuityCheckResultsMain(
@@ -159,7 +292,7 @@ class Metric:
         result = (result << 1) | MAIN_PRIMARY_TEST_RESULTS
         result = (result << 1) | MAIN_SECONDARY_TEST_RESULTS
 
-        return Metric._int_to_byte(result)
+        return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def continuityCheckCMDFlagsINVERTED(
@@ -201,7 +334,7 @@ class Metric:
         """
         result = 0xFF if BEGIN_BRAODCAST else 0x00
 
-        return Metric._int_to_byte(result)
+        return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def MovingToBroadCastFlag(
@@ -219,7 +352,7 @@ class Metric:
         """
         result = 0b10101010 if MOVE_TO_BRAODCAST else 0b00000000
 
-        return Metric._int_to_byte(result)
+        return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def StateSetFlags2p1(
@@ -307,7 +440,7 @@ class Metric:
         result = (result << 1) | PAYLOAD_CONNECTION_FLAG
         result = (result << 1) | CAMERA_CONTROLLER_CONNECTION
 
-        return Metric._int_to_byte(result)
+        return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def ACCEL_LOW_X(
@@ -321,11 +454,11 @@ class Metric:
         Returns:
             bytes: _description_
         """
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def ACCEL_LOW_Y(
@@ -340,11 +473,11 @@ class Metric:
             bytes: _description_
         """
 
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def ACCEL_LOW_Z(
@@ -359,11 +492,11 @@ class Metric:
             bytes: _description_
         """
 
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def ACCEL_HIGH_X(
@@ -378,11 +511,11 @@ class Metric:
             bytes: _description_
         """
 
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def ACCEL_HIGH_Y(
@@ -397,11 +530,11 @@ class Metric:
             bytes: _description_
         """
 
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def ACCEL_HIGH_Z(
@@ -416,11 +549,11 @@ class Metric:
             bytes: _description_
         """
 
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def GYRO_X(
@@ -435,11 +568,11 @@ class Metric:
             bytes: _description_
         """
 
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def GYRO_Y(
@@ -454,11 +587,11 @@ class Metric:
             bytes: _description_
         """
 
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def GYRO_Z(
@@ -473,11 +606,11 @@ class Metric:
             bytes: _description_
         """
 
-        if not Metric.is_valid_int16(VALUE):
+        if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
                 "Value must be between -32768 and 32767 (16-bit signed range).")
 
-        return Metric._int_to_multiple_bytes(VALUE, 2)
+        return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
     @staticmethod
     def ALTITUDE(
@@ -495,7 +628,7 @@ class Metric:
         if not Metric.is_valid_float32(VALUE):
             raise ValueError("Value must be a valid 32-bit float.")
 
-        return Metric._int_to_multiple_bytes(VALUE, 4)
+        return Metric._float32_to_bytes(VALUE)
 
     @staticmethod
     def VELOCITY(
@@ -513,4 +646,4 @@ class Metric:
         if not Metric.is_valid_float32(VALUE):
             raise ValueError("Value must be a valid 32-bit float.")
 
-        return Metric._int_to_multiple_bytes(VALUE, 4)
+        return Metric._float32_to_bytes(VALUE)
