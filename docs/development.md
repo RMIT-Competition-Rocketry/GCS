@@ -1,6 +1,12 @@
 
 # Development notes
 
+## Writing a subprocess
+
+Important requirements for each subproccess you spawn from the CLI:
+
+- All python subprocess have to have unbuffered output to be logged correctly. Please use the `-u` flag to do this. Note that some print functions to STDOUT may not respect this flag like when using `pprint` for example. 
+
 ## Writing a Payload Reader
 
 Payload readers are found in `backend/middleware/payloads/*.hpp` with the excpetion of the `ByteParser.hpp` helper

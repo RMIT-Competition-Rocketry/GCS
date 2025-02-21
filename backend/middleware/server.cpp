@@ -39,7 +39,12 @@ void uart_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pub
             // Check if we have enough bytes for the ID
             if (count >= 1)
             {
-                unsigned int packet_id = buffer[0];
+                int8_t packet_id = buffer[0];
+
+                // Send packet ID to receiving ends so they know which proto file to use
+                std::string packet_id_string(1, packet_id);
+                zmq::message_t msg(packet_id_string.data(), sizeof(int8_t));
+                pub_socket.send(msg, zmq::send_flags::none);
 
                 // Check if this is an AV_TO_GCS_DATA_1 packet
                 if (packet_id == AV_TO_GCS_DATA_1::ID)
@@ -59,9 +64,13 @@ void uart_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pub
                             std::string serialized;
                             if (proto_msg.SerializeToString(&serialized))
                             {
-                                // Send via ZMQ
+                                // Send proto via ZMQ
                                 zmq::message_t msg(serialized.data(), serialized.size());
                                 pub_socket.send(msg, zmq::send_flags::none);
+                            }
+                            else
+                            {
+                                std::cerr << "Failed to serialise to string for protobuf" << std::endl;
                             }
                         }
                         catch (const std::exception &e)

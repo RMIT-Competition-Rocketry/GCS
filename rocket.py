@@ -13,6 +13,7 @@ from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
 from cli.start_middleware import start_middleware, InterfaceType
+from cli.start_event_viewer import start_event_viewer
 
 
 logger: logging.Logger = None
@@ -93,9 +94,12 @@ def dev(nodocker):
         raise
 
     # 4. Start device emulator
+    # TODO maybe consider blocking further starts if this fails?
+    # Would only be for convienece though. It isn't really required or critical
     start_fake_serial_device_emulator(logger, devices[1])
 
-    # 5. I'm not sure. Maybe start the event viewer?
+    # 5. Start the event viewer
+    start_event_viewer(logger, "gcs_rocket")
 
     # 6. Could start the pendent emulator
 

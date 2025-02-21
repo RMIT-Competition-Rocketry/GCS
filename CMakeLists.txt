@@ -42,6 +42,8 @@ protobuf_generate(
     PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
 )
 
+# Add python protobuf generation
+
 # Get all generated protobuf source files
 # TODO this might need to be edited after you start using things outside of payloads
 file(GLOB PROTO_SOURCES "${PROTO_BINARY_DIR}/payloads/*.pb.cc")

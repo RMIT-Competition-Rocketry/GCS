@@ -26,6 +26,9 @@ class LoggedSubProcess:
             env (Optional[dict], optional): Environment variables. Defaults to None.
         """
         self._parent_logger = logging.getLogger('rocket')
+        if (any("python" in arg for arg in command) and not any("-u" in arg for arg in command)):
+            self._parent_logger.warning(
+                "Python subprocesses must have the `-u` flag to prevent buffering")
         self._command = command
         self._name = name or " ".join(command)
         self._process = None

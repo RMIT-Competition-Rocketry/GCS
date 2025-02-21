@@ -3,10 +3,12 @@
 CLI_PYTHON_FILE="rocket.py"
 EXEC_NAME="rocket"
 
-# Check if Python3 is installed
-python3 --version &>/dev/null
-if [ $? -ne 0 ]; then
-    echo "Error: Python3 is not installed. Please install Python3 and add it to path to proceed." >&2
+# Check if Python3 is installed and meets the required version (>= 3.10)
+python_version=$(python3 --version 2>&1 | awk '{print $2}')
+required_version="3.10"
+
+if [[ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]]; then
+    echo "Error: Python3 version $python_version is less than the required version $required_version. Please install >= Python3.10 and add it to your PATH to proceed." >&2
     exit 1
 fi
 

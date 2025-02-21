@@ -13,8 +13,8 @@ class AV_TO_GCS_DATA_1
 {
 public:
     // Amount of bytes in this payload
-    static constexpr ssize_t SIZE = 31;      // 32 including ID and TBC byte
-    static constexpr unsigned int ID = 0x03; // 8 bits reserved in packet
+    static constexpr ssize_t SIZE = 31; // 32 including ID and TBC byte
+    static constexpr int8_t ID = 0x03;  // 8 bits reserved in packet
 
     /// @brief See LoRa packet structure spreadsheet for more information.
     /// @param DATA
@@ -84,7 +84,7 @@ public:
     }
 
     // Getters for the private members
-    constexpr unsigned int id_val() const { return ID; }
+    constexpr int8_t id_val() const { return ID; }
     payload::AV_TO_GCS_DATA_1_FlightState flight_state() const { return flight_state_; }
     bool dual_board_connectivity_state_flag() const { return dual_board_connectivity_state_flag_; }
     bool recovery_checks_complete_and_flight_ready() const { return recovery_checks_complete_and_flight_ready_; }
