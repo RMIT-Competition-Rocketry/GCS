@@ -99,7 +99,7 @@ def dev(nodocker):
     start_fake_serial_device_emulator(logger, devices[1])
 
     # 5. Start the event viewer
-    start_event_viewer(logger, "gcs_rocket")
+    start_event_viewer(logger, "gcs_rocket", file_logging_enabled=False)
 
     # 6. Could start the pendent emulator
 

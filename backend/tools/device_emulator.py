@@ -196,6 +196,7 @@ def main():
             test_packet.write_payload()
             time.sleep(1)
     except KeyboardInterrupt:
+        # As soon as the CLI gets the interrupt, a race condition starts and child cleanup is not guaranteed
         logger.debug("Emulator interrupted by user")
 
     logger.debug("Emulator finished")

@@ -22,12 +22,15 @@ def successful_event_viewer_start_callback(line: str, stream_name: str):
         return True
 
 
-def start_event_viewer(logger: logging.Logger, SOCKET_PATH: str):
+def start_event_viewer(logger: logging.Logger, SOCKET_PATH: str, file_logging_enabled: bool):
     try:
 
         EVENT_VIEWER_COMMAND = [
             "python3", "backend/event_viewer.py", "-u", "--socket-path", SOCKET_PATH
         ]
+
+        if file_logging_enabled:
+            EVENT_VIEWER_COMMAND.append("--no-log")
 
         logger.debug(f"Starting event viewer with: {EVENT_VIEWER_COMMAND}")
 
