@@ -122,7 +122,8 @@ class Packet:
         """
 
         if not self.__class__._LOGGING_ENABLED:
-            print("Warning: Logging to csv disabled but attempted anyway")
+            print("Error: Logging to csv disabled but attempted anyway")
+            return
 
         if self._packet_name not in self.__class__._CSV_FILES_WITH_HEADERS.keys():
             raise Exception(
@@ -179,12 +180,13 @@ def main(SOCKET_PATH, CREATE_LOGS):
                     # AV packet
                     AV_TO_GCS_DATA_1_packet = AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1()
                     AV_TO_GCS_DATA_1_packet.ParseFromString(message)
-                    AV_TO_GCS_DATA_1_handler._log_to_csv(
-                        # This obviously assumes that the order of the fields in
-                        # the proto file is the same as the order as the CSV headers
-                        # TODO Make this expclit when you have all the time in the world
-                        [x[1] for x in AV_TO_GCS_DATA_1_packet.ListFields()]
-                    )
+                    if CREATE_LOGS:
+                        AV_TO_GCS_DATA_1_handler._log_to_csv(
+                            # This obviously assumes that the order of the fields in
+                            # the proto file is the same as the order as the CSV headers
+                            # TODO Make this expclit when you have all the time in the world
+                            [x[1] for x in AV_TO_GCS_DATA_1_packet.ListFields()]
+                        )
                     pprint(AV_TO_GCS_DATA_1_packet)
                     sys.stdout.flush()  # Ensures output is immediately written
                 case _:
@@ -198,20 +200,13 @@ def main(SOCKET_PATH, CREATE_LOGS):
 
 
 if __name__ == "__main__":
-    print("Debug: Alive")
     try:
         SOCKET_PATH = sys.argv[sys.argv.index('--socket-path') + 1]
     except ValueError:
         print("Error: Failed to find socket path in arguments for event viewer")
         raise
     try:
-        # Implicit polished dog shit
-        create_logs = False if sys.argv[sys.argv.index(
-            '--no-log')] > 0 else True
-        # Don't think this code below will run actually
-        if create_logs is None:
-            create_logs = True
-        # It's been a long day. Please come back to this to make it nicer
+        create_logs = '--no-log' in sys.argv
     except ValueError:
         print("Error: Failed to find socket path in arguments for event viewer")
         create_logs = True
