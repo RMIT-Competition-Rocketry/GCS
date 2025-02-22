@@ -6,6 +6,7 @@
 Important requirements for each subproccess you spawn from the CLI:
 
 - All python subprocess have to have unbuffered output to be logged correctly. Please use the `-u` flag to do this. Note that some print functions to STDOUT may not respect this flag like when using `pprint` for example. 
+    - Also I've seen a python subprocces run with the `-u` flag and still run buffered. It required `sys.stdout.flush()`. In the future (https://github.com/RMIT-Competition-Rocketry/GCS/issues/5) the process printer should flush automatically
 
 ## Writing a Payload Reader
 
