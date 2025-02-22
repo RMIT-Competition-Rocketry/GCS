@@ -3,16 +3,21 @@ import zmq
 import os
 import csv
 import sys
+from google.protobuf.message import Message as PbMessage
 import proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
 from pprint import pprint
-from typing import List
+from typing import List, Dict
 
 # Just prints useful information from AV and saves it to file
 
 
 class Packet:
+    # Updated in _setup_logging
     _setup: bool = False
-    # There are many other class variables defined in the setup method
+
+    # Defined in _setup_logging
+    _session_log_folder: str = None
+    _CSV_FILES_WITH_HEADERS: Dict[str, str] = None
 
     @classmethod
     def _setup_logging(cls):
@@ -122,7 +127,7 @@ class Packet:
         """
 
         if not self.__class__._LOGGING_ENABLED:
-            print("Error: Logging to csv disabled but attempted anyway")
+            # print("Error: Logging to csv disabled but attempted anyway")
             return
 
         if self._packet_name not in self.__class__._CSV_FILES_WITH_HEADERS.keys():
@@ -136,10 +141,271 @@ class Packet:
             timestamp = datetime.datetime.now() - self.__class__._VIEWER_STARTUP_TIMESTAMP
             writer.writerow([timestamp.total_seconds()*1000] + data)
 
+    def process(self, PROTO_DATA: PbMessage) -> None:
+        """How to handle each new packet from an event viewer perspective
+        this includes logging to file and printing important information to console
+
+        Args:
+            PROTO_DATA (PbMessage): The protobuf object
+        """
+        # `PROTO_DATA.ListFields()[0][0].name` returns the field name
+        # `PROTO_DATA.ListFields()[0][1]` returns the value
+        # This will just assume it's all in order of the csv headers for now.
+        # Git issue #26
+        data_as_string = [x[1] for x in PROTO_DATA.ListFields()]
+        # `Logging enabled` check is internal to the csv function
+        self._log_to_csv(data_as_string)
+        # Please call super on this and add printing events afterwards
+
+
+class GCS_TO_AV_STATE_CMD(Packet):
+    # Static flags to be accessed and updated by result packet AV_TO_GCS_DATA_1
+    awaiting_results_apogee_primary = False
+    awaiting_results_apogee_secondary = False
+    awaiting_results_main_primary = False
+    awaiting_results_main_secondary = False
+
+    def __init__(self):
+        super().__init__(0x01, None)
+
 
 class AV_TO_GCS_DATA_1(Packet):
     def __init__(self):
-        super().__init__(3, None)
+        super().__init__(0x03, None)
+        # How long to wait before printing basic information
+        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=1)
+        self._last_information_display_time = datetime.datetime.min
+        self._last_flight_state: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState = None
+        self._last_state_flags = {"dual_board_connectivity_state_flag": None,
+                                  "recovery_checks_complete_and_flight_ready": None,
+                                  "GPS_fix_flag": None,
+                                  "payload_connection_flag": None,
+                                  "camera_controller_connection_flag": None}
+        self._last_test_details = {"apogee_primary_test_complete": None,
+                                   "apogee_secondary_test_complete": None,
+                                   "apogee_primary_test_results": None,
+                                   "apogee_secondary_test_results": None,
+                                   "main_primary_test_complete": None,
+                                   "main_secondary_test_complete": None,
+                                   "main_primary_test_results": None,
+                                   "main_secondary_test_results": None}
+        self._supersonic = False
+
+    def _process_flight_state(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
+        if self._last_flight_state != PROTO_DATA.flightState:
+            # Flight state has changed. Please update it and notify
+            self._last_flight_state = PROTO_DATA.flightState
+            flight_state_name = AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.Name(
+                PROTO_DATA.flightState)
+            match PROTO_DATA.flightState:
+                case \
+                        AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.PRE_FLIGHT_FLIGHT_READY | \
+                        AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.LAUNCH | \
+                        AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.COAST | \
+                        AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.APOGEE | \
+                        AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.DECENT | \
+                        AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.LANDED:
+                    print(
+                        f"Info: Flight state changed to {flight_state_name}")
+                case AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.PRE_FLIGHT_NO_FLIGHT_READY:
+                    print(
+                        f"Warning: Flight state changed to {flight_state_name}")
+                case AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.OH_NO:
+                    print(
+                        f"Critical: Flight state changed to {flight_state_name}")
+                case _:
+                    print(
+                        f"Error: Unknown flight state {flight_state_name}")
+
+    def _process_state_flags(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
+        # Info level for 0 -> 1 and warning for 1 -> 0
+        for state_flag_name, state_flag_value in PROTO_DATA.ListFields()[1:6]:
+            state_flag_name = state_flag_name.name
+            if self._last_state_flags[state_flag_name] != state_flag_value:
+                # Something changed
+                if state_flag_value == 1:
+                    print(
+                        f"Info: {state_flag_name} changed to {state_flag_value}")
+                else:
+                    print(
+                        f"Warning: {state_flag_name} changed to {state_flag_value}")
+            # Update historical value
+            self._last_state_flags[state_flag_name] = state_flag_value
+
+    def _process_AV_tests(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
+        def __process_test(DATA_TEST_COMPLETE: bool,
+                           KEY_TEST_COMPLETE: str,
+                           DATA_TEST_RESULTS: bool,
+                           KEY_TEST_RESULTS: str,
+                           AWAITING_TEST_RESULTS: bool) -> bool:
+            """Repeated logic for each code complete and result pair. Likely to change after White Cliffs
+
+            ```
+            Function waiting_for_test()
+                RETURN true if last `GCS to AV State CMD` asked for a test, false otherwise
+
+            Function process_test()
+                // TC means test complete bit
+                // TR means test result bit
+
+                TC_changed <- false
+
+                IF (TC has changed) THEN
+                    TC_changed <- true
+                    IF (waiting_for_test()) THEN
+                        IF (TC == 1) THEN
+                            PRINT "good: test complete"
+                        ELSE IF (TC == 0) THEN
+                            PRINT "bad: test failed to complete"
+                        ENDIF
+
+                        IF (TR == 1) THEN
+                            PRINT "good: continuity passed"
+                        ELSE IF (TR == 0) THEN
+                            PRINT "bad: continuity failed"
+                        ENDIF
+                    ELSE THEN
+                        IF (TC == 1) THEN
+                            PRINT "bad: unprompted test completed"
+                        ELSE IF (TC == 0) THEN
+                            // Do nothing. This is okay.
+                            // Probably just returning back to default state
+                        ENDIF
+                    ENDIF
+                ENDIF
+
+                IF ((TR has changed) AND (!TC_changed)) THEN
+                    PRINT "bad: test result changed without test completion"
+                ENDIF
+            ```
+
+            Args:
+                DATA_TEST_COMPLETE (bool): PROTO_DATA.apogee_primary_test_complete
+                KEY_TEST_COMPLETE (str): The name of the proto field to match the key in self._last_test_details # "apogee_primary_test_complete"
+                DATA_TEST_RESULTS (bool): PROTO_DATA.apogee_primary_test_results
+                KEY_TEST_RESULTS (str): The name of the proto field to match the key in self._last_test_details # "apogee_primary_test_results"
+                AWAITING_TEST_RESULTS (bool): GCS_TO_AV_STATE_CMD.awaiting_results_main_primary
+
+            Returns:
+                bool: caller_awaiting_results. Please assign the static class GCS_TO_AV_STATE_CMD and it's respective awaiting_results_... field with this return value
+            """
+
+            # Check results against what we were waiting for
+            # If changed:
+            #   If waiting: info level if complete, error if not
+            #   If not waiting: error level if complete, info if not (contradiction)
+            data_test_complete_changed = False
+            caller_awaiting_results = True
+            # Run assumption that you've setup and named keys correctly with descriptors
+            if (DATA_TEST_COMPLETE !=
+                    self._last_test_details[KEY_TEST_COMPLETE]):
+                # This value has changed ^
+                data_test_complete_changed = True
+                # Were we waiting for a rest result?
+                if AWAITING_TEST_RESULTS:
+                    # Yes we were. Hopefully it's complete and show the results
+                    if DATA_TEST_COMPLETE:
+                        print(f"Info: {KEY_TEST_COMPLETE} complete")
+                    else:
+                        print(f"Error: {KEY_TEST_COMPLETE} not complete")
+                    # Now update the object. We aren't waiting anymore
+                    caller_awaiting_results = False
+                elif DATA_TEST_COMPLETE:
+                    # We weren't waiting for this result.
+                    # This is odd if it just ran, but not if it's changing back to 0
+                    print(f"Error: Unprompted {KEY_TEST_COMPLETE} complete")
+
+                # Update history of changed complete condition
+                self._last_test_details[KEY_TEST_COMPLETE] = DATA_TEST_COMPLETE
+                # Print the results because test result has changed
+                if DATA_TEST_RESULTS == 1:
+                    # Continuity. hell yeah
+                    print(f"Info: {KEY_TEST_RESULTS}: Continuity")
+                else:
+                    print(f"Error: {KEY_TEST_RESULTS}: No Continuity")
+
+            # Have the results changed when the test complete flag has not?
+            if ((DATA_TEST_RESULTS != self._last_test_details[KEY_TEST_RESULTS])
+                    and not data_test_complete_changed):
+                print(
+                    f"Error: {KEY_TEST_RESULTS} changed without test completion")
+
+            # Update historical test values too
+            self._last_test_details[KEY_TEST_RESULTS] = DATA_TEST_RESULTS
+
+            return caller_awaiting_results
+
+        GCS_TO_AV_STATE_CMD.awaiting_results_apogee_primary = __process_test(
+            PROTO_DATA.apogee_primary_test_complete,
+            "apogee_primary_test_complete",
+            PROTO_DATA.apogee_primary_test_results,
+            "apogee_primary_test_results",
+            GCS_TO_AV_STATE_CMD.awaiting_results_apogee_primary
+        )
+        GCS_TO_AV_STATE_CMD.awaiting_results_apogee_secondary = __process_test(
+            PROTO_DATA.apogee_secondary_test_complete,
+            "apogee_secondary_test_complete",
+            PROTO_DATA.apogee_secondary_test_results,
+            "apogee_secondary_test_results",
+            GCS_TO_AV_STATE_CMD.awaiting_results_apogee_secondary
+        )
+        GCS_TO_AV_STATE_CMD.awaiting_results_main_primary = __process_test(
+            PROTO_DATA.main_primary_test_complete,
+            "main_primary_test_complete",
+            PROTO_DATA.main_primary_test_results,
+            "main_primary_test_results",
+            GCS_TO_AV_STATE_CMD.awaiting_results_main_primary
+        )
+        GCS_TO_AV_STATE_CMD.awaiting_results_main_secondary = __process_test(
+            PROTO_DATA.main_secondary_test_complete,
+            "main_secondary_test_complete",
+            PROTO_DATA.main_secondary_test_results,
+            "main_secondary_test_results",
+            GCS_TO_AV_STATE_CMD.awaiting_results_main_secondary
+        )
+
+    def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
+        super().process(PROTO_DATA)
+
+        # Useful docs: https://googleapis.dev/python/protobuf/latest/google/protobuf/descriptor.html
+
+        # State Flags
+        # Check if the flight state has changed
+        self._process_flight_state(PROTO_DATA)
+
+        # Now list any other changes that could have happened.
+        # Info level for 0 -> 1 and warning for 1 -> 0
+        self._process_state_flags(PROTO_DATA)
+
+        # Supersonic alert
+        # (idk if we get this fast)
+        # (refer to physics team in case we can calculate exact value)
+        SUPERSONIC_VELOCITY = 343
+        if PROTO_DATA.velocity >= SUPERSONIC_VELOCITY and self._supersonic == False:
+            # Coolest line of code I've ever written btw
+            print("Info: Supersonic flight detected")
+            self._supersonic = True
+        elif self._supersonic and PROTO_DATA.velocity < SUPERSONIC_VELOCITY:
+            print("Info: Supersonic flight ended")
+            self._supersonic = False
+
+        # Regular infomation updates
+        if self._last_information_display_time - datetime.datetime.now() > self._INFORMATION_TIMEOUT:
+            # Print basic information
+            alt_m = PROTO_DATA.altitude
+            alt_ft = PROTO_DATA.altitude*3.28084
+            print(f"Info: Altitude: {alt_m}m {alt_ft}ft")
+            print(f"Info: Velocity: {round(PROTO_DATA.velocity, 3)}m/s")
+            print(f"Info: Broadcast flag: {PROTO_DATA.broadcast_flag}")
+
+            self._last_information_display_time = datetime.datetime.now()
+
+        self._process_AV_tests(PROTO_DATA)
+
+        # Notify if moving to broadcast
+        if PROTO_DATA.broadcast_flag:
+            print(
+                "Info: @@@@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@@@@")
 
 
 def main(SOCKET_PATH, CREATE_LOGS):
@@ -160,10 +426,12 @@ def main(SOCKET_PATH, CREATE_LOGS):
 
     sub_socket.setsockopt_string(zmq.SUBSCRIBE, '')
 
+    # Keep "Listening for messages..." here or change the event starter callback
     print("Info: Listening for messages...")
 
     # Setup handler objects
     AV_TO_GCS_DATA_1_handler = AV_TO_GCS_DATA_1()
+    GCS_TO_AV_STATE_CMD_handler = GCS_TO_AV_STATE_CMD()
 
     while True:
         try:
@@ -172,23 +440,13 @@ def main(SOCKET_PATH, CREATE_LOGS):
                 # We've missed the ID publish message. Wait for next one
                 continue
             packet_id = int.from_bytes(message, byteorder='big')
-            print("Debug: Packet ID: ", packet_id)
             message = sub_socket.recv()
 
             match packet_id:
                 case 3:
-                    # AV packet
                     AV_TO_GCS_DATA_1_packet = AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1()
                     AV_TO_GCS_DATA_1_packet.ParseFromString(message)
-                    if CREATE_LOGS:
-                        AV_TO_GCS_DATA_1_handler._log_to_csv(
-                            # This obviously assumes that the order of the fields in
-                            # the proto file is the same as the order as the CSV headers
-                            # TODO Make this expclit when you have all the time in the world
-                            [x[1] for x in AV_TO_GCS_DATA_1_packet.ListFields()]
-                        )
-                    pprint(AV_TO_GCS_DATA_1_packet)
-                    sys.stdout.flush()  # Ensures output is immediately written
+                    AV_TO_GCS_DATA_1_handler.process(AV_TO_GCS_DATA_1_packet)
                 case _:
                     print(f"Erorr: Unexpected packet ID: {packet_id}")
         except zmq.Again:
@@ -200,6 +458,7 @@ def main(SOCKET_PATH, CREATE_LOGS):
 
 
 if __name__ == "__main__":
+    print("Debug: Started event viewer")
     try:
         SOCKET_PATH = sys.argv[sys.argv.index('--socket-path') + 1]
     except ValueError:
