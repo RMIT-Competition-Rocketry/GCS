@@ -305,24 +305,24 @@ class AV_TO_GCS_DATA_1(Packet):
                 if AWAITING_TEST_RESULTS:
                     # Yes we were. Hopefully it's complete and show the results
                     if DATA_TEST_COMPLETE:
-                        slogger.success("{KEY_TEST_COMPLETE} complete")
+                        slogger.success(f"{KEY_TEST_COMPLETE} complete")
                     else:
-                        slogger.error("{KEY_TEST_COMPLETE} not complete")
+                        slogger.error(f"{KEY_TEST_COMPLETE} not complete")
                     # Now update the object. We aren't waiting anymore
                     caller_awaiting_results = False
                 elif DATA_TEST_COMPLETE:
                     # We weren't waiting for this result.
                     # This is odd if it just ran, but not if it's changing back to 0
-                    slogger.error("Unprompted {KEY_TEST_COMPLETE} complete")
+                    slogger.error(f"Unprompted {KEY_TEST_COMPLETE} complete")
 
                 # Update history of changed complete condition
                 self._last_test_details[KEY_TEST_COMPLETE] = DATA_TEST_COMPLETE
                 # Print the results because test result has changed
                 if DATA_TEST_RESULTS == 1:
                     # Continuity. hell yeah
-                    slogger.success("{KEY_TEST_RESULTS}: Continuity")
+                    slogger.success(f"{KEY_TEST_RESULTS}: Continuity")
                 else:
-                    slogger.error("{KEY_TEST_RESULTS}: No Continuity")
+                    slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
 
             # Have the results changed when the test complete flag has not?
             if ((DATA_TEST_RESULTS != self._last_test_details[KEY_TEST_RESULTS])
