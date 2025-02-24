@@ -85,7 +85,7 @@ def dev(nodocker):
     # Note that devices are paired pseudo-ttys
     try:
         start_middleware(logger,
-                         InterfaceType.UART,
+                         InterfaceType.TEST,
                          devices[0],
                          "gcs_rocket")
     except Exception as e:

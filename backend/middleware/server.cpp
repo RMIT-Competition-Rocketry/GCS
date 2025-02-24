@@ -1,4 +1,5 @@
 #include "uart_interface.hpp"
+#include "test_interface.hpp"
 #include <zmq.hpp>
 #include <iostream>
 #include <thread>
@@ -100,6 +101,10 @@ std::unique_ptr<LoraInterface> create_interface(
     {
         interface = std::make_unique<UartInterface>(DEVICE_PATH);
     }
+    else if (INTERFACE_NAME == "TEST")
+    {
+        interface = std::make_unique<TestInterface>(DEVICE_PATH);
+    }
     else
     {
         throw new std::runtime_error("Error: Invalid interface type");
@@ -150,7 +155,7 @@ int main(int argc, char *argv[])
             DEVICE_PATH);
 
         interface->initialize();
-        process_logging::info("Interface initialised");
+        process_logging::info("Interface initialised for type: " + std::string(argv[1]));
 
         // ZeroMQ setup
         zmq::context_t context(1);

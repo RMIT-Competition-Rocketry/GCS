@@ -7,6 +7,7 @@ import enum
 class InterfaceType(enum.Enum):
     # Reference the main middleware cpp file
     UART = "UART"
+    TEST = "TEST"
 
 
 def start_middleware(logger: logging.Logger,

@@ -1,4 +1,4 @@
-#include "uart_interface.hpp"
+#include "test_interface.hpp"
 #include <fcntl.h>
 #include <unistd.h>
 #include <termios.h>
@@ -7,32 +7,32 @@
 #include <cstring>
 #include "process_logging.hpp"
 
-UartInterface::UartInterface(const std::string &device_path, int baud_rate)
+TestInterface::TestInterface(const std::string &device_path, int baud_rate)
     : baud_rate_(baud_rate), device_path_(device_path) {}
 
-UartInterface::~UartInterface()
+TestInterface::~TestInterface()
 {
     // If file descriptor indicates it is open, close it
     if (uart_fd_ >= 0)
         close(uart_fd_);
 }
 
-bool UartInterface::initialize()
+bool TestInterface::initialize()
 {
 
     uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
     if (uart_fd_ < 0)
     {
-        process_logging::error("Error: Failed to open UART device: " + device_path_);
+        process_logging::error("Error: Failed to open TEST UART device: " + device_path_);
         throw std::system_error(errno, std::system_category(),
-                                "Failed to open UART device");
+                                "Failed to open TEST UART device");
     }
 
-    configure_uart();
+    configure_test_interface();
     return true;
 }
 
-void UartInterface::configure_uart()
+void TestInterface::configure_test_interface()
 {
     struct termios tty;
     if (tcgetattr(uart_fd_, &tty) != 0)
@@ -59,11 +59,11 @@ void UartInterface::configure_uart()
     }
 }
 
-ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
+ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer)
 {
     if (uart_fd_ < 0)
     {
-        std::cerr << "Error: UART file descriptor is invalid" << std::endl;
+        std::cerr << "Error: TEST UART file descriptor is invalid" << std::endl;
         return -1;
     }
 
@@ -71,12 +71,12 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
     if (count < 0)
     {
         throw std::system_error(errno, std::system_category(),
-                                "UART read failed");
+                                "TEST UART read failed");
     }
     return count;
 }
 
-ssize_t UartInterface::write_data(const std::vector<uint8_t> &data)
+ssize_t TestInterface::write_data(const std::vector<uint8_t> &data)
 {
     if (uart_fd_ < 0)
         return -1;
@@ -85,7 +85,7 @@ ssize_t UartInterface::write_data(const std::vector<uint8_t> &data)
     if (written < 0)
     {
         throw std::system_error(errno, std::system_category(),
-                                "UART write failed");
+                                "TEST UART write failed");
     }
     return written;
 }
