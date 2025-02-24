@@ -1,9 +1,10 @@
 import logging
+import re
 import subprocess
 from typing import List, Optional, Callable
 import threading
 from queue import Queue
-from functools import cached_property
+import backend.process_logging as slogger
 
 logger = logging.getLogger('rocket')
 
@@ -18,12 +19,14 @@ class LoggedSubProcess:
     def __init__(self,
                  command: List[str],
                  name: Optional[str] = None,
-                 env: Optional[dict] = None):
+                 env: Optional[dict] = None,
+                 parse_output: bool = False):
         """
         Args:
             command (List[str]): List of terminal arguments to run the subprocess
             name (Optional[str], optional): Name for the subprocess Defaults to None.
             env (Optional[dict], optional): Environment variables. Defaults to None.
+            parse_output (bool): Parse output for logging levels? Defaults to False.
         """
         self._parent_logger = logging.getLogger('rocket')
         if (any("python" in arg for arg in command) and not any("-u" in arg for arg in command)):
@@ -32,8 +35,10 @@ class LoggedSubProcess:
         self._command = command
         self._name = name or " ".join(command)
         self._process = None
+        self._PARSE_OUTPUT = parse_output
         self._stdout_thread = None
         self._stderr_thread = None
+        self._FLIP_STREAMS = False  # Flip STDERR and STDOUT
         self._env = env
         # Use logger_adaptor to log from this class
         self._logger_adapter = logging.LoggerAdapter(
@@ -120,26 +125,73 @@ class LoggedSubProcess:
                 self._callback_hits += 1
                 self._callback_data_available.set()
 
-    def _log_monitored_stream(self, stripped_line: str, stream_name: str) -> None:
+    def _log_monitored_stream(self,
+                              stripped_line: str,
+                              stream_name: str,
+                              level: Optional[str]) -> None:
         """When given a line and it's origin stream, log it with the appropriate level
 
         Args:
             stripped_line (str): A line of charcater output with no trailing whitespace
             stream_name (str): The stream name: STDERR or STDOUT for example
+            level (str): The log level to use
         """
-        if stream_name == "STDERR":
-            self._logger_adapter.error(
-                # ╰─
-                f"[{stream_name}] {stripped_line}")
-        else:
-            self._logger_adapter.debug(
-                f"[{stream_name}] {stripped_line}")
+
+        def _format(stream, line):
+            return f"[{stream}] {line}"  # ╰─▶ or ╰ or ╰─ ??
+
+        # This is for things like SOCAT that just puts everything in STDERR
+        if stream_name == "STDERR" and self._FLIP_STREAMS:
+            stream_name = "MANUAL"
+
+        match level:
+            case None:
+                # Were you intending to find a level?
+                if self._PARSE_OUTPUT:
+                    # Level was not found in the original message.
+                    # Level should be able to be found with regex pattern specified in process_logging.py
+                    self._logger_adapter.error(
+                        _format(stream_name, f"LEVEL_UNDEF:{stripped_line}")
+                    )
+                else:
+                    if stream_name == "STDERR":
+                        self._logger_adapter.error(
+                            _format(stream_name, stripped_line))
+                    else:
+                        self._logger_adapter.debug(
+                            _format(stream_name, stripped_line)
+                        )
+            case "DEBUG":
+                self._logger_adapter.debug(_format(stream_name, stripped_line))
+            case "INFO":
+                self._logger_adapter.info(_format(stream_name, stripped_line))
+            case "SUCCESS":
+                self._logger_adapter.success(
+                    _format(stream_name, stripped_line))
+            case "WARNING":
+                self._logger_adapter.warning(
+                    _format(stream_name, stripped_line))
+            case "ERROR":
+                self._logger_adapter.error(_format(stream_name, stripped_line))
+            case "CRITICAL":
+                self._logger_adapter.critical(
+                    _format(stream_name, stripped_line))
+            case _:
+                # Level was found but not in an expected format
+                self._logger_adapter.error(
+                    _format(stream_name, f"LEVEL_WRONG:{stripped_line}")
+                )
 
     def _monitor_stream(self, stream, stream_name):
         for line in iter(stream.readline, ''):
             line = line.strip()
             if line:  # Non-empty lines by 'truthy' check of blank string
-                self._log_monitored_stream(line, stream_name)
+                if self._PARSE_OUTPUT:
+                    match = re.match(slogger.REGEX_MATCH, line)
+                    group: Optional[str] = match.group(1) if match else None
+                else:
+                    group = None
+                self._log_monitored_stream(line, stream_name, group)
                 if self._stop_callbacks == False:
                     self._run_callbacks(line, stream_name)
                     self._stop_callbacks = self._update_callback_condition()
@@ -167,10 +219,6 @@ class LoggedSubProcess:
 class ERRLoggedSubProcess(LoggedSubProcess):
     """Subclass of LoggedSubProcess that logs STDERR as DEBUG instead"""
 
-    def _log_monitored_stream(self, stripped_line, stream_name):
-        if stream_name == "STDERR":
-            self._logger_adapter.debug(
-                f"[{stream_name}] {stripped_line}")
-        else:
-            self._logger_adapter.error(
-                f"[{stream_name}] {stripped_line}")
+    def __init__(self, command, name=None, env=None):
+        super().__init__(command, name, env)
+        self._FLIP_STREAMS = True

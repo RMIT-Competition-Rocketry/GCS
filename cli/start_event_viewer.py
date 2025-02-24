@@ -1,6 +1,7 @@
 import logging
 import cli.proccess as process
 from typing import Tuple
+import os
 
 
 class EventViewerSubprocess(process.LoggedSubProcess):
@@ -34,9 +35,16 @@ def start_event_viewer(logger: logging.Logger, SOCKET_PATH: str, file_logging_en
 
         logger.debug(f"Starting event viewer with: {EVENT_VIEWER_COMMAND}")
 
+        # Set PYTHONPATH to the project root to ensure imports work correctly.
+        env = os.environ.copy()
+        env["PYTHONPATH"] = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), ".."))
+
         event_viewer_process = EventViewerSubprocess(
             EVENT_VIEWER_COMMAND,
             name="event_viewer",
+            env=env,
+            parse_output=True
         )
 
         event_viewer_process.register_callback(

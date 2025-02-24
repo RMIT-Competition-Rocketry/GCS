@@ -16,6 +16,7 @@ def start_fake_serial_device_emulator(logger: logging.Logger, DEVICE: str):
         emulator_process = process.LoggedSubProcess(
             EMULATOR_COMMAND,
             name="emulator",
+            parse_output=True
         )
         emulator_process.start()
 

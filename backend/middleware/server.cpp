@@ -6,6 +6,7 @@
 #include <unistd.h> // For debug sleep()
 #include <signal.h>
 #include "payloads/AV_TO_GCS_DATA_1.hpp"
+#include "process_logging.hpp"
 
 // This file hosts the ZeroMQ IPC server stuff
 
@@ -15,7 +16,7 @@ volatile bool debugger_attached = false;
 // Thread safe signal handler
 void signal_handler(int)
 {
-    std::cout << "Signal received, stopping server" << std::endl;
+    process_logging::info("Signal received, stopping server");
     running = false;
 }
 
@@ -112,12 +113,12 @@ int main(int argc, char *argv[])
 {
 
 #ifdef DEBUG
-    std::cout << "Debug: Starting server in DEBUG mode." << std::endl;
+    process_logging::debug("Starting server in DEBUG mode.");
     // while (!debugger_attached)
     // {
     //     sleep(1);
     // }
-    // std::cout << "Debug: Debugger attached" << std::endl;
+    // process_logging::debug("Debugger attached");
 #endif
 
     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -125,8 +126,8 @@ int main(int argc, char *argv[])
     // Pick interface based on the first argument
     if (argc < 4)
     {
-        std::cerr << "Error: Not enough arugments provided. ";
-        std::cerr << "Usage: ./file <socket type> <device path> <socket path>" << std::endl;
+        process_logging::error("Not enough arugments provided.");
+        process_logging::error("Usage: ./file <socket type> <device path> <socket path>");
         // Throw error silenced by main
         throw new std::runtime_error("Error: Not enough arugments provided");
         return EXIT_FAILURE;
@@ -149,7 +150,7 @@ int main(int argc, char *argv[])
             DEVICE_PATH);
 
         interface->initialize();
-        std::cout << "Interface initialised" << std::endl;
+        process_logging::info("Interface initialised");
 
         // ZeroMQ setup
         zmq::context_t context(1);

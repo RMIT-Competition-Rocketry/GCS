@@ -5,8 +5,9 @@ import csv
 import sys
 from google.protobuf.message import Message as PbMessage
 import proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
-from pprint import pprint
 from typing import List, Dict
+import backend.process_logging as slogger  # slog deez nuts
+
 
 # Just prints useful information from AV and saves it to file
 
@@ -37,8 +38,8 @@ class Packet:
         try:
             os.mkdir(session_log_folder)
         except Exception as e:
-            print(
-                f"Error: Failed to create logging directory: {e} for {session_log_folder}")
+            slogger.error(
+                f"Failed to create logging directory: {e} for {session_log_folder}")
             raise
 
         cls._session_log_folder = session_log_folder
@@ -127,7 +128,7 @@ class Packet:
         """
 
         if not self.__class__._LOGGING_ENABLED:
-            # print("Error: Logging to csv disabled but attempted anyway")
+            # slogger.error("Logging to csv disabled but attempted anyway")
             return
 
         if self._packet_name not in self.__class__._CSV_FILES_WITH_HEADERS.keys():
@@ -205,17 +206,16 @@ class AV_TO_GCS_DATA_1(Packet):
                         AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.APOGEE | \
                         AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.DECENT | \
                         AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.LANDED:
-                    print(
-                        f"Info: Flight state changed to {flight_state_name}")
+                    slogger.info(
+                        f"Flight state changed to {flight_state_name}")
                 case AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.PRE_FLIGHT_NO_FLIGHT_READY:
-                    print(
-                        f"Warning: Flight state changed to {flight_state_name}")
+                    slogger.warning(
+                        f"Flight state changed to {flight_state_name}")
                 case AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.OH_NO:
-                    print(
-                        f"Critical: Flight state changed to {flight_state_name}")
+                    slogger.critical(
+                        f"Flight state changed to {flight_state_name}")
                 case _:
-                    print(
-                        f"Error: Unknown flight state {flight_state_name}")
+                    slogger.error(f"Unknown flight state {flight_state_name}")
 
     def _process_state_flags(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         # Info level for 0 -> 1 and warning for 1 -> 0
@@ -224,11 +224,11 @@ class AV_TO_GCS_DATA_1(Packet):
             if self._last_state_flags[state_flag_name] != state_flag_value:
                 # Something changed
                 if state_flag_value == 1:
-                    print(
-                        f"Info: {state_flag_name} changed to {state_flag_value}")
+                    slogger.info(
+                        f"{state_flag_name} changed to {state_flag_value}")
                 else:
-                    print(
-                        f"Warning: {state_flag_name} changed to {state_flag_value}")
+                    slogger.warning(
+                        f"{state_flag_name} changed to {state_flag_value}")
             # Update historical value
             self._last_state_flags[state_flag_name] = state_flag_value
 
@@ -305,30 +305,30 @@ class AV_TO_GCS_DATA_1(Packet):
                 if AWAITING_TEST_RESULTS:
                     # Yes we were. Hopefully it's complete and show the results
                     if DATA_TEST_COMPLETE:
-                        print(f"Info: {KEY_TEST_COMPLETE} complete")
+                        slogger.success("{KEY_TEST_COMPLETE} complete")
                     else:
-                        print(f"Error: {KEY_TEST_COMPLETE} not complete")
+                        slogger.error("{KEY_TEST_COMPLETE} not complete")
                     # Now update the object. We aren't waiting anymore
                     caller_awaiting_results = False
                 elif DATA_TEST_COMPLETE:
                     # We weren't waiting for this result.
                     # This is odd if it just ran, but not if it's changing back to 0
-                    print(f"Error: Unprompted {KEY_TEST_COMPLETE} complete")
+                    slogger.error("Unprompted {KEY_TEST_COMPLETE} complete")
 
                 # Update history of changed complete condition
                 self._last_test_details[KEY_TEST_COMPLETE] = DATA_TEST_COMPLETE
                 # Print the results because test result has changed
                 if DATA_TEST_RESULTS == 1:
                     # Continuity. hell yeah
-                    print(f"Info: {KEY_TEST_RESULTS}: Continuity")
+                    slogger.success("{KEY_TEST_RESULTS}: Continuity")
                 else:
-                    print(f"Error: {KEY_TEST_RESULTS}: No Continuity")
+                    slogger.error("{KEY_TEST_RESULTS}: No Continuity")
 
             # Have the results changed when the test complete flag has not?
             if ((DATA_TEST_RESULTS != self._last_test_details[KEY_TEST_RESULTS])
                     and not data_test_complete_changed):
-                print(
-                    f"Error: {KEY_TEST_RESULTS} changed without test completion")
+                slogger.error(
+                    f"{KEY_TEST_RESULTS} changed without test completion")
 
             # Update historical test values too
             self._last_test_details[KEY_TEST_RESULTS] = DATA_TEST_RESULTS
@@ -383,10 +383,10 @@ class AV_TO_GCS_DATA_1(Packet):
         SUPERSONIC_VELOCITY = 343
         if PROTO_DATA.velocity >= SUPERSONIC_VELOCITY and self._supersonic == False:
             # Coolest line of code I've ever written btw
-            print("Info: Supersonic flight detected")
+            slogger.info("Supersonic flight detected")
             self._supersonic = True
         elif self._supersonic and PROTO_DATA.velocity < SUPERSONIC_VELOCITY:
-            print("Info: Supersonic flight ended")
+            slogger.info("Supersonic flight ended")
             self._supersonic = False
 
         # Regular infomation updates
@@ -394,9 +394,9 @@ class AV_TO_GCS_DATA_1(Packet):
             # Print basic information
             alt_m = PROTO_DATA.altitude
             alt_ft = PROTO_DATA.altitude*3.28084
-            print(f"Info: Altitude: {alt_m}m {alt_ft}ft")
-            print(f"Info: Velocity: {round(PROTO_DATA.velocity, 3)}m/s")
-            print(f"Info: Broadcast flag: {PROTO_DATA.broadcast_flag}")
+            slogger.info("Altitude: {alt_m}m {alt_ft}ft")
+            slogger.info("Velocity: {round(PROTO_DATA.velocity, 3)}m/s")
+            slogger.info("Broadcast flag: {PROTO_DATA.broadcast_flag}")
 
             self._last_information_display_time = datetime.datetime.now()
 
@@ -404,8 +404,8 @@ class AV_TO_GCS_DATA_1(Packet):
 
         # Notify if moving to broadcast
         if PROTO_DATA.broadcast_flag:
-            print(
-                "Info: @@@@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@@@@")
+            slogger.info(
+                "@@@@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@@@@")
 
 
 def main(SOCKET_PATH, CREATE_LOGS):
@@ -416,18 +416,18 @@ def main(SOCKET_PATH, CREATE_LOGS):
 
     # Construct the full IPC path
     ipc_address = f"ipc:///tmp/{SOCKET_PATH}_pub.sock"
-    print(f"Info: Connecting to {ipc_address}...")
+    slogger.info("Connecting to {ipc_address}...")
 
     try:
         sub_socket.connect(ipc_address)
     except zmq.ZMQError as e:
-        print(f"Erorr: Connection error: {e}")
+        slogger.error(f"Connection error: {e}")
         return
 
     sub_socket.setsockopt_string(zmq.SUBSCRIBE, '')
 
     # Keep "Listening for messages..." here or change the event starter callback
-    print("Info: Listening for messages...")
+    slogger.info("Listening for messages...")
 
     # Setup handler objects
     AV_TO_GCS_DATA_1_handler = AV_TO_GCS_DATA_1()
@@ -448,27 +448,29 @@ def main(SOCKET_PATH, CREATE_LOGS):
                     AV_TO_GCS_DATA_1_packet.ParseFromString(message)
                     AV_TO_GCS_DATA_1_handler.process(AV_TO_GCS_DATA_1_packet)
                 case _:
-                    print(f"Erorr: Unexpected packet ID: {packet_id}")
+                    slogger.error(f"Unexpected packet ID: {packet_id}")
         except zmq.Again:
             # No message received, sleep to prevent CPU spin
             pass
         except KeyboardInterrupt:
             # As soon as the CLI gets the interrupt, a race condition starts and child cleanup is not guaranteed
-            print("Warning: Keyboard interrupt received. Listening stopping")
+            slogger.warning("Keyboard interrupt received. Listening stopping")
 
 
 if __name__ == "__main__":
-    print("Debug: Started event viewer")
+    slogger.debug("Started event viewer")
     try:
         SOCKET_PATH = sys.argv[sys.argv.index('--socket-path') + 1]
     except ValueError:
-        print("Error: Failed to find socket path in arguments for event viewer")
+        slogger.error(
+            "Failed to find socket path in arguments for event viewer")
         raise
     try:
         create_logs = '--no-log' in sys.argv
     except ValueError:
-        print("Error: Failed to find socket path in arguments for event viewer")
+        slogger.error(
+            "Failed to find socket path in arguments for event viewer")
         create_logs = True
 
     main(SOCKET_PATH, create_logs)
-    print("Info: Event viewer stopped")
+    slogger.info("Event viewer stopped")

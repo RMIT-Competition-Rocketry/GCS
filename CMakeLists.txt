@@ -30,6 +30,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 add_executable(middleware ${SRCS})
 
 # Protobuf generation #18
+# I'm just going to do this manually for now. It's fucked again
+# Like this
+# protoc --proto_path "${PWD}/backend/proto" --cpp_out="${PWD}/backend/proto/generated/payloads" "${PWD}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto"
 # https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
 add_library(proto-objects OBJECT "${CMAKE_CURRENT_LIST_DIR}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto")
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
@@ -86,6 +89,7 @@ target_include_directories(middleware PRIVATE
     ${Protobuf_INCLUDE_DIRS}
     ${ZMQ_INCLUDE_DIR}
     ${PROTO_DIR} # For proto file imports
+    ${CMAKE_SOURCE_DIR}/backend/include # Add backend so that includes like "backend/process_logging.hpp" work
 )
 
 # Link libraries
