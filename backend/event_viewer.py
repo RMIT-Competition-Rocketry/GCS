@@ -394,9 +394,9 @@ class AV_TO_GCS_DATA_1(Packet):
             # Print basic information
             alt_m = PROTO_DATA.altitude
             alt_ft = PROTO_DATA.altitude*3.28084
-            slogger.info("Altitude: {alt_m}m {alt_ft}ft")
-            slogger.info("Velocity: {round(PROTO_DATA.velocity, 3)}m/s")
-            slogger.info("Broadcast flag: {PROTO_DATA.broadcast_flag}")
+            slogger.info(f"Altitude: {alt_m}m {alt_ft}ft")
+            slogger.info(f"Velocity: {round(PROTO_DATA.velocity, 3)}m/s")
+            slogger.info(f"Broadcast flag: {PROTO_DATA.broadcast_flag}")
 
             self._last_information_display_time = datetime.datetime.now()
 
