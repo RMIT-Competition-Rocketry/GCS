@@ -7,9 +7,9 @@ from google.protobuf.message import Message as PbMessage
 import proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
 from typing import List, Dict
 import backend.process_logging as slogger  # slog deez nuts
+import backend.ansci as ansci
 
-
-# Just prints useful information from AV and saves it to file
+# Just prints useful information from AV and saves it to csv file
 
 
 class Packet:
@@ -217,6 +217,13 @@ class AV_TO_GCS_DATA_1(Packet):
                 case _:
                     slogger.error(f"Unknown flight state {flight_state_name}")
 
+            # Extra case for printing apogee estimation
+            if PROTO_DATA.flightState == AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.APOGEE:
+                __ft_estimation = AV_TO_GCS_DATA_1._mt_to_ft(
+                    PROTO_DATA.altitude)
+                slogger.success(
+                    f"Instantaneous Apogee estimation: {__ft_estimation} ft")
+
     def _process_state_flags(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         # Info level for 0 -> 1 and warning for 1 -> 0
         for state_flag_name, state_flag_value in PROTO_DATA.ListFields()[1:6]:
@@ -364,6 +371,10 @@ class AV_TO_GCS_DATA_1(Packet):
             GCS_TO_AV_STATE_CMD.awaiting_results_main_secondary
         )
 
+    @staticmethod
+    def _mt_to_ft(meters):
+        return meters * 3.28084
+
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
 
@@ -390,14 +401,33 @@ class AV_TO_GCS_DATA_1(Packet):
             self._supersonic = False
 
         # Regular infomation updates
-        if self._last_information_display_time - datetime.datetime.now() > self._INFORMATION_TIMEOUT:
+        if datetime.datetime.now() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
             # Print basic information
-            alt_m = PROTO_DATA.altitude
-            alt_ft = PROTO_DATA.altitude*3.28084
-            slogger.info(f"Altitude: {alt_m}m {alt_ft}ft")
-            slogger.info(f"Velocity: {round(PROTO_DATA.velocity, 3)}m/s")
-            slogger.info(f"Broadcast flag: {PROTO_DATA.broadcast_flag}")
+            ALT_M = PROTO_DATA.altitude
+            ALT_FT = AV_TO_GCS_DATA_1._mt_to_ft(PROTO_DATA.altitude)
+            VELOCITY = PROTO_DATA.velocity
 
+            if ALT_FT <= 10000:
+                alt_color = ansci.BG_GREEN + ansci.FG_BLACK  # Ideal altitude: green
+            else:
+                alt_color = ansci.BG_RED    # Over the target: red
+
+            if VELOCITY <= 180:
+                vel_color = ansci.BG_BLUE
+            elif VELOCITY <= 200:
+                vel_color = ansci.BG_CYAN
+            elif VELOCITY <= 240:
+                vel_color = ansci.BG_GREEN
+            elif VELOCITY <= 270:
+                vel_color = ansci.BG_YELLOW
+            else:
+                vel_color = ansci.BG_RED
+
+            # < left aligned, 11 chars reserved, .2f float with 2 decimal places
+            slogger.info(
+                f"{alt_color}Altitude: {ALT_M:<8.3f}m {ALT_FT:<9.3f}ft{ansci.RESET}")
+            slogger.info(
+                f"{vel_color}Velocity: {VELOCITY:<8.3f}m/s{ansci.RESET}")
             self._last_information_display_time = datetime.datetime.now()
 
         self._process_AV_tests(PROTO_DATA)
