@@ -25,6 +25,8 @@ Commuincation will start with and go in order of
 
 ## RX Brainstorming Summary
 
+Note that its about one packet every 250ms
+
 In the final design data will come from the LoRa module and then you will get a raw packet of 16 bytes via I2C or ISA what comes directly to the PCM via GPIO. This will require a linux driver or parser script.
 
 The strcuture of those 16 bytes will be determined by the team. See the [LoRa design spreadsheet](https://rmiteduau-my.sharepoint.com/:x:/r/personal/s3783701_student_rmit_edu_au/Documents/AURC%202024/3.0%20-%20Design%20Documentation/3.4%20-%20Avionics/_COMMUNICATION%20STANDARDS/External%20Communication%20(LoRa)/LoRa%20Packet%20Structure.xlsx?d=w6126511169354b299b33d55283d1d44e&csf=1&web=1&e=LffT7t) or the image below. They have a bunch of cells explaining each byte. There is discussion on how the packet design will work. Multiple sequential packets will need to be sent when data overflows 16 bytes. This applies to TX and RX, noting that commuincation is also half duplex.

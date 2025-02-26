@@ -4,7 +4,13 @@ import os
 import csv
 import sys
 from google.protobuf.message import Message as PbMessage
-import proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
+import proto.generated.payloads.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
+import proto.generated.payloads.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
+import proto.generated.payloads.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
+import proto.generated.payloads.GCS_TO_AV_STATE_CMD_pb2 as GCS_TO_AV_STATE_CMD_pb
+import proto.generated.payloads.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_pb
+import proto.generated.payloads.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
+import proto.generated.payloads.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 from typing import List, Dict
 import backend.process_logging as slogger  # slog deez nuts
 import backend.ansci as ansci
@@ -288,9 +294,11 @@ class AV_TO_GCS_DATA_1(Packet):
 
             Args:
                 DATA_TEST_COMPLETE (bool): PROTO_DATA.apogee_primary_test_complete
-                KEY_TEST_COMPLETE (str): The name of the proto field to match the key in self._last_test_details # "apogee_primary_test_complete"
+                # "apogee_primary_test_complete"
+                KEY_TEST_COMPLETE (str): The name of the proto field to match the key in self._last_test_details
                 DATA_TEST_RESULTS (bool): PROTO_DATA.apogee_primary_test_results
-                KEY_TEST_RESULTS (str): The name of the proto field to match the key in self._last_test_details # "apogee_primary_test_results"
+                # "apogee_primary_test_results"
+                KEY_TEST_RESULTS (str): The name of the proto field to match the key in self._last_test_details
                 AWAITING_TEST_RESULTS (bool): GCS_TO_AV_STATE_CMD.awaiting_results_main_primary
 
             Returns:
@@ -471,6 +479,13 @@ def main(SOCKET_PATH, CREATE_LOGS):
                 continue
             packet_id = int.from_bytes(message, byteorder='big')
             message = sub_socket.recv()
+            if len(message) == 1:
+                # Something failed and we've got a new ID instead of the last message.
+                new_erronous_packet_id = int.from_bytes(
+                    message, byteorder='big')
+                slogger.error(
+                    f"Event viewer subscription did find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
+                continue
 
             match packet_id:
                 case 3:

@@ -36,6 +36,7 @@ def start_middleware(logger: logging.Logger,
         middleware_process = process.LoggedSubProcess(
             MIDDLEWARE_COMMAND,
             name="middleware",
+            parse_output=True
         )
         middleware_process.start()
 

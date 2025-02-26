@@ -31,7 +31,8 @@ class PacketName
 public:
     // Amount of bytes in this payload
     static constexpr ssize_t SIZE = 31;      // 32 including ID and TBC byte
-    static constexpr unsigned int ID = 0x03; // 8 bits reserved in packet
+    static constexpr const char* PACKET_NAME = "PacketName";
+    static constexpr int8_t  ID = 0x03; // 8 bits reserved in packet
 
     /// @brief See LoRa packet structure spreadsheet for more information.
     /// @param DATA
@@ -54,9 +55,9 @@ public:
 
     // Protobuf serialization
 
-    payload::AV_TO_GCS_DATA_1 toProtobuf() const
+    payload::PacketName toProtobuf() const
     {
-        payload::AV_TO_GCS_DATA_1 proto_data;
+        payload::PacketName proto_data;
 
         // Use the macro for simple fields with same name
         SET_PROTO_FIELD(proto_data, bool_field);

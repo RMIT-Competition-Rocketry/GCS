@@ -46,7 +46,7 @@ protobuf_generate(
 )
 
 # Add python protobuf generation
-# For now just use protoc --proto_path "${PWD}/backend/proto" --cpp_out="${PWD}/backend/proto/generated/payloads" "${PWD}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto"
+# For now just use  4249  protoc --proto_path=./backend/proto/payloads --python_out=./backend/proto/generated ./backend/proto/payloads/AV_TO_GCS_DATA_1.proto
 
 # Get all generated protobuf source files
 # TODO this might need to be edited after you start using things outside of payloads

@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package payload;
+
+message GSE_TO_GCS_DATA_1 {
+    // Note these are queries, not commands
+    optional bool manual_purge_activated = 1;
+    optional bool o2_fill_activated = 2;
+    optional bool selector_switch_neutral_position = 3;
+    optional bool n20_fill_activated = 4;
+    optional bool ignition_fired = 5;
+    optional bool ignition_selected = 6;
+    optional bool gas_fill_selected = 7;
+    optional bool system_activated = 8;
+
+    optional float transducer_1 = 9;
+    optional float transducer_2 = 10;
+    optional float transducer_3 = 11;
+
+    optional float thermocouple_1 = 12;
+    optional float thermocouple_2 = 13;
+    optional float thermocouple_3 = 14;
+    optional float thermocouple_4 = 15;
+
+    // Note 10 
+    optional bool ignition_error = 16;
+    optional bool relay_3_error = 17;
+    optional bool relay_2_error = 18;
+    optional bool relay_1_error = 19;
+    optional bool thermocouple_4_error = 20;
+    optional bool thermocouple_3_error = 21;
+    optional bool thermocouple_2_error = 22;
+    optional bool thermocouple_1_error = 23;
+
+    // Note 11
+    optional bool load_cell_4_error = 24;
+    optional bool load_cell_3_error = 25;
+    optional bool load_cell_2_error = 26;
+    optional bool load_cell_1_error = 27;
+    optional bool transducer_4_error = 28;
+    optional bool transducer_3_error = 29;
+    optional bool transducer_2_error = 30;
+    optional bool transducer_1_error = 31;
+}
