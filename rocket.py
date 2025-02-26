@@ -52,10 +52,11 @@ def run():
     # 2. Run C++ middleware
     # Note that devices are paired pseudo-ttys
     try:
-        start_middleware(logger,
-                         InterfaceType.TEST,
-                         devices[0],
-                         "gcs_rocket")
+        start_middleware(logger=logger,
+                         release=True,
+                         INTERFACE_TYPE=InterfaceType.TEST,
+                         DEVICE_PATH=devices[0],
+                         SOCKET_PATH="gcs_rocket")
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
@@ -124,10 +125,11 @@ def dev(nodocker):
     # 3. Run C++ middleware
     # Note that devices are paired pseudo-ttys
     try:
-        start_middleware(logger,
-                         InterfaceType.TEST,
-                         devices[0],
-                         "gcs_rocket")
+        start_middleware(logger=logger,
+                         release=False,
+                         INTERFACE_TYPE=InterfaceType.TEST,
+                         DEVICE_PATH=devices[0],
+                         SOCKET_PATH="gcs_rocket")
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
