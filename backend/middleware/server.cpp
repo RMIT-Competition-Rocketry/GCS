@@ -51,6 +51,10 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
             std::string serialized;
             if (proto_msg.SerializeToString(&serialized))
             {
+                // Has to be At LEAST bigger than the input size with proto
+                process_logging::debug(PacketType::PACKET_NAME);
+                process_logging::debug(std::to_string(PacketType::ID));
+                // assert(serialized.size() >= PacketType::SIZE && PacketType::ID != 0x05);
                 zmq::message_t msg(serialized.data(), serialized.size());
                 pub_socket.send(msg, zmq::send_flags::none);
             }
@@ -82,7 +86,7 @@ void input_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pu
             // Check if we have enough bytes for the ID
             if (count >= 1)
             {
-                int8_t packet_id = buffer[0];
+                int8_t packet_id = static_cast<int8_t>(buffer[0]);
 
                 // Send packet ID to receiving ends so they know which proto file to use
                 std::string packet_id_string(1, packet_id);
@@ -92,29 +96,30 @@ void input_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pu
                 // Note that some packet types are observed can be skipped if not meant for GCS
                 switch (packet_id)
                 {
-                case AV_TO_GCS_DATA_1::ID:
+                case AV_TO_GCS_DATA_1::ID: // 3
                     process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
                     break;
-                case AV_TO_GCS_DATA_2::ID:
+                case AV_TO_GCS_DATA_2::ID: // 4
                     process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
                     break;
-                case AV_TO_GCS_DATA_3::ID:
+                case AV_TO_GCS_DATA_3::ID: // 5
                     process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
                     break;
-                case GCS_TO_AV_STATE_CMD::ID:
+                case GCS_TO_AV_STATE_CMD::ID: // 1
                     process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
                     break;
-                case GCS_TO_GSE_STATE_CMD::ID:
+                case GCS_TO_GSE_STATE_CMD::ID: // 2
                     process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
                     break;
-                case GSE_TO_GCS_DATA_1::ID:
+                case GSE_TO_GCS_DATA_1::ID: // 6
                     process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
                     break;
-                case GSE_TO_GCS_DATA_2::ID:
+                case GSE_TO_GCS_DATA_2::ID: // 7
                     process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
                     break;
                 default:
-                    process_logging::error("Unknown packet ID: " + std::to_string(packet_id));
+                    std::string numeric_val = std::to_string(static_cast<int>(packet_id));
+                    process_logging::error("Unknown packet ID: " + std::to_string(packet_id) + "numeric: " + numeric_val);
                     break;
                 }
             }
@@ -142,7 +147,7 @@ std::unique_ptr<LoraInterface> create_interface(
     }
     else
     {
-        throw new std::runtime_error("Error: Invalid interface type");
+        throw std::runtime_error("Error: Invalid interface type");
     }
 
     return interface;
@@ -169,7 +174,7 @@ int main(int argc, char *argv[])
         process_logging::error("Not enough arugments provided.");
         process_logging::error("Usage: ./file <socket type> <device path> <socket path>");
         // Throw error silenced by main
-        throw new std::runtime_error("Error: Not enough arugments provided");
+        throw std::runtime_error("Error: Not enough arugments provided");
         return EXIT_FAILURE;
     }
     else if (argc > 4)
@@ -233,7 +238,7 @@ int main(int argc, char *argv[])
     }
     catch (const std::exception &e)
     {
-        process_logging::error(e.what());
+        process_logging::error("Generic error on main: " + std::string(e.what()));
         return EXIT_FAILURE;
     }
 

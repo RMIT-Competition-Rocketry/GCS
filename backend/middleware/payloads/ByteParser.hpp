@@ -34,6 +34,10 @@ public:
     {
 #ifdef DEBUG
         // If not all bytes were consumed, output a warning.
+        // process_logging::debug("ByteParser DEBUG. Processed " +
+        //                        std::to_string(byte_index_) +
+        //                        " of " + std::to_string(size_) +
+        //                        " bytes (bit offset: " + std::to_string(bit_offset_) + ")");
         if (byte_index_ < size_ || (byte_index_ == size_ && bit_offset_ != 0))
         {
             process_logging::critical("ByteParser destroyed without consuming all data. Processed " +

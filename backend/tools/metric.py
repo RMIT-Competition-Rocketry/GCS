@@ -90,7 +90,7 @@ class Metric:
         """
         if not (0 <= value <= 0xFF):  # 0xFF == 255 (8-bit max)
             raise ValueError(
-                "Value must be between 0 and 255 (8-bit unsigned range).")
+                f"Value must be between 0 and 255 (8-bit unsigned range). Got: {value}")
         return value.to_bytes(1, byteorder='big', signed=False)
 
     @staticmethod
@@ -108,7 +108,7 @@ class Metric:
         """
         if not (-128 <= value <= 127):
             raise ValueError(
-                "Value must be between -128 and 127 (8-bit signed range).")
+                f"Value must be between -128 and 127 (8-bit signed range). Got: {value}")
         return value.to_bytes(1, byteorder='big', signed=True)
 
     @staticmethod
@@ -129,7 +129,7 @@ class Metric:
 
         if not (0 <= value <= max_value):
             raise ValueError(
-                f"Value must be between 0 and {max_value} for {NUM_BYTES} byte(s).")
+                f"Value must be between 0 and {max_value} for {NUM_BYTES} byte(s). Got: {value}")
 
         return value.to_bytes(NUM_BYTES, byteorder='big', signed=False)
 
@@ -152,7 +152,7 @@ class Metric:
 
         if not (min_value <= value <= max_value):
             raise ValueError(
-                f"Value must be between {min_value} and {max_value} for {NUM_BYTES} byte(s).")
+                f"Value must be between {min_value} and {max_value} for {NUM_BYTES} byte(s). Got: {value}")
 
         return value.to_bytes(NUM_BYTES, byteorder='big', signed=True)
 
@@ -392,7 +392,7 @@ class Metric:
         result = (result << 1) | GAS_FILL_SELECTED
         result = (result << 1) | SYSTEM_ACTIVATE
 
-        return Metric._int_to_byte(result)
+        return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def StateSetFlagINVERTEDs2p2(
@@ -497,7 +497,7 @@ class Metric:
         """
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -516,7 +516,7 @@ class Metric:
 
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -535,7 +535,7 @@ class Metric:
 
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -554,7 +554,7 @@ class Metric:
 
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -573,7 +573,7 @@ class Metric:
 
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -592,7 +592,7 @@ class Metric:
 
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -611,7 +611,7 @@ class Metric:
 
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -630,7 +630,7 @@ class Metric:
 
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -649,7 +649,7 @@ class Metric:
 
         if not Metric.is_valid_int16_singed(VALUE):
             raise ValueError(
-                "Value must be between -32768 and 32767 (16-bit signed range).")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -838,7 +838,7 @@ class Metric:
 
         if not Metric.is_valid_int16_unsigned(VALUE):
             raise ValueError(
-                "Value must be between 0, 65_535 (16-bit unsigned range).")
+                f"Value must be between 0, 65_535 (16-bit unsigned range). Got: {VALUE}")
 
         return Metric._int_to_multiple_bytes_unsigned(VALUE, 2)
 

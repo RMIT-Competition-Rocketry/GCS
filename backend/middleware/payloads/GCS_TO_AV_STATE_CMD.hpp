@@ -12,7 +12,7 @@ class GCS_TO_AV_STATE_CMD
 {
 public:
     // Amount of bytes in this payload
-    static constexpr ssize_t SIZE = 3; // 32 including ID and TBC byte
+    static constexpr ssize_t SIZE = 3; // 4 including ID and TBC byte
     static constexpr const char *PACKET_NAME = "GCS_TO_AV_STATE_CMD";
     static constexpr int8_t ID = 0x01; // 8 bits reserved in packet
 
@@ -46,6 +46,18 @@ public:
     // Getters for the private members
     constexpr unsigned int id_val() const { return ID; }
 
+    bool main_secondary_test() const { return main_secondary_test_; };
+    bool main_primary_test() const { return main_primary_test_; };
+    bool apogee_secondary_test() const { return apogee_secondary_test_; };
+    bool apogee_primary_test() const { return apogee_primary_test_; };
+
+    bool main_secondary_test_inverted() const { return main_secondary_test_inverted_; };
+    bool main_primary_test_inverted() const { return main_primary_test_inverted_; };
+    bool apogee_secondary_test_inverted() const { return apogee_secondary_test_inverted_; };
+    bool apogee_primary_test_inverted() const { return apogee_primary_test_inverted_; };
+
+    bool broadcast_begin() const { return broadcast_begin_; };
+
     // Protobuf serialization
 
     payload::GCS_TO_AV_STATE_CMD toProtobuf() const
@@ -54,6 +66,17 @@ public:
 
         // Use the macro for simple fields with same name
 
+        SET_PROTO_FIELD(proto_data, main_secondary_test);
+        SET_PROTO_FIELD(proto_data, main_primary_test);
+        SET_PROTO_FIELD(proto_data, apogee_secondary_test);
+        SET_PROTO_FIELD(proto_data, apogee_primary_test);
+
+        SET_PROTO_FIELD(proto_data, main_secondary_test_inverted);
+        SET_PROTO_FIELD(proto_data, main_primary_test_inverted);
+        SET_PROTO_FIELD(proto_data, apogee_secondary_test_inverted);
+        SET_PROTO_FIELD(proto_data, apogee_primary_test_inverted);
+
+        SET_PROTO_FIELD(proto_data, broadcast_begin);
         return proto_data;
     }
 

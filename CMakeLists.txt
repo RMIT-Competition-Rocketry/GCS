@@ -99,4 +99,8 @@ target_link_libraries(middleware PRIVATE
     ${ZMQ_LIBRARY}
 )
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set_target_properties(middleware PROPERTIES OUTPUT_NAME "middleware-release")
+endif()
+
 install(TARGETS middleware DESTINATION bin)

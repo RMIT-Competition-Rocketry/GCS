@@ -12,7 +12,7 @@ class GCS_TO_GSE_STATE_CMD
 {
 public:
     // Amount of bytes in this payload
-    static constexpr ssize_t SIZE = 31; // 32 including ID and TBC byte
+    static constexpr ssize_t SIZE = 3; // 4 including ID and TBC byte
     static constexpr const char *PACKET_NAME = "GCS_TO_GSE_STATE_CMD";
     static constexpr int8_t ID = 0x02; // 8 bits reserved in packet
 

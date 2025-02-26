@@ -2,6 +2,7 @@ import datetime
 import zmq
 import os
 import csv
+from abc import ABC, abstractmethod
 import sys
 from google.protobuf.message import Message as PbMessage
 import proto.generated.payloads.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
@@ -18,7 +19,7 @@ import backend.ansci as ansci
 # Just prints useful information from AV and saves it to csv file
 
 
-class Packet:
+class Packet(ABC):
     # Updated in _setup_logging
     _setup: bool = False
 
@@ -148,6 +149,8 @@ class Packet:
             timestamp = datetime.datetime.now() - self.__class__._VIEWER_STARTUP_TIMESTAMP
             writer.writerow([timestamp.total_seconds()*1000] + data)
 
+    @abstractmethod
+    # As mentioned, call super on this anyway, but impliment own mods
     def process(self, PROTO_DATA: PbMessage) -> None:
         """How to handle each new packet from an event viewer perspective
         this includes logging to file and printing important information to console
@@ -163,17 +166,6 @@ class Packet:
         # `Logging enabled` check is internal to the csv function
         self._log_to_csv(data_as_string)
         # Please call super on this and add printing events afterwards
-
-
-class GCS_TO_AV_STATE_CMD(Packet):
-    # Static flags to be accessed and updated by result packet AV_TO_GCS_DATA_1
-    awaiting_results_apogee_primary = False
-    awaiting_results_apogee_secondary = False
-    awaiting_results_main_primary = False
-    awaiting_results_main_secondary = False
-
-    def __init__(self):
-        super().__init__(0x01, None)
 
 
 class AV_TO_GCS_DATA_1(Packet):
@@ -385,6 +377,7 @@ class AV_TO_GCS_DATA_1(Packet):
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
+        slogger.debug("AV_TO_GCS_DATA_1 packet received")
 
         # Useful docs: https://googleapis.dev/python/protobuf/latest/google/protobuf/descriptor.html
 
@@ -420,6 +413,7 @@ class AV_TO_GCS_DATA_1(Packet):
             else:
                 alt_color = ansci.BG_RED    # Over the target: red
 
+            # Max speed is 274 m/s
             if VELOCITY <= 180:
                 vel_color = ansci.BG_BLUE
             elif VELOCITY <= 200:
@@ -446,6 +440,77 @@ class AV_TO_GCS_DATA_1(Packet):
                 "@@@@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@@@@")
 
 
+class AV_TO_GCS_DATA_2(Packet):
+
+    def __init__(self):
+        super().__init__(0x04, None)
+
+    def process(self, PROTO_DATA: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2) -> None:
+        super().process(PROTO_DATA)
+        slogger.debug("AV_TO_GCS_DATA_2 packet received")
+
+
+class AV_TO_GCS_DATA_3(Packet):
+
+    def __init__(self):
+        super().__init__(0x05, None)
+
+    def process(self, PROTO_DATA: AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3) -> None:
+        super().process(PROTO_DATA)
+        slogger.debug("AV_TO_GCS_DATA_3 packet received")
+
+
+# TODO Warning that if this is picked up by the sub,
+# you'll be spitting out the same information you wrote.
+# This is okay, but mostly redundant
+class GCS_TO_AV_STATE_CMD(Packet):
+    # Static flags to be accessed and updated by result packets AV_TO_GCS_DATA_x
+    awaiting_results_apogee_primary = False
+    awaiting_results_apogee_secondary = False
+    awaiting_results_main_primary = False
+    awaiting_results_main_secondary = False
+
+    def __init__(self):
+        super().__init__(0x01, None)
+
+    def process(self, PROTO_DATA: GCS_TO_AV_STATE_CMD_pb.GCS_TO_AV_STATE_CMD) -> None:
+        super().process(PROTO_DATA)
+        slogger.debug("GCS_TO_AV_STATE_CMD packet received")
+
+
+# TODO Warning that if this is picked up by the sub,
+# you'll be spitting out the same information you wrote.
+# This is okay, but mostly redundant
+class GCS_TO_GSE_STATE_CMD(Packet):
+
+    def __init__(self):
+        super().__init__(0x02, None)
+
+    def process(self, PROTO_DATA: GCS_TO_GSE_STATE_CMD_pb.GCS_TO_GSE_STATE_CMD) -> None:
+        super().process(PROTO_DATA)
+        slogger.debug("GCS_TO_GSE_STATE_CMD packet received")
+
+
+class GSE_TO_GCS_DATA_1(Packet):
+
+    def __init__(self):
+        super().__init__(0x06, None)
+
+    def process(self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1) -> None:
+        super().process(PROTO_DATA)
+        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+
+
+class GSE_TO_GCS_DATA_2(Packet):
+
+    def __init__(self):
+        super().__init__(0x07, None)
+
+    def process(self, PROTO_DATA: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2) -> None:
+        super().process(PROTO_DATA)
+        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+
+
 def main(SOCKET_PATH, CREATE_LOGS):
     VIEWER_STARTUP_TIMESTAMP = datetime.datetime.now()
     Packet.setup(VIEWER_STARTUP_TIMESTAMP, CREATE_LOGS)
@@ -468,8 +533,14 @@ def main(SOCKET_PATH, CREATE_LOGS):
     slogger.info("Listening for messages...")
 
     # Setup handler objects
+    # this is dogshit. please make not sad to work with
     AV_TO_GCS_DATA_1_handler = AV_TO_GCS_DATA_1()
+    AV_TO_GCS_DATA_2_handler = AV_TO_GCS_DATA_2()
+    AV_TO_GCS_DATA_3_handler = AV_TO_GCS_DATA_3()
     GCS_TO_AV_STATE_CMD_handler = GCS_TO_AV_STATE_CMD()
+    GCS_TO_GSE_STATE_CMD_handler = GCS_TO_GSE_STATE_CMD()
+    GSE_TO_GCS_DATA_1_handler = GSE_TO_GCS_DATA_1()
+    GSE_TO_GCS_DATA_2_handler = GSE_TO_GCS_DATA_2()
 
     while True:
         try:
@@ -488,10 +559,36 @@ def main(SOCKET_PATH, CREATE_LOGS):
                 continue
 
             match packet_id:
+                case 1:
+                    GCS_TO_AV_STATE_CMD_packet = GCS_TO_AV_STATE_CMD_pb.GCS_TO_AV_STATE_CMD()
+                    GCS_TO_AV_STATE_CMD_packet.ParseFromString(message)
+                    GCS_TO_AV_STATE_CMD_handler.process(
+                        GCS_TO_AV_STATE_CMD_packet)
+                case 2:
+                    GCS_TO_GSE_STATE_CMD_packet = GCS_TO_GSE_STATE_CMD_pb.GCS_TO_GSE_STATE_CMD()
+                    GCS_TO_GSE_STATE_CMD_packet.ParseFromString(message)
+                    GCS_TO_GSE_STATE_CMD_handler.process(
+                        GCS_TO_GSE_STATE_CMD_packet)
                 case 3:
                     AV_TO_GCS_DATA_1_packet = AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1()
                     AV_TO_GCS_DATA_1_packet.ParseFromString(message)
                     AV_TO_GCS_DATA_1_handler.process(AV_TO_GCS_DATA_1_packet)
+                case 4:
+                    AV_TO_GCS_DATA_2_packet = AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2()
+                    AV_TO_GCS_DATA_2_packet.ParseFromString(message)
+                    AV_TO_GCS_DATA_2_handler.process(AV_TO_GCS_DATA_2_packet)
+                case 5:
+                    AV_TO_GCS_DATA_3_packet = AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3()
+                    AV_TO_GCS_DATA_3_packet.ParseFromString(message)
+                    AV_TO_GCS_DATA_3_handler.process(AV_TO_GCS_DATA_3_packet)
+                case 6:
+                    GSE_TO_GCS_DATA_1_packet = GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1()
+                    GSE_TO_GCS_DATA_1_packet.ParseFromString(message)
+                    GSE_TO_GCS_DATA_1_handler.process(GSE_TO_GCS_DATA_1_packet)
+                case 7:
+                    GSE_TO_GCS_DATA_2_packet = GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2()
+                    GSE_TO_GCS_DATA_2_packet.ParseFromString(message)
+                    GSE_TO_GCS_DATA_2_handler.process(GSE_TO_GCS_DATA_2_packet)
                 case _:
                     slogger.error(f"Unexpected packet ID: {packet_id}")
         except zmq.Again:

@@ -86,7 +86,8 @@ class GCStoGSEStateCMD(MockPacket):
                                                    IGNITION_FIRE,
                                                    IGNITION_SELECTED,
                                                    GAS_FILL_SELECTED,
-                                                   SYSTEM_ACTIVATE,)
+                                                   SYSTEM_ACTIVATE,),
+            metric.Metric.dummyByte()
         ]
 
 
@@ -270,6 +271,7 @@ class GSEtoGCSData1(MockPacket):
         THERMOCOUPLE2: float = 1234,
         THERMOCOUPLE3: float = 1234,
         THERMOCOUPLE4: float = 1234,
+        IGNITION_ERROR: bool = False,
         RELAY3_ERROR: bool = False,
         RELAY2_ERROR: bool = True,
         RELAY1_ERROR: bool = False,
@@ -307,6 +309,7 @@ class GSEtoGCSData1(MockPacket):
             metric.Metric.THERMOCOUPLE(THERMOCOUPLE3),
             metric.Metric.THERMOCOUPLE(THERMOCOUPLE4),
             metric.Metric.ERROR_CODE_GSE(
+                IGNITION_ERROR,
                 RELAY3_ERROR,
                 RELAY2_ERROR,
                 RELAY1_ERROR,
@@ -339,12 +342,13 @@ class GSEtoGCSData2(MockPacket):
         SYSTEM_ACTIVATED: bool = False,
         INTERNAL_TEMPERATURE: float = 30.123,
         WIND_SPEED: float = 20.123,
-        GAS_BOTTLE_WEIGHT_1: int = 2.123,  # Error because alsmost empty
-        GAS_BOTTLE_WEIGHT_2: int = 8.123,  # Impossible value for 6.5 ltr tank
+        GAS_BOTTLE_WEIGHT_1: int = 2,  # Error because alsmost empty
+        GAS_BOTTLE_WEIGHT_2: int = 8,  # Impossible value for 6.5 ltr tank
         ADDITIONAL_VA_1: float = 5.123,
         ADDITIONAL_VA_2: float = 6.123,
         ADDITIONAL_CURRENT_1: float = 14.123,
         ADDITIONAL_CURRENT_2: float = 13.123,
+        IGNITION_ERROR: bool = False,
         RELAY3_ERROR: bool = False,
         RELAY2_ERROR: bool = True,
         RELAY1_ERROR: bool = False,
@@ -374,8 +378,8 @@ class GSEtoGCSData2(MockPacket):
                 GAS_FILL_SELECTED,
                 SYSTEM_ACTIVATED,
             ),
-            metric.Metric.INTERNAL_TEMPERATURE(INTERNAL_TEMPERATURE),
-            metric.Metric.WIND_SPEED(WIND_SPEED),
+            metric.Metric.INTERNAL_TEMP_GSE(INTERNAL_TEMPERATURE),
+            metric.Metric.WIND_SPEED_GSE(WIND_SPEED),
             metric.Metric.GAS_BOTTLE_WEIGHT(GAS_BOTTLE_WEIGHT_1),
             metric.Metric.GAS_BOTTLE_WEIGHT(GAS_BOTTLE_WEIGHT_2),
             metric.Metric.ADDITIONAL_VA_INPUT(ADDITIONAL_VA_1),
@@ -383,6 +387,7 @@ class GSEtoGCSData2(MockPacket):
             metric.Metric.ADDITIONAL_CURRENT_INPUT(ADDITIONAL_CURRENT_1),
             metric.Metric.ADDITIONAL_CURRENT_INPUT(ADDITIONAL_CURRENT_2),
             metric.Metric.ERROR_CODE_GSE(
+                IGNITION_ERROR,
                 RELAY3_ERROR,
                 RELAY2_ERROR,
                 RELAY1_ERROR,
@@ -419,13 +424,20 @@ def main():
     # Also, this is the ROCKET emulator.
     # Packets written to the device should be packets that are sent from AV
     # test_packet = AVtoGCSData2()
-    test_packet = AVtoGCSData2()
+    test_packets = [AVtoGCSData1(), AVtoGCSData2(), AVtoGCSData3(),
+                    GCStoAVStateCMD(), GCStoGSEStateCMD(), GSEtoGCSData1(), GSEtoGCSData2()]
+
+    # [3, 4, 5, 1, 2, 6, 7]
+    slogger.debug(f"ID Orders: {[x.ID for x in test_packets]}")
 
     START = datetime.datetime.now()
     try:
         while (datetime.datetime.now() - START).seconds < 60*10:  # 10 minute debug session
-            test_packet.write_payload()
-            time.sleep(1)
+            for packet in test_packets:
+                packet.write_payload()
+                time.sleep(1)  # Real timning is about 250ms. Not 50
+            slogger.debug("Looped through all packets")
+            time.sleep(3)
     except KeyboardInterrupt:
         # As soon as the CLI gets the interrupt, a race condition starts and child cleanup is not guaranteed
         slogger.debug("Emulator interrupted by user")
