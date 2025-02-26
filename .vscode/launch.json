@@ -18,10 +18,10 @@
             "program": "${workspaceFolder}/build/middleware",
             "args": [
                 // 3 args please
-                "UART",
-                "/dev/ttys052", // socat device. Either is fine
+                "TEST",
+                "/dev/ttys011", // socat device. Either is fine
                 // Note that using /var/run requires elevated privleges
-                "/tmp/gcs_rocket.sock",
+                "gcs_rocket.sock",
             ],
             "preLaunchTask": "middleware build-dev + generate proto",
             "stopAtEntry": false,

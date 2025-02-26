@@ -4,7 +4,6 @@
 #include <iostream>
 #include <bit>
 #include <cstdint>
-// TODO add this to import path and make linter happy
 #include "../../proto/generated/payloads/AV_TO_GCS_DATA_1.pb.h"
 
 #define SET_PROTO_FIELD(proto, field) proto.set_##field(field())
@@ -14,7 +13,8 @@ class AV_TO_GCS_DATA_1
 public:
     // Amount of bytes in this payload
     static constexpr ssize_t SIZE = 31; // 32 including ID and TBC byte
-    static constexpr int8_t ID = 0x03;  // 8 bits reserved in packet
+    static constexpr const char *PACKET_NAME = "AV_TO_GCS_DATA_1";
+    static constexpr int8_t ID = 0x03; // 8 bits reserved in packet
 
     /// @brief See LoRa packet structure spreadsheet for more information.
     /// @param DATA
@@ -76,8 +76,8 @@ public:
         else
         {
             // Future error validation for #16
-            std::cerr << "Error: Unexpected parsed value for broadcast_flag_ in AV_TO_GCS_DATA_1: ";
-            std::cerr << broadcast_byte << std::endl;
+            process_logging::error("Unexpected parsed value for broadcast_flag_ in AV_TO_GCS_DATA_1:");
+            process_logging::error("broadcast_byte");
         }
 
         parser.extract_bits(8); // Discard last byte for now
@@ -186,7 +186,7 @@ private:
         case 0b111:
             return payload::AV_TO_GCS_DATA_1_FlightState::AV_TO_GCS_DATA_1_FlightState_OH_NO;
         default:
-            std::cerr << "Error: Unexpected flight state case bits in AV_TO_GCS_DATA_1\n";
+            process_logging::error("Unexpected flight state case bits in AV_TO_GCS_DATA_1");
             throw std::runtime_error("Unexpected flight state bits");
         }
     }

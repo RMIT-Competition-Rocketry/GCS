@@ -29,11 +29,51 @@ def cli():
 @click.command()
 def run():
     """Start software for production usage in native environment. Indented for usage on GCS only"""
-    logger.error("Production mode attempted. Not supported")
-    raise NotImplementedError("Production setup not currently supported")
+
     print_splash()
-    # Run a check to make sure the binaries are there.
-    # If not raise a FileNotFoundError
+    logger.setLevel(logging.INFO)
+
+    # 1. Make sure C++ middleware is there
+    # TODO add checks for ALL files please
+    # TODO please add a check to make sure it's up to date?
+    if not (os.path.exists(os.path.join("build", "middleware-release"))):
+        logger.error(
+            "C++ release middleware not found. Please build it with release.sh. Exiting")
+        raise FileNotFoundError("C++ release middleware not found. Exiting")
+
+    # cheeky temp debug everywhere below
+    # cheeky temp debug everywhere below
+    # cheeky temp debug everywhere below
+    # cheeky temp debug everywhere below
+    devices = start_fake_serial_device(logger)
+    if devices == (None, None):
+        raise RuntimeError("Failed to start fake serial device. Exiting")
+
+    # 2. Run C++ middleware
+    # Note that devices are paired pseudo-ttys
+    try:
+        start_middleware(logger,
+                         InterfaceType.TEST,
+                         devices[0],
+                         "gcs_rocket")
+    except Exception as e:
+        logger.error(
+            f"Failed to start middleware: {e}\nPropogating fatal error")
+        raise
+
+    time.sleep(0.5)
+
+    # 4. Start device emulator
+    # TODO maybe consider blocking further starts if this fails?
+    # Would only be for convienece though. It isn't really required or critical
+    start_fake_serial_device_emulator(logger, devices[1])
+
+    # 5. Start the event viewer
+    start_event_viewer(logger, "gcs_rocket", file_logging_enabled=True)
+
+    # 6. Could start the pendent emulator
+
+    # 7. Database stuff in future
 
 
 @click.command()
@@ -92,6 +132,9 @@ def dev(nodocker):
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
         raise
+
+    # TODO fix this with middleware blocking
+    time.sleep(0.5)
 
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?

@@ -3,6 +3,7 @@ import argparse
 from datetime import datetime
 import signal
 import hashlib
+import backend.ansci as ansci
 
 # Subscribes to the ZeroMQ PUB socket and prints received messages in hex and ASCII format
 
@@ -50,13 +51,42 @@ def main(socket_path):
     signal.signal(signal.SIGINT, signal_handler)
 
     print("Listening for messages...")
+
+    last_item = "UNINITIALISED"
+
     while True:
         try:
             message = sub_socket.recv(flags=zmq.NOBLOCK)
+            if len(message) == 0:
+                if last_item != "DATA" and last_item != "UNINITIALISED":
+                    match last_item:
+                        case "ID":
+                            print(ansci.FG_RED +
+                                  f"MISSING:DATA ^^" + ansci.RESET)
+                        case "DATA":
+                            print(ansci.FG_RED +
+                                  f"MISSING:ID ^^" + ansci.RESET)
+                        case "NOTHING":
+                            print(ansci.FG_RED +
+                                  f"MISSING:?? ^^" + ansci.RESET)
+                last_item = "NOTHING"
+                color = ansci.BG_RED
+            elif len(message) == 1:
+                if last_item != "DATA" and last_item != "UNINITIALISED":
+                    print(ansci.FG_RED + "LOST DATA ^^" + ansci.RESET)
+                last_item = "ID"
+                color = ansci.BG_BLUE
+            else:
+                if last_item != "ID" and last_item != "UNINITIALISED":
+                    print(ansci.FG_RED + "LOST ID ^^" + ansci.RESET)
+                last_item = "DATA"
+                color = ansci.BG_GREEN
+
             timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
             hex_data = format_hex(message)
             sha_data = get_sha(message)
-            print(f"[{timestamp}] Received {len(message)} bytes:")
+            print(
+                f"[{timestamp}] {color}Received {len(message)} bytes:{ansci.RESET}")
             print(f"({sha_data}) {hex_data}")
         except zmq.Again:
             # No message received, sleep to prevent CPU spin

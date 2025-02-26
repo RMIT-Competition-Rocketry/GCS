@@ -80,6 +80,10 @@
         "any": "cpp",
         "condition_variable": "cpp",
         "map": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "numbers": "cpp",
+        "numeric": "cpp",
+        "text_encoding": "cpp",
+        "cinttypes": "cpp"
     }
 }

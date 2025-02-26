@@ -46,6 +46,11 @@
             "icon": {
                 "id": "debug-console"
             },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
             "problemMatcher": []
         },
         {

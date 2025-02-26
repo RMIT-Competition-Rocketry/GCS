@@ -1,9 +1,14 @@
+#pragma once
+
 #include <cstdint>
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
+#include "process_logging.hpp"
 
 // A helper to sequentialy parse data bit by bit
+
+constexpr int PROTOCOL_BYTE_SIZE = 8;
 
 enum ByteOrder
 {
@@ -29,10 +34,16 @@ public:
     {
 #ifdef DEBUG
         // If not all bytes were consumed, output a warning.
+        // process_logging::debug("ByteParser DEBUG. Processed " +
+        //                        std::to_string(byte_index_) +
+        //                        " of " + std::to_string(size_) +
+        //                        " bytes (bit offset: " + std::to_string(bit_offset_) + ")");
         if (byte_index_ < size_ || (byte_index_ == size_ && bit_offset_ != 0))
         {
-            std::cerr << "Critical: ByteParser destroyed without consuming all data. "
-                      << "Processed " << byte_index_ << " of " << size_ << " bytes (bit offset: " << static_cast<int>(bit_offset_) << ").\n";
+            process_logging::critical("ByteParser destroyed without consuming all data. Processed " +
+                                      std::to_string(byte_index_) +
+                                      " of " + std::to_string(size_) +
+                                      " bytes (bit offset: " + std::to_string(bit_offset_) + ")");
         }
 #endif
     }
@@ -59,7 +70,7 @@ public:
             //    - `& 0x01` masks out all other bits
             //    - `|` appends the bit to the result
             result = (result << 1) | ((data_[byte_index_] >> (7 - bit_offset_)) & 0x01);
-            bit_offset_ = (bit_offset_ + 1) % 8;
+            bit_offset_ = (bit_offset_ + 1) % PROTOCOL_BYTE_SIZE;
             if (bit_offset_ == 0)
             {
                 ++byte_index_;
@@ -69,7 +80,7 @@ public:
         // If little-endian, reverse the byte order of the result
         if (endianness_ == LITTLE_ENDIAN_ORDER)
         {
-            uint8_t bytes_used = (num_bits + 7) / 8;
+            uint8_t bytes_used = (num_bits + 7) / PROTOCOL_BYTE_SIZE;
             result = swap_byte_order(result, bytes_used);
         }
 
@@ -82,7 +93,7 @@ public:
         uint32_t result = 0;
         for (uint8_t i = 0; i < num_bytes; ++i)
         {
-            result |= ((value >> (8 * i)) & 0xFF) << (8 * (num_bytes - 1 - i));
+            result |= ((value >> (PROTOCOL_BYTE_SIZE * i)) & 0xFF) << (PROTOCOL_BYTE_SIZE * (num_bytes - 1 - i));
         }
         return result;
     }
@@ -95,6 +106,18 @@ public:
             value |= (0xFFFFFFFF << num_bits); // Extend sign
         }
         return static_cast<int32_t>(value);
+    }
+
+    std::string extract_string(uint8_t num_chars)
+    {
+        std::string result;
+        result.reserve(num_chars);
+        for (uint8_t i = 0; i < num_chars; i++)
+        {
+            uint32_t byte_val = extract_bits(8);
+            result.push_back(static_cast<char>(byte_val));
+        }
+        return result;
     }
 
 private:

@@ -63,7 +63,7 @@ ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer)
 {
     if (uart_fd_ < 0)
     {
-        std::cerr << "Error: TEST UART file descriptor is invalid" << std::endl;
+        process_logging::error("TEST UART file descriptor is invalid");
         return -1;
     }
 
