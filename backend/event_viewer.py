@@ -31,6 +31,11 @@ class Packet(ABC):
     def _setup_logging(cls):
         # Create the logging file and write headers
         # First, make a directory for each of the CSV files per session
+
+        # Make sure the logs directory exists
+        if not os.path.isdir("logs"):
+            os.mkdir("logs")
+
         session_log_folder = os.path.join(
             "logs", cls._VIEWER_STARTUP_TIMESTAMP_STR)
 
@@ -519,7 +524,7 @@ def main(SOCKET_PATH, CREATE_LOGS):
 
     # Construct the full IPC path
     ipc_address = f"ipc:///tmp/{SOCKET_PATH}_pub.sock"
-    slogger.info("Connecting to {ipc_address}...")
+    slogger.info(f"Connecting to {ipc_address}...")
 
     try:
         sub_socket.connect(ipc_address)
