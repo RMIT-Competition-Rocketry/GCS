@@ -84,6 +84,12 @@
         "numbers": "cpp",
         "numeric": "cpp",
         "text_encoding": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "*.inc": "cpp",
+        "list": "cpp",
+        "unordered_set": "cpp",
+        "fstream": "cpp",
+        "future": "cpp",
+        "typeindex": "cpp"
     }
 }

@@ -43,6 +43,7 @@ def device_name_callback(line: str, stream_name: str):
         match = re.search(REGEX_PATTERN, line)
         if match is None:
             raise RuntimeError("Socat output parsing failed to find device")
+        # /dev/ttys012
         return match.group(1)
 
 

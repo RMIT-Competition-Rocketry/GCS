@@ -118,16 +118,26 @@ def dev(nodocker):
         raise
 
     # 2.
-    devices = start_fake_serial_device(logger)
-    if devices == (None, None):
-        raise RuntimeError("Failed to start fake serial device. Exiting")
+    INTERFACE_TYPE = InterfaceType.UART
+    match INTERFACE_TYPE:
+        case InterfaceType.UART:
+            logger.info("Starting UART interface")
+            devices = ("/dev/serial0", None) # Just leave second (emulator) device as None
+        case InterfaceType.TEST:
+            logger.info("Starting TEST interface")
+            devices = start_fake_serial_device(logger)
+            if devices == (None, None):
+                raise RuntimeError("Failed to start fake serial device. Exiting")
+        case _:
+            logger.error("Invalid interface type")
+            raise ValueError("Invalid interface type")
 
     # 3. Run C++ middleware
     # Note that devices are paired pseudo-ttys
     try:
         start_middleware(logger=logger,
                          release=False,
-                         INTERFACE_TYPE=InterfaceType.TEST,
+                         INTERFACE_TYPE=INTERFACE_TYPE,
                          DEVICE_PATH=devices[0],
                          SOCKET_PATH="gcs_rocket")
     except Exception as e:
@@ -141,7 +151,8 @@ def dev(nodocker):
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical
-    start_fake_serial_device_emulator(logger, devices[1])
+    if INTERFACE_TYPE == InterfaceType.TEST:
+        start_fake_serial_device_emulator(logger, devices[1])
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=False)

@@ -3,7 +3,7 @@ project(middleware LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
 
-find_package(Protobuf CONFIG REQUIRED)
+find_package(Protobuf REQUIRED)
 
 # Set proto file path correctly
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path

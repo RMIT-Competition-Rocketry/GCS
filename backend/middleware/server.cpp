@@ -139,6 +139,7 @@ std::unique_ptr<LoraInterface> create_interface(
 
     if (INTERFACE_NAME == "UART")
     {
+        // This will sent AT setup commands as well in constructor
         interface = std::make_unique<UartInterface>(DEVICE_PATH);
     }
     else if (INTERFACE_NAME == "TEST")
