@@ -48,12 +48,19 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
 
             // Convert to protobuf and serialize to a string
             auto proto_msg = payload.toProtobuf();
+            if (!proto_msg.IsInitialized())
+            {
+                std::string missing_info = proto_msg.InitializationErrorString();
+                process_logging::warning(std::string(PacketType::PACKET_NAME) +
+                                         ": Not all fields are initialized in the protobuf message. Missing: " +
+                                         missing_info);
+            }
             std::string serialized;
             if (proto_msg.SerializeToString(&serialized))
             {
                 // Has to be At LEAST bigger than the input size with proto
-                process_logging::debug(PacketType::PACKET_NAME);
-                process_logging::debug(std::to_string(PacketType::ID));
+                // process_logging::debug("NAME: " + std::string(PacketType::PACKET_NAME));
+                // process_logging::debug("ID  : " + std::to_string(PacketType::ID));
                 // assert(serialized.size() >= PacketType::SIZE && PacketType::ID != 0x05);
                 zmq::message_t msg(serialized.data(), serialized.size());
                 pub_socket.send(msg, zmq::send_flags::none);
@@ -77,56 +84,92 @@ void input_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pu
 {
     set_thread_name("input_read_loop");
     std::vector<uint8_t> buffer(256);
+    auto last_read_time = std::chrono::steady_clock::now();
 
     while (running)
     {
         ssize_t count = interface->read_data(buffer);
         if (count > 0)
         {
+            last_read_time = std::chrono::steady_clock::now();
             // Check if we have enough bytes for the ID
             if (count >= 1)
             {
                 int8_t packet_id = static_cast<int8_t>(buffer[0]);
+
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                packet_id = 0x03;
 
                 // Send packet ID to receiving ends so they know which proto file to use
                 std::string packet_id_string(1, packet_id);
                 zmq::message_t msg(packet_id_string.data(), sizeof(int8_t));
                 pub_socket.send(msg, zmq::send_flags::none);
 
-                // Note that some packet types are observed can be skipped if not meant for GCS
-                switch (packet_id)
-                {
-                case AV_TO_GCS_DATA_1::ID: // 3
-                    process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
-                    break;
-                case AV_TO_GCS_DATA_2::ID: // 4
-                    process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
-                    break;
-                case AV_TO_GCS_DATA_3::ID: // 5
-                    process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
-                    break;
-                case GCS_TO_AV_STATE_CMD::ID: // 1
-                    process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
-                    break;
-                case GCS_TO_GSE_STATE_CMD::ID: // 2
-                    process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
-                    break;
-                case GSE_TO_GCS_DATA_1::ID: // 6
-                    process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
-                    break;
-                case GSE_TO_GCS_DATA_2::ID: // 7
-                    process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
-                    break;
-                default:
-                    std::string numeric_val = std::to_string(static_cast<int>(packet_id));
-                    process_logging::error("Unknown packet ID: " + std::to_string(packet_id) + "numeric: " + numeric_val);
-                    break;
-                }
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                // TEMPORARY FOR SPAMMER MACHINE
+                process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
+                // For temporary debugging because spammer machine has wrong ID
+
+                // // Note that some packet types are observed can be skipped if not meant for GCS
+                // switch (packet_id)
+                // {
+                // case AV_TO_GCS_DATA_1::ID: // 3
+                //     process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
+                //     break;
+                // case AV_TO_GCS_DATA_2::ID: // 4
+                //     process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
+                //     break;
+                // case AV_TO_GCS_DATA_3::ID: // 5
+                //     process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
+                //     break;
+                // case GCS_TO_AV_STATE_CMD::ID: // 1
+                //     process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
+                //     break;
+                // case GCS_TO_GSE_STATE_CMD::ID: // 2
+                //     process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
+                //     break;
+                // case GSE_TO_GCS_DATA_1::ID: // 6
+                //     process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
+                //     break;
+                // case GSE_TO_GCS_DATA_2::ID: // 7
+                //     process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
+                //     break;
+                // default:
+                //     std::string numeric_val = std::to_string(static_cast<int>(packet_id));
+                //     process_logging::error("Unknown packet ID: " + std::to_string(packet_id) + "numeric: " + numeric_val);
+                //     break;
+                // }
             }
         }
         else
         {
+            // CPU sleeper
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Timeout warning
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>(now - last_read_time).count() >= 3)
+            {
+                process_logging::warning("No data received for over 3 seconds.");
+                last_read_time = now; // Wait another 3 seconds
+            }
         }
     }
 }

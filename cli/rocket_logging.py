@@ -47,7 +47,6 @@ def initialise():
     """One time logging setup run as soon as the program starts"""
 
     logger = logging.getLogger("rocket")
-
     if logger.hasHandlers():
         # Clear existing handlers to avoid duplicates
         logger.warning(
@@ -68,3 +67,15 @@ def initialise():
     logger.setLevel(LOG_LEVEL_OBJECT)
     logger.addHandler(create_handler())
     return logger
+
+
+def success(self, message, *args, **kws):
+    if self.isEnabledFor(SUCCESS_LEVEL_NUM):
+        self._log(SUCCESS_LEVEL_NUM, message, args, **kws)
+
+logging.Logger.success = success
+
+def adapter_success(self, message, *args, **kwargs):
+    self.logger.success(message, *args, **kwargs)
+
+logging.LoggerAdapter.success = adapter_success

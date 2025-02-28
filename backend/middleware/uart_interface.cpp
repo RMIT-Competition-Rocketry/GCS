@@ -77,8 +77,8 @@ void UartInterface::configure_uart()
 
 void UartInterface::at_setup()
 {
-    process_logging::debug("AT setup TEST");
-    process_logging::debug("Connecting to LoRa E5...");
+    process_logging::info("AT setup TEST");
+    process_logging::info("Connecting to LoRa E5...");
 
     // Retry AT command until successful
     bool module_found = false;
@@ -92,7 +92,7 @@ void UartInterface::at_setup()
         }
     }
 
-    process_logging::debug("E5 module found");
+    process_logging::info("E5 module found");
     // Configuration sequence
     at_send_command("AT+MODE=TEST", "+MODE: TEST", 1000);
     // Returns like:
@@ -110,7 +110,7 @@ void UartInterface::at_setup()
     at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    process_logging::debug("End of Setup...");
+    process_logging::info("End of Setup...");
 }
 
 std::vector<uint8_t> UartInterface::read_with_timeout(int timeout_ms)
@@ -118,6 +118,7 @@ std::vector<uint8_t> UartInterface::read_with_timeout(int timeout_ms)
     std::vector<uint8_t> buffer;
     fd_set set;
     timeval timeout{};
+    constexpr int chunk_size = 128; // Arbitrary
 
     FD_ZERO(&set);
     FD_SET(uart_fd_, &set);
@@ -125,19 +126,29 @@ std::vector<uint8_t> UartInterface::read_with_timeout(int timeout_ms)
     timeout.tv_sec = timeout_ms / 1000;
     timeout.tv_usec = (timeout_ms % 1000) * 1000;
 
-    int result = select(uart_fd_ + 1, &set, nullptr, nullptr, &timeout);
-    if (result > 0)
+    while (true)
     {
-        std::vector<uint8_t> temp_buf(512);
-        ssize_t n = read(uart_fd_, temp_buf.data(), temp_buf.size());
-        if (n > 0)
+        int result = select(uart_fd_ + 1, &set, nullptr, nullptr, &timeout);
+        if (result > 0)
         {
-            buffer.insert(buffer.end(), temp_buf.begin(), temp_buf.begin() + n);
+            std::vector<uint8_t> temp_buf(chunk_size);
+            ssize_t n = read(uart_fd_, temp_buf.data(), temp_buf.size());
+            if (n > 0)
+            {
+                buffer.insert(buffer.end(), temp_buf.begin(), temp_buf.begin() + n);
+                // Continue reading while data is immediately available
+                timeout.tv_sec = 0;
+                timeout.tv_usec = 10000; // 10ms subsequent timeout
+            }
+            else
+            {
+                break;
+            }
         }
-    }
-    else
-    {
-        process_logging::error("Timeout or error while reading from UART");
+        else
+        {
+            break;
+        }
     }
     return buffer;
 }
@@ -175,7 +186,9 @@ bool UartInterface::at_send_command(const std::string &command,
                                     const std::string &expected_response,
                                     int timeout_ms)
 {
-    // Send command with CRLF termination using direct serial write
+    // Clear buffer before new command
+    response_buffer_.clear();
+
     std::string full_command = command + "\r\n";
     std::vector<uint8_t> cmd_data(full_command.begin(), full_command.end());
 
@@ -185,20 +198,51 @@ bool UartInterface::at_send_command(const std::string &command,
         return false;
     }
 
-    // Read response
-    auto response = read_with_timeout(timeout_ms);
-    std::string response_str(response.begin(), response.end());
+    auto start = std::chrono::steady_clock::now();
+    bool response_found = false;
 
-    // Check for expected response
-    if (response_str.find(expected_response) != std::string::npos)
+    while (!response_found)
     {
-        process_logging::debug("AT command successful: " + command);
-        return true;
+        auto elapsed = std::chrono::steady_clock::now() - start;
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() > timeout_ms)
+        {
+            // shoudld I clear buffer here? idk
+            break;
+        }
+
+        auto raw_data = read_with_timeout(100);
+        response_buffer_ += std::string(raw_data.begin(), raw_data.end());
+
+        // Check for expected response
+        if (response_buffer_.find(expected_response) != std::string::npos)
+        {
+            response_found = true;
+            process_logging::debug("AT command successful: " + command);
+
+            // Clean buffer after successful match
+            size_t pos = response_buffer_.find(expected_response);
+            response_buffer_.erase(0, pos + expected_response.length());
+            break;
+        }
+
+        // Check for common error responses
+        if (response_buffer_.find("ERROR") != std::string::npos)
+        {
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    process_logging::error("AT command failed. Expected: " + expected_response +
-                           ", Received: " + response_str);
-    return false;
+    if (!response_found)
+    {
+        process_logging::error("AT command failed. Expected: " + expected_response +
+                               ", Buffer Content: " + response_buffer_);
+        response_buffer_.clear();
+        return false;
+    }
+
+    return true;
 }
 
 // ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
@@ -250,70 +294,94 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
 
     // ...
 
-    // Read all available data with timeout
-    auto raw_data = read_with_timeout(1000); // 1 second timeout
-    std::string data(raw_data.begin(), raw_data.end());
+    // Read new data and append to persistent buffer
+    auto raw_data = read_with_timeout(1000);
+    response_buffer_.append(raw_data.begin(), raw_data.end());
 
     int rssi = 0;
     int snr = 0;
     std::vector<uint8_t> payload;
     size_t payload_size = 0;
 
-    // Split response into lines
-    std::istringstream stream(data);
-    std::string line;
-    while (std::getline(stream, line))
+    // Process complete messages in buffer
+    size_t message_end;
+    while ((message_end = response_buffer_.find("\r\n")) != std::string::npos)
     {
-        // Clean up line endings
-        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-        line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
+        std::string message = response_buffer_.substr(0, message_end);
+        response_buffer_.erase(0, message_end + 2); // Remove processed message
 
-        if (line.find("+TEST: LEN:") == 0)
+        // Clean up any remaining line endings
+        message.erase(std::remove(message.begin(), message.end(), '\r'), message.end());
+        message.erase(std::remove(message.begin(), message.end(), '\n'), message.end());
+
+        process_logging::debug("Received message: " + message);
+
+        // Parse message content
+        if (message.find("+TEST: LEN:") == 0)
         {
-            // Parse signal metrics
-            size_t rssi_pos = line.find("RSSI:");
-            size_t snr_pos = line.find("SNR:");
+            size_t rssi_pos = message.find("RSSI:");
+            size_t snr_pos = message.find("SNR:");
 
             if (rssi_pos != std::string::npos && snr_pos != std::string::npos)
             {
-                rssi = std::stoi(line.substr(rssi_pos + 5, snr_pos - (rssi_pos + 5) - 2));
-                snr = std::stoi(line.substr(snr_pos + 4));
+                try
+                {
+                    rssi = std::stoi(message.substr(rssi_pos + 5, snr_pos - (rssi_pos + 5) - 2));
+                    snr = std::stoi(message.substr(snr_pos + 4));
 
-                // Signal quality checks
-                if (rssi < -85)
-                { // Critical RSSI threshold
-                    process_logging::warning("Poor signal strength (RSSI: " +
-                                             std::to_string(rssi) + " dBm)");
+                    // Signal quality monitoring
+                    if (rssi < -85)
+                    {
+                        process_logging::warning("Poor RSSI: " + std::to_string(rssi) + " dBm");
+                    }
+                    if (snr < 5)
+                    {
+                        process_logging::warning("Low SNR: " + std::to_string(snr) + " dB");
+                    }
                 }
-                if (snr < 5)
-                { // Critical SNR threshold
-                    process_logging::warning("Low signal-to-noise ratio (SNR: " +
-                                             std::to_string(snr) + " dB)");
+                catch (const std::exception &e)
+                {
+                    process_logging::error("Failed to parse metrics: " + std::string(e.what()));
                 }
             }
         }
-        else if (line.find("+TEST: RX \"") == 0)
+        else if (message.find("+TEST: RX \"") == 0)
         {
-            // Extract hex payload
-            size_t start = line.find('\"') + 1;
-            size_t end = line.find('\"', start);
-            if (end != std::string::npos)
+            size_t payload_start = message.find('\"') + 1;
+            size_t payload_end = message.find('\"', payload_start);
+
+            if (payload_end != std::string::npos)
             {
-                std::string hex_str = line.substr(start, end - start);
-                payload = hex_string_to_bytes(hex_str);
-                payload_size = payload.size();
+                try
+                {
+                    std::string hex_str = message.substr(payload_start, payload_end - payload_start);
+                    payload = hex_string_to_bytes(hex_str);
+                    payload_size = payload.size();
+                }
+                catch (const std::exception &e)
+                {
+                    process_logging::error("Payload conversion failed: " + std::string(e.what()));
+                }
             }
         }
     }
 
-    // Copy payload to output buffer
+    // Copy payload to output buffer if valid
     if (!payload.empty())
     {
-        if (buffer.size() < payload_size)
+        try
         {
-            buffer.resize(payload_size);
+            if (buffer.size() < payload_size)
+            {
+                buffer.resize(payload_size);
+            }
+            std::copy(payload.begin(), payload.end(), buffer.begin());
         }
-        std::copy(payload.begin(), payload.end(), buffer.begin());
+        catch (const std::exception &e)
+        {
+            process_logging::error("Buffer copy failed: " + std::string(e.what()));
+            return -1;
+        }
     }
 
     return payload_size;
