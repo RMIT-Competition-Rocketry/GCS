@@ -28,6 +28,7 @@ private:
     int baud_rate_;
     int uart_fd_ = -1;
     std::string device_path_;
+    std::string response_buffer_;
 
     void configure_uart();
     void at_setup();

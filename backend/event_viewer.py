@@ -437,14 +437,20 @@ class AV_TO_GCS_DATA_1(Packet):
                     # This is odd if it just ran, but not if it's changing back to 0
                     slogger.error(f"Unprompted {KEY_TEST_COMPLETE} complete")
 
+                # Print the results because test result has changed
+                if self._last_test_details[KEY_TEST_COMPLETE] == None:
+                    # This is the first packet. Just log states as info
+                    result_string = "Continuity" if DATA_TEST_RESULTS == 1 else "No Continuity"
+                    slogger.info(f"FIRST RESULT OF {KEY_TEST_RESULTS}: {result_string}")
+                else:
+                    if DATA_TEST_RESULTS == 1:
+                        # Continuity. hell yeah
+                        slogger.success(f"{KEY_TEST_RESULTS}: Continuity")
+                    else:
+                        slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
+                
                 # Update history of changed complete condition
                 self._last_test_details[KEY_TEST_COMPLETE] = DATA_TEST_COMPLETE
-                # Print the results because test result has changed
-                if DATA_TEST_RESULTS == 1:
-                    # Continuity. hell yeah
-                    slogger.success(f"{KEY_TEST_RESULTS}: Continuity")
-                else:
-                    slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
 
             # Have the results changed when the test complete flag has not?
             if ((DATA_TEST_RESULTS != self._last_test_details[KEY_TEST_RESULTS])
@@ -492,7 +498,7 @@ class AV_TO_GCS_DATA_1(Packet):
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
-        slogger.debug("AV_TO_GCS_DATA_1 packet received")
+        # slogger.debug("AV_TO_GCS_DATA_1 packet received")
 
         # Useful docs: https://googleapis.dev/python/protobuf/latest/google/protobuf/descriptor.html
 
@@ -565,7 +571,7 @@ class AV_TO_GCS_DATA_2(Packet):
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2) -> None:
         super().process(PROTO_DATA)
-        slogger.debug("AV_TO_GCS_DATA_2 packet received")
+        # slogger.debug("AV_TO_GCS_DATA_2 packet received")
 
 
 # TODO add proccessing for this task post White Cliffs
@@ -576,7 +582,7 @@ class AV_TO_GCS_DATA_3(Packet):
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3) -> None:
         super().process(PROTO_DATA)
-        slogger.debug("AV_TO_GCS_DATA_3 packet received")
+        # slogger.debug("AV_TO_GCS_DATA_3 packet received")
 
 
 # TODO Warning that if this is picked up by the sub,
@@ -598,7 +604,7 @@ class GCS_TO_AV_STATE_CMD(Packet):
 
     def process(self, PROTO_DATA: GCS_TO_AV_STATE_CMD_pb.GCS_TO_AV_STATE_CMD) -> None:
         super().process(PROTO_DATA)
-        slogger.debug("GCS_TO_AV_STATE_CMD packet received")
+        # slogger.debug("GCS_TO_AV_STATE_CMD packet received")
 
 # Same note as above ^^^
 # TODO Warning that if this is picked up by the sub,
@@ -613,7 +619,7 @@ class GCS_TO_GSE_STATE_CMD(Packet):
 
     def process(self, PROTO_DATA: GCS_TO_GSE_STATE_CMD_pb.GCS_TO_GSE_STATE_CMD) -> None:
         super().process(PROTO_DATA)
-        slogger.debug("GCS_TO_GSE_STATE_CMD packet received")
+        # slogger.debug("GCS_TO_GSE_STATE_CMD packet received")
 
 
 class GSE_TO_GCS_DATA_1(Packet):
@@ -623,7 +629,7 @@ class GSE_TO_GCS_DATA_1(Packet):
 
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
-        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+        # slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
 
 class GSE_TO_GCS_DATA_2(Packet):
@@ -633,7 +639,7 @@ class GSE_TO_GCS_DATA_2(Packet):
 
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2) -> None:
         super().process(PROTO_DATA)
-        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+        # slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
 
 def main(SOCKET_PATH, CREATE_LOGS):

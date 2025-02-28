@@ -31,6 +31,24 @@
             "MIMode": "lldb"
         },
         {
+            "name": "(gdb / pi) Launch middleware",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/middleware",
+            "args": [
+                // 3 args please
+                "UART",
+                "/dev/serial0",
+                "gcs_rocket.sock",
+            ],
+            "preLaunchTask": "middleware build-dev + generate proto",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
             "name": "Python Debugger: cli dev --nodocker",
             "type": "debugpy",
             "request": "launch",

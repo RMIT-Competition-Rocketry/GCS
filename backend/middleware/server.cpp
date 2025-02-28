@@ -48,12 +48,19 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
 
             // Convert to protobuf and serialize to a string
             auto proto_msg = payload.toProtobuf();
+            if (!proto_msg.IsInitialized())
+            {
+                std::string missing_info = proto_msg.InitializationErrorString();
+                process_logging::warning(std::string(PacketType::PACKET_NAME) +
+                                         ": Not all fields are initialized in the protobuf message. Missing: " +
+                                         missing_info);
+            }
             std::string serialized;
             if (proto_msg.SerializeToString(&serialized))
             {
                 // Has to be At LEAST bigger than the input size with proto
-                process_logging::debug(PacketType::PACKET_NAME);
-                process_logging::debug(std::to_string(PacketType::ID));
+                // process_logging::debug("NAME: " + std::string(PacketType::PACKET_NAME));
+                // process_logging::debug("ID  : " + std::to_string(PacketType::ID));
                 // assert(serialized.size() >= PacketType::SIZE && PacketType::ID != 0x05);
                 zmq::message_t msg(serialized.data(), serialized.size());
                 pub_socket.send(msg, zmq::send_flags::none);
@@ -77,12 +84,14 @@ void input_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pu
 {
     set_thread_name("input_read_loop");
     std::vector<uint8_t> buffer(256);
+    auto last_read_time = std::chrono::steady_clock::now();
 
     while (running)
     {
         ssize_t count = interface->read_data(buffer);
         if (count > 0)
         {
+            last_read_time = std::chrono::steady_clock::now();
             // Check if we have enough bytes for the ID
             if (count >= 1)
             {
@@ -126,7 +135,15 @@ void input_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pu
         }
         else
         {
+            // CPU sleeper
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Timeout warning
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>(now - last_read_time).count() >= 3)
+            {
+                process_logging::warning("No data received for over 3 seconds.");
+                last_read_time = now; // Wait another 3 seconds
+            }
         }
     }
 }

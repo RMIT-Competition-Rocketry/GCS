@@ -41,33 +41,19 @@ def run():
             "C++ release middleware not found. Please build it with release.sh. Exiting")
         raise FileNotFoundError("C++ release middleware not found. Exiting")
 
-    # cheeky temp debug everywhere below
-    # cheeky temp debug everywhere below
-    # cheeky temp debug everywhere below
-    # cheeky temp debug everywhere below
-    devices = start_fake_serial_device(logger)
-    if devices == (None, None):
-        raise RuntimeError("Failed to start fake serial device. Exiting")
-
     # 2. Run C++ middleware
     # Note that devices are paired pseudo-ttys
     try:
         start_middleware(logger=logger,
                          release=True,
-                         INTERFACE_TYPE=InterfaceType.TEST,
-                         DEVICE_PATH=devices[0],
+                         INTERFACE_TYPE=InterfaceType.UART,
+                         DEVICE_PATH="/dev/serial0",
                          SOCKET_PATH="gcs_rocket")
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
         raise
 
-    time.sleep(0.5)
-
-    # 4. Start device emulator
-    # TODO maybe consider blocking further starts if this fails?
-    # Would only be for convienece though. It isn't really required or critical
-    start_fake_serial_device_emulator(logger, devices[1])
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=True)
