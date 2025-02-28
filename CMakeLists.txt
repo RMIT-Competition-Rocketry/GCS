@@ -11,8 +11,6 @@ if(NOT Protobuf_FOUND)
     find_package(Protobuf MODULE REQUIRED)
 endif()
 
-find_package(Protobuf CONFIG REQUIRED)
-
 # Set proto file path correctly
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path
 set(PROTO_FILE "${PROTO_DIR}/AV_TO_GCS_DATA_1.proto")
