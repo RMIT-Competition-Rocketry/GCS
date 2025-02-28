@@ -118,16 +118,18 @@ def dev(nodocker):
         raise
 
     # 2.
-    INTERFACE_TYPE = InterfaceType.UART
+    INTERFACE_TYPE = InterfaceType.TEST
     match INTERFACE_TYPE:
         case InterfaceType.UART:
             logger.info("Starting UART interface")
-            devices = ("/dev/serial0", None) # Just leave second (emulator) device as None
+            # Just leave second (emulator) device as None
+            devices = ("/dev/serial0", None)
         case InterfaceType.TEST:
             logger.info("Starting TEST interface")
             devices = start_fake_serial_device(logger)
             if devices == (None, None):
-                raise RuntimeError("Failed to start fake serial device. Exiting")
+                raise RuntimeError(
+                    "Failed to start fake serial device. Exiting")
         case _:
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")

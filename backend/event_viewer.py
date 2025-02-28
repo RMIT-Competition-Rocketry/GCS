@@ -56,12 +56,39 @@ class Packet(ABC):
 
         cls._session_log_folder = session_log_folder
 
-        # Base these off the proto files
+        # NOTE: Base these off the proto files
         # Name each subclass after these
         # TODO: After the proto files are finalised, update these
         cls._CSV_FILES_WITH_HEADERS = {
-            "GCS_TO_AV_STATE_CMD": ["", "", "", "", ""],
-            "GCS_TO_GSE_STATE_CMD": ["", "", "", "", ""],
+            "GCS_TO_AV_STATE_CMD": [
+                "main_secondary_test",
+                "main_primary_test",
+                "apogee_secondary_test",
+                "apogee_primary_test",
+                "main_secondary_test_inverted",
+                "main_primary_test_inverted",
+                "apogee_secondary_test_inverted",
+                "apogee_primary_test_inverted",
+                "broadcast_begin",
+            ],
+            "GCS_TO_GSE_STATE_CMD": [
+                "manual_purge_activate",
+                "o2_fill_activate",
+                "selector_switch_neutral_position",
+                "n20_fill_activate",
+                "ignition_fire",
+                "ignition_selected",
+                "gas_fill_selected",
+                "system_activate",
+                "manual_purge_activate_inverted",
+                "o2_fill_activate_inverted",
+                "selector_switch_neutral_position_inverted",
+                "n20_fill_activate_inverted",
+                "ignition_fire_inverted",
+                "ignition_selected_inverted",
+                "gas_fill_selected_inverted",
+                "system_activate_inverted",
+            ],
             "AV_TO_GCS_DATA_1": ["FlightState",
                                  "dual_board_connectivity_state_flag",
                                  "recovery_checks_complete_and_flight_ready",
@@ -89,11 +116,94 @@ class Packet(ABC):
                                  "main_secondary_test_results",
                                  "broadcast_flag"
                                  ],
-            "AV_TO_GCS_DATA_2": ["", "", "", "", ""],
-            "AV_TO_GCS_DATA_3": ["", "", "", "", ""],
-            "GSE_TO_GCS_DATA_1": ["", "", "", "", ""],
-            "GSE_TO_GCS_DATA_2": ["", "", "", "", ""],
-            "GSE_TO_GCS_DATA_3": ["", "", "", "", ""],
+            "AV_TO_GCS_DATA_2": [
+                "FlightState",
+                "dual_board_connectivity_state_flag",
+                "recovery_checks_complete_and_flight_ready",
+                "GPS_fix_flag",
+                "payload_connection_flag",
+                "camera_controller_connection_flag",
+                "GPS_latitude",
+                "GPS_longitude",
+            ],
+            "AV_TO_GCS_DATA_3": [
+                "FlightState",
+                "dual_board_connectivity_state_flag",
+                "recovery_checks_complete_and_flight_ready",
+                "GPS_fix_flag",
+                "payload_connection_flag",
+                "camera_controller_connection_flag",
+                # ALL TBD
+            ],
+            "GSE_TO_GCS_DATA_1": [
+                "manual_purge_activated",
+                "o2_fill_activated",
+                "selector_switch_neutral_position",
+                "n20_fill_activated",
+                "ignition_fired",
+                "ignition_selected",
+                "gas_fill_selected",
+                "system_activated",
+                "transducer_1",
+                "transducer_2",
+                "transducer_3",
+                "thermocouple_1",
+                "thermocouple_2",
+                "thermocouple_3",
+                "thermocouple_4",
+                "ignition_error",
+                "relay_3_error",
+                "relay_2_error",
+                "relay_1_error",
+                "thermocouple_4_error",
+                "thermocouple_3_error",
+                "thermocouple_2_error",
+                "thermocouple_1_error",
+                "load_cell_4_error",
+                "load_cell_3_error",
+                "load_cell_2_error",
+                "load_cell_1_error",
+                "transducer_4_error",
+                "transducer_3_error",
+                "transducer_2_error",
+                "transducer_1_error",
+            ],
+            "GSE_TO_GCS_DATA_2": [
+                "manual_purge_activated",
+                "o2_fill_activated",
+                "selector_switch_neutral_position",
+                "n20_fill_activated",
+                "ignition_fired",
+                "ignition_selected",
+                "gas_fill_selected",
+                "system_activated",
+                "internal_temp",
+                "wind_speed",
+                "gas_bottle_weight_1",
+                "gas_bottle_weight_2",
+                "analog_voltage_input_1",
+                "analog_voltage_input_2",
+                "additional_current_input_1",
+                "additional_current_input_2",
+                "ignition_error",
+                "relay_3_error",
+                "relay_2_error",
+                "relay_1_error",
+                "thermocouple_4_error",
+                "thermocouple_3_error",
+                "thermocouple_2_error",
+                "thermocouple_1_error",
+                "load_cell_4_error",
+                "load_cell_3_error",
+                "load_cell_2_error",
+                "load_cell_1_error",
+                "transducer_4_error",
+                "transducer_3_error",
+                "transducer_2_error",
+                "transducer_1_error",
+            ],
+            # Unused
+            "GSE_TO_GCS_DATA_3": ["unused", "", "", "", ""],
         }
 
         # As the directory is named per instance, this should not need to be
@@ -413,10 +523,12 @@ class AV_TO_GCS_DATA_1(Packet):
             ALT_FT = AV_TO_GCS_DATA_1._mt_to_ft(PROTO_DATA.altitude)
             VELOCITY = PROTO_DATA.velocity
 
-            if ALT_FT <= 10000:
-                alt_color = ansci.BG_GREEN + ansci.FG_BLACK  # Ideal altitude: green
+            if ALT_FT <= 10010:
+                alt_color = ansci.BG_GREEN + ansci.FG_BLACK  # Accent
+            elif ALT_FT <= 100100:
+                alt_color = ansci.BG_YELLOW
             else:
-                alt_color = ansci.BG_RED    # Over the target: red
+                alt_color = ansci.BG_RED
 
             # Max speed is 274 m/s
             if VELOCITY <= 180:
@@ -445,6 +557,7 @@ class AV_TO_GCS_DATA_1(Packet):
                 "@@@@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@@@@")
 
 
+# TODO add proccessing for this task post White Cliffs
 class AV_TO_GCS_DATA_2(Packet):
 
     def __init__(self):
@@ -455,6 +568,7 @@ class AV_TO_GCS_DATA_2(Packet):
         slogger.debug("AV_TO_GCS_DATA_2 packet received")
 
 
+# TODO add proccessing for this task post White Cliffs
 class AV_TO_GCS_DATA_3(Packet):
 
     def __init__(self):
@@ -467,7 +581,11 @@ class AV_TO_GCS_DATA_3(Packet):
 
 # TODO Warning that if this is picked up by the sub,
 # you'll be spitting out the same information you wrote.
-# This is okay, but mostly redundant
+# This is okay, but mostly redundant.
+# Just consider that you can show information by listening to the post or after you've emulated the pendant.
+# Maybe both? or maybe a check to make sure it's been repeated correctly.
+# Or maybe it won't even listen to it's on TX which would make more sense.
+# Check CSV post field test to verify
 class GCS_TO_AV_STATE_CMD(Packet):
     # Static flags to be accessed and updated by result packets AV_TO_GCS_DATA_x
     awaiting_results_apogee_primary = False
@@ -482,10 +600,12 @@ class GCS_TO_AV_STATE_CMD(Packet):
         super().process(PROTO_DATA)
         slogger.debug("GCS_TO_AV_STATE_CMD packet received")
 
-
+# Same note as above ^^^
 # TODO Warning that if this is picked up by the sub,
 # you'll be spitting out the same information you wrote.
 # This is okay, but mostly redundant
+
+
 class GCS_TO_GSE_STATE_CMD(Packet):
 
     def __init__(self):
