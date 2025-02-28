@@ -3,7 +3,15 @@ project(middleware LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
 
-find_package(Protobuf REQUIRED)
+# This fucking thing will raise linker error on my laptop if config is not used.
+# But using config on the pi will raise errors because it can't find the .cmake
+find_package(Protobuf CONFIG QUIET)
+
+if(NOT Protobuf_FOUND)
+    find_package(Protobuf MODULE REQUIRED)
+endif()
+
+find_package(Protobuf CONFIG REQUIRED)
 
 # Set proto file path correctly
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path
