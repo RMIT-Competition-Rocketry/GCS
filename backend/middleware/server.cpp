@@ -97,66 +97,40 @@ void input_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pu
             {
                 int8_t packet_id = static_cast<int8_t>(buffer[0]);
 
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                packet_id = 0x03;
-
                 // Send packet ID to receiving ends so they know which proto file to use
                 std::string packet_id_string(1, packet_id);
                 zmq::message_t msg(packet_id_string.data(), sizeof(int8_t));
                 pub_socket.send(msg, zmq::send_flags::none);
 
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                // TEMPORARY FOR SPAMMER MACHINE
-                process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
-                // For temporary debugging because spammer machine has wrong ID
-
-                // // Note that some packet types are observed can be skipped if not meant for GCS
-                // switch (packet_id)
-                // {
-                // case AV_TO_GCS_DATA_1::ID: // 3
-                //     process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
-                //     break;
-                // case AV_TO_GCS_DATA_2::ID: // 4
-                //     process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
-                //     break;
-                // case AV_TO_GCS_DATA_3::ID: // 5
-                //     process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
-                //     break;
-                // case GCS_TO_AV_STATE_CMD::ID: // 1
-                //     process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
-                //     break;
-                // case GCS_TO_GSE_STATE_CMD::ID: // 2
-                //     process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
-                //     break;
-                // case GSE_TO_GCS_DATA_1::ID: // 6
-                //     process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
-                //     break;
-                // case GSE_TO_GCS_DATA_2::ID: // 7
-                //     process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
-                //     break;
-                // default:
-                //     std::string numeric_val = std::to_string(static_cast<int>(packet_id));
-                //     process_logging::error("Unknown packet ID: " + std::to_string(packet_id) + "numeric: " + numeric_val);
-                //     break;
-                // }
+                // Note that some packet types are observed can be skipped if not meant for GCS
+                switch (packet_id)
+                {
+                case AV_TO_GCS_DATA_1::ID: // 3
+                    process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
+                    break;
+                case AV_TO_GCS_DATA_2::ID: // 4
+                    process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
+                    break;
+                case AV_TO_GCS_DATA_3::ID: // 5
+                    process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
+                    break;
+                case GCS_TO_AV_STATE_CMD::ID: // 1
+                    process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
+                    break;
+                case GCS_TO_GSE_STATE_CMD::ID: // 2
+                    process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
+                    break;
+                case GSE_TO_GCS_DATA_1::ID: // 6
+                    process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
+                    break;
+                case GSE_TO_GCS_DATA_2::ID: // 7
+                    process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
+                    break;
+                default:
+                    std::string numeric_val = std::to_string(static_cast<int>(packet_id));
+                    process_logging::error("Unknown packet ID: " + std::to_string(packet_id) + "numeric: " + numeric_val);
+                    break;
+                }
             }
         }
         else
