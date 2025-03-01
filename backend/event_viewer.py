@@ -441,14 +441,15 @@ class AV_TO_GCS_DATA_1(Packet):
                 if self._last_test_details[KEY_TEST_COMPLETE] == None:
                     # This is the first packet. Just log states as info
                     result_string = "Continuity" if DATA_TEST_RESULTS == 1 else "No Continuity"
-                    slogger.info(f"FIRST RESULT OF {KEY_TEST_RESULTS}: {result_string}")
+                    slogger.info(
+                        f"FIRST RESULT OF {KEY_TEST_RESULTS}: {result_string}")
                 else:
                     if DATA_TEST_RESULTS == 1:
                         # Continuity. hell yeah
                         slogger.success(f"{KEY_TEST_RESULTS}: Continuity")
                     else:
                         slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
-                
+
                 # Update history of changed complete condition
                 self._last_test_details[KEY_TEST_COMPLETE] = DATA_TEST_COMPLETE
 

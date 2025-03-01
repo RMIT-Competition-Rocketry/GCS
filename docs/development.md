@@ -1,6 +1,32 @@
 
 # Development notes
 
+## Semantic Versioning
+
+For this project, changes made before our first release can all just be 0.x.x-dev. But after first release, which will the White Cliffs test, use this methodology below.
+
+If you're still developing internally and the product is not considered to be in 'publicly usable' or 'finished' state, use:
+
+- `MAJOR`: Major semver 
+- `MINOR`: Minor semver. Consider internal breaking changes pre `1.x.x` to be on this level
+- `PATCH`: Patch semver
+- `PR_I`: Pre release identifier. This program is not designed to be used by anyone but our internal team. So semver suffixes like this can be restrained to: `dev` or nothing. Where `dev` is development and field testing focused, and final release with no suffix can be presentable packages for competition or when the repo is at a good state for a stable release of course.
+- `PR_IV` Pre release identifier version. If multiple versions are being used for the same pre release. For example, this would increment between test flights when on field test if changes are made on the day or something.
+- `METADATA`: Just a relevant optional note. Can be used to name tests
+
+```txt
+MAJOR.MINOR.PATCH-PR_I.PR_IV+METADATA
+```
+
+For example:
+
+```txt
+0.1.0-dev.1+whitecliffs
+```
+
+Would be the first release, as it's the first internal test. If the code changes in White Cliffs, you would go to `0.1.0-dev.2+whitecliffs` and then next field test in Serpentine would probably be `0.2.0-dev.1+serpentine`
+
+
 ## Writing a subprocess
 
 Important requirements for each subproccess you spawn from the CLI:
