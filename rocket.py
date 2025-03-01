@@ -29,11 +29,38 @@ def cli():
 @click.command()
 def run():
     """Start software for production usage in native environment. Indented for usage on GCS only"""
-    logger.error("Production mode attempted. Not supported")
-    raise NotImplementedError("Production setup not currently supported")
+
     print_splash()
-    # Run a check to make sure the binaries are there.
-    # If not raise a FileNotFoundError
+    logger.setLevel(logging.INFO)
+
+    # 1. Make sure C++ middleware is there
+    # TODO add checks for ALL files please
+    # TODO please add a check to make sure it's up to date?
+    if not (os.path.exists(os.path.join("build", "middleware-release"))):
+        logger.error(
+            "C++ release middleware not found. Please build it with release.sh. Exiting")
+        raise FileNotFoundError("C++ release middleware not found. Exiting")
+
+    # 2. Run C++ middleware
+    # Note that devices are paired pseudo-ttys
+    try:
+        start_middleware(logger=logger,
+                         release=True,
+                         INTERFACE_TYPE=InterfaceType.UART,
+                         DEVICE_PATH="/dev/serial0",
+                         SOCKET_PATH="gcs_rocket")
+    except Exception as e:
+        logger.error(
+            f"Failed to start middleware: {e}\nPropogating fatal error")
+        raise
+
+
+    # 5. Start the event viewer
+    start_event_viewer(logger, "gcs_rocket", file_logging_enabled=True)
+
+    # 6. Could start the pendent emulator
+
+    # 7. Database stuff in future
 
 
 @click.command()
@@ -77,26 +104,43 @@ def dev(nodocker):
         raise
 
     # 2.
-    devices = start_fake_serial_device(logger)
-    if devices == (None, None):
-        raise RuntimeError("Failed to start fake serial device. Exiting")
+    INTERFACE_TYPE = InterfaceType.TEST
+    match INTERFACE_TYPE:
+        case InterfaceType.UART:
+            logger.info("Starting UART interface")
+            # Just leave second (emulator) device as None
+            devices = ("/dev/serial0", None)
+        case InterfaceType.TEST:
+            logger.info("Starting TEST interface")
+            devices = start_fake_serial_device(logger)
+            if devices == (None, None):
+                raise RuntimeError(
+                    "Failed to start fake serial device. Exiting")
+        case _:
+            logger.error("Invalid interface type")
+            raise ValueError("Invalid interface type")
 
     # 3. Run C++ middleware
     # Note that devices are paired pseudo-ttys
     try:
-        start_middleware(logger,
-                         InterfaceType.UART,
-                         devices[0],
-                         "gcs_rocket")
+        start_middleware(logger=logger,
+                         release=False,
+                         INTERFACE_TYPE=INTERFACE_TYPE,
+                         DEVICE_PATH=devices[0],
+                         SOCKET_PATH="gcs_rocket")
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
         raise
 
+    # TODO fix this with middleware blocking
+    time.sleep(0.5)
+
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical
-    start_fake_serial_device_emulator(logger, devices[1])
+    if INTERFACE_TYPE == InterfaceType.TEST:
+        start_fake_serial_device_emulator(logger, devices[1])
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=False)

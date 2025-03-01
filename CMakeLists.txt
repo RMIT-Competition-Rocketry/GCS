@@ -3,7 +3,13 @@ project(middleware LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
 
-find_package(Protobuf CONFIG REQUIRED)
+# This fucking thing will raise linker error on my laptop if config is not used.
+# But using config on the pi will raise errors because it can't find the .cmake
+find_package(Protobuf CONFIG QUIET)
+
+if(NOT Protobuf_FOUND)
+    find_package(Protobuf MODULE REQUIRED)
+endif()
 
 # Set proto file path correctly
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path
@@ -46,6 +52,7 @@ protobuf_generate(
 )
 
 # Add python protobuf generation
+# For now just use  4249  protoc --proto_path=./backend/proto/payloads --python_out=./backend/proto/generated ./backend/proto/payloads/AV_TO_GCS_DATA_1.proto
 
 # Get all generated protobuf source files
 # TODO this might need to be edited after you start using things outside of payloads
@@ -97,5 +104,9 @@ target_link_libraries(middleware PRIVATE
     protobuf::libprotobuf # Modern target-based linking
     ${ZMQ_LIBRARY}
 )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set_target_properties(middleware PROPERTIES OUTPUT_NAME "middleware-release")
+endif()
 
 install(TARGETS middleware DESTINATION bin)

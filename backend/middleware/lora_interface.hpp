@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <unistd.h> // For ssize_t
 
 class LoraInterface
 {

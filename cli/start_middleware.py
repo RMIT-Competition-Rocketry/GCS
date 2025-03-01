@@ -7,9 +7,11 @@ import enum
 class InterfaceType(enum.Enum):
     # Reference the main middleware cpp file
     UART = "UART"
+    TEST = "TEST"
 
 
 def start_middleware(logger: logging.Logger,
+                     release: bool,
                      INTERFACE_TYPE: InterfaceType,
                      DEVICE_PATH: str,
                      SOCKET_PATH: str,
@@ -20,10 +22,12 @@ def start_middleware(logger: logging.Logger,
             f"INTERFACE_TYPE must be a InterfaceType value, got: {INTERFACE_TYPE} as type {type(INTERFACE_TYPE)}")
     try:
 
+        BINARY = "middleware-release" if release else "middleware"
+
         MIDDLEWARE_COMMAND = [
             # Should always be relative to cwd. Just use the (.):
             # ./middleware/build/middleware {args}
-            os.path.join(".", "build", "middleware"),
+            os.path.join(".", "build", BINARY),
             # <interface type> <device path> <socket path>
             INTERFACE_TYPE.value,
             DEVICE_PATH,
@@ -35,6 +39,7 @@ def start_middleware(logger: logging.Logger,
         middleware_process = process.LoggedSubProcess(
             MIDDLEWARE_COMMAND,
             name="middleware",
+            parse_output=True
         )
         middleware_process.start()
 

@@ -80,6 +80,16 @@
         "any": "cpp",
         "condition_variable": "cpp",
         "map": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "numbers": "cpp",
+        "numeric": "cpp",
+        "text_encoding": "cpp",
+        "cinttypes": "cpp",
+        "*.inc": "cpp",
+        "list": "cpp",
+        "unordered_set": "cpp",
+        "fstream": "cpp",
+        "future": "cpp",
+        "typeindex": "cpp"
     }
 }
