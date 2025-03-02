@@ -2,4 +2,4 @@ click>=8.1.7
 pyzmq>=25.1.1
 zmq>=0.0.0
 protobuf>=5.29.3
-pynput>=1.7.8
+pygame>=2.5.1

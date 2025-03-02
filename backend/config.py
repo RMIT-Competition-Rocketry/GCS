@@ -14,7 +14,7 @@ def get_default_config_path():
     if system == 'Darwin':
         return "/Users/freddy/gcs_sl/backend/config.ini"
     elif system == 'Linux':
-        return "/home/users/rmit/gcs/backend/config.ini"
+        return "/home/rmit/GCS/backend/config.ini"
     else:
         raise NotImplementedError(f"Unsupported OS: {system}")
 

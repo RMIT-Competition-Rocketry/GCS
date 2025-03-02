@@ -452,9 +452,9 @@ def main():
                     packet.write_payload()
                     # Not sure if this needs to be longer?
                     time.sleep(0.190)  # Real timing is about 200-250ms.
-            # slogger.debug("Looped through all packets")
-            slogger.debug("Looped through all packets")
-            time.sleep(3)
+
+            #slogger.debug("Looped through all packets")
+            # time.sleep(0)
     except KeyboardInterrupt:
         # As soon as the CLI gets the interrupt, a race condition starts and child cleanup is not guaranteed
         slogger.debug("Emulator interrupted by user")

@@ -19,6 +19,7 @@ The GSE software is run by using a Python based CLI.
 | [ZeroMQ](https://zeromq.org/download/) |✅|🐳|✅| 
 | Protobuf |✅|🐳|✅| 
 
+
 ## Setup Instructions
 
 Firstly navigate into this repository directory and ensure you have Python 3 installed

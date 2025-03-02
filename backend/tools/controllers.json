@@ -1,0 +1,13 @@
+{
+    "BTN_A": 0,
+    "BTN_B": 1,
+    "BTN_X": 2,
+    "BTN_Y": 3,
+    "BTN_LB": 4,
+    "BTN_RB": 5,
+    "BTN_BACK": 6,
+    "BTN_START": 7,
+    "BTN_LOGITECH": 8,
+    "BTN_LEFT_JOYSTICK": 9,
+    "BTN_RIGHT_JOYSTICK": 10
+}

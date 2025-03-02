@@ -52,9 +52,15 @@ def get_command() -> List[str]:
         applescript = f'tell app "Terminal" to do script "{shell_cmd}"'
         return ['osascript', '-e', applescript]
     elif system == 'Linux':
-        # Keep terminal open after execution with 'exec bash'
-        shell_cmd = f"export PYTHONPATH='{project_root}'; python3 '{script_path}' -u; exec bash"
-        return ['gnome-terminal', '--', 'bash', '-c', shell_cmd]
+        # Use xterm and explicitly pass DISPLAY
+        display = os.environ.get('DISPLAY', ':0')
+        shell_cmd = (
+            f"export PYTHONPATH='{project_root}'; "
+            f"export DISPLAY='{display}'; "
+            f"python3 '{script_path}' -u; "
+            "exec bash"
+        )
+        return ['xterm', '-e', 'bash', '-c', shell_cmd]
     else:
         raise NotImplementedError(f"Unsupported OS: {system}")
 
