@@ -15,11 +15,16 @@ import proto.generated.payloads.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 from typing import List, Dict
 import backend.process_logging as slogger  # slog deez nuts
 import backend.ansci as ansci
+import backend.config as config
 
 # Just prints useful information from AV and saves it to csv file
 
 
 class Packet(ABC):
+
+    _LOCK_FILE_GSE_RESPONSE_PATH = \
+        config.load_config()["locks"]["lock_file_gse_response_path"]
+
     # Updated in _setup_logging
     _setup: bool = False
 
@@ -611,6 +616,8 @@ class GCS_TO_AV_STATE_CMD(Packet):
 # TODO Warning that if this is picked up by the sub,
 # you'll be spitting out the same information you wrote.
 # This is okay, but mostly redundant
+# TODO yeah nah this packet will never ever be seen by itself.
+# Please go back to ID checking and raise an error if this packet is ever recieved
 
 
 class GCS_TO_GSE_STATE_CMD(Packet):
@@ -623,6 +630,19 @@ class GCS_TO_GSE_STATE_CMD(Packet):
         # slogger.debug("GCS_TO_GSE_STATE_CMD packet received")
 
 
+def release_gse_lock() -> bool:
+    """When a GSE packet is received, release the lock file to allow the pendant to send a new packet"""
+    GSE_LOCK_PATH = Packet._LOCK_FILE_GSE_RESPONSE_PATH
+    if os.path.exists(GSE_LOCK_PATH):
+        os.remove(GSE_LOCK_PATH)
+        slogger.debug(f"Lock file ({GSE_LOCK_PATH}) removed")
+        return True
+    else:
+        slogger.error(
+            f"Lock file ({GSE_LOCK_PATH}) not found. Have you timed out?")
+        return False
+
+
 class GSE_TO_GCS_DATA_1(Packet):
 
     def __init__(self):
@@ -630,7 +650,9 @@ class GSE_TO_GCS_DATA_1(Packet):
 
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
-        # slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+        # Release lock after. Consider making the process logic check for errors.
+        release_gse_lock()
+        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
 
 class GSE_TO_GCS_DATA_2(Packet):
@@ -640,7 +662,9 @@ class GSE_TO_GCS_DATA_2(Packet):
 
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2) -> None:
         super().process(PROTO_DATA)
-        # slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+        # Release lock after. Consider making the process logic check for errors.
+        release_gse_lock()
+        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
 
 def main(SOCKET_PATH, CREATE_LOGS):

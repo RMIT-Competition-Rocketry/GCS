@@ -14,6 +14,7 @@ from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
 from cli.start_middleware import start_middleware, InterfaceType
 from cli.start_event_viewer import start_event_viewer
+from cli.start_pendant_emulator import start_pendant_emulator
 
 
 logger: logging.Logger = None
@@ -53,7 +54,6 @@ def run():
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
         raise
-
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=True)
@@ -146,6 +146,7 @@ def dev(nodocker):
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=False)
 
     # 6. Could start the pendent emulator
+    start_pendant_emulator(logger)
 
     # 7. Database stuff in future
 

@@ -235,14 +235,14 @@ int main(int argc, char *argv[])
         // Main command loop
         while (running)
         {
-            zmq::poll(items, 1, std::chrono::milliseconds(100)); // 100ms timeout
+            zmq::poll(items, 1, std::chrono::milliseconds(300)); // 100ms timeout
 
             if (items[0].revents & ZMQ_POLLIN)
             {
                 zmq::message_t msg;
                 zmq::recv_result_t result = pull_socket.recv(msg, zmq::recv_flags::none);
 
-                // Process command (example: echo back)
+                // Process command (echo bytes verbatim to LoRa)
                 std::vector<uint8_t> cmd_data(
                     static_cast<uint8_t *>(msg.data()),
                     static_cast<uint8_t *>(msg.data()) + msg.size());
