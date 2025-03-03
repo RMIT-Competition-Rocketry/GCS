@@ -344,6 +344,7 @@ class AV_TO_GCS_DATA_1(Packet):
 
     def _process_state_flags(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         # Info level for 0 -> 1 and warning for 1 -> 0
+        # Same numbers in proto file for listFields index
         for state_flag_name, state_flag_value in PROTO_DATA.ListFields()[1:6]:
             state_flag_name = state_flag_name.name
             if self._last_state_flags[state_flag_name] != state_flag_value:
@@ -647,10 +648,98 @@ class GSE_TO_GCS_DATA_1(Packet):
 
     def __init__(self):
         super().__init__(0x06, None)
+        self._last_information_display_time = datetime.datetime.min
+        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=1)
+        self._last_gse_state_flags = {
+            "manual_purge_activated": None,
+            "o2_fill_activated": None,
+            "selector_switch_neutral_position": None,
+            "n20_fill_activated": None,
+            "ignition_fired": None,
+            "ignition_selected": None,
+            "gas_fill_selected": None,
+            "system_activated": None,
+        }
+        self._last_gse_errors = {
+            "ignition_error": None,
+            "relay_3_error": None,
+            "relay_2_error": None,
+            "relay_1_error": None,
+            "thermocouple_4_error": None,
+            "thermocouple_3_error": None,
+            "thermocouple_2_error": None,
+            "thermocouple_1_error": None,
+            "load_cell_4_error": None,
+            "load_cell_3_error": None,
+            "load_cell_2_error": None,
+            "load_cell_1_error": None,
+            "transducer_4_error": None,
+            "transducer_3_error": None,
+            "transducer_2_error": None,
+            "transducer_1_error": None,
+        }
+
+    def _process_gse_state_flags(self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1) -> None:
+        # Info level for 0 -> 1 and warning for 1 -> 0
+        # Same numbers in proto file for listFields index
+        for state_flag_name, state_flag_value in PROTO_DATA.ListFields()[1:8]:
+            state_flag_name = state_flag_name.name
+            if self._last_gse_state_flags[state_flag_name] != state_flag_value:
+                # Something changed
+                if state_flag_value == 1:
+                    slogger.info(
+                        f"{state_flag_name} changed to {state_flag_value}")
+                else:
+                    slogger.warning(
+                        f"{state_flag_name} changed to {state_flag_value}")
+            # Update historical value
+            self._last_state_flags[state_flag_name] = state_flag_value
 
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
-        # Release lock after. Consider making the process logic check for errors.
+        self._proccess_gse_state_flags(PROTO_DATA)
+
+        # Regular infomation updates
+        if datetime.datetime.now() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
+            TRANSDUCER_VALUE_ERROR = [
+                (PROTO_DATA.transducer_1, PROTO_DATA.transducer_1_error),
+                (PROTO_DATA.transducer_2, PROTO_DATA.transducer_2_error),
+                (PROTO_DATA.transducer_3, PROTO_DATA.transducer_3_error),
+            ]
+            for i, trans_values in enumerate(TRANSDUCER_VALUE_ERROR):
+                if not (-1 < trans_values[0] < 64.5) or trans_values[1]:
+                    log_function = slogger.error
+                else:
+                    log_function = slogger.info
+                log_function(f"Transducer_{i+1} value: {trans_values[0]} bar")
+
+            THERMOCOUPLE_VALUE_ERROR = [
+                (PROTO_DATA.thermocouple_1, PROTO_DATA.thermocouple_1_error)
+                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error)
+                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error)
+                (PROTO_DATA.thermocouple_4, PROTO_DATA.thermocouple_4_error)
+
+            ]
+            for i, thermocouple_values in enumerate(THERMOCOUPLE_VALUE_ERROR):
+                if not (-1 < thermocouple_values[0] < 34.5) or thermocouple_values[1]:
+                    log_function = slogger.error
+                else:
+                    log_function = slogger.info
+                log_function(
+                    f"Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
+
+        # Error flags. Note that transducer and thermocouple errors are logged above too
+        for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[16:31]:
+            if self._last_gse_errors[error_flag_name] != error_flag_value:
+                # Something changed
+                if error_flag_value:
+                    slogger.error(
+                        f"{error_flag_name} changed to {error_flag_value}")
+                else:
+                    slogger.info(
+                        f"{error_flag_name} changed to {error_flag_value}")
+
+        # Release lock after. Consider making the process logic check for errors that contribute to invalid lock state.
         release_gse_lock()
         slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
@@ -659,12 +748,90 @@ class GSE_TO_GCS_DATA_2(Packet):
 
     def __init__(self):
         super().__init__(0x07, None)
+        self._last_information_display_time = datetime.datetime.min
+        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=1)
+        self._last_gse_state_flags = {
+            "manual_purge_activated": None,
+            "o2_fill_activated": None,
+            "selector_switch_neutral_position": None,
+            "n20_fill_activated": None,
+            "ignition_fired": None,
+            "ignition_selected": None,
+            "gas_fill_selected": None,
+            "system_activated": None,
+        }
+        self._last_gse_errors = {
+            "ignition_error": None,
+            "relay_3_error": None,
+            "relay_2_error": None,
+            "relay_1_error": None,
+            "thermocouple_4_error": None,
+            "thermocouple_3_error": None,
+            "thermocouple_2_error": None,
+            "thermocouple_1_error": None,
+            "load_cell_4_error": None,
+            "load_cell_3_error": None,
+            "load_cell_2_error": None,
+            "load_cell_1_error": None,
+            "transducer_4_error": None,
+            "transducer_3_error": None,
+            "transducer_2_error": None,
+            "transducer_1_error": None,
+        }
 
+    def _process_gse_state_flags(self, PROTO_DATA: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2) -> None:
+        # Info level for 0 -> 1 and warning for 1 -> 0
+        # Same numbers in proto file for listFields index
+        for state_flag_name, state_flag_value in PROTO_DATA.ListFields()[1:8]:
+            state_flag_name = state_flag_name.name
+            if self._last_gse_state_flags[state_flag_name] != state_flag_value:
+                # Something changed
+                if state_flag_value == 1:
+                    slogger.info(
+                        f"{state_flag_name} changed to {state_flag_value}")
+                else:
+                    slogger.warning(
+                        f"{state_flag_name} changed to {state_flag_value}")
+            # Update historical value
+            self._last_state_flags[state_flag_name] = state_flag_value
+
+    # TODO Maybe split into 2 timeouts if this information is not all important
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2) -> None:
         super().process(PROTO_DATA)
-        # Release lock after. Consider making the process logic check for errors.
+        self._process_gse_state_flags(PROTO_DATA)
+        # Regular information updates
+        if datetime.datetime.now() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
+            slogger.info(
+                f"GSE internal temp: {round(PROTO_DATA.internal_temp, 2)} deg C")
+            slogger.info(
+                f"GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
+            slogger.info(
+                f"GSE gas bottle 1 weight: {PROTO_DATA.gas_bottle_weight_1} kg")
+            slogger.info(
+                f"GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
+            slogger.info(
+                f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1), 2} ?")
+            slogger.info(
+                f"VAC input 2: {round(PROTO_DATA.analog_voltage_input_2), 2} ?")
+            slogger.info(
+                f"Current input 1: {round(PROTO_DATA.additional_current_input_1), 2} ?")
+            slogger.info(
+                f"Current input 2: {round(PROTO_DATA.additional_current_input_2), 2} ?")
+
+        # Error flags. Note the different index compared to GSE packet 1
+        for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[17:32]:
+            if self._last_gse_errors[error_flag_name] != error_flag_value:
+                # Something changed
+                if error_flag_value:
+                    slogger.error(
+                        f"{error_flag_name} changed to {error_flag_value}")
+                else:
+                    slogger.info(
+                        f"{error_flag_name} changed to {error_flag_value}")
+
+        # Release lock after. Consider making the process logic check for errors that contribute to invalid lock state .
         release_gse_lock()
-        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+        slogger.debug("GSE_TO_GCS_DATA_2 packet received")
 
 
 def main(SOCKET_PATH, CREATE_LOGS):
