@@ -868,61 +868,73 @@ def main(SOCKET_PATH, CREATE_LOGS):
     GSE_TO_GCS_DATA_1_handler = GSE_TO_GCS_DATA_1()
     GSE_TO_GCS_DATA_2_handler = GSE_TO_GCS_DATA_2()
 
-    while True:
-        try:
-            message = sub_socket.recv(flags=zmq.NOBLOCK)
-            if len(message) > 1:
-                # We've missed the ID publish message. Wait for next one
-                continue
-            packet_id = int.from_bytes(message, byteorder='big')
-            message = sub_socket.recv()
-            if len(message) == 1:
-                # Something failed and we've got a new ID instead of the last message.
-                new_erronous_packet_id = int.from_bytes(
-                    message, byteorder='big')
-                slogger.error(
-                    f"Event viewer subscription did find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
-                continue
+    try:
+        while True:
+            try:
+                message = sub_socket.recv(flags=zmq.NOBLOCK)
+                if len(message) > 1:
+                    # We've missed the ID publish message. Wait for next one
+                    continue
+                packet_id = int.from_bytes(message, byteorder='big')
+                message = sub_socket.recv()
+                if len(message) == 1:
+                    # Something failed and we've got a new ID instead of the last message.
+                    new_erronous_packet_id = int.from_bytes(
+                        message, byteorder='big')
+                    slogger.error(
+                        f"Event viewer subscription did find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
+                    continue
 
-            match packet_id:
-                case 1:
-                    GCS_TO_AV_STATE_CMD_packet = GCS_TO_AV_STATE_CMD_pb.GCS_TO_AV_STATE_CMD()
-                    GCS_TO_AV_STATE_CMD_packet.ParseFromString(message)
-                    GCS_TO_AV_STATE_CMD_handler.process(
-                        GCS_TO_AV_STATE_CMD_packet)
-                case 2:
-                    GCS_TO_GSE_STATE_CMD_packet = GCS_TO_GSE_STATE_CMD_pb.GCS_TO_GSE_STATE_CMD()
-                    GCS_TO_GSE_STATE_CMD_packet.ParseFromString(message)
-                    GCS_TO_GSE_STATE_CMD_handler.process(
-                        GCS_TO_GSE_STATE_CMD_packet)
-                case 3:
-                    AV_TO_GCS_DATA_1_packet = AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1()
-                    AV_TO_GCS_DATA_1_packet.ParseFromString(message)
-                    AV_TO_GCS_DATA_1_handler.process(AV_TO_GCS_DATA_1_packet)
-                case 4:
-                    AV_TO_GCS_DATA_2_packet = AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2()
-                    AV_TO_GCS_DATA_2_packet.ParseFromString(message)
-                    AV_TO_GCS_DATA_2_handler.process(AV_TO_GCS_DATA_2_packet)
-                case 5:
-                    AV_TO_GCS_DATA_3_packet = AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3()
-                    AV_TO_GCS_DATA_3_packet.ParseFromString(message)
-                    AV_TO_GCS_DATA_3_handler.process(AV_TO_GCS_DATA_3_packet)
-                case 6:
-                    GSE_TO_GCS_DATA_1_packet = GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1()
-                    GSE_TO_GCS_DATA_1_packet.ParseFromString(message)
-                    GSE_TO_GCS_DATA_1_handler.process(GSE_TO_GCS_DATA_1_packet)
-                case 7:
-                    GSE_TO_GCS_DATA_2_packet = GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2()
-                    GSE_TO_GCS_DATA_2_packet.ParseFromString(message)
-                    GSE_TO_GCS_DATA_2_handler.process(GSE_TO_GCS_DATA_2_packet)
-                case _:
-                    slogger.error(f"Unexpected packet ID: {packet_id}")
-        except zmq.Again:
-            # No message received, sleep to prevent CPU spin
-            pass
-        except KeyboardInterrupt:
-            # As soon as the CLI gets the interrupt, a race condition starts and child cleanup is not guaranteed
-            slogger.warning("Keyboard interrupt received. Listening stopping")
+                match packet_id:
+                    case 1:
+                        GCS_TO_AV_STATE_CMD_packet = GCS_TO_AV_STATE_CMD_pb.GCS_TO_AV_STATE_CMD()
+                        GCS_TO_AV_STATE_CMD_packet.ParseFromString(message)
+                        GCS_TO_AV_STATE_CMD_handler.process(
+                            GCS_TO_AV_STATE_CMD_packet)
+                    case 2:
+                        GCS_TO_GSE_STATE_CMD_packet = GCS_TO_GSE_STATE_CMD_pb.GCS_TO_GSE_STATE_CMD()
+                        GCS_TO_GSE_STATE_CMD_packet.ParseFromString(message)
+                        GCS_TO_GSE_STATE_CMD_handler.process(
+                            GCS_TO_GSE_STATE_CMD_packet)
+                    case 3:
+                        AV_TO_GCS_DATA_1_packet = AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1()
+                        AV_TO_GCS_DATA_1_packet.ParseFromString(message)
+                        AV_TO_GCS_DATA_1_handler.process(
+                            AV_TO_GCS_DATA_1_packet)
+                    case 4:
+                        AV_TO_GCS_DATA_2_packet = AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2()
+                        AV_TO_GCS_DATA_2_packet.ParseFromString(message)
+                        AV_TO_GCS_DATA_2_handler.process(
+                            AV_TO_GCS_DATA_2_packet)
+                    case 5:
+                        AV_TO_GCS_DATA_3_packet = AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3()
+                        AV_TO_GCS_DATA_3_packet.ParseFromString(message)
+                        AV_TO_GCS_DATA_3_handler.process(
+                            AV_TO_GCS_DATA_3_packet)
+                    case 6:
+                        GSE_TO_GCS_DATA_1_packet = GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1()
+                        GSE_TO_GCS_DATA_1_packet.ParseFromString(message)
+                        GSE_TO_GCS_DATA_1_handler.process(
+                            GSE_TO_GCS_DATA_1_packet)
+                    case 7:
+                        GSE_TO_GCS_DATA_2_packet = GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2()
+                        GSE_TO_GCS_DATA_2_packet.ParseFromString(message)
+                        GSE_TO_GCS_DATA_2_handler.process(
+                            GSE_TO_GCS_DATA_2_packet)
+                    case _:
+                        slogger.error(f"Unexpected packet ID: {packet_id}")
+            except zmq.Again:
+                # No message received, sleep to prevent CPU spin
+                pass
+    except KeyboardInterrupt:
+        # Graceful exit if KeyboardInterrupt occurs outside the loop
+        slogger.warning("Keyboard interrupt received. Stopping program.")
+    except Exception as e:
+        slogger.error(f"Unexpected error occurred: {e}")
+    finally:
+        # Any final cleanup code
+        sub_socket.close()
+        slogger.info("Event viewer stopped.")
 
 
 if __name__ == "__main__":
