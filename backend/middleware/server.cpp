@@ -27,7 +27,7 @@ void signal_handler(int)
     running = false;
 }
 
-void set_thread_name(const char *name)
+inline void set_thread_name([[maybe_unused]] const char *name)
 {
 #ifdef __APPLE__
     pthread_setname_np(name);
@@ -80,7 +80,7 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
     // Else: Consider handling when not enough data is available.
 }
 
-void input_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pub_socket)
+void input_read_loop(std::shared_ptr<LoraInterface> interface, zmq::socket_t &pub_socket)
 {
     set_thread_name("input_read_loop");
     std::vector<uint8_t> buffer(256);
@@ -148,20 +148,20 @@ void input_read_loop(std::unique_ptr<LoraInterface> interface, zmq::socket_t &pu
     }
 }
 
-std::unique_ptr<LoraInterface> create_interface(
+std::shared_ptr<LoraInterface> create_interface(
     const std::string INTERFACE_NAME,
     const std::string DEVICE_PATH)
 {
-    std::unique_ptr<LoraInterface> interface;
+    std::shared_ptr<LoraInterface> interface;
 
     if (INTERFACE_NAME == "UART")
     {
         // This will sent AT setup commands as well in constructor
-        interface = std::make_unique<UartInterface>(DEVICE_PATH);
+        interface = std::make_shared<UartInterface>(DEVICE_PATH);
     }
     else if (INTERFACE_NAME == "TEST")
     {
-        interface = std::make_unique<TestInterface>(DEVICE_PATH);
+        interface = std::make_shared<TestInterface>(DEVICE_PATH);
     }
     else
     {
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
         // Create an interface
         const std::string DEVICE_PATH = std::string(argv[2]);
         const std::string SOCKET_PATH = std::string(argv[3]);
-        std::unique_ptr<LoraInterface> interface = create_interface(
+        std::shared_ptr<LoraInterface> interface = create_interface(
             std::string(argv[1]),
             DEVICE_PATH);
 
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
         pull_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pull.sock");
 
         // Start UART reading thread
-        std::thread reader(input_read_loop, std::move(interface), std::ref(pub_socket));
+        std::thread reader(input_read_loop, interface, std::ref(pub_socket));
 
         // http://api.zeromq.org/3-0:zmq-poll
         zmq::pollitem_t items[] = {{pull_socket, 0, ZMQ_POLLIN, 0}};
@@ -235,19 +235,21 @@ int main(int argc, char *argv[])
         // Main command loop
         while (running)
         {
-            zmq::poll(items, 1, std::chrono::milliseconds(100)); // 100ms timeout
+            zmq::poll(items, 1, std::chrono::milliseconds(300)); // 300ms timeout
 
             if (items[0].revents & ZMQ_POLLIN)
             {
                 zmq::message_t msg;
                 zmq::recv_result_t result = pull_socket.recv(msg, zmq::recv_flags::none);
-
-                // Process command (example: echo back)
-                std::vector<uint8_t> cmd_data(
-                    static_cast<uint8_t *>(msg.data()),
-                    static_cast<uint8_t *>(msg.data()) + msg.size());
-
-                interface->write_data(cmd_data);
+                if (result)
+                {
+                    process_logging::debug("Pull socket received message of size: " + std::to_string(msg.size()));
+                    // Process command (echo bytes verbatim to LoRa)
+                    std::vector<uint8_t> cmd_data(
+                        static_cast<uint8_t *>(msg.data()),
+                        static_cast<uint8_t *>(msg.data()) + msg.size());
+                    interface->write_data(cmd_data);
+                }
             }
         }
 

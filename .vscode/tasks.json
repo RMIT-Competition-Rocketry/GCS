@@ -54,6 +54,23 @@
             "problemMatcher": []
         },
         {
+            "label": "start hardware pendant emulator manually",
+            "type": "shell",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/tools/pendant_emulator.py",
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Compile Manual Protobuf Payload",
             "type": "shell",
             "command": "protoc",

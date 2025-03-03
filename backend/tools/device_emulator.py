@@ -3,10 +3,13 @@ from abc import ABC, abstractmethod
 from backend import config
 from typing import Optional, List
 import sys
-from backend.tools import metric
-import datetime
+from backend import metric
+from backend import config
+import os
 import time
 import backend.process_logging as slogger  # slog deez nuts
+
+# TODO convert this crap into kwargs or something
 
 
 class MockPacket(ABC):
@@ -17,7 +20,7 @@ class MockPacket(ABC):
     @classmethod
     def initialize_settings(cls,
                             EMULATION_CONFIG: dict,
-                            FAKE_DEVICE_NAME: str):
+                            FAKE_DEVICE_NAME: str = None):
         """Initialise settings for the MockPacket object
 
         Args:
@@ -44,7 +47,8 @@ class MockPacket(ABC):
 
     def write_payload(self):
         """Writes payload of bytes to device"""
-
+        if self._FAKE_DEVICE_NAME is None:
+            raise ValueError("Cannot write to device. Device name not set.")
         try:
             with open(self._FAKE_DEVICE_NAME, 'wb') as device:
                 device.write(metric.Metric._int_to_byte_unsigned(self.ID))
@@ -54,6 +58,14 @@ class MockPacket(ABC):
             slogger.error(
                 f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}")
             raise
+
+    def get_payload_bytes(self) -> bytes:
+        """Concatenates the ID and payload fragments into a single bytes object."""
+        payload_bytes = bytearray()
+        payload_bytes.extend(metric.Metric._int_to_byte_unsigned(self.ID))
+        for fragment in self.payload_after_id:
+            payload_bytes.extend(fragment)
+        return bytes(payload_bytes)
 
 
 class GCStoGSEStateCMD(MockPacket):
@@ -424,20 +436,25 @@ def main():
     # Also, this is the ROCKET emulator.
     # Packets written to the device should be packets that are sent from AV
     # test_packet = AVtoGCSData2()
-    test_packets = [AVtoGCSData1(), AVtoGCSData2(), AVtoGCSData3(),
-                    GCStoAVStateCMD(), GCStoGSEStateCMD(), GSEtoGCSData1(), GSEtoGCSData2()]
+    # test_packets = [AVtoGCSData1(), AVtoGCSData2(), AVtoGCSData3(),
+    #                 GCStoAVStateCMD(), GCStoGSEStateCMD(), GSEtoGCSData1(), GSEtoGCSData2()]
 
-    # [3, 4, 5, 1, 2, 6, 7]
-    slogger.debug(f"ID Orders: {[x.ID for x in test_packets]}")
+    # # [3, 4, 5, 1, 2, 6, 7]
+    # slogger.debug(f"ID Orders: {[x.ID for x in test_packets]}")
 
-    START = datetime.datetime.now()
+    LOCK_PATH = config.load_config()['locks']['lock_file_gse_response_path']
     try:
-        while (datetime.datetime.now() - START).seconds < 60*10:  # 10 minute debug session
-            for packet in test_packets:
-                packet.write_payload()
-                time.sleep(1)  # Real timning is about 250ms. Not 50
-            slogger.debug("Looped through all packets")
-            time.sleep(3)
+        while True:
+            # Pretending to be GSE for today
+            for packet in [GSEtoGCSData1(), GSEtoGCSData2()]:
+                # As a cheeky emulation, only write when the lock file is PRESENT
+                if os.path.exists(LOCK_PATH):
+                    packet.write_payload()
+                    # Not sure if this needs to be longer?
+                    time.sleep(0.190)  # Real timing is about 200-250ms.
+
+            #slogger.debug("Looped through all packets")
+            # time.sleep(0)
     except KeyboardInterrupt:
         # As soon as the CLI gets the interrupt, a race condition starts and child cleanup is not guaranteed
         slogger.debug("Emulator interrupted by user")

@@ -19,6 +19,7 @@ UartInterface::UartInterface(const std::string &device_path, int baud_rate)
 
 UartInterface::~UartInterface()
 {
+    std::lock_guard<std::recursive_mutex> lock(io_mutex_);
     // If file descriptor indicates it is open, close it
     if (uart_fd_ >= 0)
         close(uart_fd_);
@@ -26,7 +27,7 @@ UartInterface::~UartInterface()
 
 bool UartInterface::initialize()
 {
-
+    std::lock_guard<std::recursive_mutex> lock(io_mutex_);
     uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
     if (uart_fd_ < 0)
     {
@@ -245,38 +246,9 @@ bool UartInterface::at_send_command(const std::string &command,
     return true;
 }
 
-// ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
-// {
-//     if (uart_fd_ < 0)
-//     {
-//         process_logging::error("UART file descriptor is invalid");
-//         return -1;
-//     }
-
-//     // Responses looks like this
-//     // ...
-
-//     // +TEST: LEN:32, RSSI:-46, SNR:10
-//     // +TEST: RX "0400FFEA0838001FFFDA0400FFC1FFEB0007FFA73C6DAABE0000000000000000"
-
-//     // +TEST: LEN:32, RSSI:-45, SNR:10
-//     // +TEST: RX "0400001908490042FFCD03F7FFCFFFC0002DFFE93C6DAABE0000000000000000"
-
-//     // ...
-
-//     // Put into read mode
-//     at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000);
-//     ssize_t count = read(uart_fd_, buffer.data(), buffer.size());
-//     if (count < 0)
-//     {
-//         throw std::system_error(errno, std::system_category(),
-//                                 "TEST UART read failed");
-//     }
-//     return count;
-// }
-
 ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
 {
+    std::lock_guard<std::recursive_mutex> lock(io_mutex_);
     if (uart_fd_ < 0)
     {
         process_logging::error("UART file descriptor is invalid");
@@ -404,17 +376,19 @@ std::vector<uint8_t> UartInterface::hex_string_to_bytes(const std::string &hex)
 /// @return
 ssize_t UartInterface::write_data(const std::vector<uint8_t> &data)
 {
+    std::lock_guard<std::recursive_mutex> lock(io_mutex_);
     if (uart_fd_ < 0)
+    {
+        process_logging::error("Uart device unavailable for write");
         return -1;
+    }
 
     // Convert binary data to hex string
     std::string hex_payload = bytes_to_hex(data);
 
     // Format AT command for pure packet TX
     std::string command = "AT+TEST=TXLRPKT, \"" + hex_payload + '\"';
-
     bool success = at_send_command(command, "+TEST: TX DONE", 1000);
-
     if (success)
     {
         return data.size();
