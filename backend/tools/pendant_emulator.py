@@ -169,6 +169,7 @@ def handle_controller_events(joystick):
         
 
 def handle_button_press(button_id, pressed):
+    global pressed_states
     button_name = None
     for name, btn_id in CONTROLLER_MAP.items():
         if btn_id == button_id:
@@ -285,12 +286,15 @@ def calculate_states() -> Union[Dict[str, bool],bool]:
 def send_packet() -> device_emulator.GCStoGSEStateCMD:
     context = zmq.Context()
     push_socket = context.socket(zmq.PUSH)
-    push_socket.connect(f"ipc://{os.path.abspath(os.path.join(os.path.sep,'tmp','gcs_rcoket_pull.sock'))}")
+    push_socket.connect(f"ipc://{os.path.abspath(os.path.join(os.path.sep,'tmp','gcs_rocket_pull.sock'))}")
     
     LOCK_TIMEOUT_NS = 6e8  # 600ms
     while not stop_event.is_set():
         states = calculate_states()
-        if states == False: continue # Error detected
+        if states == False: 
+            # Error detected
+            slogger.error("Debug error something broken")
+            continue
         state_command = device_emulator.GCStoGSEStateCMD(**states)
         push_socket.send(state_command.get_payload_bytes())
         

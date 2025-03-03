@@ -104,7 +104,7 @@ def dev(nodocker):
         raise
 
     # 2.
-    INTERFACE_TYPE = InterfaceType.TEST
+    INTERFACE_TYPE = InterfaceType.UART
     match INTERFACE_TYPE:
         case InterfaceType.UART:
             logger.info("Starting UART interface")

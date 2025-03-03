@@ -6,6 +6,7 @@
 #include <termios.h>
 #include <vector>
 #include <chrono>
+#include <mutex>
 
 class UartInterface : public LoraInterface
 {
@@ -19,17 +20,16 @@ public:
     ssize_t read_data(std::vector<uint8_t> &buffer) override;
     ssize_t write_data(const std::vector<uint8_t> &data) override;
 
-    // AT command functionality
-    bool at_send_command(const std::string &command,
-                         const std::string &expected_response,
-                         int timeout_ms = 1000);
-
 private:
+    std::recursive_mutex io_mutex_;
     int baud_rate_;
     int uart_fd_ = -1;
     std::string device_path_;
     std::string response_buffer_;
 
+    bool at_send_command(const std::string &command,
+                         const std::string &expected_response,
+                         int timeout_ms = 1000);
     void configure_uart();
     void at_setup();
     ssize_t write_serial(const std::vector<uint8_t> &data);

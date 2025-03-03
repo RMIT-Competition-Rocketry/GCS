@@ -649,7 +649,7 @@ class GSE_TO_GCS_DATA_1(Packet):
     def __init__(self):
         super().__init__(0x06, None)
         self._last_information_display_time = datetime.datetime.min
-        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=1)
+        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=5)
         self._last_gse_state_flags = {
             "manual_purge_activated": None,
             "o2_fill_activated": None,
@@ -693,11 +693,11 @@ class GSE_TO_GCS_DATA_1(Packet):
                     slogger.warning(
                         f"{state_flag_name} changed to {state_flag_value}")
             # Update historical value
-            self._last_state_flags[state_flag_name] = state_flag_value
+            self._last_gse_state_flags[state_flag_name] = state_flag_value
 
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
-        self._proccess_gse_state_flags(PROTO_DATA)
+        self._process_gse_state_flags(PROTO_DATA)
 
         # Regular infomation updates
         if datetime.datetime.now() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
@@ -714,11 +714,10 @@ class GSE_TO_GCS_DATA_1(Packet):
                 log_function(f"Transducer_{i+1} value: {trans_values[0]} bar")
 
             THERMOCOUPLE_VALUE_ERROR = [
-                (PROTO_DATA.thermocouple_1, PROTO_DATA.thermocouple_1_error)
-                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error)
-                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error)
-                (PROTO_DATA.thermocouple_4, PROTO_DATA.thermocouple_4_error)
-
+                (PROTO_DATA.thermocouple_1, PROTO_DATA.thermocouple_1_error),
+                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
+                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
+                (PROTO_DATA.thermocouple_4, PROTO_DATA.thermocouple_4_error),
             ]
             for i, thermocouple_values in enumerate(THERMOCOUPLE_VALUE_ERROR):
                 if not (-1 < thermocouple_values[0] < 34.5) or thermocouple_values[1]:
@@ -727,9 +726,10 @@ class GSE_TO_GCS_DATA_1(Packet):
                     log_function = slogger.info
                 log_function(
                     f"Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
-
+            self._last_information_display_time = datetime.datetime.now()
         # Error flags. Note that transducer and thermocouple errors are logged above too
         for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[16:31]:
+            error_flag_name = error_flag_name.name
             if self._last_gse_errors[error_flag_name] != error_flag_value:
                 # Something changed
                 if error_flag_value:
@@ -738,7 +738,8 @@ class GSE_TO_GCS_DATA_1(Packet):
                 else:
                     slogger.info(
                         f"{error_flag_name} changed to {error_flag_value}")
-
+            # Update historical value
+            self._last_gse_errors[error_flag_name] = error_flag_value
         # Release lock after. Consider making the process logic check for errors that contribute to invalid lock state.
         release_gse_lock()
         slogger.debug("GSE_TO_GCS_DATA_1 packet received")
@@ -749,7 +750,7 @@ class GSE_TO_GCS_DATA_2(Packet):
     def __init__(self):
         super().__init__(0x07, None)
         self._last_information_display_time = datetime.datetime.min
-        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=1)
+        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=5)
         self._last_gse_state_flags = {
             "manual_purge_activated": None,
             "o2_fill_activated": None,
@@ -793,7 +794,7 @@ class GSE_TO_GCS_DATA_2(Packet):
                     slogger.warning(
                         f"{state_flag_name} changed to {state_flag_value}")
             # Update historical value
-            self._last_state_flags[state_flag_name] = state_flag_value
+            self._last_gse_state_flags[state_flag_name] = state_flag_value
 
     # TODO Maybe split into 2 timeouts if this information is not all important
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2) -> None:
@@ -810,16 +811,17 @@ class GSE_TO_GCS_DATA_2(Packet):
             slogger.info(
                 f"GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
             slogger.info(
-                f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1), 2} ?")
+                f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1, 2)} ?")
             slogger.info(
-                f"VAC input 2: {round(PROTO_DATA.analog_voltage_input_2), 2} ?")
+                f"VAC input 2: {round(PROTO_DATA.analog_voltage_input_2, 2)} ?")
             slogger.info(
-                f"Current input 1: {round(PROTO_DATA.additional_current_input_1), 2} ?")
+                f"Current input 1: {round(PROTO_DATA.additional_current_input_1, 2)} ?")
             slogger.info(
-                f"Current input 2: {round(PROTO_DATA.additional_current_input_2), 2} ?")
-
+                f"Current input 2: {round(PROTO_DATA.additional_current_input_2, 2)} ?")
+            self._last_information_display_time = datetime.datetime.now()
         # Error flags. Note the different index compared to GSE packet 1
         for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[17:32]:
+            error_flag_name = error_flag_name.name
             if self._last_gse_errors[error_flag_name] != error_flag_value:
                 # Something changed
                 if error_flag_value:
@@ -828,7 +830,8 @@ class GSE_TO_GCS_DATA_2(Packet):
                 else:
                     slogger.info(
                         f"{error_flag_name} changed to {error_flag_value}")
-
+            # Update historical value
+            self._last_gse_errors[error_flag_name] = error_flag_value
         # Release lock after. Consider making the process logic check for errors that contribute to invalid lock state .
         release_gse_lock()
         slogger.debug("GSE_TO_GCS_DATA_2 packet received")

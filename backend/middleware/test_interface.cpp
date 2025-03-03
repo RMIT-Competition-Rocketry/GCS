@@ -78,6 +78,8 @@ ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer)
 
 ssize_t TestInterface::write_data(const std::vector<uint8_t> &data)
 {
+    process_logging::warning("test interface recieve not implimented. Doing nothing and returning -1");
+    return -1;
     if (uart_fd_ < 0)
         return -1;
 
