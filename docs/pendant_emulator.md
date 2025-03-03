@@ -9,12 +9,20 @@ Refference schematic
 > ![WARNING]
 > This emulator always assumes that the physical translations for mechanical inputs are as follows:
 > - Always On: POWER SWITCH (MISSLE COVER)
-> - Always On: SYSTEM ACTIVE KEY SWITCH
+> - Toggle By Press: SYSTEM ACTIVE KEY SWITCH
 > - Toggle By Press: GAS FILL IGINITION SELECTOR
 > - Toggle by Press: GAS FILL ROTARY SWITCH 
-> - Press/hold key: All push buttons
+> - Press/hold key: All momentary push buttons
+> 
+> - Rotary is in neutral by default
+> - Gas/ignition is in gas by default
+> - All other selections are False (not closed)
 >
-> **On the diagram below: Purple is toggleand the rest are hold only (momentary switches)**
+> The SPDT and rotaries swap to whatever you last pressed on. Pressing on the same option twice will not go from true to false, but will go from true to true. Likewise, if you click on gas option then click on ignition option, it will change from gas to ignition and not enable both. 
+> The SPST will just be a basic on off toggle over multiple presses
+
+> [!CAUTION]
+> Start controller in `X` mode with the switch at the front. Under no circumstances do you change this or the connection will break and a restart is required.
 
 ![pendant_emulator_mapping](assets/pendant_emulator.png)
 

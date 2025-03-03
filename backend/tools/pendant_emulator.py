@@ -1,4 +1,3 @@
-import sys
 import threading
 import backend.tools.device_emulator as device_emulator
 import backend.process_logging as slogger
@@ -8,12 +7,27 @@ import os
 import zmq
 import time
 import pygame
-import json
-from typing import Optional, Dict, Union
+from pprint import pprint
+from typing import Optional, Dict, Union, List
+
+
+# For those who come back to this code. 
+# For those who come back to this code. 
+# For those who come back to this code. 
+# For those who come back to this code. 
+# ------------------------------------
+# This code was written with little to no planning.
+# It was also written with changing requirements in a short amount of time
+# There are a hundred better ways to do this, but I just had to rush it asap
+# I understand it's terrible :)
+# ------------------------------------
+# For those who come back to this code. 
+# For those who come back to this code. 
+# For those who come back to this code. 
+# For those who come back to this code. 
 
 THIS_PID: str = str(os.getpid())
 
-# Load controller mapping from JSON
 CONTROLLER_MAP = {
     "BTN_A": 0,
     "BTN_B": 1,
@@ -28,25 +42,48 @@ CONTROLLER_MAP = {
     "BTN_RIGHT_JOYSTICK": 10
 }
 
+# Mapped as (button_name, is_momentary)
+# If this needs any more information make it an object
 KEY_MAP = {
-    "SELECTION_TOGGLE_GAS": "BTN_LEFT_JOYSTICK",
-    "SELECTION_TOGGLE_IGNITION": "BTN_RIGHT_JOYSTICK",
-    "GAS_DEADMAN": "BTN_LB",
-    "SELECTION_ROTARY_PURGE": "BTN_LOGITECH",
-    "SELECTION_ROTARY_N2O": "BTN_X",
-    "SELECTION_ROTARY_O2": "BTN_B",
-    "SELECTION_ROTARY_NEUTRAL": "BTN_BACK",
-    "IGNITION_DEADMAN": "BTN_RB",
-    "IGNITION_FIRE": "BTN_A",
-    "TOGGLE_SYSTEM_ACTIVE": "BTN_START",
+    "SELECTION_TOGGLE_GAS": ("BTN_LEFT_JOYSTICK",False),
+    "SELECTION_TOGGLE_IGNITION": ("BTN_RIGHT_JOYSTICK",False),
+    "GAS_DEADMAN": ("BTN_LB",True),
+    "SELECTION_ROTARY_PURGE": ("BTN_LOGITECH",False),
+    "SELECTION_ROTARY_N2O": ("BTN_X",False),
+    "SELECTION_ROTARY_O2": ("BTN_B",False),
+    "SELECTION_ROTARY_NEUTRAL": ("BTN_BACK",False),
+    "IGNITION_DEADMAN": ("BTN_RB",True),
+    "IGNITION_FIRE": ("BTN_A",True),
+    "TOGGLE_SYSTEM_ACTIVE": ("BTN_START",False),
 }
 
+# Check map names match
+def validate_maps():
+    key_map_values = KEY_MAP.values()
+    key_map_values_btn_names = [x[0] for x in key_map_values]
+    # Assert: No duplicate or missing button names
+    assert len(key_map_values) == len(set(key_map_values_btn_names))
+    # Assert: Type check 1
+    assert all(isinstance(x[0],str) for x in key_map_values)
+    # Assert: Type check 2
+    assert all(isinstance(x[1],bool) for x in key_map_values)
+    # Assert: Size 2 tuple
+    assert all(len(x)==2 for x in key_map_values)
+
+validate_maps()
+
 # Used for printing names
-KEY_MAP_INVERSE = {v: k for k, v in KEY_MAP.items()}
+# 'BTN_??': SELECTGION_TOGGLE_GAS???
+KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
+# fml again
+BTN_TOGGLE_MAP = {v[0]:v[1] for v in KEY_MAP.values()}
 
 LOCK_FILE_GSE_RESPONSE_PATH: str = load_config()["locks"]["lock_file_gse_response_path"]
 
 pressed_states = {button: False for button in CONTROLLER_MAP.keys()}
+pressed_states[KEY_MAP["SELECTION_ROTARY_NEUTRAL"][0]] = True 
+pressed_states[KEY_MAP["SELECTION_TOGGLE_GAS"][0]] = True 
+
 stop_event = threading.Event()
 state_lock = threading.Lock()
 
@@ -69,6 +106,55 @@ def setup_controller():
     slogger.info(f"Controller initialized: {joystick.get_name()}")
     return joystick
 
+def print_information():
+    """Prints information about current states to help the user understand where they're at"""
+    # Do no validate information here. That is done in packet sender and on GSE
+    if not validate_states():
+        # If states are invalid, don't bother printing them.
+        # Only print last valid option because invalid packets aren't sent anyway
+        return
+    with state_lock:
+        ON: bool = pressed_states[KEY_MAP['TOGGLE_SYSTEM_ACTIVE'][0]]
+        SYSTEM_ACTIVE:str = ansci.BG_GREEN+ "ON " if ON else ansci.BG_RED+"OFF"
+        SYSTEM_ACTIVE += ansci.RESET
+        # Check invalid SPDT state
+        if not pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]] != pressed_states[KEY_MAP['SELECTION_TOGGLE_IGNITION'][0]]:
+            IGNITION_GAS_MODE: str = ansci.BG_RED + "XXXXXXXX" + ansci.RESET
+            IGNITION_GAS_MODE_NO_COL = "XXXXXXXX"
+        else:
+            IGNITION_GAS_MODE: str = "GAS     " if pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]] else "IGNITION"
+            IGNITION_GAS_MODE_NO_COL = IGNITION_GAS_MODE.strip()
+            IGNITION_GAS_MODE = ansci.BG_BLUE + ansci.FG_WHITE + IGNITION_GAS_MODE + ansci.RESET
+        # Check invalid rotary states
+        ROTRAY_KEYS: List[str] = [
+            'SELECTION_ROTARY_PURGE',
+            'SELECTION_ROTARY_N2O',
+            'SELECTION_ROTARY_O2',
+            'SELECTION_ROTARY_NEUTRAL',
+        ]
+        ROTARY_VALUES = [pressed_states[KEY_MAP[x][0]] for x in ROTRAY_KEYS]
+        if ROTARY_VALUES.count(True) != 1:
+            ROTARY_STATE: str = ansci.BG_RED + "XXXXXXX" + ansci.RESET
+        else:
+            for key in ROTRAY_KEYS:
+                if pressed_states[KEY_MAP[key][0]]:
+                    # hard code for lyf
+                    # this file is all temp tho
+                    ROTARY_STATE = key[17:].ljust(7, ' ')
+                    ROTARY_STATE_NO_COL = ROTARY_STATE.strip()
+                    ROTARY_STATE = ansci.BG_MAGENTA + ROTARY_STATE + ansci.RESET
+                    break
+        # Filling state
+        GAS_DM = pressed_states[KEY_MAP['GAS_DEADMAN'][0]]
+        FILLING:bool = GAS_DM and ON and IGNITION_GAS_MODE_NO_COL == 'GAS' and ROTARY_STATE_NO_COL in ["N2O","O2"]
+        # print(f"Firing: {FIRING}")
+        # Firing state
+        IGNITION_DM = pressed_states[KEY_MAP['IGNITION_DEADMAN'][0]]
+        FIRING:bool = IGNITION_DM and ON and IGNITION_GAS_MODE_NO_COL == 'IGNITION' and pressed_states[KEY_MAP['IGNITION_FIRE'][0]]
+
+    ACTION = "FILLING " + ROTARY_STATE_NO_COL if FILLING else "FIRING" if FIRING else "UNDEFINED"
+    print(f"SYS:{SYSTEM_ACTIVE}|MODE:{IGNITION_GAS_MODE}|ROT:{ROTARY_STATE}|NOTES:{ACTION}")
+
 def handle_controller_events(joystick):
     clock = pygame.time.Clock()
     while not stop_event.is_set():
@@ -78,6 +164,9 @@ def handle_controller_events(joystick):
             elif event.type == pygame.JOYBUTTONUP:
                 handle_button_press(event.button, False)
         clock.tick(60)  # 60 FPS
+        # Run CLI notifications
+        print_information()
+        
 
 def handle_button_press(button_id, pressed):
     button_name = None
@@ -88,50 +177,107 @@ def handle_button_press(button_id, pressed):
     
     if button_name and button_name in pressed_states:
         with state_lock:
-            pressed_states[button_name] = pressed
-            action = "pressed" if pressed else "released"
-            slogger.debug(f"Controller {button_name} {action}")
+            action = None
+            try:
+                toggle_state = BTN_TOGGLE_MAP[button_name]
+            except KeyError:
+                # Pressed an unmpapped button
+                return
+            if toggle_state == False:
+                # This is a toggle switch
+                if pressed:
+                    # Only operate this on a press, not on a release
+                    if KEY_MAP_INVERSE[button_name] == "TOGGLE_SYSTEM_ACTIVE":
+                        # Repeated press toggle logic for SPST
+                        pressed_states[button_name] = not pressed_states[button_name]
+                    else:
+                        # Set state to true, set others to false logic. for non SPST
+                        pressed_states[button_name] = True
+                    action = "toggled " + ("on" if pressed_states[button_name] else "off")
+                    # Now if you operated on the SPDT, or rotary, you need to turn off the other options
+                    # A SPST switch doesn't need this because it only has one state
+                    SPDT_options = [KEY_MAP["SELECTION_TOGGLE_GAS"][0],
+                                    KEY_MAP["SELECTION_TOGGLE_IGNITION"][0]]
+                    if button_name in SPDT_options:
+                        SPDT_options.remove(button_name)
+                        pressed_states[SPDT_options[0]] = False
+                    rotary_options = [KEY_MAP["SELECTION_ROTARY_PURGE"][0],
+                                      KEY_MAP["SELECTION_ROTARY_N2O"][0],
+                                      KEY_MAP["SELECTION_ROTARY_O2"][0],
+                                      KEY_MAP["SELECTION_ROTARY_NEUTRAL"][0]]
+                    if button_name in rotary_options:
+                        rotary_options.remove(button_name)
+                        for reminaing_option in rotary_options:
+                            pressed_states[reminaing_option] = False
+            else:
+                # This is a momentary button
+                pressed_states[button_name] = pressed
+                action = "pressed" if pressed else "released"
+            
+            # if action is not None: slogger.debug(f"Controller {button_name} {action}")
+
+def validate_states():
+    """Check if states are ok. This is called in state lock when creating packets. Please be careful not to deadlock"""
+    rotary_values = [
+            pressed_states[KEY_MAP['SELECTION_ROTARY_PURGE'][0]],
+            pressed_states[KEY_MAP['SELECTION_ROTARY_O2'][0]],
+            pressed_states[KEY_MAP['SELECTION_ROTARY_N2O'][0]],
+            pressed_states[KEY_MAP['SELECTION_ROTARY_NEUTRAL'][0]],
+        ]
+    
+    switch_values = [
+        pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]],
+        pressed_states[KEY_MAP['SELECTION_TOGGLE_IGNITION'][0]]
+    ]
+
+    # Validate input states. Check for physically impossible states
+    # Don't send packet if in invalid state
+
+    error_present = False # Check all errors and return at the end
+    # An SPDT switch output must be XOR checked
+    if not pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]] != pressed_states[KEY_MAP['SELECTION_TOGGLE_IGNITION'][0]]:
+        # slogger.error(f"Selected both gas/ignition state.")
+        error_present = True
+    # Rotray switch must have only 1 active state
+    if not rotary_values.count(True) == 1:
+        # slogger.error(f"Only 1 rotary value should be active. Getting: {rotary_values}")
+        # pprint(pressed_states)
+        error_present = True
+    # SPDT switch must have only 1 active state
+    if not switch_values.count(True) == 1:
+        # slogger.error(f"Only 1 switch should be active")
+        # pprint(pressed_states)
+        error_present = True
+    
+    return not error_present
 
 def calculate_states() -> Union[Dict[str, bool],bool]:
     with state_lock:
-        rotary_values = [
-            pressed_states[KEY_MAP['SELECTION_ROTARY_PURGE']],
-            pressed_states[KEY_MAP['SELECTION_ROTARY_O2']],
-            pressed_states[KEY_MAP['SELECTION_ROTARY_N2O']],
-            pressed_states[KEY_MAP['SELECTION_ROTARY_PURGE']]
-        ]
         
-        switch_values = [
-            pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS']],
-            pressed_states[KEY_MAP['SELECTION_TOGGLE_IGNITION']]
-        ]
-
-        # Validate input states
-        error_present = False
-        if rotary_values.count(True) > 1:
-            slogger.error(f"Multiple rotary switches active: {pressed_states}")
-            error_present = True
-        if switch_values.count(True) > 1:
-            slogger.error(f"Multiple switches active: {pressed_states}")
-            error_present = True
-        
-        if error_present:
+        if not validate_states():
             return False
+            
+        GAS_DM = pressed_states[KEY_MAP['GAS_DEADMAN'][0]]
+        GAS_SEL = pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]]
 
-        # Calculate final states
+        # GAS_GO = GAS_DM and GAS_SEL
+        IGNITION_DM = pressed_states[KEY_MAP['IGNITION_DEADMAN'][0]]
+        IGNITION_SEL = pressed_states[KEY_MAP['SELECTION_TOGGLE_IGNITION'][0]]
+
         states = {
-            "MANUAL_PURGE": pressed_states['BTN_LB'] and pressed_states['BTN_LOGITECH'],
-            "O2_FILL_ACTIVATE": pressed_states['BTN_LB'] and pressed_states['BTN_B'],
-            "SELECTOR_SWITCH_NEUTRAL_POSITION": pressed_states['BTN_LB'] and pressed_states['BTN_BACK'],
-            "N2O_FILL_ACTIVATE": pressed_states['BTN_LB'] and pressed_states['BTN_X'],
-            "IGNITION_FIRE": pressed_states['BTN_RB'] and pressed_states['BTN_A'],
-            "IGNITION_SELECTED": pressed_states['BTN_RIGHT_JOYSTICK'],
-            "GAS_FILL_SELECTED": pressed_states['BTN_LEFT_JOYSTICK'],
-            "SYSTEM_ACTIVATE": pressed_states['BTN_START'],
+            "MANUAL_PURGE": GAS_DM and pressed_states[KEY_MAP['SELECTION_ROTARY_PURGE'][0]],
+            "O2_FILL_ACTIVATE": GAS_DM and pressed_states[KEY_MAP['SELECTION_ROTARY_O2'][0]],
+            "SELECTOR_SWITCH_NEUTRAL_POSITION": GAS_DM and pressed_states[KEY_MAP['SELECTION_ROTARY_NEUTRAL'][0]],
+            "N2O_FILL_ACTIVATE": GAS_DM and pressed_states[KEY_MAP['SELECTION_ROTARY_N2O'][0]],
+            "IGNITION_FIRE": IGNITION_DM and pressed_states[KEY_MAP['IGNITION_FIRE'][0]],
+            "IGNITION_SELECTED": IGNITION_SEL,
+            "GAS_FILL_SELECTED": GAS_SEL,
+            "SYSTEM_ACTIVATE": pressed_states[KEY_MAP['TOGGLE_SYSTEM_ACTIVE'][0]],
         }
 
-        if any(x is None for x in states.values()):
-            slogger.error(f"Missing states: {states}")
+        # final state validation
+        if any(not isinstance(x,bool) for x in states.values()) or len(states) != 8:
+            slogger.error(f"Missing/invalid states: {states}")
             return False
             
         return states
