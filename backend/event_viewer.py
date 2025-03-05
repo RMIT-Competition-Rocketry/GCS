@@ -1,4 +1,5 @@
 import datetime
+import time
 import zmq
 import os
 import csv
@@ -292,8 +293,8 @@ class AV_TO_GCS_DATA_1(Packet):
     def __init__(self):
         super().__init__(0x03, None)
         # How long to wait before printing basic information
-        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=1)
-        self._last_information_display_time = datetime.datetime.min
+        self._INFORMATION_TIMEOUT = 1  # 1 Second
+        self._last_information_display_time = time.monotonic()  # Fake minimum starting time
         self._last_flight_state: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState = None
         self._last_state_flags = {"dual_board_connectivity_state_flag": None,
                                   "recovery_checks_complete_and_flight_ready": None,
@@ -530,7 +531,7 @@ class AV_TO_GCS_DATA_1(Packet):
             self._supersonic = False
 
         # Regular infomation updates
-        if datetime.datetime.now() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
+        if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
             # Print basic information
             ALT_M = PROTO_DATA.altitude
             ALT_FT = AV_TO_GCS_DATA_1._mt_to_ft(PROTO_DATA.altitude)
@@ -560,7 +561,7 @@ class AV_TO_GCS_DATA_1(Packet):
                 f"{alt_color}Altitude: {ALT_M:<8.3f}m {ALT_FT:<9.3f}ft{ansci.RESET}")
             slogger.info(
                 f"{vel_color}Velocity: {VELOCITY:<8.3f}m/s{ansci.RESET}")
-            self._last_information_display_time = datetime.datetime.now()
+            self._last_information_display_time = time.monotonic()
 
         self._process_AV_tests(PROTO_DATA)
 
@@ -648,8 +649,8 @@ class GSE_TO_GCS_DATA_1(Packet):
 
     def __init__(self):
         super().__init__(0x06, None)
-        self._last_information_display_time = datetime.datetime.min
-        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=5)
+        self._last_information_display_time = time.monotonic()  # Fake minimum starting time
+        self._INFORMATION_TIMEOUT = 1  # 1 Second
         self._last_gse_state_flags = {
             "manual_purge_activated": None,
             "o2_fill_activated": None,
@@ -700,7 +701,7 @@ class GSE_TO_GCS_DATA_1(Packet):
         self._process_gse_state_flags(PROTO_DATA)
 
         # Regular infomation updates
-        if datetime.datetime.now() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
+        if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
             TRANSDUCER_VALUE_ERROR = [
                 (PROTO_DATA.transducer_1, PROTO_DATA.transducer_1_error),
                 (PROTO_DATA.transducer_2, PROTO_DATA.transducer_2_error),
@@ -726,7 +727,7 @@ class GSE_TO_GCS_DATA_1(Packet):
                     log_function = slogger.info
                 log_function(
                     f"Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
-            self._last_information_display_time = datetime.datetime.now()
+            self._last_information_display_time = time.monotonic()
         # Error flags. Note that transducer and thermocouple errors are logged above too
         for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[16:31]:
             error_flag_name = error_flag_name.name
@@ -749,8 +750,8 @@ class GSE_TO_GCS_DATA_2(Packet):
 
     def __init__(self):
         super().__init__(0x07, None)
-        self._last_information_display_time = datetime.datetime.min
-        self._INFORMATION_TIMEOUT = datetime.timedelta(seconds=5)
+        self._last_information_display_time = time.monotonic()  # Fake minimum starting time
+        self._INFORMATION_TIMEOUT = 1  # 1 Second
         self._last_gse_state_flags = {
             "manual_purge_activated": None,
             "o2_fill_activated": None,
@@ -801,7 +802,7 @@ class GSE_TO_GCS_DATA_2(Packet):
         super().process(PROTO_DATA)
         self._process_gse_state_flags(PROTO_DATA)
         # Regular information updates
-        if datetime.datetime.now() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
+        if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
             slogger.info(
                 f"GSE internal temp: {round(PROTO_DATA.internal_temp, 2)} deg C")
             slogger.info(
@@ -818,7 +819,7 @@ class GSE_TO_GCS_DATA_2(Packet):
                 f"Current input 1: {round(PROTO_DATA.additional_current_input_1, 2)} ?")
             slogger.info(
                 f"Current input 2: {round(PROTO_DATA.additional_current_input_2, 2)} ?")
-            self._last_information_display_time = datetime.datetime.now()
+            self._last_information_display_time = time.monotonic()
         # Error flags. Note the different index compared to GSE packet 1
         for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[17:32]:
             error_flag_name = error_flag_name.name

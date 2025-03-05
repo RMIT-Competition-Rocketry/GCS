@@ -11,20 +11,20 @@ from pprint import pprint
 from typing import Optional, Dict, Union, List
 
 
-# For those who come back to this code. 
-# For those who come back to this code. 
-# For those who come back to this code. 
-# For those who come back to this code. 
+# For those who come back to this code.
+# For those who come back to this code.
+# For those who come back to this code.
+# For those who come back to this code.
 # ------------------------------------
 # This code was written with little to no planning.
 # It was also written with changing requirements in a short amount of time
 # There are a hundred better ways to do this, but I just had to rush it asap
 # I understand it's terrible :)
 # ------------------------------------
-# For those who come back to this code. 
-# For those who come back to this code. 
-# For those who come back to this code. 
-# For those who come back to this code. 
+# For those who come back to this code.
+# For those who come back to this code.
+# For those who come back to this code.
+# For those who come back to this code.
 
 THIS_PID: str = str(os.getpid())
 
@@ -45,30 +45,33 @@ CONTROLLER_MAP = {
 # Mapped as (button_name, is_momentary)
 # If this needs any more information make it an object
 KEY_MAP = {
-    "SELECTION_TOGGLE_GAS": ("BTN_LEFT_JOYSTICK",False),
-    "SELECTION_TOGGLE_IGNITION": ("BTN_RIGHT_JOYSTICK",False),
-    "GAS_DEADMAN": ("BTN_LB",True),
-    "SELECTION_ROTARY_PURGE": ("BTN_LOGITECH",False),
-    "SELECTION_ROTARY_N2O": ("BTN_X",False),
-    "SELECTION_ROTARY_O2": ("BTN_B",False),
-    "SELECTION_ROTARY_NEUTRAL": ("BTN_BACK",False),
-    "IGNITION_DEADMAN": ("BTN_RB",True),
-    "IGNITION_FIRE": ("BTN_A",True),
-    "TOGGLE_SYSTEM_ACTIVE": ("BTN_START",False),
+    "SELECTION_TOGGLE_GAS": ("BTN_LEFT_JOYSTICK", False),
+    "SELECTION_TOGGLE_IGNITION": ("BTN_RIGHT_JOYSTICK", False),
+    "GAS_DEADMAN": ("BTN_LB", True),
+    "SELECTION_ROTARY_PURGE": ("BTN_LOGITECH", False),
+    "SELECTION_ROTARY_N2O": ("BTN_X", False),
+    "SELECTION_ROTARY_O2": ("BTN_B", False),
+    "SELECTION_ROTARY_NEUTRAL": ("BTN_BACK", False),
+    "IGNITION_DEADMAN": ("BTN_RB", True),
+    "IGNITION_FIRE": ("BTN_A", True),
+    "TOGGLE_SYSTEM_ACTIVE": ("BTN_START", False),
 }
 
 # Check map names match
+
+
 def validate_maps():
     key_map_values = KEY_MAP.values()
     key_map_values_btn_names = [x[0] for x in key_map_values]
     # Assert: No duplicate or missing button names
     assert len(key_map_values) == len(set(key_map_values_btn_names))
     # Assert: Type check 1
-    assert all(isinstance(x[0],str) for x in key_map_values)
+    assert all(isinstance(x[0], str) for x in key_map_values)
     # Assert: Type check 2
-    assert all(isinstance(x[1],bool) for x in key_map_values)
+    assert all(isinstance(x[1], bool) for x in key_map_values)
     # Assert: Size 2 tuple
-    assert all(len(x)==2 for x in key_map_values)
+    assert all(len(x) == 2 for x in key_map_values)
+
 
 validate_maps()
 
@@ -76,35 +79,39 @@ validate_maps()
 # 'BTN_??': SELECTGION_TOGGLE_GAS???
 KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
 # fml again
-BTN_TOGGLE_MAP = {v[0]:v[1] for v in KEY_MAP.values()}
+BTN_TOGGLE_MAP = {v[0]: v[1] for v in KEY_MAP.values()}
 
-LOCK_FILE_GSE_RESPONSE_PATH: str = load_config()["locks"]["lock_file_gse_response_path"]
+LOCK_FILE_GSE_RESPONSE_PATH: str = load_config(
+)["locks"]["lock_file_gse_response_path"]
 
 pressed_states = {button: False for button in CONTROLLER_MAP.keys()}
-pressed_states[KEY_MAP["SELECTION_ROTARY_NEUTRAL"][0]] = True 
-pressed_states[KEY_MAP["SELECTION_TOGGLE_GAS"][0]] = True 
+pressed_states[KEY_MAP["SELECTION_ROTARY_NEUTRAL"][0]] = True
+pressed_states[KEY_MAP["SELECTION_TOGGLE_GAS"][0]] = True
 
 stop_event = threading.Event()
 state_lock = threading.Lock()
 
+
 def setup_controller():
     pygame.init()
     pygame.joystick.init()
-    
+
     # Wait for controller connection
     while pygame.joystick.get_count() == 0:
         slogger.debug("Waiting for controller connection...")
         time.sleep(0.5)
-    
+
     joystick = pygame.joystick.Joystick(0)
     joystick.init()
-    
+
     if joystick.get_name() != "Logitech Gamepad F710":
-        slogger.error(f"Invalid controller detected. Please use F710 controller. Found: {joystick.get_name()}")
+        slogger.error(
+            f"Invalid controller detected. Please use F710 controller. Found: {joystick.get_name()}")
         raise RuntimeError("Invalid controller type")
-    
+
     slogger.info(f"Controller initialized: {joystick.get_name()}")
     return joystick
+
 
 def print_information():
     """Prints information about current states to help the user understand where they're at"""
@@ -115,16 +122,18 @@ def print_information():
         return
     with state_lock:
         ON: bool = pressed_states[KEY_MAP['TOGGLE_SYSTEM_ACTIVE'][0]]
-        SYSTEM_ACTIVE:str = ansci.BG_GREEN+ "ON " if ON else ansci.BG_RED+"OFF"
+        SYSTEM_ACTIVE: str = ansci.BG_GREEN + "ON " if ON else ansci.BG_RED+"OFF"
         SYSTEM_ACTIVE += ansci.RESET
         # Check invalid SPDT state
         if not pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]] != pressed_states[KEY_MAP['SELECTION_TOGGLE_IGNITION'][0]]:
             IGNITION_GAS_MODE: str = ansci.BG_RED + "XXXXXXXX" + ansci.RESET
             IGNITION_GAS_MODE_NO_COL = "XXXXXXXX"
         else:
-            IGNITION_GAS_MODE: str = "GAS     " if pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]] else "IGNITION"
+            IGNITION_GAS_MODE: str = "GAS     " if pressed_states[
+                KEY_MAP['SELECTION_TOGGLE_GAS'][0]] else "IGNITION"
             IGNITION_GAS_MODE_NO_COL = IGNITION_GAS_MODE.strip()
-            IGNITION_GAS_MODE = ansci.BG_BLUE + ansci.FG_WHITE + IGNITION_GAS_MODE + ansci.RESET
+            IGNITION_GAS_MODE = ansci.BG_BLUE + \
+                ansci.FG_WHITE + IGNITION_GAS_MODE + ansci.RESET
         # Check invalid rotary states
         ROTRAY_KEYS: List[str] = [
             'SELECTION_ROTARY_PURGE',
@@ -146,14 +155,19 @@ def print_information():
                     break
         # Filling state
         GAS_DM = pressed_states[KEY_MAP['GAS_DEADMAN'][0]]
-        FILLING:bool = GAS_DM and ON and IGNITION_GAS_MODE_NO_COL == 'GAS' and ROTARY_STATE_NO_COL in ["N2O","O2"]
+        FILLING: bool = GAS_DM and ON and IGNITION_GAS_MODE_NO_COL == 'GAS' and ROTARY_STATE_NO_COL in [
+            "N2O", "O2"]
         # print(f"Firing: {FIRING}")
         # Firing state
         IGNITION_DM = pressed_states[KEY_MAP['IGNITION_DEADMAN'][0]]
-        FIRING:bool = IGNITION_DM and ON and IGNITION_GAS_MODE_NO_COL == 'IGNITION' and pressed_states[KEY_MAP['IGNITION_FIRE'][0]]
+        FIRING: bool = IGNITION_DM and ON and IGNITION_GAS_MODE_NO_COL == 'IGNITION' and pressed_states[
+            KEY_MAP['IGNITION_FIRE'][0]]
 
-    ACTION = "FILLING " + ROTARY_STATE_NO_COL if FILLING else "FIRING" if FIRING else "UNDEFINED"
-    print(f"SYS:{SYSTEM_ACTIVE}|MODE:{IGNITION_GAS_MODE}|ROT:{ROTARY_STATE}|NOTES:{ACTION}")
+    ACTION = "FILLING " + \
+        ROTARY_STATE_NO_COL if FILLING else "FIRING" if FIRING else "UNDEFINED"
+    print(
+        f"SYS:{SYSTEM_ACTIVE}|MODE:{IGNITION_GAS_MODE}|ROT:{ROTARY_STATE}|NOTES:{ACTION}")
+
 
 def handle_controller_events(joystick):
     clock = pygame.time.Clock()
@@ -166,7 +180,7 @@ def handle_controller_events(joystick):
         clock.tick(60)  # 60 FPS
         # Run CLI notifications
         print_information()
-        
+
 
 def handle_button_press(button_id, pressed):
     global pressed_states
@@ -175,7 +189,7 @@ def handle_button_press(button_id, pressed):
         if btn_id == button_id:
             button_name = name
             break
-    
+
     if button_name and button_name in pressed_states:
         with state_lock:
             action = None
@@ -194,7 +208,8 @@ def handle_button_press(button_id, pressed):
                     else:
                         # Set state to true, set others to false logic. for non SPST
                         pressed_states[button_name] = True
-                    action = "toggled " + ("on" if pressed_states[button_name] else "off")
+                    action = "toggled " + \
+                        ("on" if pressed_states[button_name] else "off")
                     # Now if you operated on the SPDT, or rotary, you need to turn off the other options
                     # A SPST switch doesn't need this because it only has one state
                     SPDT_options = [KEY_MAP["SELECTION_TOGGLE_GAS"][0],
@@ -214,18 +229,19 @@ def handle_button_press(button_id, pressed):
                 # This is a momentary button
                 pressed_states[button_name] = pressed
                 action = "pressed" if pressed else "released"
-            
+
             # if action is not None: slogger.debug(f"Controller {button_name} {action}")
+
 
 def validate_states():
     """Check if states are ok. This is called in state lock when creating packets. Please be careful not to deadlock"""
     rotary_values = [
-            pressed_states[KEY_MAP['SELECTION_ROTARY_PURGE'][0]],
-            pressed_states[KEY_MAP['SELECTION_ROTARY_O2'][0]],
-            pressed_states[KEY_MAP['SELECTION_ROTARY_N2O'][0]],
-            pressed_states[KEY_MAP['SELECTION_ROTARY_NEUTRAL'][0]],
-        ]
-    
+        pressed_states[KEY_MAP['SELECTION_ROTARY_PURGE'][0]],
+        pressed_states[KEY_MAP['SELECTION_ROTARY_O2'][0]],
+        pressed_states[KEY_MAP['SELECTION_ROTARY_N2O'][0]],
+        pressed_states[KEY_MAP['SELECTION_ROTARY_NEUTRAL'][0]],
+    ]
+
     switch_values = [
         pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]],
         pressed_states[KEY_MAP['SELECTION_TOGGLE_IGNITION'][0]]
@@ -234,7 +250,7 @@ def validate_states():
     # Validate input states. Check for physically impossible states
     # Don't send packet if in invalid state
 
-    error_present = False # Check all errors and return at the end
+    error_present = False  # Check all errors and return at the end
     # An SPDT switch output must be XOR checked
     if not pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]] != pressed_states[KEY_MAP['SELECTION_TOGGLE_IGNITION'][0]]:
         # slogger.error(f"Selected both gas/ignition state.")
@@ -249,15 +265,16 @@ def validate_states():
         # slogger.error(f"Only 1 switch should be active")
         # pprint(pressed_states)
         error_present = True
-    
+
     return not error_present
 
-def calculate_states() -> Union[Dict[str, bool],bool]:
+
+def calculate_states() -> Union[Dict[str, bool], bool]:
     with state_lock:
-        
+
         if not validate_states():
             return False
-            
+
         GAS_DM = pressed_states[KEY_MAP['GAS_DEADMAN'][0]]
         GAS_SEL = pressed_states[KEY_MAP['SELECTION_TOGGLE_GAS'][0]]
 
@@ -277,33 +294,36 @@ def calculate_states() -> Union[Dict[str, bool],bool]:
         }
 
         # final state validation
-        if any(not isinstance(x,bool) for x in states.values()) or len(states) != 8:
+        if any(not isinstance(x, bool) for x in states.values()) or len(states) != 8:
             slogger.error(f"Missing/invalid states: {states}")
             return False
-            
+
         return states
+
 
 def send_packet() -> device_emulator.GCStoGSEStateCMD:
     context = zmq.Context()
     push_socket = context.socket(zmq.PUSH)
-    push_socket.connect(f"ipc://{os.path.abspath(os.path.join(os.path.sep,'tmp','gcs_rocket_pull.sock'))}")
-    
-    LOCK_TIMEOUT_NS = 6e8  # 600ms
+    push_socket.connect(
+        f"ipc://{os.path.abspath(os.path.join(os.path.sep, 'tmp', 'gcs_rocket_pull.sock'))}")
+
+    LOCK_TIMEOUT_NS = 0.6  # 600ms
     while not stop_event.is_set():
         states = calculate_states()
-        if states == False: 
+        if states == False:
             # Error detected
             slogger.error("Debug error something broken")
             continue
         state_command = device_emulator.GCStoGSEStateCMD(**states)
         push_socket.send(state_command.get_payload_bytes())
-        
+
         if create_lock(LOCK_FILE_GSE_RESPONSE_PATH):
-            lock_creation_time = time.monotonic_ns()
+            lock_creation_time = time.monotonic()
             while os.path.exists(LOCK_FILE_GSE_RESPONSE_PATH):
-                if time.monotonic_ns() - lock_creation_time >= LOCK_TIMEOUT_NS:
+                if time.monotonic() - lock_creation_time >= LOCK_TIMEOUT_NS:
                     release_lock(LOCK_FILE_GSE_RESPONSE_PATH)
                 time.sleep(0.05)
+
 
 def create_lock(lock_path: str) -> bool:
     if os.path.exists(lock_path):
@@ -314,6 +334,7 @@ def create_lock(lock_path: str) -> bool:
     # slogger.info(f"Lock created by PID {THIS_PID}")
     return True
 
+
 def release_lock(lock_path: str) -> bool:
     if not os.path.exists(lock_path):
         slogger.error(f"Lock file {lock_path} missing")
@@ -321,22 +342,24 @@ def release_lock(lock_path: str) -> bool:
     os.remove(lock_path)
     return True
 
+
 def main():
     device_emulator.MockPacket.initialize_settings(load_config()['emulation'])
     slogger.debug("Starting pendant emulator")
-    
+
     try:
         joystick = setup_controller()
         packet_thread = threading.Thread(target=send_packet)
         packet_thread.start()
-        
+
         handle_controller_events(joystick)
-        
+
     except KeyboardInterrupt:
         slogger.info("Shutting down...")
         stop_event.set()
         packet_thread.join()
         pygame.quit()
+
 
 if __name__ == "__main__":
     main()
