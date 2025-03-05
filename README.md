@@ -4,9 +4,12 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 
 <!-- TODO Make a monochrome png for logos -->
 
-<img src="docs/assets/hive-logo.png" alt="HIVE Logo" style="height:50px; width:auto;">
-<img src="docs/assets/RMIT_University_Logo.png" alt="RMIT Logo" style="height:50px; width:auto; padding-left:10px">
-<img src="docs/assets/irec.jpg" alt="RMIT Logo" style="height:50px; width:auto; padding-left:10px">
+<p >
+    <img src="docs/assets/hive-logo.png" alt="HIVE Logo" height="50">
+    <img src="docs/assets/RMIT_University_Logo.png" alt="RMIT Logo" height="50" style="padding-left:10px">
+    <img src="docs/assets/IREC.jpg" alt="IREC Logo" height="50" style="padding-left:10px">
+</p>
+
 
 ---
 
