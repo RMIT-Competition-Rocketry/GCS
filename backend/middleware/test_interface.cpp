@@ -78,16 +78,6 @@ ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer)
 
 ssize_t TestInterface::write_data(const std::vector<uint8_t> &data)
 {
-    process_logging::warning("test interface recieve not implimented. Doing nothing and returning -1");
-    return -1;
-    if (uart_fd_ < 0)
-        return -1;
-
-    ssize_t written = write(uart_fd_, data.data(), data.size());
-    if (written < 0)
-    {
-        throw std::system_error(errno, std::system_category(),
-                                "TEST UART write failed");
-    }
-    return written;
+    // Write to the Aether
+    return static_cast<ssize_t>(data.size());
 }

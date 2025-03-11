@@ -90,6 +90,13 @@
         "unordered_set": "cpp",
         "fstream": "cpp",
         "future": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "cfenv": "cpp",
+        "codecvt": "cpp",
+        "csignal": "cpp",
+        "regex": "cpp",
+        "scoped_allocator": "cpp",
+        "valarray": "cpp",
+        "ranges": "cpp"
     }
 }

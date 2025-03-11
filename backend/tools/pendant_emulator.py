@@ -7,7 +7,6 @@ import os
 import zmq
 import time
 import pygame
-from pprint import pprint
 from typing import Optional, Dict, Union, List
 
 
@@ -92,14 +91,14 @@ stop_event = threading.Event()
 state_lock = threading.Lock()
 
 
-def setup_controller():
+def setup_controller() -> Optional[pygame.joystick.JoystickType]:
     pygame.init()
     pygame.joystick.init()
 
-    # Wait for controller connection
-    while pygame.joystick.get_count() == 0:
-        slogger.debug("Waiting for controller connection...")
-        time.sleep(0.5)
+    # Attempt controller connection
+    if pygame.joystick.get_count() == 0:
+        slogger.warning("NO CONTROLLER DETECTED. Defaulting to neutral packet")
+        return None
 
     joystick = pygame.joystick.Joystick(0)
     joystick.init()
@@ -169,14 +168,22 @@ def print_information():
         f"SYS:{SYSTEM_ACTIVE}|MODE:{IGNITION_GAS_MODE}|ROT:{ROTARY_STATE}|NOTES:{ACTION}")
 
 
-def handle_controller_events(joystick):
+def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
     clock = pygame.time.Clock()
+    if joystick is None:
+        # Set nothing default state
+        with state_lock:
+            pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]] = True
+            pressed_states[KEY_MAP["SELECTION_ROTARY_NEUTRAL"][0]] = True
+            pressed_states[KEY_MAP["SELECTION_TOGGLE_GAS"][0]] = True
+
     while not stop_event.is_set():
-        for event in pygame.event.get():
-            if event.type == pygame.JOYBUTTONDOWN:
-                handle_button_press(event.button, True)
-            elif event.type == pygame.JOYBUTTONUP:
-                handle_button_press(event.button, False)
+        if joystick is not None:
+            for event in pygame.event.get():
+                if event.type == pygame.JOYBUTTONDOWN:
+                    handle_button_press(event.button, True)
+                elif event.type == pygame.JOYBUTTONUP:
+                    handle_button_press(event.button, False)
         clock.tick(60)  # 60 FPS
         # Run CLI notifications
         print_information()
@@ -305,9 +312,8 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
     context = zmq.Context()
     push_socket = context.socket(zmq.PUSH)
     push_socket.connect(
-        f"ipc://{os.path.abspath(os.path.join(os.path.sep, 'tmp', 'gcs_rocket_pull.sock'))}")
+        f"ipc://{os.path.abspath(os.path.join(os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock'))}")
 
-    LOCK_TIMEOUT_NS = 0.6  # 600ms
     while not stop_event.is_set():
         states = calculate_states()
         if states == False:
@@ -317,41 +323,15 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
         state_command = device_emulator.GCStoGSEStateCMD(**states)
         push_socket.send(state_command.get_payload_bytes())
 
-        if create_lock(LOCK_FILE_GSE_RESPONSE_PATH):
-            lock_creation_time = time.monotonic()
-            while os.path.exists(LOCK_FILE_GSE_RESPONSE_PATH):
-                if time.monotonic() - lock_creation_time >= LOCK_TIMEOUT_NS:
-                    release_lock(LOCK_FILE_GSE_RESPONSE_PATH)
-                time.sleep(0.05)
-
-
-def create_lock(lock_path: str) -> bool:
-    if os.path.exists(lock_path):
-        slogger.error(f"Lock file {lock_path} exists")
-        return False
-    with open(lock_path, "w") as f:
-        f.write(THIS_PID)
-    # slogger.info(f"Lock created by PID {THIS_PID}")
-    return True
-
-
-def release_lock(lock_path: str) -> bool:
-    if not os.path.exists(lock_path):
-        slogger.error(f"Lock file {lock_path} missing")
-        return False
-    os.remove(lock_path)
-    return True
-
 
 def main():
     device_emulator.MockPacket.initialize_settings(load_config()['emulation'])
     slogger.debug("Starting pendant emulator")
 
     try:
-        joystick = setup_controller()
+        joystick: Optional[pygame.joystick.JoystickType] = setup_controller()
         packet_thread = threading.Thread(target=send_packet)
         packet_thread.start()
-
         handle_controller_events(joystick)
 
     except KeyboardInterrupt:

@@ -632,19 +632,6 @@ class GCS_TO_GSE_STATE_CMD(Packet):
         # slogger.debug("GCS_TO_GSE_STATE_CMD packet received")
 
 
-def release_gse_lock() -> bool:
-    """When a GSE packet is received, release the lock file to allow the pendant to send a new packet"""
-    GSE_LOCK_PATH = Packet._LOCK_FILE_GSE_RESPONSE_PATH
-    if os.path.exists(GSE_LOCK_PATH):
-        os.remove(GSE_LOCK_PATH)
-        slogger.debug(f"Lock file ({GSE_LOCK_PATH}) removed")
-        return True
-    else:
-        slogger.error(
-            f"Lock file ({GSE_LOCK_PATH}) not found. Have you timed out?")
-        return False
-
-
 class GSE_TO_GCS_DATA_1(Packet):
 
     def __init__(self):
@@ -741,8 +728,6 @@ class GSE_TO_GCS_DATA_1(Packet):
                         f"{error_flag_name} changed to {error_flag_value}")
             # Update historical value
             self._last_gse_errors[error_flag_name] = error_flag_value
-        # Release lock after. Consider making the process logic check for errors that contribute to invalid lock state.
-        release_gse_lock()
         slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
 
@@ -834,7 +819,6 @@ class GSE_TO_GCS_DATA_2(Packet):
             # Update historical value
             self._last_gse_errors[error_flag_name] = error_flag_value
         # Release lock after. Consider making the process logic check for errors that contribute to invalid lock state .
-        release_gse_lock()
         slogger.debug("GSE_TO_GCS_DATA_2 packet received")
 
 

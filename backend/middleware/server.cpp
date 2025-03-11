@@ -4,16 +4,20 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <mutex>
+#include <chrono>
+#include <vector>
 #include <unistd.h> // For debug sleep()
 #include <signal.h>
-#include "payloads/AV_TO_GCS_DATA_1.hpp"
-#include "payloads/AV_TO_GCS_DATA_2.hpp"
-#include "payloads/AV_TO_GCS_DATA_3.hpp"
-#include "payloads/GCS_TO_AV_STATE_CMD.hpp"
-#include "payloads/GCS_TO_GSE_STATE_CMD.hpp"
-#include "payloads/GSE_TO_GCS_DATA_1.hpp"
-#include "payloads/GSE_TO_GCS_DATA_2.hpp"
+#include "AV_TO_GCS_DATA_1.hpp"
+#include "AV_TO_GCS_DATA_2.hpp"
+#include "AV_TO_GCS_DATA_3.hpp"
+#include "GCS_TO_AV_STATE_CMD.hpp"
+#include "GCS_TO_GSE_STATE_CMD.hpp"
+#include "GSE_TO_GCS_DATA_1.hpp"
+#include "GSE_TO_GCS_DATA_2.hpp"
 #include "process_logging.hpp"
+#include "sequence.hpp"
 
 // This file hosts the ZeroMQ IPC server stuff
 
@@ -61,7 +65,6 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
                 // Has to be At LEAST bigger than the input size with proto
                 // process_logging::debug("NAME: " + std::string(PacketType::PACKET_NAME));
                 // process_logging::debug("ID  : " + std::to_string(PacketType::ID));
-                // assert(serialized.size() >= PacketType::SIZE && PacketType::ID != 0x05);
                 zmq::message_t msg(serialized.data(), serialized.size());
                 pub_socket.send(msg, zmq::send_flags::none);
             }
@@ -80,7 +83,9 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
     // Else: Consider handling when not enough data is available.
 }
 
-void input_read_loop(std::shared_ptr<LoraInterface> interface, zmq::socket_t &pub_socket)
+void input_read_loop(std::shared_ptr<LoraInterface> interface,
+                     zmq::socket_t &pub_socket,
+                     Sequence &sequence)
 {
     set_thread_name("input_read_loop");
     std::vector<uint8_t> buffer(256);
@@ -114,6 +119,8 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface, zmq::socket_t &pu
                 case AV_TO_GCS_DATA_3::ID: // 5
                     process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
                     break;
+                // TODO GCS should never recieve its own packets.
+                // Electronically impossible
                 case GCS_TO_AV_STATE_CMD::ID: // 1
                     process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
                     break;
@@ -122,9 +129,11 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface, zmq::socket_t &pu
                     break;
                 case GSE_TO_GCS_DATA_1::ID: // 6
                     process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
+                    sequence.recieved_gse();
                     break;
                 case GSE_TO_GCS_DATA_2::ID: // 7
                     process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
+                    sequence.recieved_gse();
                     break;
                 default:
                     std::string numeric_val = std::to_string(static_cast<int>(packet_id));
@@ -171,18 +180,18 @@ std::shared_ptr<LoraInterface> create_interface(
     return interface;
 }
 
+std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg)
+{
+    // Process command (echo bytes verbatim to LoRa)
+    std::vector<uint8_t> cmd_data(
+        static_cast<const uint8_t *>(last_pendant_msg.data()),
+        static_cast<const uint8_t *>(last_pendant_msg.data()) + last_pendant_msg.size());
+    return cmd_data;
+}
+
 // ./file <interface type> <device path> <socket path>
 int main(int argc, char *argv[])
 {
-
-#ifdef DEBUG
-    process_logging::debug("Starting server in DEBUG mode.");
-    // while (!debugger_attached)
-    // {
-    //     sleep(1);
-    // }
-    // process_logging::debug("Debugger attached");
-#endif
 
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -215,6 +224,9 @@ int main(int argc, char *argv[])
         interface->initialize();
         process_logging::info("Interface initialised for type: " + std::string(argv[1]));
 
+        // Create sequence handler singleton
+        Sequence sequence;
+
         // ZeroMQ setup
         zmq::context_t context(1);
 
@@ -223,34 +235,46 @@ int main(int argc, char *argv[])
         pub_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pub.sock");
 
         // PULL socket for fowarding commands to LoRa
-        zmq::socket_t pull_socket(context, ZMQ_PULL);
-        pull_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pull.sock");
+        zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
+        pendant_pull_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pendant_pull.sock");
 
-        // Start UART reading thread
-        std::thread reader(input_read_loop, interface, std::ref(pub_socket));
+        // Start interface reading thread
+        std::thread reader(input_read_loop, interface,
+                           std::ref(pub_socket),
+                           std::ref(sequence));
 
         // http://api.zeromq.org/3-0:zmq-poll
-        zmq::pollitem_t items[] = {{pull_socket, 0, ZMQ_POLLIN, 0}};
+        // Can add multiple push pull sockets here. Useful for when front end is integrated
+        zmq::pollitem_t items[] = {
+            {pendant_pull_socket, 0, ZMQ_POLLIN, 0}};
+        zmq::message_t last_pendant_msg;
 
         // Main command loop
         while (running)
         {
             zmq::poll(items, 1, std::chrono::milliseconds(300)); // 300ms timeout
 
+            // items[0].revents represents items[0] which is the pendant data
+            // In future with multiple polls, just copy this block with a different items index
             if (items[0].revents & ZMQ_POLLIN)
             {
-                zmq::message_t msg;
-                zmq::recv_result_t result = pull_socket.recv(msg, zmq::recv_flags::none);
+                // Data to be dequeued
+                zmq::recv_result_t result = pendant_pull_socket.recv(last_pendant_msg, zmq::recv_flags::none);
                 if (result)
                 {
-                    process_logging::debug("Pull socket received message of size: " + std::to_string(msg.size()));
-                    // Process command (echo bytes verbatim to LoRa)
-                    std::vector<uint8_t> cmd_data(
-                        static_cast<uint8_t *>(msg.data()),
-                        static_cast<uint8_t *>(msg.data()) + msg.size());
-                    interface->write_data(cmd_data);
+                    std::vector<uint8_t> cmd_data = collect_pull_data(last_pendant_msg);
+                    if (!sequence.waiting_for_gse())
+                    {
+                        // TODO Should I just internalise writing data inside
+                        // sequence so the locking part is not required to be
+                        // written manually each time?
+                        // ctrl+f "race condition" annotation on master design
+                        interface->write_data(cmd_data);
+                        sequence.await_gse();
+                    }
                 }
             }
+            // Check if it's our turn to send data to GSE
         }
 
         // Cleanup
