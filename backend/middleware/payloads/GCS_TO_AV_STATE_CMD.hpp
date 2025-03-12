@@ -4,7 +4,7 @@
 #include <iostream>
 #include <bit>
 #include <cstdint>
-#include "../../proto/generated/payloads/GCS_TO_AV_STATE_CMD.pb.h"
+#include "GCS_TO_AV_STATE_CMD.pb.h"
 
 #define SET_PROTO_FIELD(proto, field) proto.set_##field(field())
 

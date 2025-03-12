@@ -4,8 +4,7 @@
 #include <iostream>
 #include <bit>
 #include <cstdint>
-// TODO add this to import path and make linter happy
-#include "../../proto/generated/payloads/GSE_TO_GCS_DATA_2.pb.h"
+#include "GSE_TO_GCS_DATA_2.pb.h"
 
 #define SET_PROTO_FIELD(proto, field) proto.set_##field(field())
 
