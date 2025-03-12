@@ -5,7 +5,7 @@
 #include <system_error>
 #include <iostream>
 #include <cstring>
-#include "process_logging.hpp"
+#include "subprocess_logging.hpp"
 
 TestInterface::TestInterface(const std::string &device_path, int baud_rate)
     : baud_rate_(baud_rate), device_path_(device_path) {}
@@ -23,7 +23,7 @@ bool TestInterface::initialize()
     uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
     if (uart_fd_ < 0)
     {
-        process_logging::error("Error: Failed to open TEST UART device: " + device_path_);
+        slogger::error("Error: Failed to open TEST UART device: " + device_path_);
         throw std::system_error(errno, std::system_category(),
                                 "Failed to open TEST UART device");
     }
@@ -63,7 +63,7 @@ ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer)
 {
     if (uart_fd_ < 0)
     {
-        process_logging::error("TEST UART file descriptor is invalid");
+        slogger::error("TEST UART file descriptor is invalid");
         return -1;
     }
 

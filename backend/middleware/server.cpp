@@ -16,7 +16,7 @@
 #include "GCS_TO_GSE_STATE_CMD.hpp"
 #include "GSE_TO_GCS_DATA_1.hpp"
 #include "GSE_TO_GCS_DATA_2.hpp"
-#include "process_logging.hpp"
+#include "subprocess_logging.hpp"
 #include "sequence.hpp"
 
 // This file hosts the ZeroMQ IPC server stuff
@@ -27,7 +27,7 @@ volatile bool debugger_attached = false;
 // Thread safe signal handler
 void signal_handler(int)
 {
-    process_logging::info("Signal received, stopping server");
+    slogger::info("Signal received, stopping server");
     running = false;
 }
 
@@ -55,29 +55,29 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
             if (!proto_msg.IsInitialized())
             {
                 std::string missing_info = proto_msg.InitializationErrorString();
-                process_logging::warning(std::string(PacketType::PACKET_NAME) +
-                                         ": Not all fields are initialized in the protobuf message. Missing: " +
-                                         missing_info);
+                slogger::warning(std::string(PacketType::PACKET_NAME) +
+                                 ": Not all fields are initialized in the protobuf message. Missing: " +
+                                 missing_info);
             }
             std::string serialized;
             if (proto_msg.SerializeToString(&serialized))
             {
                 // Has to be At LEAST bigger than the input size with proto
-                // process_logging::debug("NAME: " + std::string(PacketType::PACKET_NAME));
-                // process_logging::debug("ID  : " + std::to_string(PacketType::ID));
+                // slogger::debug("NAME: " + std::string(PacketType::PACKET_NAME));
+                // slogger::debug("ID  : " + std::to_string(PacketType::ID));
                 zmq::message_t msg(serialized.data(), serialized.size());
                 pub_socket.send(msg, zmq::send_flags::none);
             }
             else
             {
-                process_logging::error(std::string(PacketType::PACKET_NAME) +
-                                       ": Failed to serialize to string for protobuf");
+                slogger::error(std::string(PacketType::PACKET_NAME) +
+                               ": Failed to serialize to string for protobuf");
             }
         }
         catch (const std::exception &e)
         {
-            process_logging::error(std::string(PacketType::PACKET_NAME) +
-                                   ": Error processing payload: " + e.what());
+            slogger::error(std::string(PacketType::PACKET_NAME) +
+                           ": Error processing payload: " + e.what());
         }
     }
     // Else: Consider handling when not enough data is available.
@@ -137,7 +137,7 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
                     break;
                 default:
                     std::string numeric_val = std::to_string(static_cast<int>(packet_id));
-                    process_logging::error("Unknown packet ID: " + std::to_string(packet_id) + "numeric: " + numeric_val);
+                    slogger::error("Unknown packet ID: " + std::to_string(packet_id) + "numeric: " + numeric_val);
                     break;
                 }
             }
@@ -150,7 +150,7 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
             auto now = std::chrono::steady_clock::now();
             if (std::chrono::duration_cast<std::chrono::seconds>(now - last_read_time).count() >= 3)
             {
-                process_logging::warning("No data received for over 3 seconds.");
+                slogger::warning("No data received for over 3 seconds.");
                 last_read_time = now; // Wait another 3 seconds
             }
         }
@@ -183,7 +183,7 @@ std::shared_ptr<LoraInterface> create_interface(
 std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg)
 {
     // Process command (echo bytes verbatim to LoRa)
-    // process_logging::critical("HELLO DATA IS STILL COMING THROUGH");
+    // slogger::critical("HELLO DATA IS STILL COMING THROUGH");
     std::vector<uint8_t> cmd_data(
         static_cast<const uint8_t *>(last_pendant_msg.data()),
         static_cast<const uint8_t *>(last_pendant_msg.data()) + last_pendant_msg.size());
@@ -199,15 +199,15 @@ int main(int argc, char *argv[])
     // Pick interface based on the first argument
     if (argc < 4)
     {
-        process_logging::error("Not enough arugments provided.");
-        process_logging::error("Usage: ./file <socket type> <device path> <socket path>");
+        slogger::error("Not enough arugments provided.");
+        slogger::error("Usage: ./file <socket type> <device path> <socket path>");
         // Throw error silenced by main
         throw std::runtime_error("Error: Not enough arugments provided");
         return EXIT_FAILURE;
     }
     else if (argc > 4)
     {
-        process_logging::warning("Too many arugments provided");
+        slogger::warning("Too many arugments provided");
     }
 
     signal(SIGINT, signal_handler);
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
             DEVICE_PATH);
 
         interface->initialize();
-        process_logging::info("Interface initialised for type: " + std::string(argv[1]));
+        slogger::info("Interface initialised for type: " + std::string(argv[1]));
 
         // Create sequence handler singleton
         Sequence sequence;
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
     }
     catch (const std::exception &e)
     {
-        process_logging::error("Generic error on main: " + std::string(e.what()));
+        slogger::error("Generic error on main: " + std::string(e.what()));
         return EXIT_FAILURE;
     }
 

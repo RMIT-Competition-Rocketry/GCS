@@ -1,7 +1,7 @@
 #include "sequence_lock.hpp"
 #ifdef DEBUG
 #include <fstream>
-#include "process_logging.hpp"
+#include "subprocess_logging.hpp"
 #endif
 
 // This file hosts locking mechanisms to orchestrate the packet sequence
@@ -28,7 +28,7 @@ void SequenceLock::lock()
     }
     else
     {
-        process_logging::error("Unable to create lock file /tmp/gcs_await_gse.lock");
+        slogger::error("Unable to create lock file /tmp/gcs_await_gse.lock");
     }
 #endif
 }

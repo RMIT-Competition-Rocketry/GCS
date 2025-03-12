@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
-#include "process_logging.hpp"
+#include "subprocess_logging.hpp"
 
 // A helper to sequentialy parse data bit by bit
 
@@ -34,16 +34,16 @@ public:
     {
 #ifdef DEBUG
         // If not all bytes were consumed, output a warning.
-        // process_logging::debug("ByteParser DEBUG. Processed " +
+        // slogger::debug("ByteParser DEBUG. Processed " +
         //                        std::to_string(byte_index_) +
         //                        " of " + std::to_string(size_) +
         //                        " bytes (bit offset: " + std::to_string(bit_offset_) + ")");
         if (byte_index_ < size_ || (byte_index_ == size_ && bit_offset_ != 0))
         {
-            process_logging::critical("ByteParser destroyed without consuming all data. Processed " +
-                                      std::to_string(byte_index_) +
-                                      " of " + std::to_string(size_) +
-                                      " bytes (bit offset: " + std::to_string(bit_offset_) + ")");
+            slogger::critical("ByteParser destroyed without consuming all data. Processed " +
+                              std::to_string(byte_index_) +
+                              " of " + std::to_string(size_) +
+                              " bytes (bit offset: " + std::to_string(bit_offset_) + ")");
         }
 #endif
     }
