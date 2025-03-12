@@ -22,11 +22,11 @@ def start_middleware(logger: logging.Logger,
             f"INTERFACE_TYPE must be a InterfaceType value, got: {INTERFACE_TYPE} as type {type(INTERFACE_TYPE)}")
     try:
 
-        BINARY = "middleware-release" if release else "middleware"
+        BINARY = "middleware_server_release" if release else "middleware_server"
 
         MIDDLEWARE_COMMAND = [
             # Should always be relative to cwd. Just use the (.):
-            # ./middleware/build/middleware {args}
+            # ./middleware/build/middleware_server {args}
             os.path.join(".", "build", BINARY),
             # <interface type> <device path> <socket path>
             INTERFACE_TYPE.value,
@@ -38,7 +38,7 @@ def start_middleware(logger: logging.Logger,
 
         middleware_process = process.LoggedSubProcess(
             MIDDLEWARE_COMMAND,
-            name="middleware",
+            name="middleware_server",
             parse_output=True
         )
         middleware_process.start()

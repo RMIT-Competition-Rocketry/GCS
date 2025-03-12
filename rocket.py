@@ -146,7 +146,7 @@ def dev(nodocker):
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=False)
 
     # 6. Could start the pendent emulator
-    # start_pendant_emulator(logger)
+    start_pendant_emulator(logger)
 
     # 7. Database stuff in future
 

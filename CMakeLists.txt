@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(middleware LANGUAGES CXX)
+project(middleware_server LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
 
@@ -23,8 +23,8 @@ set(CMAKE_CXX_STANDARD 20) # For std::bit_cast
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -pthread")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -pthread")
 
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
 set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
@@ -33,7 +33,7 @@ file(GLOB SRCS "${SRC_DIR}/*.cpp")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 
-add_executable(middleware ${SRCS})
+add_executable(middleware_server ${SRCS})
 
 # Protobuf generation #18
 # I'm just going to do this manually for now. It's fucked again
@@ -60,14 +60,14 @@ file(GLOB PROTO_SOURCES "${PROTO_BINARY_DIR}/payloads/*.pb.cc")
 
 # Define DEBUG macro in debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(middleware PRIVATE DEBUG)
+    target_compile_definitions(middleware_server PRIVATE DEBUG)
 endif()
 
 # Add the generated sources to your middleware executable
-target_sources(middleware PRIVATE ${PROTO_SOURCES})
+target_sources(middleware_server PRIVATE ${PROTO_SOURCES})
 
 # Make sure middleware can find the generated headers
-target_include_directories(middleware PRIVATE
+target_include_directories(middleware_server PRIVATE
     ${PROTO_BINARY_DIR}
     ${Protobuf_INCLUDE_DIRS}
 )
@@ -91,22 +91,29 @@ if(NOT ZMQ_LIBRARY)
 endif()
 
 # Include directories
-target_include_directories(middleware PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}/generated # Protobuf generated headers
+target_include_directories(middleware_server PRIVATE
+    ${CMAKE_SOURCE_DIR}/generated # Protobuf generated headers
     ${Protobuf_INCLUDE_DIRS}
     ${ZMQ_INCLUDE_DIR}
     ${PROTO_DIR} # For proto file imports
     ${CMAKE_SOURCE_DIR}/backend/include # Add backend so that includes like "backend/process_logging.hpp" work
+    ${CMAKE_SOURCE_DIR}/backend/middleware/payloads
+    ${CMAKE_SOURCE_DIR}/backend/proto/generated/payloads
 )
 
+file(GLOB SEQUENCE_SRCS
+    ${CMAKE_SOURCE_DIR}/backend/include/*.cpp
+)
+target_sources(middleware_server PRIVATE ${SEQUENCE_SRCS})
+
 # Link libraries
-target_link_libraries(middleware PRIVATE
+target_link_libraries(middleware_server PRIVATE
     protobuf::libprotobuf # Modern target-based linking
     ${ZMQ_LIBRARY}
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set_target_properties(middleware PROPERTIES OUTPUT_NAME "middleware-release")
+    set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_server_release")
 endif()
 
-install(TARGETS middleware DESTINATION bin)
+install(TARGETS middleware_server DESTINATION bin)
