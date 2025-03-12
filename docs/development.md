@@ -1,6 +1,25 @@
 
 # Development notes
 
+## Running in dev mode
+
+To start in dev mode, please use:
+
+```terminal
+$ rocket dev --nodocker
+```
+
+In comparison to release mode (`run`), dev will additionally:
+- Lower log level to `DEBUG`
+- Start the pendant emulator (if you're still implimenting this)
+- Start the device emulator (fake serial input)
+- Turn off logging
+- Compile with the DEBUG macro defined
+
+### Debugging in dev mode
+
+See launch options in `.vscode/` for pre-conifgured debug setups. Note that the cli option will start the ENTIRE system in dev mode and attach a python debugger to all procceses except the pendant emulator. Other launch options may require manual injection or manual monitoring depending on what the subsystem is. If you're starting the server by itself, you'll need to specify it's command arguments and read the ZeroMQ socket
+
 ## Semantic Versioning
 
 For this project, changes made before our first release can all just be 0.x.x-dev. But after first release, which will the White Cliffs test, use this methodology below.

@@ -6,7 +6,7 @@ Refference schematic
 
 ## Keyboard Mapping
 
-> ![WARNING]
+> [!WARNING]
 > This emulator always assumes that the physical translations for mechanical inputs are as follows:
 > - Always On: POWER SWITCH (MISSLE COVER)
 > - Toggle By Press: SYSTEM ACTIVE KEY SWITCH
