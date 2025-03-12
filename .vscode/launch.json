@@ -72,5 +72,15 @@
             "console": "integratedTerminal",
             "args": []
         },
+        {
+            "name": "Python Debugger: pendant emulator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/tools/pendant_emulator.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
     ],
 }

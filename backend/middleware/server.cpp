@@ -183,6 +183,7 @@ std::shared_ptr<LoraInterface> create_interface(
 std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg)
 {
     // Process command (echo bytes verbatim to LoRa)
+    // process_logging::critical("HELLO DATA IS STILL COMING THROUGH");
     std::vector<uint8_t> cmd_data(
         static_cast<const uint8_t *>(last_pendant_msg.data()),
         static_cast<const uint8_t *>(last_pendant_msg.data()) + last_pendant_msg.size());

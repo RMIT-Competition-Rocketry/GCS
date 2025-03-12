@@ -1,7 +1,8 @@
 import logging
 import cli.proccess as process
 import platform
-from typing import List
+from typing import List, Optional
+import time
 import subprocess
 import os
 
@@ -25,6 +26,30 @@ class PendantEmulatorSubprocess(process.LoggedSubProcess):
         self._logger_adapter.info(
             f"Started subprocess: {self._name} (PID: {self._process.pid})")
 
+        # On macOS, get the PID of the terminal window thats opened
+        if platform.system() == 'Darwin':
+            self._external_terminal_pid = self._get_external_terminal_pid()
+
+    def _get_external_terminal_pid(self) -> Optional[int]:
+        """Get the PID of the terminal window opened by osascript."""
+        START_TIME = time.monotonic()
+        TIMEOUT_S = 2  # How long to wait for the external terminal to boot
+        try:
+            while time.monotonic() - START_TIME < TIMEOUT_S:
+                result = subprocess.run(
+                    ['pgrep', '-f', "\/backend\/tools\/pendant_emulator\.py -u"],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0:
+                    self._logger_adapter.debug(
+                        f"Found external PID: {result.stdout.strip()}")
+                    return int(result.stdout.strip())
+            self._logger_adapter.error("Failed to find external terminal PID")
+        except Exception as e:
+            self._logger_adapter.error(f"Failed to get terminal PID: {e}")
+        return None
+
     def stop(self):
         """Stop the subprocess"""
         if self._process and self._process.returncode is None:
@@ -33,6 +58,21 @@ class PendantEmulatorSubprocess(process.LoggedSubProcess):
             self._logger_adapter.info(
                 f"Stopped subprocess: {self._name} (PID: {self._process.pid})"
             )
+        if platform.system() == 'Darwin' and self._external_terminal_pid:
+            try:
+                kill_result = subprocess.run(
+                    ['kill', str(self._external_terminal_pid)],
+                    check=True,
+                    capture_output=True,  # Capture both stdout and stderr
+                    text=True  # Return output as string instead of bytes
+                )
+                self._logger_adapter.error(kill_result.stderr.strip())
+                self._logger_adapter.error(kill_result.stdout.strip())
+                self._logger_adapter.info(
+                    f"Closed extra terminal window (PID: {self._external_terminal_pid})")
+            except subprocess.CalledProcessError as e:
+                self._logger_adapter.error(
+                    f"Failed to close extra terminal window (PID: {self._external_terminal_pid}): {e}")
         try:
             self.__class__._instances.remove(self)
         except ValueError:

@@ -7,6 +7,7 @@ import os
 import zmq
 import time
 import pygame
+import signal
 from typing import Optional, Dict, Union, List
 
 
@@ -90,6 +91,32 @@ pressed_states[KEY_MAP["SELECTION_TOGGLE_GAS"][0]] = True
 stop_event = threading.Event()
 state_lock = threading.Lock()
 
+# Global refference here so it can be cleaned up by signal handler
+packet_thread: Optional[threading.Thread] = None
+
+
+def cleanup_():
+    """Internal cleaup code"""
+    global packet_thread
+    slogger.info("Shutting down...")
+    slogger.info("Setting stop event...")
+    stop_event.set()
+    slogger.info("Stop event set...")
+    if packet_thread is not None:
+        slogger.info("Packet thread joining...")
+        packet_thread.join()
+        slogger.info("Packet thread joined...")
+    slogger.info("Quitting pygame...")
+    pygame.quit()
+    slogger.info("Pygame killed. Done...")
+
+
+def signal_handler(signum, frame):
+    """Handles signals like SIGINT (Ctrl+C) and SIGTERM (kill)."""
+    slogger.info(f"Received signal {signum}, shutting down...")
+    cleanup_()
+    os._exit(os.EX_OK)  # Force exit after cleanup
+
 
 def setup_controller() -> Optional[pygame.joystick.JoystickType]:
     pygame.init()
@@ -171,7 +198,7 @@ def print_information():
 def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
     clock = pygame.time.Clock()
     if joystick is None:
-        # Set nothing default state
+        # Set the (nothing) default state
         with state_lock:
             pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]] = True
             pressed_states[KEY_MAP["SELECTION_ROTARY_NEUTRAL"][0]] = True
@@ -179,11 +206,15 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
 
     while not stop_event.is_set():
         if joystick is not None:
-            for event in pygame.event.get():
+            event = pygame.event.poll()
+            if event.type != pygame.NOEVENT:
                 if event.type == pygame.JOYBUTTONDOWN:
                     handle_button_press(event.button, True)
                 elif event.type == pygame.JOYBUTTONUP:
                     handle_button_press(event.button, False)
+        else:
+            # Reduce thread load. No need for full speed in testing
+            time.sleep(0.05)
         clock.tick(60)  # 60 FPS
         # Run CLI notifications
         print_information()
@@ -310,23 +341,48 @@ def calculate_states() -> Union[Dict[str, bool], bool]:
 
 def send_packet() -> device_emulator.GCStoGSEStateCMD:
     context = zmq.Context()
-    push_socket = context.socket(zmq.PUSH)
-    push_socket.connect(
-        f"ipc://{os.path.abspath(os.path.join(os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock'))}")
+    try:
+        push_socket = context.socket(zmq.PUSH)
+        SOCKET_PATH = os.path.abspath(os.path.join(
+            os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
+        )
+        # Wait 1000ms before giving up on push request
+        LINGER_TIME_MS = 1000
+        push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        push_socket.connect(f"ipc://{SOCKET_PATH}")
 
-    while not stop_event.is_set():
-        states = calculate_states()
-        if states == False:
-            # Error detected
-            slogger.error("Debug error something broken")
-            continue
-        state_command = device_emulator.GCStoGSEStateCMD(**states)
-        push_socket.send(state_command.get_payload_bytes())
+        while not stop_event.is_set():
+            states = calculate_states()
+            if states == False:
+                # Error detected
+                slogger.error("Debug error something broken")
+                continue
+            state_command = device_emulator.GCStoGSEStateCMD(**states)
+            try:
+                push_socket.send(
+                    state_command.get_payload_bytes(), flags=zmq.NOBLOCK)
+            except zmq.ZMQError:
+                # Queue is likely full
+                slogger.warning(
+                    "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping")
+                time.sleep(1)
+    finally:
+        slogger.debug("Packet sender closing socket")
+        push_socket.close()
+        slogger.debug("Packet sender closed socket")
+        slogger.debug(f"Packet sender closing context (<{LINGER_TIME_MS}ms)")
+        context.term()
+        slogger.debug("Packet sender thread resources cleaned up")
 
 
 def main():
     device_emulator.MockPacket.initialize_settings(load_config()['emulation'])
     slogger.debug("Starting pendant emulator")
+
+    signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C
+    signal.signal(signal.SIGTERM, signal_handler)  # Handle `kill` command
+
+    global packet_thread
 
     try:
         joystick: Optional[pygame.joystick.JoystickType] = setup_controller()
@@ -335,10 +391,7 @@ def main():
         handle_controller_events(joystick)
 
     except KeyboardInterrupt:
-        slogger.info("Shutting down...")
-        stop_event.set()
-        packet_thread.join()
-        pygame.quit()
+        cleanup_()
 
 
 if __name__ == "__main__":
