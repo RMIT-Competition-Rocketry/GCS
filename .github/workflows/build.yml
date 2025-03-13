@@ -89,12 +89,19 @@ jobs:
         apt-get install -y libzmq3-dev
 
     # Install ZeroMQ from source in a local directory (no sudo)
-    - name: Install ZeroMQ
+    - name: Install LibZMQ locally
       run: |
-        git clone https://github.com/zeromq/zmqpp.git $HOME/zmqpp
-        cd $HOME/zmqpp
-        make
+        mkdir -p $HOME/zeromq
+        git clone https://github.com/zeromq/libzmq.git $HOME/zeromq/source
+        cd $HOME/zeromq/source
+        git checkout v4.3.4
+        mkdir build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/zeromq/install -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
         make install
+        echo "CPATH=$HOME/zeromq/install/include:$CPATH" >> $GITHUB_ENV
+        echo "LIBRARY_PATH=$HOME/zeromq/install/lib:$LIBRARY_PATH" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=$HOME/zeromq/install/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
     # Get this out of here when you get proto working for python in CMake
     - name: Create Protoc files
