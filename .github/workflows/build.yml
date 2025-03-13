@@ -1,0 +1,181 @@
+# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
+name: CMake build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+    ACT: false
+    # TODO maybe add CXX standard to this file?
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release, Debug]
+        c_compiler: [gcc, clang, cl]
+        include:
+          - os: ubuntu-latest
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            cpp_compiler: clang++
+        exclude:
+          - os: ubuntu-latest
+            c_compiler: cl
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Install Act dependencies
+      # Things that are in the github runner, but not Act (up to 40Gb) 
+      # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
+      if: ${{ env.ACT }}
+      run: |
+        sudo apt-get update && sudo apt-get install -y cmake clang
+
+    - name: Install Bazelisk (Bazel version manager)
+      run: |
+        sudo apt update && sudo apt install -y curl
+        curl -Lo /usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
+        chmod +x /usr/local/bin/bazelisk
+        sudo ln -sf /usr/local/bin/bazelisk /usr/local/bin/bazel
+        bazel --version  # Verify installation
+      
+
+
+    - name: install abseil libraries
+      run: |
+        sudo mkdir -p /usr/local/abseil
+        git clone https://github.com/abseil/abseil-cpp.git /usr/local/abseil
+        cd /usr/local/abseil
+        git checkout 20250127.0
+        mkdir build && cd build
+        cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release ..
+        make -j"$(nproc)"
+        sudo make install
+        cd ../..  
+
+    - name: Build protoc, protobuf and libprotobuf-dev
+      run: |
+        PB_VERSION=29.3
+
+        curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PB_VERSION}/protobuf-${PB_VERSION}.zip"
+        sudo mkdir -p /usr/local/protobuf_source
+        sudo unzip -o "protobuf-${PB_VERSION}.zip" -d /usr/local/protobuf_source
+        rm "protobuf-${PB_VERSION}.zip"
+        cd /usr/local/protobuf_source/protobuf-${PB_VERSION}
+        sudo cp -r src/google /usr/local/include/
+
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
+              -DCMAKE_CXX_STANDARD=17 \
+              -DCMAKE_PREFIX_PATH=/usr/local/abseil \
+              -Dprotobuf_ABSL_PROVIDER=package \
+              -Dprotobuf_BUILD_TESTS=OFF ..
+              
+        make -j"$(nproc)"
+        sudo make install
+        protoc --version
+        
+    # bazel build :protoc :protobuf
+
+
+    # - name: Install Protobuf v29.3
+    #   # Install protoc executable and protobuf libraries (lib-protodev?) manually 
+    #   run: |
+    #     PB_VERSION=29.3
+    #     ARCH=linux-x86_64
+    
+    #     sudo apt-get install abseil-cpp abseil
+    
+    #     curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PB_VERSION}/protoc-${PB_VERSION}-${ARCH}.zip"
+    #     sudo mkdir -p /usr/local/protobuf
+    #     sudo unzip -o "protoc-${PB_VERSION}-${ARCH}.zip" -d /usr/local/protobuf
+    #     sudo mv /usr/local/protobuf/bin/protoc /usr/local/bin/protoc  
+    #     sudo mv /usr/local/protobuf/include/* /usr/local/include/
+    #     rm "protoc-${PB_VERSION}-${ARCH}.zip"
+    #     ls /usr/local/include/
+    #     protoc --version      
+
+        
+
+    #     curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PB_VERSION}/protobuf-${PB_VERSION}.zip"
+    #     sudo mkdir -p /usr/local/protobuf_source
+    #     sudo unzip -o "protobuf-${PB_VERSION}.zip" -d /usr/local/protobuf_source
+    #     rm "protobuf-${PB_VERSION}.zip"
+    #     cd /usr/local/protobuf_source/protobuf-${PB_VERSION}
+    #     cmake . -Dprotobuf_BUILD_LIBPROTOC=ON -Dprotobuf_BUILD_TESTS=OFF
+    #     make
+
+
+    # - name: Install Protobuf stuff
+    #   run: |
+    #     sudo apt-get install -y libprotobuf-dev
+
+    - name: Install LibZMQ
+      run: |
+        echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/ ./" >> /etc/apt/sources.list
+        wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/Release.key -O- | sudo apt-key add
+        apt-get install libzmq3-dev -y
+
+    - name: Install ZeroMQ
+      run: |
+        git clone https://github.com/zeromq/zmqpp.git
+        cd zmqpp
+        make
+        make install
+
+    # Get this out of here when you get proto working for python in CMake
+    - name: Create protoc files
+      run: |
+        bash proto_manual.sh
+
+    - name: Install tree
+      # Debug
+      if: ${{ env.ACT }}
+      run: sudo apt-get install -y tree
+
+    - name: Display directory structure
+      # Debug
+      if: ${{ env.ACT }}  
+      run: |
+        echo "Directory structure of cwd"
+        tree 
+
+    - name: Set reusable strings
+      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: >
+        cmake -B "${{ steps.strings.outputs.build-output-dir }}"
+        -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}"
+        -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}"
+        -S "${{ github.workspace }}"
+
+    - name: Build
+      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest --build-config ${{ matrix.build_type }}

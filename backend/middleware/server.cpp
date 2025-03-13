@@ -17,6 +17,7 @@
 #include "GSE_TO_GCS_DATA_1.hpp"
 #include "GSE_TO_GCS_DATA_2.hpp"
 #include "subprocess_logging.hpp"
+#include <google/protobuf/stubs/common.h>
 #include "sequence.hpp"
 
 // This file hosts the ZeroMQ IPC server stuff

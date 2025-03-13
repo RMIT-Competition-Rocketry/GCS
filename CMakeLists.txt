@@ -40,23 +40,30 @@ add_executable(middleware_server ${SRCS})
 # Like this
 # protoc --proto_path "${PWD}/backend/proto" --cpp_out="${PWD}/backend/proto/generated/payloads" "${PWD}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto"
 # https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
-add_library(proto-objects OBJECT "${CMAKE_CURRENT_LIST_DIR}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto")
+
+# Find all .proto files in the proto directory
+file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
+add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
-set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated")
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated/payloads")
+file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
+
 target_include_directories(proto-objects PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
 
 protobuf_generate(
     TARGET proto-objects
     IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/backend/proto"
     PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
+    APPEND_PATH
+    FILES ${PROTO_FILES}
 )
 
 # Add python protobuf generation
 # For now just use  4249  protoc --proto_path=./backend/proto/payloads --python_out=./backend/proto/generated ./backend/proto/payloads/AV_TO_GCS_DATA_1.proto
 
-# Get all generated protobuf source files
-# TODO this might need to be edited after you start using things outside of payloads
-file(GLOB PROTO_SOURCES "${PROTO_BINARY_DIR}/payloads/*.pb.cc")
+# # Get all generated protobuf source files
+# # TODO this might need to be edited after you start using things outside of payloads
+# file(GLOB PROTO_SOURCES "${PROTO_BINARY_DIR}/payloads/*.pb.cc")
 
 # Define DEBUG macro in debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -109,6 +116,7 @@ target_sources(middleware_server PRIVATE ${SEQUENCE_SRCS})
 # Link libraries
 target_link_libraries(middleware_server PRIVATE
     protobuf::libprotobuf # Modern target-based linking
+    $<TARGET_OBJECTS:proto-objects>
     ${ZMQ_LIBRARY}
 )
 

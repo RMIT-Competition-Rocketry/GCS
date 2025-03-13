@@ -3,7 +3,7 @@
 # protoc --proto_path "${PWD}/backend/proto" --cpp_out="${PWD}/backend/proto/generated/payloads" "${PWD}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto"
 
 echo "Generating Python and C++ files from proto files in ./backend/proto/payloads/"
-
+mkdir -p ./backend/proto/generated/
 for proto in ./backend/proto/payloads/*.proto; do
     echo "Processing $proto"
     # Generate Python files
