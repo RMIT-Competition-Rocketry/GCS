@@ -78,6 +78,7 @@ jobs:
         make -j"$(nproc)"
         make install
         echo "$HOME/protobuf-install/bin" >> $GITHUB_PATH
+        echo "$HOME/protobuf-install/bin" >> $GITHUB_ENV
         protoc --version
 
     # Install LibZMQ locally (no sudo)
