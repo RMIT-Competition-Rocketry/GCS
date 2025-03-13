@@ -24,15 +24,12 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         build_type: [Release, Debug]
-        c_compiler: [gcc, clang, cl]
+        c_compiler: [gcc, clang]
         include:
           - os: ubuntu-latest
             cpp_compiler: g++
           - os: ubuntu-latest
             cpp_compiler: clang++
-        exclude:
-          - os: ubuntu-latest
-            c_compiler: cl
 
     steps:
 
@@ -46,8 +43,9 @@ jobs:
         sudo apt-get update && sudo apt-get install -y cmake clang
 
     - name: Install Bazelisk (Bazel version manager)
+      if: ${{ env.ACT }}
       run: |
-        sudo apt update && sudo apt install -y curl
+        sudo apt-get update && sudo apt-get install -y curl
         curl -Lo /usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
         chmod +x /usr/local/bin/bazelisk
         sudo ln -sf /usr/local/bin/bazelisk /usr/local/bin/bazel
