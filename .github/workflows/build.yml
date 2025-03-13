@@ -73,7 +73,8 @@ jobs:
         cmake -DCMAKE_INSTALL_PREFIX=$HOME/protobuf-install \
               -DCMAKE_CXX_STANDARD=17 \
               -Dprotobuf_ABSL_PROVIDER=package \
-              -Dprotobuf_BUILD_TESTS=OFF ..
+              -Dprotobuf_BUILD_TESTS=OFF .. \
+              -Dabsl_DIR=$HOME/abseil-install/lib/cmake/absl ..
         make -j"$(nproc)"
         make install
         protoc --version
