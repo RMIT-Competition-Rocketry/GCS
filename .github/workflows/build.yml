@@ -85,23 +85,8 @@ jobs:
       run: |
         mkdir -p $HOME/zeromq
         echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/ ./" >> $HOME/zeromq/sources.list
-        wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/Release.key -O- | apt-key add
+        wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/Release.key -O | apt-key add
         apt-get install -y libzmq3-dev
-
-    # Install ZeroMQ from source in a local directory (no sudo)
-    - name: Install LibZMQ locally
-      run: |
-        mkdir -p $HOME/zeromq
-        git clone https://github.com/zeromq/libzmq.git $HOME/zeromq/source
-        cd $HOME/zeromq/source
-        git checkout v4.3.4
-        mkdir build && cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/zeromq/install -DCMAKE_BUILD_TYPE=Release
-        make -j$(nproc)
-        make install
-        echo "CPATH=$HOME/zeromq/install/include:$CPATH" >> $GITHUB_ENV
-        echo "LIBRARY_PATH=$HOME/zeromq/install/lib:$LIBRARY_PATH" >> $GITHUB_ENV
-        echo "LD_LIBRARY_PATH=$HOME/zeromq/install/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
     # Get this out of here when you get proto working for python in CMake
     - name: Create Protoc files
