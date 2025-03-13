@@ -38,12 +38,12 @@ jobs:
     - name: Install Act dependencies
       # Things that are in the github runner, but not Act (up to 40Gb) 
       # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
-      if: ${{ env.ACT }}
+      if: ${{ env.ACT == 'true' }}
       run: |
         sudo apt-get update && sudo apt-get install -y cmake clang
 
     - name: Install Bazelisk (Bazel version manager)
-      if: ${{ env.ACT }}
+      if: ${{ env.ACT == 'true' }}
       run: |
         sudo apt-get update && sudo apt-get install -y curl
         curl -Lo /usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
@@ -142,12 +142,12 @@ jobs:
 
     - name: Install tree
       # Debug
-      if: ${{ env.ACT }}
+      if: ${{ env.ACT == 'true' }}
       run: sudo apt-get install -y tree
 
     - name: Display directory structure
       # Debug
-      if: ${{ env.ACT }}  
+      if: ${{ env.ACT == 'true' }}
       run: |
         echo "Directory structure of cwd"
         tree 
