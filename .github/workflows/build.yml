@@ -77,6 +77,7 @@ jobs:
               -Dabsl_DIR=$HOME/abseil-install/lib/cmake/absl ..
         make -j"$(nproc)"
         make install
+        echo "$HOME/protobuf-install/bin" >> $GITHUB_PATH
         protoc --version
 
     # Install LibZMQ locally (no sudo)
