@@ -58,7 +58,6 @@ jobs:
         cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/abseil-install ..
         make -j"$(nproc)"
         make install
-        cd $HOME/abseil
 
     # Build protoc, protobuf, and libprotobuf-dev in a local directory (no sudo)
     - name: Build Protoc and Protobuf
@@ -85,8 +84,8 @@ jobs:
         ZMQ_VERSION=4.3.5
         mkdir -p $HOME/zeromq
         curl -LO https://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.zip
-        unzip -o "zeromq-${ZMQ_VERSION}.zip" -d $HOME/zeromq
-        cd "$HOME/zeromq/zeromq-${ZMQ_VERSION}"
+        unzip -o "zeromq-source.zip" -d $HOME/zeromq
+        cd "$HOME/zeromq/zeromq-source"
         mkdir build && cd build
         cmake .. \
           -DZMQ_BUILD_TESTS=OFF \
@@ -126,6 +125,8 @@ jobs:
         cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
               -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
               -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
+              -DZeroMQ_DIR=$HOME/zeromq/zeromq-source/lib/cmake/ZeroMQ \
+              -Dabsl_DIR=$HOME/abseil-install/lib/cmake/absl \
               -S "${{ github.workspace }}"
 
     # Build the project
