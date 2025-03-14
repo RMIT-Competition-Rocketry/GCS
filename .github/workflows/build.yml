@@ -2,9 +2,25 @@ name: CMake build
 
 on:
   push:
-    branches: [ "main" ]
+    paths:
+      - '**.c'
+      - '**.h'
+      - '**.cpp'
+      - '**.hpp'
+      - '**.proto'
+    paths-ignore:
+      - 'docs/**'
+      - 'notes/**'
   pull_request:
-    branches: [ "main" ]
+    paths:
+      - '**.c'
+      - '**.h'
+      - '**.cpp'
+      - '**.hpp'
+      - '**.proto'
+    paths-ignore:
+      - 'docs/**'
+      - 'notes/**'
 
 env:
     ACT: false
