@@ -84,7 +84,8 @@ jobs:
         ZMQ_VERSION=4.3.5
         mkdir -p $HOME/zeromq
         curl -LO https://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.zip
-        unzip -o "zeromq-source.zip" -d $HOME/zeromq
+        unzip -o "zeromq-${ZMQ_VERSION}.zip" -d $HOME/zeromq
+        mv $HOME/zeromq/zeromq-${ZMQ_VERSION}/ $HOME/zeromq/zeromq-source/
         cd "$HOME/zeromq/zeromq-source"
         mkdir build && cd build
         cmake .. \
