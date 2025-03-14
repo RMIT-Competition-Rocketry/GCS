@@ -108,7 +108,8 @@ jobs:
         rm "v${CPPZMQ_VERSION}.zip"
         cd $HOME/cppzmq/cppzmq-${CPPZMQ_VERSION}
         mkdir build && cd build
-        cmake .. -DZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ
+        cmake .. -DZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ \
+          -DCMAKE_INSTALL_PREFIX=$HOME/cppzmq-install
         make -j"$(nproc)"
         make install
 
@@ -128,8 +129,9 @@ jobs:
     - name: Display directory structure
       if: ${{ env.ACT == 'true' }}
       run: |
-        echo "Directory structure of cwd"
-        tree 
+        TREE_SHOW_PATH="$HOME/zeromq-install"
+        echo "Directory structure debug of ${TREE_SHOW_PATH}"
+        tree "$TREE_SHOW_PATH"
 
     # Set reusable strings for build output directory
     - name: Set reusable strings
@@ -144,7 +146,6 @@ jobs:
         cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
               -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
               -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
-              -DZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ \
               -Dabsl_DIR=$HOME/abseil-install/lib/cmake/absl \
               -S "${{ github.workspace }}"
 

@@ -81,8 +81,29 @@ target_include_directories(middleware_server PRIVATE
 
 # Find cppzmq
 find_path(ZMQ_INCLUDE_DIR zmq.hpp
-    HINTS /usr/local/include /opt/local/include /usr/include /opt/homebrew/Cellar/cppzmq/4.10.0/include $HOME/zeromq/zeromq-source/include
+    HINTS
+    /usr/local/include
+    /opt/local/include
+    /usr/include
+    /opt/homebrew/Cellar/cppzmq/4.10.0/include
+    $ENV{HOME}/zeromq/zeromq-source/include
+    $ENV{HOME}/cppzmq-install/include
+    $ENV{HOME}/cppzmq-install/share/cmake/cppzmq
 )
+
+# Find ZeroMQ C headers (zmq.h)
+find_path(ZMQ_C_INCLUDE_DIR zmq.h
+    HINTS
+    /usr/local/include
+    /opt/local/include
+    /usr/include
+    $ENV{HOME}/zeromq/zeromq-source/include
+    $ENV{HOME}/zeromq-install/include
+)
+
+if(NOT ZMQ_C_INCLUDE_DIR)
+    message(FATAL_ERROR "ZeroMQ C headers (zmq.h) not found")
+endif()
 
 if(NOT ZMQ_INCLUDE_DIR)
     message(FATAL_ERROR "ZeroMQ headers not found")
@@ -90,7 +111,12 @@ endif()
 
 # Find ZMQ library
 find_library(ZMQ_LIBRARY NAMES zmq
-    HINTS /usr/local/lib /opt/local/lib /usr/lib /opt/homebrew/Cellar/zeromq/4.3.4/lib
+    HINTS
+    /usr/local/lib
+    /opt/local/lib
+    /usr/lib
+    /opt/homebrew/Cellar/zeromq/4.3.4/lib
+    $ENV{HOME}/zeromq-install/lib
 )
 
 if(NOT ZMQ_LIBRARY)
@@ -102,6 +128,7 @@ target_include_directories(middleware_server PRIVATE
     ${CMAKE_SOURCE_DIR}/generated # Protobuf generated headers
     ${Protobuf_INCLUDE_DIRS}
     ${ZMQ_INCLUDE_DIR}
+    ${ZMQ_C_INCLUDE_DIR}
     ${PROTO_DIR} # For proto file imports
     ${CMAKE_SOURCE_DIR}/backend/include # Add backend so that includes like "backend/process_logging.hpp" work
     ${CMAKE_SOURCE_DIR}/backend/middleware/payloads
