@@ -8,6 +8,7 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**.proto'
+      - '.github/workflows/**'
     paths-ignore:
       - 'docs/**'
       - 'notes/**'
@@ -18,6 +19,7 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**.proto'
+      - '.github/workflows/**'
     paths-ignore:
       - 'docs/**'
       - 'notes/**'
