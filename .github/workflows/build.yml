@@ -88,7 +88,7 @@ jobs:
         unzip -o "zeromq-${ZMQ_VERSION}.zip" -d $HOME/zeromq
         cd "$HOME/zeromq/zeromq-${ZMQ_VERSION}"
         mkdir build && cd build
-        cmake .. -G "NMake Makefiles" \
+        cmake .. \
           -DZMQ_BUILD_TESTS=OFF \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=$HOME/usr \
