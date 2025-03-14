@@ -81,7 +81,7 @@ target_include_directories(middleware_server PRIVATE
 
 # Find cppzmq
 find_path(ZMQ_INCLUDE_DIR zmq.hpp
-    HINTS /usr/local/include /opt/local/include /usr/include /opt/homebrew/Cellar/cppzmq/4.10.0/include
+    HINTS /usr/local/include /opt/local/include /usr/include /opt/homebrew/Cellar/cppzmq/4.10.0/include $HOME/zeromq/zeromq-source/include
 )
 
 if(NOT ZMQ_INCLUDE_DIR)
