@@ -87,9 +87,12 @@ jobs:
         curl -LO https://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.zip
         unzip -o "zeromq-${ZMQ_VERSION}.zip" -d $HOME/zeromq
         cd "$HOME/zeromq/zeromq-${ZMQ_VERSION}"
-        chmod +x configure
-        ./configure
-        make
+        mkdir build && cd build
+        cmake .. -G "NMake Makefiles" \
+          -DZMQ_BUILD_TESTS=OFF \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$HOME/usr \
+        make -j"$(nproc)"
         make install
 
     # Get this out of here when you get proto working for python in CMake
