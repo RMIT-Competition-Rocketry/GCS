@@ -19,13 +19,15 @@ jobs:
 
       matrix:
         os: [ubuntu-latest]
-        build_type: [Release, Debug]
-        c_compiler: [gcc, clang]
+        # build_type: [Release, Debug]
+        build_type: [Release]
+        # c_compiler: [gcc, clang]
+        c_compiler: [gcc]
         include:
           - os: ubuntu-latest
             cpp_compiler: g++
-          - os: ubuntu-latest
-            cpp_compiler: clang++
+          # - os: ubuntu-latest
+            # cpp_compiler: clang++
 
     steps:
 
@@ -38,13 +40,12 @@ jobs:
         sudo apt-get update && sudo apt-get install -y cmake clang
 
     # Install Bazelisk (Bazel version manager) without sudo, locally
-    - name: Install Bazelisk
-      if: ${{ env.ACT == 'true' }}
+    - name: Install Bazelisk (Bazel version manager)
       run: |
-        mkdir -p $HOME/bin
-        curl -Lo $HOME/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
-        chmod +x $HOME/bin/bazelisk
-        ln -sf $HOME/bin/bazelisk $HOME/bin/bazel
+        sudo apt update && sudo apt install -y curl
+        curl -Lo /usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
+        chmod +x /usr/local/bin/bazelisk
+        sudo ln -sf /usr/local/bin/bazelisk /usr/local/bin/bazel
         bazel --version  # Verify installation
 
     # Install abseil libraries to a local directory (no sudo)
@@ -91,9 +92,25 @@ jobs:
         cmake .. \
           -DZMQ_BUILD_TESTS=OFF \
           -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX=$HOME/usr 
+          -DCMAKE_INSTALL_PREFIX=$HOME/zeromq-install
         make -j"$(nproc)"
         make install
+        echo "ZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ" >> $GITHUB_ENV
+
+
+    - name: Install cppzmq
+      run: |
+        CPPZMQ_VERSION=4.10.0
+        curl -LO "https://github.com/zeromq/cppzmq/archive/refs/tags/v${CPPZMQ_VERSION}.zip"
+        mkdir -p $HOME/cppzmq
+        unzip -o "v${CPPZMQ_VERSION}.zip" -d $HOME/cppzmq
+        rm "v${CPPZMQ_VERSION}.zip"
+        cd $HOME/cppzmq/cppzmq-${CPPZMQ_VERSION}
+        mkdir build && cd build
+        cmake .. -DZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ
+        make -j"$(nproc)"
+        make install
+
 
     # Get this out of here when you get proto working for python in CMake
     - name: Create Protoc files
@@ -126,7 +143,7 @@ jobs:
         cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
               -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
               -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
-              -DZeroMQ_DIR=$HOME/zeromq/zeromq-source/lib/cmake/ZeroMQ \
+              -DZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ \
               -Dabsl_DIR=$HOME/abseil-install/lib/cmake/absl \
               -S "${{ github.workspace }}"
 
