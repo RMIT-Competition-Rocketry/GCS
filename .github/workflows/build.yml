@@ -80,13 +80,17 @@ jobs:
         echo "$HOME/protobuf-install/bin" >> $GITHUB_PATH
 
 
-    # Install LibZMQ locally (no sudo)
     - name: Install LibZMQ
       run: |
+        ZMQ_VERSION=4.3.5
         mkdir -p $HOME/zeromq
-        echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/ ./" >> $HOME/zeromq/sources.list
-        wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/Release.key -O | apt-key add
-        apt-get install -y libzmq3-dev
+        curl -LO https://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.zip
+        unzip -o "zeromq-${ZMQ_VERSION}.zip" -d $HOME/zeromq
+        cd "$HOME/zeromq/zeromq-${ZMQ_VERSION}"
+        chmod +x configure
+        ./configure
+        make
+        make install
 
     # Get this out of here when you get proto working for python in CMake
     - name: Create Protoc files
