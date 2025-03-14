@@ -40,7 +40,8 @@ jobs:
         sudo apt-get update && sudo apt-get install -y cmake clang
 
     # Install Bazelisk (Bazel version manager) without sudo, locally
-    - name: Install Bazelisk (Bazel version manager)
+    - name: Install Bazelisk for act
+      if: ${{ env.ACT == 'true' }}
       run: |
         sudo apt update && sudo apt install -y curl
         curl -Lo /usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
