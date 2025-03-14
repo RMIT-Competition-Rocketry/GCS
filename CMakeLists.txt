@@ -40,23 +40,30 @@ add_executable(middleware_server ${SRCS})
 # Like this
 # protoc --proto_path "${PWD}/backend/proto" --cpp_out="${PWD}/backend/proto/generated/payloads" "${PWD}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto"
 # https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
-add_library(proto-objects OBJECT "${CMAKE_CURRENT_LIST_DIR}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto")
+
+# Find all .proto files in the proto directory
+file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
+add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
-set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated")
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated/payloads")
+file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
+
 target_include_directories(proto-objects PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
 
 protobuf_generate(
     TARGET proto-objects
     IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/backend/proto"
     PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
+    APPEND_PATH
+    FILES ${PROTO_FILES}
 )
 
 # Add python protobuf generation
 # For now just use  4249  protoc --proto_path=./backend/proto/payloads --python_out=./backend/proto/generated ./backend/proto/payloads/AV_TO_GCS_DATA_1.proto
 
-# Get all generated protobuf source files
-# TODO this might need to be edited after you start using things outside of payloads
-file(GLOB PROTO_SOURCES "${PROTO_BINARY_DIR}/payloads/*.pb.cc")
+# # Get all generated protobuf source files
+# # TODO this might need to be edited after you start using things outside of payloads
+# file(GLOB PROTO_SOURCES "${PROTO_BINARY_DIR}/payloads/*.pb.cc")
 
 # Define DEBUG macro in debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -74,8 +81,29 @@ target_include_directories(middleware_server PRIVATE
 
 # Find cppzmq
 find_path(ZMQ_INCLUDE_DIR zmq.hpp
-    HINTS /usr/local/include /opt/local/include /usr/include /opt/homebrew/Cellar/cppzmq/4.10.0/include
+    HINTS
+    /usr/local/include
+    /opt/local/include
+    /usr/include
+    /opt/homebrew/Cellar/cppzmq/4.10.0/include
+    $ENV{HOME}/zeromq/zeromq-source/include
+    $ENV{HOME}/cppzmq-install/include
+    $ENV{HOME}/cppzmq-install/share/cmake/cppzmq
 )
+
+# Find ZeroMQ C headers (zmq.h)
+find_path(ZMQ_C_INCLUDE_DIR zmq.h
+    HINTS
+    /usr/local/include
+    /opt/local/include
+    /usr/include
+    $ENV{HOME}/zeromq/zeromq-source/include
+    $ENV{HOME}/zeromq-install/include
+)
+
+if(NOT ZMQ_C_INCLUDE_DIR)
+    message(FATAL_ERROR "ZeroMQ C headers (zmq.h) not found")
+endif()
 
 if(NOT ZMQ_INCLUDE_DIR)
     message(FATAL_ERROR "ZeroMQ headers not found")
@@ -83,7 +111,12 @@ endif()
 
 # Find ZMQ library
 find_library(ZMQ_LIBRARY NAMES zmq
-    HINTS /usr/local/lib /opt/local/lib /usr/lib /opt/homebrew/Cellar/zeromq/4.3.4/lib
+    HINTS
+    /usr/local/lib
+    /opt/local/lib
+    /usr/lib
+    /opt/homebrew/Cellar/zeromq/4.3.4/lib
+    $ENV{HOME}/zeromq-install/lib
 )
 
 if(NOT ZMQ_LIBRARY)
@@ -95,6 +128,7 @@ target_include_directories(middleware_server PRIVATE
     ${CMAKE_SOURCE_DIR}/generated # Protobuf generated headers
     ${Protobuf_INCLUDE_DIRS}
     ${ZMQ_INCLUDE_DIR}
+    ${ZMQ_C_INCLUDE_DIR}
     ${PROTO_DIR} # For proto file imports
     ${CMAKE_SOURCE_DIR}/backend/include # Add backend so that includes like "backend/process_logging.hpp" work
     ${CMAKE_SOURCE_DIR}/backend/middleware/payloads
@@ -109,6 +143,7 @@ target_sources(middleware_server PRIVATE ${SEQUENCE_SRCS})
 # Link libraries
 target_link_libraries(middleware_server PRIVATE
     protobuf::libprotobuf # Modern target-based linking
+    $<TARGET_OBJECTS:proto-objects>
     ${ZMQ_LIBRARY}
 )
 

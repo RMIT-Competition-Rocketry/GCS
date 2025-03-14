@@ -93,7 +93,7 @@ private:
         case 0b111:
             return payload::AV_TO_GCS_DATA_2_FlightState::AV_TO_GCS_DATA_2_FlightState_OH_NO;
         default:
-            process_logging::error("Unexpected flight state case bits in AV_TO_GCS_DATA_2");
+            slogger::error("Unexpected flight state case bits in AV_TO_GCS_DATA_2");
             throw std::runtime_error("Unexpected flight state bits");
         }
     }

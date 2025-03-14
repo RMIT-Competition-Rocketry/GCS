@@ -12,7 +12,7 @@
 #include <cstring>
 #include <thread>
 #include <sys/select.h>
-#include "process_logging.hpp"
+#include "subprocess_logging.hpp"
 
 UartInterface::UartInterface(const std::string &device_path, int baud_rate)
     : baud_rate_(baud_rate), device_path_(device_path) {}
@@ -31,7 +31,7 @@ bool UartInterface::initialize()
     uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
     if (uart_fd_ < 0)
     {
-        process_logging::error("Failed to open UART device: " + device_path_);
+        slogger::error("Failed to open UART device: " + device_path_);
         throw std::system_error(errno, std::system_category(),
                                 "Failed to open UART device");
     }
@@ -78,8 +78,8 @@ void UartInterface::configure_uart()
 
 void UartInterface::at_setup()
 {
-    process_logging::info("AT setup TEST");
-    process_logging::info("Connecting to LoRa E5...");
+    slogger::info("AT setup TEST");
+    slogger::info("Connecting to LoRa E5...");
 
     // Retry AT command until successful
     bool module_found = false;
@@ -88,12 +88,12 @@ void UartInterface::at_setup()
         module_found = at_send_command("AT", "+AT: OK", 100);
         if (!module_found)
         {
-            process_logging::error("No E5 module found");
+            slogger::error("No E5 module found");
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
-    process_logging::info("E5 module found");
+    slogger::info("E5 module found");
     // Configuration sequence
     at_send_command("AT+MODE=TEST", "+MODE: TEST", 1000);
     // Returns like:
@@ -111,7 +111,7 @@ void UartInterface::at_setup()
     at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    process_logging::info("End of Setup...");
+    slogger::info("End of Setup...");
 }
 
 std::vector<uint8_t> UartInterface::read_with_timeout(int timeout_ms)
@@ -176,7 +176,7 @@ ssize_t UartInterface::write_serial(const std::vector<uint8_t> &data)
     ssize_t written = write(uart_fd_, data.data(), data.size());
     if (written < 0)
     {
-        process_logging::error("Failed to write to serial port");
+        slogger::error("Failed to write to serial port");
         throw std::system_error(errno, std::system_category(),
                                 "Serial write failed");
     }
@@ -195,7 +195,7 @@ bool UartInterface::at_send_command(const std::string &command,
 
     if (write_serial(cmd_data) != static_cast<ssize_t>(cmd_data.size()))
     {
-        process_logging::error("Failed to send AT command: " + command);
+        slogger::error("Failed to send AT command: " + command);
         return false;
     }
 
@@ -218,7 +218,7 @@ bool UartInterface::at_send_command(const std::string &command,
         if (response_buffer_.find(expected_response) != std::string::npos)
         {
             response_found = true;
-            process_logging::debug("AT command successful: " + command);
+            slogger::debug("AT command successful: " + command);
 
             // Clean buffer after successful match
             size_t pos = response_buffer_.find(expected_response);
@@ -237,8 +237,8 @@ bool UartInterface::at_send_command(const std::string &command,
 
     if (!response_found)
     {
-        process_logging::error("AT command failed. Expected: " + expected_response +
-                               ", Buffer Content: " + response_buffer_);
+        slogger::error("AT command failed. Expected: " + expected_response +
+                       ", Buffer Content: " + response_buffer_);
         response_buffer_.clear();
         return false;
     }
@@ -251,7 +251,7 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
     std::lock_guard<std::recursive_mutex> lock(io_mutex_);
     if (uart_fd_ < 0)
     {
-        process_logging::error("UART file descriptor is invalid");
+        slogger::error("UART file descriptor is invalid");
         return -1;
     }
 
@@ -286,7 +286,7 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
         message.erase(std::remove(message.begin(), message.end(), '\r'), message.end());
         message.erase(std::remove(message.begin(), message.end(), '\n'), message.end());
 
-        process_logging::debug("Received message: " + message);
+        slogger::debug("Received message: " + message);
 
         // Parse message content
         if (message.find("+TEST: LEN:") == 0)
@@ -304,16 +304,16 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
                     // Signal quality monitoring
                     if (rssi < -85)
                     {
-                        process_logging::warning("Poor RSSI: " + std::to_string(rssi) + " dBm");
+                        slogger::warning("Poor RSSI: " + std::to_string(rssi) + " dBm");
                     }
                     if (snr < 5)
                     {
-                        process_logging::warning("Low SNR: " + std::to_string(snr) + " dB");
+                        slogger::warning("Low SNR: " + std::to_string(snr) + " dB");
                     }
                 }
                 catch (const std::exception &e)
                 {
-                    process_logging::error("Failed to parse metrics: " + std::string(e.what()));
+                    slogger::error("Failed to parse metrics: " + std::string(e.what()));
                 }
             }
         }
@@ -332,7 +332,7 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
                 }
                 catch (const std::exception &e)
                 {
-                    process_logging::error("Payload conversion failed: " + std::string(e.what()));
+                    slogger::error("Payload conversion failed: " + std::string(e.what()));
                 }
             }
         }
@@ -351,7 +351,7 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer)
         }
         catch (const std::exception &e)
         {
-            process_logging::error("Buffer copy failed: " + std::string(e.what()));
+            slogger::error("Buffer copy failed: " + std::string(e.what()));
             return -1;
         }
     }
@@ -379,7 +379,7 @@ ssize_t UartInterface::write_data(const std::vector<uint8_t> &data)
     std::lock_guard<std::recursive_mutex> lock(io_mutex_);
     if (uart_fd_ < 0)
     {
-        process_logging::error("Uart device unavailable for write");
+        slogger::error("Uart device unavailable for write");
         return -1;
     }
 
@@ -395,7 +395,7 @@ ssize_t UartInterface::write_data(const std::vector<uint8_t> &data)
     }
     else
     {
-        process_logging::error("LoRa transmission failed");
+        slogger::error("LoRa transmission failed");
         return -1;
     }
 }

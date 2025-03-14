@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-namespace process_logging
+namespace slogger
 {
 
     // Make sure to flush output.
@@ -41,4 +41,4 @@ namespace process_logging
         _log(message, "CRITICAL");
     }
 
-} // namespace process_logging
+} // namespace slogger

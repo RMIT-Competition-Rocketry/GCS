@@ -1,0 +1,156 @@
+name: CMake build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+    ACT: false
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release, Debug]
+        c_compiler: [gcc, clang]
+        include:
+          - os: ubuntu-latest
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            cpp_compiler: clang++
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    # Install dependencies only locally when ACT=true
+    - name: Install Act dependencies
+      if: ${{ env.ACT == 'true' }}
+      run: |
+        sudo apt-get update && sudo apt-get install -y cmake clang
+
+    # Install Bazelisk (Bazel version manager) without sudo, locally
+    - name: Install Bazelisk for act
+      if: ${{ env.ACT == 'true' }}
+      run: |
+        sudo apt update && sudo apt install -y curl
+        curl -Lo /usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
+        chmod +x /usr/local/bin/bazelisk
+        sudo ln -sf /usr/local/bin/bazelisk /usr/local/bin/bazel
+        bazel --version  # Verify installation
+
+    # Install abseil libraries to a local directory (no sudo)
+    - name: Install Abseil Libraries
+      run: |
+        mkdir -p "$HOME/abseil"
+        git clone https://github.com/abseil/abseil-cpp.git "$HOME/abseil"
+        cd "$HOME/abseil"
+        git checkout 20250127.0
+        mkdir build && cd build
+        cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" ..
+        make "-j$(nproc)"
+        make install
+
+    # Build protoc, protobuf, and libprotobuf-dev in a local directory (no sudo)
+    - name: Build Protoc and Protobuf
+      run: |
+        PB_VERSION=29.3
+        curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PB_VERSION}/protobuf-${PB_VERSION}.zip"
+        mkdir -p "$HOME/protobuf"
+        unzip -o "protobuf-${PB_VERSION}.zip" -d "$HOME/protobuf"
+        rm "protobuf-${PB_VERSION}.zip"
+        cd "$HOME/protobuf/protobuf-${PB_VERSION}"
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX="$HOME/protobuf-install" \
+              -DCMAKE_CXX_STANDARD=17 \
+              -Dprotobuf_ABSL_PROVIDER=package \
+              -Dprotobuf_BUILD_TESTS=OFF .. \
+              -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" ..
+        make -j"$(nproc)"
+        make install
+        echo "$HOME/protobuf-install/bin" >> "$GITHUB_PATH"
+
+
+    - name: Install LibZMQ
+      run: |
+        ZMQ_VERSION=4.3.5
+        mkdir -p "$HOME/zeromq"
+        curl -LO "https://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.zip"
+        unzip -o "zeromq-${ZMQ_VERSION}.zip" -d "$HOME/zeromq"
+        mv "$HOME/zeromq/zeromq-${ZMQ_VERSION}/" "$HOME/zeromq/zeromq-source/"
+        cd "$HOME/zeromq/zeromq-source"
+        mkdir build && cd build
+        cmake .. \
+          -DZMQ_BUILD_TESTS=OFF \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX="$HOME/zeromq-install"
+        make -j"$(nproc)"
+        make install
+        echo "ZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ" >> "$GITHUB_ENV"
+
+
+    - name: Install cppzmq
+      run: |
+        CPPZMQ_VERSION=4.10.0
+        curl -LO "https://github.com/zeromq/cppzmq/archive/refs/tags/v${CPPZMQ_VERSION}.zip"
+        mkdir -p "$HOME/cppzmq"
+        unzip -o "v${CPPZMQ_VERSION}.zip" -d "$HOME/cppzmq"
+        rm "v${CPPZMQ_VERSION}.zip"
+        cd "$HOME/cppzmq/cppzmq-${CPPZMQ_VERSION}"
+        mkdir build && cd build
+        cmake .. -DZeroMQ_DIR="$HOME/zeromq-install/lib/cmake/ZeroMQ" \
+          -DCMAKE_INSTALL_PREFIX="$HOME/cppzmq-install"
+        make -j"$(nproc)"
+        make install
+
+
+    # Get this out of here when you get proto working for python in CMake
+    - name: Create Protoc files
+      run: |
+        bash proto_manual.sh
+
+    # Install tree for debugging (no sudo)
+    - name: Install tree
+      if: ${{ env.ACT == 'true' }}
+      run: |
+        sudo apt-get install -y tree
+
+    # Display directory structure in debug
+    - name: Display directory structure
+      if: ${{ env.ACT == 'true' }}
+      run: |
+        TREE_SHOW_PATH="$HOME/zeromq-install"
+        echo "Directory structure debug of ${TREE_SHOW_PATH}"
+        tree "$TREE_SHOW_PATH"
+
+    # Set reusable strings for build output directory
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    # Configure CMake
+    - name: Configure CMake
+      run: |
+        cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
+              -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
+              -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
+              -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" \
+              -S "${{ github.workspace }}"
+
+    # Build the project
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    # Run tests
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: ctest --build-config ${{ matrix.build_type }}
