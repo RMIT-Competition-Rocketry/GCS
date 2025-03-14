@@ -91,7 +91,7 @@ jobs:
         cmake .. \
           -DZMQ_BUILD_TESTS=OFF \
           -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX=$HOME/usr \
+          -DCMAKE_INSTALL_PREFIX=$HOME/usr 
         make -j"$(nproc)"
         make install
 
