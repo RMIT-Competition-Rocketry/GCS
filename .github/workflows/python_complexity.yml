@@ -20,10 +20,10 @@ jobs:
 
       - name: Install Radon
         run: pip install radon
-        
+
       - name: Run Radon and Save Output
         run: |
-          radon cc . -a 2>&1 | head -n 100 > complexity_report.txt || true
+          radon cc . -a 2>&1 | grep --color=always -v ' - A$' > complexity_report.txt || true
           touch complexity_report.txt
 
       - name: Prepare Comment Body
