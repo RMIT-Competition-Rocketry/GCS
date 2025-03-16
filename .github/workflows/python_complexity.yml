@@ -5,12 +5,14 @@ on:
     paths:
       - '**.py'
       - '**.proto'
-      - '.github/workflows/**'
+      - '.github/workflows/python_complexity.yml'
       - '!docs/**'
       - '!notes/**'
 
 jobs:
   complexity_check:
+    permissions: 
+      pull-requests: write 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
