@@ -1,0 +1,37 @@
+name: Python Complexity Check
+
+on:
+    push:
+      paths:
+        - '**.py'
+        - '**.proto'
+        - '.github/workflows/**'
+      paths-ignore:
+        - 'docs/**'
+        - 'notes/**'
+    pull_request:
+      paths:
+        - '**.py'
+        - '**.proto'
+        - '.github/workflows/**'
+      paths-ignore:
+        - 'docs/**'
+        - 'notes/**'
+
+jobs:
+  complexity_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Radon and Save Output
+        run: radon cc . -a > complexity_report.txt || true
+
+      - name: Post Results to PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            🧐 **Radon Complexity Report**  
+            ```
+            $(cat complexity_report.txt)
+            ```
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
