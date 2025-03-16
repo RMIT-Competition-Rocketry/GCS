@@ -1,21 +1,24 @@
 name: Python Complexity Check
 
 on:
-    pull_request:
-      paths:
-        - '**.py'
-        - '**.proto'
-        - '.github/workflows/**'
-        - '!docs/**'
-        - '!notes/**'
-  
+  pull_request:
+    paths:
+      - '**.py'
+      - '**.proto'
+      - '.github/workflows/**'
+      - '!docs/**'
+      - '!notes/**'
 
 jobs:
   complexity_check:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4  
+
       - name: Run Radon and Save Output
-        run: radon cc . -a > complexity_report.txt || true
+        run: |
+          radon cc . -a > complexity_report.txt || true
 
       - name: Post Results to PR
         uses: thollander/actions-comment-pull-request@v2
@@ -26,4 +29,3 @@ jobs:
             $(cat complexity_report.txt)
             ```
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
