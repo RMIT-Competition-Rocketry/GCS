@@ -58,7 +58,7 @@ def run():
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=True)
 
-    # 6. Could start the pendent emulator
+    # 6. Start the pendent emulator
 
     # 7. Database stuff in future
 
