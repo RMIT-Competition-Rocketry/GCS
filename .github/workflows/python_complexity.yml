@@ -1,13 +1,6 @@
 name: Python Complexity Check
 
 on:
-    push:
-      paths:
-        - '**.py'
-        - '**.proto'
-        - '.github/workflows/**'
-        - '!docs/**'
-        - '!notes/**'
     pull_request:
       paths:
         - '**.py'
