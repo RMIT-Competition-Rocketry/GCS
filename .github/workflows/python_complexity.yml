@@ -6,17 +6,16 @@ on:
         - '**.py'
         - '**.proto'
         - '.github/workflows/**'
-      paths-ignore:
-        - 'docs/**'
-        - 'notes/**'
+        - '!docs/**'
+        - '!notes/**'
     pull_request:
       paths:
         - '**.py'
         - '**.proto'
         - '.github/workflows/**'
-      paths-ignore:
-        - 'docs/**'
-        - 'notes/**'
+        - '!docs/**'
+        - '!notes/**'
+  
 
 jobs:
   complexity_check:

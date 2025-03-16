@@ -9,9 +9,8 @@ on:
       - '**.hpp'
       - '**.proto'
       - '.github/workflows/**'
-    paths-ignore:
-      - 'docs/**'
-      - 'notes/**'
+      - '!docs/**'
+      - '!notes/**'
   pull_request:
     paths:
       - '**.c'
@@ -20,9 +19,8 @@ on:
       - '**.hpp'
       - '**.proto'
       - '.github/workflows/**'
-    paths-ignore:
-      - 'docs/**'
-      - 'notes/**'
+      - '!docs/**'
+      - '!notes/**'
 
 env:
     ACT: false
