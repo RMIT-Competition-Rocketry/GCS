@@ -8,10 +8,9 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**.proto'
-      - '.github/workflows/**'
-    paths-ignore:
-      - 'docs/**'
-      - 'notes/**'
+      - '.github/workflows/build.yml'
+      - '!docs/**'
+      - '!notes/**'
   pull_request:
     paths:
       - '**.c'
@@ -19,10 +18,9 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**.proto'
-      - '.github/workflows/**'
-    paths-ignore:
-      - 'docs/**'
-      - 'notes/**'
+      - '.github/workflows/build.yml'
+      - '!docs/**'
+      - '!notes/**'
 
 env:
     ACT: false

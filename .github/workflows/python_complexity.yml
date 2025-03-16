@@ -1,37 +1,52 @@
 name: Python Complexity Check
 
 on:
-    push:
-      paths:
-        - '**.py'
-        - '**.proto'
-        - '.github/workflows/**'
-      paths-ignore:
-        - 'docs/**'
-        - 'notes/**'
-    pull_request:
-      paths:
-        - '**.py'
-        - '**.proto'
-        - '.github/workflows/**'
-      paths-ignore:
-        - 'docs/**'
-        - 'notes/**'
+  pull_request:
+    paths:
+      - '**.py'
+      - '**.proto'
+      - '.github/workflows/python_complexity.yml'
+      - '!docs/**'
+      - '!notes/**'
 
 jobs:
   complexity_check:
+    permissions: 
+      pull-requests: write 
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Radon
+        run: pip install radon
+
       - name: Run Radon and Save Output
-        run: radon cc . -a > complexity_report.txt || true
+        run: |
+          radon cc . -a 2>&1 | grep --color=always -v ' - A$' > complexity_report.txt || true
+          touch complexity_report.txt
+
+      - name: Prepare Comment Body
+        id: prepare_comment
+        run: |
+          if [ -s complexity_report.txt ]; then
+            echo "🧐 **Radon Complexity Report**" > comment_body.md
+            echo "\`\`\`" >> comment_body.md
+            cat complexity_report.txt >> comment_body.md
+            echo "\`\`\`" >> comment_body.md
+          else
+            echo "🎉 **Radon Complexity Report**" > comment_body.md
+            echo "No complexity issues found!" >> comment_body.md
+          fi
+
+      - name: Read Comment Body
+        id: read_comment
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: comment_body.md
 
       - name: Post Results to PR
         uses: thollander/actions-comment-pull-request@v2
         with:
-          message: |
-            🧐 **Radon Complexity Report**  
-            ```
-            $(cat complexity_report.txt)
-            ```
+          message: ${{ steps.read_comment.outputs.content }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
