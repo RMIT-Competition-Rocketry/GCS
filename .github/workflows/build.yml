@@ -48,7 +48,8 @@ jobs:
     - name: Install Act dependencies
       if: ${{ env.ACT == 'true' }}
       run: |
-        sudo apt-get update && sudo apt-get install -y cmake clang
+        sudo apt-get update
+        sudo apt-get install -y cmake
 
     # Install Bazelisk (Bazel version manager) without sudo, locally
     - name: Install Bazelisk for act
@@ -168,5 +169,5 @@ jobs:
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}
-        path: ${{ steps.strings.outputs.build-output-dir }}
+        name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+        path: build

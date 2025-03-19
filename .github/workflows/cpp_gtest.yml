@@ -8,26 +8,17 @@ on:
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        build_type: [Release, Debug]
-        c_compiler: [gcc, clang]
-        include:
-          - os: ubuntu-latest
-            cpp_compiler: g++
-          - os: ubuntu-latest
-            cpp_compiler: clang++
+    runs-on: ubuntu-latest
 
     steps:
+    
     - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}
-        path: build
+          # Just get the release version to run tests 
+          name: binaries-ubuntu-latest-Release-g++-${{ github.event.workflow_run.head_sha }}-${{ github.event.workflow_run.event }}
+          path: build
+
 
     - name: Install CMake
       run: |
@@ -37,4 +28,10 @@ jobs:
     - name: Run Tests
       working-directory: build
       run: |
-        ctest --build-config ${{ matrix.build_type }} --output-on-failure
+        ctest --output-on-failure
+    
+    # - name: Clean Old Artifacts
+    #   if: always()
+    #   uses: actions/delete-artifact@v4
+    #   with:
+    #     name: binaries-*
