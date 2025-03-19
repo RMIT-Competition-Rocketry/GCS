@@ -171,6 +171,8 @@ target_link_libraries(middleware_server PRIVATE
     protobuf::libprotobuf # Modern target-based linking
     $<TARGET_OBJECTS:proto-objects>
     ${ZMQ_LIBRARY}
+    stdc++
+    m
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")

@@ -32,9 +32,12 @@ jobs:
           if [ -s complexity_report.txt ]; then
           {
             echo "🧐 **Radon Complexity Report (Non A-Grade Reports)**"
+            echo "<details>"
+            echo "<summary>Click to expand review</summary>""
             echo "\`\`\`"
             cat complexity_report.txt
             echo "\`\`\`"
+            echo "</details>"
           } > comment_body.md
           else
             echo "Complexity file missing" >> comment_body.md
