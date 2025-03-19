@@ -58,7 +58,10 @@ add_executable(middleware_server ${SRCS})
 # Add this after setting CXX_STANDARD and executable and before target_link_libraries
 # This is for clang and gcc linker errors
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_link_options(middleware_server PRIVATE -lstdc++)
+    target_link_options(middleware_server PRIVATE
+        -lstdc++
+        lm
+    )
 endif()
 
 # Protobuf generation #18
@@ -166,12 +169,15 @@ file(GLOB SEQUENCE_SRCS
 )
 target_sources(middleware_server PRIVATE ${SEQUENCE_SRCS})
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_link_libraries(middleware_server PRIVATE -lstdc++)
+endif()
+
 # Link libraries
 target_link_libraries(middleware_server PRIVATE
     protobuf::libprotobuf # Modern target-based linking
     $<TARGET_OBJECTS:proto-objects>
     ${ZMQ_LIBRARY}
-    stdc++
     m
 )
 
