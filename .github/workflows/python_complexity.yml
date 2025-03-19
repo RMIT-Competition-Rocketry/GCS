@@ -34,9 +34,9 @@ jobs:
             echo "🧐 **Radon Complexity Report (Non A-Grade Reports)**"
             echo "<details>"
             echo "<summary>Click to expand review</summary>"
-            echo "\`\`\`"
+            echo "<code>"
             cat complexity_report.txt
-            echo "\`\`\`"
+            echo "</code>"
             echo "</details>"
           } > comment_body.md
           else
