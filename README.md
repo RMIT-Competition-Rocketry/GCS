@@ -4,6 +4,7 @@
 
 Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Control Station**) data ingestion and visulisation software.
 
+🇦🇺 🦘 🕷️
 <!-- TODO Make a monochrome png for logos -->
 
 <p >
@@ -12,6 +13,13 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
     <img src="docs/assets/IREC.jpg" alt="IREC Logo" height="50" style="padding-left:10px">
 </p>
 
+
+## Credit
+
+| Name | Role | Year |
+| --- | --- | --- |
+| Freddy Mcloughlan (`sandwich1699975`)  | GCS backend software engineer | 2025 |
+| ... (`...`)  | ... | 2025 |
 
 ---
 
