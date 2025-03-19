@@ -23,8 +23,7 @@ if(BUILD_TESTS)
     add_subdirectory(backend/tests)
 endif()
 
-# This fucking thing will raise linker error on my laptop if config is not used.
-# But using config on the pi will raise errors because it can't find the .cmake
+# Find Protobuf
 find_package(Protobuf CONFIG QUIET)
 
 if(NOT Protobuf_FOUND)
@@ -55,22 +54,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 
 add_executable(middleware_server ${SRCS})
 
-# Add this after setting CXX_STANDARD and executable and before target_link_libraries
-# This is for clang and gcc linker errors
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_link_options(middleware_server PRIVATE
-        -lstdc++
-        lm
-    )
-endif()
-
-# Protobuf generation #18
-# I'm just going to do this manually for now. It's fucked again
-# Like this
-# protoc --proto_path "${PWD}/backend/proto" --cpp_out="${PWD}/backend/proto/generated/payloads" "${PWD}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto"
-# https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
-
-# Find all .proto files in the proto directory
+# Protobuf generation for cpp files
 file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
 add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
@@ -168,10 +152,6 @@ file(GLOB SEQUENCE_SRCS
     ${CMAKE_SOURCE_DIR}/backend/include/*.cpp
 )
 target_sources(middleware_server PRIVATE ${SEQUENCE_SRCS})
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_link_libraries(middleware_server PRIVATE -lstdc++)
-endif()
 
 # Link libraries
 target_link_libraries(middleware_server PRIVATE
