@@ -46,6 +46,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -pthread")
 
+# Add this after setting CXX_STANDARD and before target_link_libraries
+# This is for clang and gcc linker errors
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_link_options(middleware_server PRIVATE -lstdc++)
+endif()
+
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
 set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
 
@@ -159,10 +165,6 @@ file(GLOB SEQUENCE_SRCS
     ${CMAKE_SOURCE_DIR}/backend/include/*.cpp
 )
 target_sources(middleware_server PRIVATE ${SEQUENCE_SRCS})
-
-# For C++17 and later
-# For some compilers that need explicit std linking
-target_link_libraries(middleware_server PRIVATE stdc++fs)
 
 # Link libraries
 target_link_libraries(middleware_server PRIVATE

@@ -3,6 +3,7 @@ name: CMake build
 on:
   push:
     paths:
+      - '**/CMakeLists.txt'
       - '**.c'
       - '**.h'
       - '**.cpp'
@@ -13,6 +14,7 @@ on:
       - '!notes/**'
   pull_request:
     paths:
+      - '**/CMakeLists.txt'
       - '**.c'
       - '**.h'
       - '**.cpp'
