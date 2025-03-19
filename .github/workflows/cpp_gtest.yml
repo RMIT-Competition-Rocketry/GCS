@@ -1,0 +1,40 @@
+name: Run C++ Google Tests
+
+on:
+  workflow_run:
+    workflows: ["CMake build"]
+    types:
+      - completed
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release, Debug]
+        c_compiler: [gcc, clang]
+        include:
+          - os: ubuntu-latest
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            cpp_compiler: clang++
+
+    steps:
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}
+        path: build
+
+    - name: Install CMake
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake
+
+    - name: Run Tests
+      working-directory: build
+      run: |
+        ctest --build-config ${{ matrix.build_type }} --output-on-failure

@@ -30,13 +30,12 @@ jobs:
         id: prepare_comment
         run: |
           if [ -s complexity_report.txt ]; then
-            echo "🧐 **Radon Complexity Report**" > comment_body.md
+            echo "🧐 **Radon Complexity Report (Non A-Grade Reports)**" > comment_body.md
             echo "\`\`\`" >> comment_body.md
             cat complexity_report.txt >> comment_body.md
             echo "\`\`\`" >> comment_body.md
           else
-            echo "🎉 **Radon Complexity Report**" > comment_body.md
-            echo "No complexity issues found!" >> comment_body.md
+            echo "Complexity file missing" >> comment_body.md
           fi
 
       - name: Read Comment Body

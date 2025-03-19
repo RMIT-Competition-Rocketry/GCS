@@ -3,6 +3,26 @@ project(middleware_server LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
 
+if(BUILD_TESTS)
+    enable_testing() # Enables CTest
+    message(STATUS "Building tests")
+    find_package(GTest CONFIG QUIET)
+
+    if(NOT GTest_FOUND)
+        message(STATUS "Installing GTest")
+        include(FetchContent)
+        FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/refs/tags/v1.16.0.zip
+        )
+        FetchContent_MakeAvailable(googletest)
+    else()
+        message(STATUS "GoogleTest found at: ${GTest_DIR}")
+    endif()
+
+    add_subdirectory(backend/tests)
+endif()
+
 # This fucking thing will raise linker error on my laptop if config is not used.
 # But using config on the pi will raise errors because it can't find the .cmake
 find_package(Protobuf CONFIG QUIET)
@@ -45,7 +65,7 @@ add_executable(middleware_server ${SRCS})
 file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
 add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
-set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated/payloads")
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated/")
 file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
 
 target_include_directories(proto-objects PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
