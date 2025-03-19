@@ -160,6 +160,10 @@ file(GLOB SEQUENCE_SRCS
 )
 target_sources(middleware_server PRIVATE ${SEQUENCE_SRCS})
 
+# For C++17 and later
+# For some compilers that need explicit std linking
+target_link_libraries(middleware_server PRIVATE stdc++fs)
+
 # Link libraries
 target_link_libraries(middleware_server PRIVATE
     protobuf::libprotobuf # Modern target-based linking
