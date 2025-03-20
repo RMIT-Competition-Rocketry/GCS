@@ -171,6 +171,7 @@ jobs:
 
   test-cpp:
     runs-on: ubuntu-latest
+    needs: build-cpp 
 
     steps:
 
