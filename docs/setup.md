@@ -16,7 +16,7 @@ The GSE software is run by using a Python based CLI.
 | Docker        | ❌       | ✅                  | ❌                  |
 | Socat         | ❌        |  🐳                 | ✅                  
 | Cmake        | ❌ (_can use release binaries_)       | 🐳                  | ❌                  |
-| g++ |✅|🐳|✅|
+| g++ or clang++ |✅|🐳|✅|
 | [ZeroMQ](https://zeromq.org/download/) and `cppzmq`|✅|🐳|✅| 
 | Protobuf (and `proto` compiler, `libprotodev` with dependencies) |✅|🐳|✅| 
 

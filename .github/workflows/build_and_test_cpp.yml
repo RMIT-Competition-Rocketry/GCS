@@ -1,4 +1,4 @@
-name: CMake build
+name: Build and Test C++
 
 on:
   push:
@@ -28,7 +28,7 @@ env:
   ACT: false
 
 jobs:
-  build:
+  build-cpp:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -168,3 +168,28 @@ jobs:
       with:
         name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
         path: build
+
+  test-cpp:
+    runs-on: ubuntu-latest
+    needs: build-cpp 
+
+    steps:
+
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+          # Just get the release version to run tests 
+          name: binaries-ubuntu-latest-Release-g++-${{ github.sha }}-${{ github.event_name }}
+          path: build
+
+
+    - name: Install CMake
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake
+
+
+    - name: Run Tests
+      working-directory: build
+      run: |
+        ctest --output-on-failure
