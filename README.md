@@ -1,6 +1,6 @@
 # GCS
 
-![Build](https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build.yml/badge.svg)
+![Build](https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg)
 
 Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Control Station**) data ingestion and visulisation software.
 
