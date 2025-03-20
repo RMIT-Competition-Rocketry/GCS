@@ -1,5 +1,5 @@
 # Front end team do not require reviews when merging into their folder on main branch
 frontend/  @RMIT-Competition-Rocketry/gcs-front-end-capstone
 
-# Anything else requires a review by someone on spaceport-aurc-2025
-*  @RMIT-Competition-Rocketry/spaceport-aurc-2025
+# Anything else requires a review by someone on backend
+*  @RMIT-Competition-Rocketry/gcs-backend
