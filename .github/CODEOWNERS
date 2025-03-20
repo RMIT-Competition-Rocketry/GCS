@@ -1,5 +1,5 @@
 # Anything not specified requires a review by someone on the backend
-*  @RMIT-Competition-Rocketry/gcs-ground-control-station/gcs-backend
+*  @sandwich1699975
 
 # Frontend team does not require reviews when merging into their folder on the main branch
-frontend/  @RMIT-Competition-Rocketry/gcs-ground-control-station/gcs-front-end-capstone
+frontend/  @RMIT-Competition-Rocketry/gcs-frontend-capstone
