@@ -3,6 +3,7 @@ name: CMake build
 on:
   push:
     paths:
+      - '**/CMakeLists.txt'
       - '**.c'
       - '**.h'
       - '**.cpp'
@@ -13,6 +14,7 @@ on:
       - '!notes/**'
   pull_request:
     paths:
+      - '**/CMakeLists.txt'
       - '**.c'
       - '**.h'
       - '**.cpp'
@@ -23,7 +25,7 @@ on:
       - '!notes/**'
 
 env:
-    ACT: false
+  ACT: false
 
 jobs:
   build:
@@ -31,26 +33,20 @@ jobs:
 
     strategy:
       fail-fast: false
-
       matrix:
         os: [ubuntu-latest]
         build_type: [Release, Debug]
-        c_compiler: [gcc, clang]
-        include:
-          - os: ubuntu-latest
-            cpp_compiler: g++
-          - os: ubuntu-latest
-            cpp_compiler: clang++
+        cpp_compiler: [g++, clang++]
 
     steps:
-
     - uses: actions/checkout@v4
 
     # Install dependencies only locally when ACT=true
     - name: Install Act dependencies
       if: ${{ env.ACT == 'true' }}
       run: |
-        sudo apt-get update && sudo apt-get install -y cmake clang
+        sudo apt-get update
+        sudo apt-get install -y cmake
 
     # Install Bazelisk (Bazel version manager) without sudo, locally
     - name: Install Bazelisk for act
@@ -166,7 +162,9 @@ jobs:
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    # Run tests
-    - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: ctest --build-config ${{ matrix.build_type }}
+    # Export binaries as artifacts
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+        path: build

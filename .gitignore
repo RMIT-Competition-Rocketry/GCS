@@ -7,6 +7,9 @@ notes/local.txt
 # Compiled proto files
 backend/proto/generated/*
 
+# Test binary
+backend/tests/runTests
+
 # Stupid fucking library installs because homebrew fucking sucks at providing working libraries
 # submodule will still treat as new i think
 /third_party/*

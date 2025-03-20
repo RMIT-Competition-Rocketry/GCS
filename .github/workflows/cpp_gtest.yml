@@ -1,0 +1,37 @@
+name: Run C++ Google Tests
+
+on:
+  workflow_run:
+    workflows: ["CMake build"]
+    types:
+      - completed
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+          # Just get the release version to run tests 
+          name: binaries-ubuntu-latest-Release-g++-${{ github.event.workflow_run.head_sha }}-${{ github.event.workflow_run.event }}
+          path: build
+
+
+    - name: Install CMake
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake
+
+    - name: Run Tests
+      working-directory: build
+      run: |
+        ctest --output-on-failure
+    
+    # - name: Clean Old Artifacts
+    #   if: always()
+    #   uses: actions/delete-artifact@v4
+    #   with:
+    #     name: binaries-*

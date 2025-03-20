@@ -5,13 +5,34 @@
             "label": "middleware build-dev + generate proto",
             "type": "shell",
             "command": "cmake -DCMAKE_BUILD_TYPE=Debug . && make", // VERBOSE = 1
+            "options": {
+                "cwd": "${workspaceFolder}" // Default?
+            },
             "group": {
                 "kind": "build",
                 "isDefault": false
             },
             "icon": {
                 "dark": "resources/dark/build.svg",
-                "light": "resources/light/build.svg"
+                "light": "resources/light/build.svg",
+                "color": "terminal.ansiGreen"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "middleware build-dev + generate proto + run tests",
+            "type": "shell",
+            "command": "cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON . && make", // VERBOSE = 1
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "dark": "resources/dark/build.svg",
+                "light": "resources/light/build.svg",
+                "color": "terminal.ansiYellow"
             },
             "problemMatcher": [
                 "$gcc"
