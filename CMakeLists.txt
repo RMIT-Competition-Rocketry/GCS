@@ -162,7 +162,10 @@ target_link_libraries(middleware_server PRIVATE
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_link_libraries(middleware_server PRIVATE stdc++)
+    target_link_libraries(middleware_server PRIVATE
+        stdc++
+        m
+    )
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
