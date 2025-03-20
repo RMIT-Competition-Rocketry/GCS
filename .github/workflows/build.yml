@@ -36,7 +36,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         build_type: [Release, Debug]
-        cpp_compiler: [gcc, clang, g++, clang++]
+        cpp_compiler: [g++, clang++]
 
     steps:
     - uses: actions/checkout@v4

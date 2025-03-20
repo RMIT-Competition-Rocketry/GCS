@@ -168,10 +168,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang
     )
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_link_options(middleware_server PRIVATE -lm)
-endif()
-
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_server_release")
 endif()
