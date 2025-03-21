@@ -211,6 +211,6 @@ jobs:
 
     - name: Run Tests
       run: |
-        ctest --output-on-failure .. 2>ctest.error
+        ctest --output-on-failure --test-dir build/backend/tests .. 2>ctest.error
         cat ctest.error
         [ -s ctest.error ] && exit 1 || exit 0
