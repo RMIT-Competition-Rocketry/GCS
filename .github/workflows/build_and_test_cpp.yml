@@ -209,6 +209,9 @@ jobs:
       run: 
         tree
 
+    - name: Set executable permissions
+      run: chmod +x build/backend/tests/runTests
+
     - name: Run Tests
       working-directory: ${{ github.workspace }}/build
       run: |
