@@ -9,7 +9,7 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**.proto'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/build_and_test_cpp.yml'
       - '!docs/**'
       - '!notes/**'
   pull_request:
@@ -20,7 +20,7 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**.proto'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/build_and_test_cpp.yml'
       - '!docs/**'
       - '!notes/**'
 
