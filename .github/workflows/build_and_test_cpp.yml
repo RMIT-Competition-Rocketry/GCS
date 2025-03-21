@@ -9,7 +9,7 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**.proto'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/build_and_test_cpp.yml'
       - '!docs/**'
       - '!notes/**'
   pull_request:
@@ -20,7 +20,7 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**.proto'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/build_and_test_cpp.yml'
       - '!docs/**'
       - '!notes/**'
 
@@ -142,14 +142,24 @@ jobs:
         echo "Directory structure debug of ${TREE_SHOW_PATH}"
         tree "$TREE_SHOW_PATH"
 
+    - name: Install Google Test
+      run: |
+        mkdir -p "$HOME/googletest"
+        git clone https://github.com/google/googletest.git "$HOME/googletest"
+        cd "$HOME/googletest"
+        mkdir build && cd build
+        cmake ..
+        make -j"$(nproc)"
+        sudo make install
+
     # Set reusable strings for build output directory
     - name: Set reusable strings
       id: strings
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-
-    # Configure CMake
+      
+      # Update the 'Configure CMake' step to include the GTest paths
     - name: Configure CMake
       run: |
         cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
@@ -157,6 +167,7 @@ jobs:
               -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
               -DBUILD_TESTS=ON \
               -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" \
+              -DGTEST_ROOT=/usr/local \
               -S "${{ github.workspace }}"
 
     # Build the project
@@ -189,12 +200,22 @@ jobs:
           path: build
 
 
-    - name: Install CMake
+    - name: Install CMake and tree
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake
+        sudo apt-get install -y cmake tree
+
+    - name: Tree debug
+      run: 
+        tree
+
+    - name: Set executable permissions
+      run: chmod +x build/backend/tests/runTests
 
     - name: Run Tests
+      working-directory: ${{ github.workspace }}/build
       run: |
-        ctest --output-on-failure .. 2>ctest.error
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/build/backend/proto/generated
+        ctest --output-on-failure --verbose 2>ctest.error
+        cat ctest.error
         [ -s ctest.error ] && exit 1 || exit 0

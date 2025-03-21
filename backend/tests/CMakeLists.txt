@@ -16,13 +16,4 @@ target_link_libraries(runTests PRIVATE
     GTest::Main
 )
 
-# target_include_directories(runTests PRIVATE
-# ${GTEST_INCLUDE_DIRS}
-# )
-
-# # Add any other necessary includes
-# target_include_directories(runTests PRIVATE
-# ${CMAKE_SOURCE_DIR}/backend/include
-# ${CMAKE_SOURCE_DIR}/backend/proto/generated
-# )
 add_test(NAME RunAllTests COMMAND runTests)
