@@ -126,7 +126,7 @@ jobs:
     # Get this out of here when you get proto working for python in CMake
     - name: Create Protoc files
       run: |
-        bash proto_manual.sh
+        bash scripts/proto_manual.sh
 
     # Install tree for debugging (no sudo)
     - name: Install tree
