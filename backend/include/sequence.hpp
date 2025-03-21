@@ -10,7 +10,7 @@ public:
     ~Sequence() = default;
     bool waiting_for_gse();
     void await_gse();
-    void recieved_gse();
+    void received_gse();
 
 private:
     // Current state in the sequence diagram
