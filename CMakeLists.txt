@@ -14,7 +14,9 @@ if(BUILD_TESTS)
         FetchContent_Declare(
             googletest
             URL https://github.com/google/googletest/archive/e7b26b72461e0bfcb5a2a9c1cafd849108f834ae.zip
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
         )
+
         FetchContent_MakeAvailable(googletest)
     else()
         message(STATUS "GoogleTest found at: ${GTest_DIR}")
