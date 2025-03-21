@@ -200,10 +200,14 @@ jobs:
           path: build
 
 
-    - name: Install CMake
+    - name: Install CMake and tree
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake
+        sudo apt-get install -y cmake tree
+
+    - name: Tree debug
+      run: |
+        tree
 
     - name: Run Tests
       run: |
