@@ -208,4 +208,5 @@ jobs:
     - name: Run Tests
       run: |
         ctest --output-on-failure .. 2>ctest.error
+        cat ctest.error
         [ -s ctest.error ] && exit 1 || exit 0
