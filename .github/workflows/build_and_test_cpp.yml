@@ -206,12 +206,13 @@ jobs:
         sudo apt-get install -y cmake tree
 
     - name: Tree debug
-      run: |
+      run: 
         tree
 
     - name: Run Tests
-      working-directory: build
+      working-directory: ${{ github.workspace }}/build
       run: |
-        ctest --output-on-failure --verbose --test-dir backend/tests 2>ctest.error
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/build/backend/proto/generated
+        ctest --output-on-failure --verbose 2>ctest.error
         cat ctest.error
         [ -s ctest.error ] && exit 1 || exit 0
