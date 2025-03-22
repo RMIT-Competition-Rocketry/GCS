@@ -94,9 +94,27 @@ jobs:
         echo "Cache cppzmq: ${{ steps.cache_cppzmq.outputs.cache-hit }}"
         echo "Cache googletest: ${{ steps.cache_googletest.outputs.cache-hit }}"
         echo "Home folder debug (2 levels)"
-        find $HOME -maxdepth 2 -print
+        find "$HOME" -maxdepth 2 -print
+        echo "Displaying GITHUB path"
+        echo "$GITHUB_PATH"
+        echo "Running whereis protoc"
+        whereis protoc
 
     # --- End Cache Steps ---
+
+    - name: Post Cache Setup Protoc
+      if: steps.cache_protobuf.outputs.cache-hit == 'true'
+      run: |
+        echo "$HOME/protobuf-install/bin" >> "$GITHUB_PATH"
+        echo "Protobuf_ROOT=$HOME/protobuf-install" >> "$GITHUB_ENV"
+
+    - name: Post Cache Setup Zero/LibZMQ
+      if: steps.cache_zeromq.outputs.cache-hit == 'true'
+      run: echo "ZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ" >> "$GITHUB_ENV"
+
+    - name: Set CMake Prefix Path
+      run: |
+        echo "CMAKE_PREFIX_PATH=$HOME/abseil-install:$HOME/protobuf-install:$HOME/zeromq-install:$HOME/cppzmq-install" >> "$GITHUB_ENV"
 
     # Install dependencies only locally when ACT=true
     - name: Install Act dependencies
@@ -225,6 +243,8 @@ jobs:
               -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
               -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
               -DBUILD_TESTS=ON \
+              -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
+              -DProtobuf_ROOT="$HOME/protobuf-install" \
               -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" \
               -DGTEST_ROOT=/usr/local \
               -S "${{ github.workspace }}"
