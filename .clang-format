@@ -1,0 +1,4 @@
+# yeah man. I'm original 
+# $ find . -name '*.cpp' -o -name '*.hpp' | xargs clang-format -i
+# This will not edit local protoc generated files either.
+BasedOnStyle: Google
