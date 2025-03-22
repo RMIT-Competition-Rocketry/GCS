@@ -56,35 +56,35 @@ jobs:
       uses: actions/cache@v4
       with:
         path: $HOME/abseil-install
-        key: abseil-${{ runner.os }}-${{ hashFiles('**/abseil/**') }}
+        key: abseil-${{ runner.os }}
 
     - id: cache_protobuf
       name: Cache Protobuf Install Directory
       uses: actions/cache@v4
       with:
         path: $HOME/protobuf-install
-        key: protobuf-${{ runner.os }}-${{ hashFiles('**/protobuf/**') }}
+        key: protobuf-${{ runner.os }}
 
     - id: cache_zeromq
       name: Cache ZeroMQ Install Directory
       uses: actions/cache@v4
       with:
         path: $HOME/zeromq-install
-        key: zeromq-${{ runner.os }}-${{ hashFiles('**/zeromq/**') }}
+        key: zeromq-${{ runner.os }}
 
     - id: cache_cppzmq
       name: Cache cppzmq Install Directory
       uses: actions/cache@v4
       with:
         path: $HOME/cppzmq-install
-        key: cppzmq-${{ runner.os }}-${{ hashFiles('**/cppzmq/**') }}
+        key: cppzmq-${{ runner.os }}
 
     - id: cache_googletest
       name: Cache GoogleTest Build Directory
       uses: actions/cache@v4
       with:
         path: $HOME/googletest
-        key: googletest-${{ runner.os }}-${{ hashFiles('**/googletest/**') }}
+        key: googletest-${{ runner.os }}
 
     # --- End Cache Steps ---
 
