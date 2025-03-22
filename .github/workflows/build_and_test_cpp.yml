@@ -47,7 +47,7 @@ jobs:
         mkdir -p "/home/runner/protobuf-install"
         mkdir -p "/home/runner/cppzmq-install"
         mkdir -p "/home/runner/zeromq-install"
-        mkdir -p "/home/runner/googletest"
+        mkdir -p "/home/runner/googletest-install"
 
     # --- Cache Steps ---
     - id: cache_abseil
@@ -79,11 +79,11 @@ jobs:
         key: cppzmq-${{ runner.os }}
 
     - id: cache_googletest
-      name: Cache GoogleTest Build Directory
+      name: Cache GoogleTest Build Install Directory
       uses: actions/cache@v4
       with:
-        path: /home/runner/googletest
-        key: googletest-${{ runner.os }}
+        path: /home/runner/googletest-install
+        key: googletest-install-${{ runner.os }}
 
     - name: Cache debug
       run: |
@@ -114,7 +114,7 @@ jobs:
 
     - name: Set CMake Prefix Path
       run: |
-        echo "CMAKE_PREFIX_PATH=$HOME/abseil-install:$HOME/protobuf-install:$HOME/zeromq-install:$HOME/cppzmq-install" >> "$GITHUB_ENV"
+        echo "CMAKE_PREFIX_PATH=$HOME/abseil-install:$HOME/protobuf-install:$HOME/zeromq-install:$HOME/cppzmq-install:$HOME/googletest-install" >> "$GITHUB_ENV"
 
     # Install dependencies only locally when ACT=true
     - name: Install Act dependencies
@@ -226,9 +226,9 @@ jobs:
         git clone https://github.com/google/googletest.git "$HOME/googletest"
         cd "$HOME/googletest"
         mkdir build && cd build
-        cmake ..
+        cmake -DCMAKE_INSTALL_PREFIX="$HOME/googletest-install" ..
         make -j"$(nproc)"
-        sudo make install
+        make install
 
     # --- Set reusable strings for build output directory ---
     - name: Set reusable strings
@@ -246,7 +246,7 @@ jobs:
               -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
               -DProtobuf_ROOT="$HOME/protobuf-install" \
               -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" \
-              -DGTEST_ROOT=/usr/local \
+              -DGTest_ROOT="$HOME/googletest-install" \
               -S "${{ github.workspace }}"
 
     # --- Build the project ---
