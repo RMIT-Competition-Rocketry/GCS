@@ -85,6 +85,17 @@ jobs:
         path: /home/runner/googletest
         key: googletest-${{ runner.os }}
 
+    - name: Cache debug
+      run: |
+        echo "Cache debug"
+        echo "Cache abseil: ${{ steps.cache_abseil.outputs.cache-hit }}"
+        echo "Cache protobuf: ${{ steps.cache_protobuf.outputs.cache-hit }}"
+        echo "Cache zeromq: ${{ steps.cache_zeromq.outputs.cache-hit }}"
+        echo "Cache cppzmq: ${{ steps.cache_cppzmq.outputs.cache-hit }}"
+        echo "Cache googletest: ${{ steps.cache_googletest.outputs.cache-hit }}"
+        echo "Home folder debug (2 levels)"
+        find $HOME -maxdepth 2 -print
+
     # --- End Cache Steps ---
 
     # Install dependencies only locally when ACT=true
