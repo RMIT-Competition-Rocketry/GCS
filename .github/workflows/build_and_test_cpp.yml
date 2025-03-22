@@ -43,47 +43,46 @@ jobs:
 
     - name: Create cache directories
       run: |
-        mkdir -p "$HOME/abseil-install"
-        mkdir -p "$HOME/protobuf-install"
-        mkdir -p "$HOME/cppzmq-install"
-        mkdir -p "$HOME/zeromq-install"
-        mkdir -p "$HOME/zeromq-install"
-        mkdir -p "$HOME/googletest"
+        mkdir -p "/home/runner/abseil-install"
+        mkdir -p "/home/runner/protobuf-install"
+        mkdir -p "/home/runner/cppzmq-install"
+        mkdir -p "/home/runner/zeromq-install"
+        mkdir -p "/home/runner/googletest"
 
     # --- Cache Steps ---
     - id: cache_abseil
       name: Cache Abseil Install Directory
       uses: actions/cache@v4
       with:
-        path: $HOME/abseil-install
+        path: /home/runner/abseil-install
         key: abseil-${{ runner.os }}
 
     - id: cache_protobuf
       name: Cache Protobuf Install Directory
       uses: actions/cache@v4
       with:
-        path: $HOME/protobuf-install
+        path: /home/runner/protobuf-install
         key: protobuf-${{ runner.os }}
 
     - id: cache_zeromq
       name: Cache ZeroMQ Install Directory
       uses: actions/cache@v4
       with:
-        path: $HOME/zeromq-install
+        path: /home/runner/zeromq-install
         key: zeromq-${{ runner.os }}
 
     - id: cache_cppzmq
       name: Cache cppzmq Install Directory
       uses: actions/cache@v4
       with:
-        path: $HOME/cppzmq-install
+        path: /home/runner/cppzmq-install
         key: cppzmq-${{ runner.os }}
 
     - id: cache_googletest
       name: Cache GoogleTest Build Directory
       uses: actions/cache@v4
       with:
-        path: $HOME/googletest
+        path: /home/runner/googletest
         key: googletest-${{ runner.os }}
 
     # --- End Cache Steps ---
