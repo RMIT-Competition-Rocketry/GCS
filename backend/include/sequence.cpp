@@ -1,15 +1,15 @@
 #include "sequence.hpp"
+
 #include <cassert>
 
 // Sequence constrcutor.
 // This object should be treated like a singleton,
 // but passed by refference across threads instead of calling the constructor
 // on each new instance
-Sequence::Sequence()
-{
-    assert(singleton_created_ == false);
-    current_state_ = LOOP_PRE_LAUNCH;
-    singleton_created_ = true;
+Sequence::Sequence() {
+  assert(singleton_created_ == false);
+  current_state_ = LOOP_PRE_LAUNCH;
+  singleton_created_ = true;
 }
 
 // Are we waiting for a response from the GSE?
