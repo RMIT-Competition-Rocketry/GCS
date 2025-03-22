@@ -45,11 +45,10 @@ jobs:
       run: |
         mkdir -p "$HOME/abseil-install"
         mkdir -p "$HOME/protobuf-install"
-        mkdir -p "$HOME/zeromq-install"
         mkdir -p "$HOME/cppzmq-install"
         mkdir -p "$HOME/zeromq-install"
         mkdir -p "$HOME/zeromq-install"
-        mkdir -p "$HOME/googletest/build"
+        mkdir -p "$HOME/googletest"
 
     # --- Cache Steps ---
     - id: cache_abseil
