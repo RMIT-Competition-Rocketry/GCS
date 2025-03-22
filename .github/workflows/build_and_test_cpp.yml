@@ -209,8 +209,9 @@ jobs:
       run: 
         tree
 
+    # Here, build is the artefact folder name from root
     - name: Set executable permissions
-      run: chmod +x build/backend/tests/runTests
+      run: chmod +x build/build/runTests
 
     - name: Run Tests
       working-directory: ${{ github.workspace }}/build
