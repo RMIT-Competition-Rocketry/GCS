@@ -1,4 +1,5 @@
 # GCS
+![HIVE Badge](https://github.com/RMIT-Competition-Rocketry/.github/blob/main/assets/hive_badge.svg)
 
 ![Build](https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg)
 
