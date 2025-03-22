@@ -41,6 +41,44 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # --- Cache Steps ---
+    - id: cache_abseil
+      name: Cache Abseil Install Directory
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.HOME }}/abseil-install
+        key: abseil-${{ runner.os }}-${{ hashFiles('**/abseil/**') }}
+
+    - id: cache_protobuf
+      name: Cache Protobuf Install Directory
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.HOME }}/protobuf-install
+        key: protobuf-${{ runner.os }}-${{ hashFiles('**/protobuf/**') }}
+
+    - id: cache_zeromq
+      name: Cache ZeroMQ Install Directory
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.HOME }}/zeromq-install
+        key: zeromq-${{ runner.os }}-${{ hashFiles('**/zeromq/**') }}
+
+    - id: cache_cppzmq
+      name: Cache cppzmq Install Directory
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.HOME }}/cppzmq-install
+        key: cppzmq-${{ runner.os }}-${{ hashFiles('**/cppzmq/**') }}
+
+    - id: cache_googletest
+      name: Cache GoogleTest Build Directory
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.HOME }}/googletest/build
+        key: googletest-${{ runner.os }}-${{ hashFiles('**/googletest/**') }}
+
+    # --- End Cache Steps ---
+
     # Install dependencies only locally when ACT=true
     - name: Install Act dependencies
       if: ${{ env.ACT == 'true' }}
@@ -56,10 +94,11 @@ jobs:
         curl -Lo /usr/local/bin/bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
         chmod +x /usr/local/bin/bazelisk
         sudo ln -sf /usr/local/bin/bazelisk /usr/local/bin/bazel
-        bazel --version  # Verify installation
+        bazel --version
 
     # Install abseil libraries to a local directory (no sudo)
     - name: Install Abseil Libraries
+      if: steps.cache_abseil.outputs.cache-hit != 'true'
       run: |
         mkdir -p "$HOME/abseil"
         git clone https://github.com/abseil/abseil-cpp.git "$HOME/abseil"
@@ -70,8 +109,10 @@ jobs:
         make "-j$(nproc)"
         make install
 
-    # Build protoc, protobuf, and libprotobuf-dev in a local directory (no sudo)
+
+    # --- Build Protoc and Protobuf ---
     - name: Build Protoc and Protobuf
+      if: steps.cache_protobuf.outputs.cache-hit != 'true'
       run: |
         PB_VERSION=29.3
         curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PB_VERSION}/protobuf-${PB_VERSION}.zip"
@@ -89,8 +130,9 @@ jobs:
         make install
         echo "$HOME/protobuf-install/bin" >> "$GITHUB_PATH"
 
-
+    # --- Install LibZMQ ---
     - name: Install LibZMQ
+      if: steps.cache_zeromq.outputs.cache-hit != 'true'
       run: |
         ZMQ_VERSION=4.3.5
         mkdir -p "$HOME/zeromq"
@@ -107,8 +149,9 @@ jobs:
         make install
         echo "ZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ" >> "$GITHUB_ENV"
 
-
+    # --- Install cppzmq ---
     - name: Install cppzmq
+      if: steps.cache_cppzmq.outputs.cache-hit != 'true'
       run: |
         CPPZMQ_VERSION=4.10.0
         curl -LO "https://github.com/zeromq/cppzmq/archive/refs/tags/v${CPPZMQ_VERSION}.zip"
@@ -122,19 +165,15 @@ jobs:
         make -j"$(nproc)"
         make install
 
-
-    # Get this out of here when you get proto working for python in CMake
+    # --- Create Protoc Files ---
     - name: Create Protoc files
-      run: |
-        bash scripts/proto_manual.sh
+      run: bash scripts/proto_manual.sh
 
-    # Install tree for debugging (no sudo)
+    # --- Install tree for debugging (if ACT is true) ---
     - name: Install tree
       if: ${{ env.ACT == 'true' }}
-      run: |
-        sudo apt-get install -y tree
+      run: sudo apt-get install -y tree
 
-    # Display directory structure in debug
     - name: Display directory structure
       if: ${{ env.ACT == 'true' }}
       run: |
@@ -142,7 +181,9 @@ jobs:
         echo "Directory structure debug of ${TREE_SHOW_PATH}"
         tree "$TREE_SHOW_PATH"
 
+    # --- Install Google Test ---
     - name: Install Google Test
+      if: steps.cache_googletest.outputs.cache-hit != 'true'
       run: |
         mkdir -p "$HOME/googletest"
         git clone https://github.com/google/googletest.git "$HOME/googletest"
@@ -152,14 +193,13 @@ jobs:
         make -j"$(nproc)"
         sudo make install
 
-    # Set reusable strings for build output directory
+    # --- Set reusable strings for build output directory ---
     - name: Set reusable strings
       id: strings
       shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-      
-      # Update the 'Configure CMake' step to include the GTest paths
+      run: echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    # --- Configure CMake ---
     - name: Configure CMake
       run: |
         cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
@@ -170,11 +210,11 @@ jobs:
               -DGTEST_ROOT=/usr/local \
               -S "${{ github.workspace }}"
 
-    # Build the project
+    # --- Build the project ---
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    # Export binaries as artifacts
+    # --- Export binaries as artifacts ---
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -192,13 +232,11 @@ jobs:
         cpp_compiler: [g++, clang++]
 
     steps:
-
     - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
-          name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-          path: build
-
+        name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+        path: build
 
     - name: Install CMake and tree
       run: |
@@ -206,10 +244,9 @@ jobs:
         sudo apt-get install -y cmake tree
 
     - name: Tree debug
-      run: 
-        tree
+      run: tree
 
-    # Here, build is the artefact folder name from root
+    # Set executable permissions for tests
     - name: Set executable permissions
       run: chmod +x build/build/runTests
 
