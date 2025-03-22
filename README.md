@@ -1,4 +1,5 @@
 # GCS
+![HIVE Badge](https://github.com/RMIT-Competition-Rocketry/.github/blob/main/assets/hive_badge.svg)
 
 <p>
   <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">

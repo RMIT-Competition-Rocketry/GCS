@@ -130,11 +130,11 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
                     break;
                 case GSE_TO_GCS_DATA_1::ID: // 6
                     process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
-                    sequence.recieved_gse();
+                    sequence.received_gse();
                     break;
                 case GSE_TO_GCS_DATA_2::ID: // 7
                     process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
-                    sequence.recieved_gse();
+                    sequence.received_gse();
                     break;
                 default:
                     std::string numeric_val = std::to_string(static_cast<int>(packet_id));

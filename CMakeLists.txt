@@ -3,28 +3,6 @@ project(middleware_server LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
 
-if(BUILD_TESTS)
-    enable_testing() # Enables CTest
-    message(STATUS "Building tests")
-    find_package(GTest CONFIG QUIET)
-
-    if(NOT GTest_FOUND)
-        message(STATUS "Installing GTest")
-        include(FetchContent)
-        FetchContent_Declare(
-            googletest
-            URL https://github.com/google/googletest/archive/e7b26b72461e0bfcb5a2a9c1cafd849108f834ae.zip
-            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-        )
-
-        FetchContent_MakeAvailable(googletest)
-    else()
-        message(STATUS "GoogleTest found at: ${GTest_DIR}")
-    endif()
-
-    add_subdirectory(backend/tests)
-endif()
-
 # Find Protobuf
 find_package(Protobuf CONFIG QUIET)
 
@@ -50,11 +28,20 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -pthread")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
 set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
 
-file(GLOB SRCS "${SRC_DIR}/*.cpp")
+file(GLOB_RECURSE LIB_SRCS
+    "${SRC_DIR}/*.cpp"
+    "${CMAKE_SOURCE_DIR}/backend/include/*.cpp"
+)
+
+# Separate main source file from sources (main.cpp)
+list(REMOVE_ITEM LIB_SRCS "${SRC_DIR}/main.cpp")
+set(MAIN_SRC "${SRC_DIR}/main.cpp")
+file(MAKE_DIRECTORY ${BUILD_DIR})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 
-add_executable(middleware_server ${SRCS})
+add_library(middleware_lib ${LIB_SRCS})
+add_executable(middleware_server ${MAIN_SRC})
 
 # Protobuf generation for cpp files
 file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
@@ -82,14 +69,14 @@ protobuf_generate(
 
 # Define DEBUG macro in debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(middleware_server PRIVATE DEBUG)
+    target_compile_definitions(middleware_lib PUBLIC DEBUG)
 endif()
 
 # Add the generated sources to your middleware executable
-target_sources(middleware_server PRIVATE ${PROTO_SOURCES})
+target_sources(middleware_server PUBLIC ${PROTO_SOURCES})
 
 # Make sure middleware can find the generated headers
-target_include_directories(middleware_server PRIVATE
+target_include_directories(middleware_server PUBLIC
     ${PROTO_BINARY_DIR}
     ${Protobuf_INCLUDE_DIRS}
 )
@@ -139,7 +126,7 @@ if(NOT ZMQ_LIBRARY)
 endif()
 
 # Include directories
-target_include_directories(middleware_server PRIVATE
+target_include_directories(middleware_lib PUBLIC
     ${CMAKE_SOURCE_DIR}/generated # Protobuf generated headers
     ${Protobuf_INCLUDE_DIRS}
     ${ZMQ_INCLUDE_DIR}
@@ -150,28 +137,40 @@ target_include_directories(middleware_server PRIVATE
     ${CMAKE_SOURCE_DIR}/backend/proto/generated/payloads
 )
 
-file(GLOB SEQUENCE_SRCS
-    ${CMAKE_SOURCE_DIR}/backend/include/*.cpp
-)
-target_sources(middleware_server PRIVATE ${SEQUENCE_SRCS})
-
 # Link libraries
-target_link_libraries(middleware_server PRIVATE
+target_link_libraries(middleware_lib PUBLIC
     protobuf::libprotobuf # Modern target-based linking
     $<TARGET_OBJECTS:proto-objects>
     ${ZMQ_LIBRARY}
     m
 )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_link_libraries(middleware_server PRIVATE
-        stdc++
-        m
-    )
-endif()
+target_link_libraries(middleware_server PUBLIC middleware_lib)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_server_release")
 endif()
 
 install(TARGETS middleware_server DESTINATION bin)
+
+if(BUILD_TESTS)
+    enable_testing() # Enables CTest
+    message(STATUS "Building tests")
+    find_package(GTest CONFIG QUIET)
+
+    if(NOT GTest_FOUND)
+        message(STATUS "Installing GTest")
+        include(FetchContent)
+        FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/e7b26b72461e0bfcb5a2a9c1cafd849108f834ae.zip
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        )
+
+        FetchContent_MakeAvailable(googletest)
+    else()
+        message(STATUS "GoogleTest found at: ${GTest_DIR}")
+    endif()
+
+    add_subdirectory(backend/tests)
+endif()

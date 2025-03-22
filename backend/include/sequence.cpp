@@ -15,4 +15,4 @@ Sequence::Sequence()
 // Are we waiting for a response from the GSE?
 bool Sequence::waiting_for_gse() { return !gse_write_lock_.is_locked(); }
 void Sequence::await_gse() { gse_write_lock_.lock(); }
-void Sequence::recieved_gse() { gse_write_lock_.unlock(); }
+void Sequence::received_gse() { gse_write_lock_.unlock(); }

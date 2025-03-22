@@ -126,7 +126,7 @@ jobs:
     # Get this out of here when you get proto working for python in CMake
     - name: Create Protoc files
       run: |
-        bash proto_manual.sh
+        bash scripts/proto_manual.sh
 
     # Install tree for debugging (no sudo)
     - name: Install tree
@@ -209,8 +209,9 @@ jobs:
       run: 
         tree
 
+    # Here, build is the artefact folder name from root
     - name: Set executable permissions
-      run: chmod +x build/backend/tests/runTests
+      run: chmod +x build/build/runTests
 
     - name: Run Tests
       working-directory: ${{ github.workspace }}/build
