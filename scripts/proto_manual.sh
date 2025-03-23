@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # protoc --proto_path "${PWD}/backend/proto" --cpp_out="${PWD}/backend/proto/generated/payloads" "${PWD}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto"
+set -e
 
 echo "Generating Python and C++ files from proto files in ./backend/proto/payloads/"
 mkdir -p ./backend/proto/generated/
