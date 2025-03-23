@@ -22,7 +22,7 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 
 | Name | Role | Year |
 | --- | --- | --- |
-| Freddy Mcloughlan (`sandwich1699975`)  | GCS backend software engineer | 2025 |
+| Freddy Mcloughlan (`mcloughlan`)  | GCS backend software engineer | 2025 |
 | Amber Taylor (`s4105951`)  | GCS frontend developer | 2025 |
 | Caspar O'Neill (`s3899921`)  | GCS QA engineer & API integration | 2025 |
 | ... (`...`)  | ... | 2025 |
