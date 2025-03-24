@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <cstdint>
 #include <iostream>
 #include <stdexcept>
@@ -17,37 +18,40 @@ class ByteParser {
  public:
   /// @brief Provides a handler to safely extract bits from a byte array.
   /// @param data Incoming raw bytes
-  /// @param size Amount of bytes in the data array
+  /// @param num_bytes Amount of bytes in the data array
   /// @param endianness Byte order of the data (big-endian default)
+  /// @throws std::out_of_range if you don't read the amount of bytes specified
+  /// in the constructor
 
-  ByteParser(const uint8_t *data, size_t size,
+  ByteParser(const uint8_t *data, size_t num_bytes,
              ByteOrder endianness = ByteOrder::BIG_ENDIAN_ORDER)
 
       : data_(data),
-        size_(size),
+        size_(num_bytes),
         byte_index_(0),
         bit_offset_(0),
         endianness_(endianness) {}
 
-  ~ByteParser() {
 #ifdef DEBUG
-    // If not all bytes were consumed, output a warning.
-    // slogger::debug("ByteParser DEBUG. Processed " +
-    //                        std::to_string(byte_index_) +
-    //                        " of " + std::to_string(size_) +
-    //                        " bytes (bit offset: " +
-    //                        std::to_string(bit_offset_) + ")");
-    if (byte_index_ < size_ || (byte_index_ == size_ && bit_offset_ != 0)) {
+  ~ByteParser() {
+    if (bits_remaining() != 0) {
       slogger::critical(
           "ByteParser destroyed without consuming all data. Processed " +
           std::to_string(byte_index_) + " of " + std::to_string(size_) +
           " bytes (bit offset: " + std::to_string(bit_offset_) + ")");
     }
-#endif
+    assert(bits_remaining() == 0);
   }
+#else
+  ~ByteParser() = default;
+#endif
 
-  uint32_t extract_bits(uint8_t num_bits) {
-    if (num_bits > 32 || byte_index_ >= size_) {
+  uint32_t extract_unsigned_bits(const uint8_t num_bits) {
+    if (num_bits == 0) {
+      return 0;
+    }
+
+    if (num_bits > 32 || num_bits > bits_remaining()) {
       throw std::out_of_range("Invalid bit extraction request.");
     }
 
@@ -91,8 +95,8 @@ class ByteParser {
     return result;
   }
 
-  int32_t extract_signed_bits(uint8_t num_bits) {
-    uint32_t value = extract_bits(num_bits);
+  int32_t extract_signed_bits(const uint8_t num_bits) {
+    uint32_t value = extract_unsigned_bits(num_bits);
     if (value & (1 << (num_bits - 1))) {  // Check sign bit
       value |= (0xFFFFFFFF << num_bits);  // Extend sign
     }
@@ -103,10 +107,16 @@ class ByteParser {
     std::string result;
     result.reserve(num_chars);
     for (uint8_t i = 0; i < num_chars; i++) {
-      uint32_t byte_val = extract_bits(8);
+      uint32_t byte_val = extract_unsigned_bits(PROTOCOL_BYTE_SIZE);
       result.push_back(static_cast<char>(byte_val));
     }
     return result;
+  }
+
+  size_t bits_remaining() const {
+    // runs with the whole assumption that you're only using data with this
+    // class byte wise, such that total_bits % 8 == 0
+    return (size_ - byte_index_) * PROTOCOL_BYTE_SIZE - bit_offset_;
   }
 
  private:

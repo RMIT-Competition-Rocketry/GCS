@@ -23,16 +23,17 @@ class AV_TO_GCS_DATA_2 {
     // DON'T EXTRACT BITS FOR ID!!!!
     // ID is handled seperatly in main loop for packet type identification
 
-    flight_state_ = calc_flight_state(parser.extract_bits(3));
+    flight_state_ = calc_flight_state(parser.extract_unsigned_bits(3));
 
     dual_board_connectivity_state_flag_ =
-        static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     recovery_checks_complete_and_flight_ready_ =
-        static_cast<bool>(parser.extract_bits(1));
-    gps_fix_flag_ = static_cast<bool>(parser.extract_bits(1));
-    payload_connection_flag_ = static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    gps_fix_flag_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    payload_connection_flag_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     camera_controller_connection_flag_ =
-        static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
 
     GPS_latitude_ = parser.extract_string(15);
     GPS_longitude_ = parser.extract_string(15);
