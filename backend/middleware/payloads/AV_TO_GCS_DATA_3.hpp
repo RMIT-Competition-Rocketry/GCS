@@ -23,21 +23,22 @@ class AV_TO_GCS_DATA_3 {
     // DON'T EXTRACT BITS FOR ID!!!!
     // ID is handled seperatly in main loop for packet type identification
 
-    flight_state_ = calc_flight_state(parser.extract_bits(3));
+    flight_state_ = calc_flight_state(parser.extract_unsigned_bits(3));
 
     dual_board_connectivity_state_flag_ =
-        static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     recovery_checks_complete_and_flight_ready_ =
-        static_cast<bool>(parser.extract_bits(1));
-    gps_fix_flag_ = static_cast<bool>(parser.extract_bits(1));
-    payload_connection_flag_ = static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    gps_fix_flag_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    payload_connection_flag_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     camera_controller_connection_flag_ =
-        static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
 
     // For TBC bytes if this packet is even seen
     constexpr int BYTES_TO_SKIP = 30;
     for (int i = 0; i < BYTES_TO_SKIP; ++i) {
-      parser.extract_bits(PROTOCOL_BYTE_SIZE);
+      parser.extract_unsigned_bits(PROTOCOL_BYTE_SIZE);
     }
   }
 

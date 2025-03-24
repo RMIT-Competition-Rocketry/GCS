@@ -23,44 +23,51 @@ class GSE_TO_GCS_DATA_2 {
     // DON'T EXTRACT BITS FOR ID!!!!
     // ID is handled seperatly in main loop for packet type identification
 
-    manual_purge_activated_ = static_cast<bool>(parser.extract_bits(1));
-    o2_fill_activated_ = static_cast<bool>(parser.extract_bits(1));
+    manual_purge_activated_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    o2_fill_activated_ = static_cast<bool>(parser.extract_unsigned_bits(1));
     selector_switch_neutral_position_ =
-        static_cast<bool>(parser.extract_bits(1));
-    n20_fill_activated_ = static_cast<bool>(parser.extract_bits(1));
-    ignition_fired_ = static_cast<bool>(parser.extract_bits(1));
-    ignition_selected_ = static_cast<bool>(parser.extract_bits(1));
-    gas_fill_selected_ = static_cast<bool>(parser.extract_bits(1));
-    system_activated_ = static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    n20_fill_activated_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    ignition_fired_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    ignition_selected_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    gas_fill_selected_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    system_activated_ = static_cast<bool>(parser.extract_unsigned_bits(1));
 
-    internal_temp_ = std::bit_cast<float>(parser.extract_bits(32));
-    wind_speed_ = std::bit_cast<float>(parser.extract_bits(32));
-    gas_bottle_weight_1_ = static_cast<unsigned int>(parser.extract_bits(16));
-    gas_bottle_weight_2_ = static_cast<unsigned int>(parser.extract_bits(16));
-    analog_voltage_input_1_ = std::bit_cast<float>(parser.extract_bits(32));
-    analog_voltage_input_2_ = std::bit_cast<float>(parser.extract_bits(32));
-    additional_current_input_1_ = std::bit_cast<float>(parser.extract_bits(32));
-    additional_current_input_2_ = std::bit_cast<float>(parser.extract_bits(32));
+    internal_temp_ = std::bit_cast<float>(parser.extract_unsigned_bits(32));
+    wind_speed_ = std::bit_cast<float>(parser.extract_unsigned_bits(32));
+    gas_bottle_weight_1_ =
+        static_cast<unsigned int>(parser.extract_unsigned_bits(16));
+    gas_bottle_weight_2_ =
+        static_cast<unsigned int>(parser.extract_unsigned_bits(16));
+    analog_voltage_input_1_ =
+        std::bit_cast<float>(parser.extract_unsigned_bits(32));
+    analog_voltage_input_2_ =
+        std::bit_cast<float>(parser.extract_unsigned_bits(32));
+    additional_current_input_1_ =
+        std::bit_cast<float>(parser.extract_unsigned_bits(32));
+    additional_current_input_2_ =
+        std::bit_cast<float>(parser.extract_unsigned_bits(32));
 
     // Note 10
-    ignition_error_ = static_cast<bool>(parser.extract_bits(1));
-    relay_3_error_ = static_cast<bool>(parser.extract_bits(1));
-    relay_2_error_ = static_cast<bool>(parser.extract_bits(1));
-    relay_1_error_ = static_cast<bool>(parser.extract_bits(1));
-    thermocouple_4_error_ = static_cast<bool>(parser.extract_bits(1));
-    thermocouple_3_error_ = static_cast<bool>(parser.extract_bits(1));
-    thermocouple_2_error_ = static_cast<bool>(parser.extract_bits(1));
-    thermocouple_1_error_ = static_cast<bool>(parser.extract_bits(1));
+    ignition_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    relay_3_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    relay_2_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    relay_1_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    thermocouple_4_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    thermocouple_3_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    thermocouple_2_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    thermocouple_1_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
 
     // Note 11
-    load_cell_4_error_ = static_cast<bool>(parser.extract_bits(1));
-    load_cell_3_error_ = static_cast<bool>(parser.extract_bits(1));
-    load_cell_2_error_ = static_cast<bool>(parser.extract_bits(1));
-    load_cell_1_error_ = static_cast<bool>(parser.extract_bits(1));
-    transducer_4_error_ = static_cast<bool>(parser.extract_bits(1));
-    transducer_3_error_ = static_cast<bool>(parser.extract_bits(1));
-    transducer_2_error_ = static_cast<bool>(parser.extract_bits(1));
-    transducer_1_error_ = static_cast<bool>(parser.extract_bits(1));
+    load_cell_4_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    load_cell_3_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    load_cell_2_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    load_cell_1_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    transducer_4_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    transducer_3_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    transducer_2_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    transducer_1_error_ = static_cast<bool>(parser.extract_unsigned_bits(1));
   }
 
   // Getters for the private members

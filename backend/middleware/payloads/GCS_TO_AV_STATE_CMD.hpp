@@ -24,21 +24,25 @@ class GCS_TO_AV_STATE_CMD {
     // ID is handled seperatly in main loop for packet type identification
 
     // 0b1010
-    parser.extract_bits(4);  // Skip continuity check fixed bytes
-    main_secondary_test_ = static_cast<bool>(parser.extract_bits(1));
-    main_primary_test_ = static_cast<bool>(parser.extract_bits(1));
-    apogee_secondary_test_ = static_cast<bool>(parser.extract_bits(1));
-    apogee_primary_test_ = static_cast<bool>(parser.extract_bits(1));
+    parser.extract_unsigned_bits(4);  // Skip continuity check fixed bytes
+    main_secondary_test_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    main_primary_test_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    apogee_secondary_test_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    apogee_primary_test_ = static_cast<bool>(parser.extract_unsigned_bits(1));
 
     // 0b0101
-    parser.extract_bits(4);  // Skip continuity check fixed bytes
-    main_secondary_test_inverted_ = static_cast<bool>(parser.extract_bits(1));
-    main_primary_test_inverted_ = static_cast<bool>(parser.extract_bits(1));
-    apogee_secondary_test_inverted_ = static_cast<bool>(parser.extract_bits(1));
-    apogee_primary_test_inverted_ = static_cast<bool>(parser.extract_bits(1));
+    parser.extract_unsigned_bits(4);  // Skip continuity check fixed bytes
+    main_secondary_test_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    main_primary_test_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    apogee_secondary_test_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    apogee_primary_test_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
 
     // TODO add bit validation here with 3 cases.0xFF, 0x00, else
-    broadcast_begin_ = parser.extract_bits(8) == 0xFF;
+    broadcast_begin_ = parser.extract_unsigned_bits(8) == 0xFF;
   }
 
   // Getters for the private members

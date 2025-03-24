@@ -42,9 +42,8 @@ inline void set_thread_name([[maybe_unused]] const char *name) {
 template <typename PacketType>
 void process_packet(const ssize_t BUFFER_BYTE_COUNT,
                     std::vector<uint8_t> &buffer, zmq::socket_t &pub_socket) {
-  if (BUFFER_BYTE_COUNT >=
-      PacketType::SIZE)  // SIZE should include the already read ID byte.
-  {
+  // SIZE does not include ID byte that's already been read
+  if (BUFFER_BYTE_COUNT == PacketType::SIZE + 1) {
     try {
       // Construct the packet object (skipping the ID byte)
       PacketType payload(&buffer[1]);
@@ -73,8 +72,13 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
       slogger::error(std::string(PacketType::PACKET_NAME) +
                      ": Error processing payload: " + e.what());
     }
+  } else {
+    slogger::error(std::string(PacketType::PACKET_NAME) +
+                   ": Incorrect packet size. Expected: " +
+                   std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
+                   std::to_string(BUFFER_BYTE_COUNT) + " bytes");
+    return;  // TODO: Test what the leftover data will do after this
   }
-  // Else: Consider handling when not enough data is available.
 }
 
 void input_read_loop(std::shared_ptr<LoraInterface> interface,

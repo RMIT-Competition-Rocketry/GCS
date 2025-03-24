@@ -23,27 +23,34 @@ class GCS_TO_GSE_STATE_CMD {
     // DON'T EXTRACT BITS FOR ID!!!!
     // ID is handled seperatly in main loop for packet type identification
 
-    manual_purge_activate_ = static_cast<bool>(parser.extract_bits(1));
-    o2_fill_activate_ = static_cast<bool>(parser.extract_bits(1));
+    manual_purge_activate_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    o2_fill_activate_ = static_cast<bool>(parser.extract_unsigned_bits(1));
     selector_switch_neutral_position_ =
-        static_cast<bool>(parser.extract_bits(1));
-    n20_fill_activate_ = static_cast<bool>(parser.extract_bits(1));
-    ignition_fire_ = static_cast<bool>(parser.extract_bits(1));
-    ignition_selected_ = static_cast<bool>(parser.extract_bits(1));
-    gas_fill_selected_ = static_cast<bool>(parser.extract_bits(1));
-    system_activate_ = static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    n20_fill_activate_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    ignition_fire_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    ignition_selected_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    gas_fill_selected_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    system_activate_ = static_cast<bool>(parser.extract_unsigned_bits(1));
 
-    manual_purge_activate_inverted_ = static_cast<bool>(parser.extract_bits(1));
-    o2_fill_activate_inverted_ = static_cast<bool>(parser.extract_bits(1));
+    manual_purge_activate_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    o2_fill_activate_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     selector_switch_neutral_position_inverted_ =
-        static_cast<bool>(parser.extract_bits(1));
-    n20_fill_activate_inverted_ = static_cast<bool>(parser.extract_bits(1));
-    ignition_fire_inverted_ = static_cast<bool>(parser.extract_bits(1));
-    ignition_selected_inverted_ = static_cast<bool>(parser.extract_bits(1));
-    gas_fill_selected_inverted_ = static_cast<bool>(parser.extract_bits(1));
-    system_activate_inverted_ = static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    n20_fill_activate_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    ignition_fire_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    ignition_selected_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    gas_fill_selected_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    system_activate_inverted_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
 
-    parser.extract_bits(8);  // Skip the TBC byte
+    parser.extract_unsigned_bits(8);  // Skip the TBC byte
   }
 
   // Getters for the private members

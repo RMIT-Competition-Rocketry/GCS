@@ -23,16 +23,17 @@ class AV_TO_GCS_DATA_1 {
     // DON'T EXTRACT BITS FOR ID!!!!
     // ID is handled seperatly in main loop for packet type identification
 
-    flight_state_ = calc_flight_state(parser.extract_bits(3));
+    flight_state_ = calc_flight_state(parser.extract_unsigned_bits(3));
 
     dual_board_connectivity_state_flag_ =
-        static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     recovery_checks_complete_and_flight_ready_ =
-        static_cast<bool>(parser.extract_bits(1));
-    gps_fix_flag_ = static_cast<bool>(parser.extract_bits(1));
-    payload_connection_flag_ = static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    gps_fix_flag_ = static_cast<bool>(parser.extract_unsigned_bits(1));
+    payload_connection_flag_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     camera_controller_connection_flag_ =
-        static_cast<bool>(parser.extract_bits(1));
+        static_cast<bool>(parser.extract_unsigned_bits(1));
 
     accel_low_x_ = calc_low_accel_xy_(parser.extract_signed_bits(16));
     accel_low_y_ = calc_low_accel_xy_(parser.extract_signed_bits(16));
@@ -49,23 +50,31 @@ class AV_TO_GCS_DATA_1 {
     altitude_ = std::bit_cast<float>(parser.extract_signed_bits(32));
     velocity_ = std::bit_cast<float>(parser.extract_signed_bits(32));
 
-    apogee_primary_test_compete_ = static_cast<bool>(parser.extract_bits(1));
-    apogee_secondary_test_compete_ = static_cast<bool>(parser.extract_bits(1));
+    apogee_primary_test_compete_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    apogee_secondary_test_compete_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     // Skip 4 fixed bits.
     // Come back to this in future if you are working on #16
-    parser.extract_bits(4);
-    apogee_primary_test_results_ = static_cast<bool>(parser.extract_bits(1));
-    apogee_secondary_test_results_ = static_cast<bool>(parser.extract_bits(1));
+    parser.extract_unsigned_bits(4);
+    apogee_primary_test_results_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    apogee_secondary_test_results_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
 
-    main_primary_test_compete_ = static_cast<bool>(parser.extract_bits(1));
-    main_secondary_test_compete_ = static_cast<bool>(parser.extract_bits(1));
+    main_primary_test_compete_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    main_secondary_test_compete_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
     // Skip 4 fixed bits.
     // Come back to this in future if you are working on #16
-    parser.extract_bits(4);
-    main_primary_test_results_ = static_cast<bool>(parser.extract_bits(1));
-    main_secondary_test_results_ = static_cast<bool>(parser.extract_bits(1));
+    parser.extract_unsigned_bits(4);
+    main_primary_test_results_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
+    main_secondary_test_results_ =
+        static_cast<bool>(parser.extract_unsigned_bits(1));
 
-    uint8_t broadcast_byte = parser.extract_bits(8);
+    uint8_t broadcast_byte = parser.extract_unsigned_bits(8);
     if (broadcast_byte == 0b10101010) {
       broadcast_flag_ = true;
     } else if (broadcast_byte == 0b00000000) {
@@ -77,7 +86,7 @@ class AV_TO_GCS_DATA_1 {
       slogger::error("broadcast_byte");
     }
 
-    parser.extract_bits(8);  // Discard last byte for now
+    parser.extract_unsigned_bits(8);  // Discard last byte for now
   }
 
   // Getters for the private members
