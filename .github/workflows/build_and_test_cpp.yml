@@ -202,10 +202,6 @@ jobs:
         make -j"$(nproc)"
         make install
 
-    # --- Create Protoc Files ---
-    - name: Create Protoc files
-      run: bash scripts/proto_manual.sh
-
     # --- Install tree for debugging (if ACT is true) ---
     - name: Install tree
       if: ${{ env.ACT == 'true' }}

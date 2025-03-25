@@ -43,7 +43,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 add_library(middleware_lib ${LIB_SRCS})
 add_executable(middleware_server ${MAIN_SRC})
 
-# Protobuf generation for cpp files
+# Protobuf generation for cpp and python files
+# Docs: https://github.com/protocolbuffers/protobuf/blob/e1faf09604d26cc6803970815f91225b220175d4/docs/cmake_protobuf_generate.md
 file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
 add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
@@ -53,6 +54,16 @@ file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
 target_include_directories(proto-objects PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
 
 protobuf_generate(
+    LANGUAGE cpp
+    TARGET proto-objects
+    IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/backend/proto"
+    PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
+    APPEND_PATH
+    FILES ${PROTO_FILES}
+)
+
+protobuf_generate(
+    LANGUAGE python
     TARGET proto-objects
     IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/backend/proto"
     PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
