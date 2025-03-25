@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# -----------------------------------------
+# This is redundant if building with CMake. 
+# -----------------------------------------
+
 # protoc --proto_path "${PWD}/backend/proto" --cpp_out="${PWD}/backend/proto/generated/payloads" "${PWD}/backend/proto/payloads/AV_TO_GCS_DATA_1.proto"
 set -e
 
