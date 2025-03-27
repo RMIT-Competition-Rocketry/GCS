@@ -9,6 +9,7 @@ import time
 import pygame
 import signal
 from typing import Optional, Dict, Union, List
+from functools import cache
 
 
 # For those who come back to this code.
@@ -339,6 +340,28 @@ def calculate_states() -> Union[Dict[str, bool], bool]:
         return states
 
 
+@cache  # Calculate once
+def safety_fallback_state():
+    """returns the safest state for the GSE to be in.
+    Used when a state from the controller cannot be interpreted correctly and we
+    still need to send data to GSE to avoid a timeout shutdown
+
+    Leave as function in case logic needs to be updated
+    """
+    states = {
+        "MANUAL_PURGE": False,
+        "O2_FILL_ACTIVATE": False,
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": True,
+        "N2O_FILL_ACTIVATE": False,
+        "IGNITION_FIRE": False,
+        "IGNITION_SELECTED": False,
+        "GAS_FILL_SELECTED": False,
+        "SYSTEM_ACTIVATE": True,
+    }
+
+    return states
+
+
 def send_packet() -> device_emulator.GCStoGSEStateCMD:
     context = zmq.Context()
     try:
@@ -355,7 +378,8 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
             states = calculate_states()
             if states == False:
                 # Error detected
-                slogger.error("Debug error something broken")
+                slogger.error("Invalid controller state")
+                states = safety_fallback_state()
                 continue
             state_command = device_emulator.GCStoGSEStateCMD(**states)
             try:
