@@ -8,5 +8,5 @@ frontend/  @RMIT-Competition-Rocketry/gcs-frontend-capstone
 .github/CODEOWNERS  @RMIT-Competition-Rocketry/spaceport-aurc-2025
 
 # Anyone on the org can add to docs and notes
-docs/* @RMIT-Competition-Rocketry/spaceport-aurc-2025 @RMIT-Competition-Rocketry/gcs-frontend-capstone
-notes/* @RMIT-Competition-Rocketry/spaceport-aurc-2025 @RMIT-Competition-Rocketry/gcs-frontend-capstone
+docs/* 
+notes/* 
