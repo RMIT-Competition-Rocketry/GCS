@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="./css/custom.css" rel="stylesheet">
+    <link href="./css/bootstrap.css" rel="stylesheet">
+    <script src="./js/d3.v7.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row flex-nowrap">
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
+                <div
+                    class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100 bg-muted">
+                    <!-- Logo Control -->
+                    <!--
+                    <a href="/" class="d-flex align-items-center pb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                        <span class="fs-5 d-none d-sm-inline">HIVE LOGO</span>
+                    </a>
+                    -->
+                    <div id="time-container">
+                        <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space" id="24-hour-time"
+                            disabled>XX:XX</button>
+                    </div>
+                    <div class="logo-container">
+                        <img src="./img/HIVE OFFICIAL LOGO WHITE COLOUR [JUNE 2024]_hive logo a4.png"
+                            style="width:50%;height:50%;">
+                        <span class="navbar-brand" id="mission-name" style="font: bold">FLIGHT/MISSION NAME</span>
+                        <!-- Side Bar Control -->
+                        <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start"
+                            id="menu">
+                            <li>
+                                <a href="#submenu1" data-bs-toggle="collapse" class="nav-link px-0 align-middle">
+                            <li class="w-100">
+                                <a href="#" class="nav-link px-0"> <span class="btn btn-primary">Home</span></a>
+                            </li>
+                            <li class="w-100">
+                                <a href="./intialsiation_portal/initialisation_portal.html" class="nav-link px-0"> <span
+                                        class="btn btn-primary">Initialisation Portal</span></a>
+                            </li>
+                            <li class="w-100">
+                                <a href="#" class="nav-link px-0"> <span class="btn btn-primary">Pre-Flight
+                                        Controls</span></a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link px-0"> <span class="btn btn-primary">Internal
+                                        Config</span></a>
+                            </li>
+                        </ul>
+                        </li>
+                        </ul>
+                    </div>
+                    <hr>
+                </div>
+            </div>
+            <!-- Navbar Control -->
+            <div class="body_container col py-3 bg-dark">
+                <nav class="navbar navbar-dark bg-dark">
+                    <div id="navbar">
+                        <div id="AV-1-Connection">
+                            <div id="AV-1-Connection-container">
+                                <div id="AV-1-Connection-wrapper"></div>
+                            </div>
+                            <span class="navbar-text">
+                                &nbsp AV-1
+                            </span>
+                        </div>
+                        <div id="AV-2-Connection">
+                            <div id="AV-2-Connection-container">
+                                <div id="AV-2-Connection-wrapper"></div>
+                            </div>
+                            <span class="navbar-text">
+                                &nbsp AV-2
+                            </span>
+                        </div>
+                        <div id="Payload-CAN-Connection">
+                            <div id="Payload-CAN-Connection-container">
+                                <div id="Payload-CAN-Connection-wrapper"></div>
+                            </div>
+                            <span class="navbar-text">
+                                &nbsp Payload CAN
+                            </span>
+                        </div>
+                        <div id="Aerobrakes-CAN-Connection">
+                            <div id="Aerobrakes-CAN-Connection-container">
+                                <div id="Aerobrakes-CAN-Connection-wrapper"></div>
+                            </div>
+                            <span class="navbar-text">
+                                &nbsp Aerobrakes CAN
+                            </span>
+                        </div>
+                        <div id="Max-altitude-container">
+                            <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space" id="max-altitude"
+                                disabled>Max Altitude: &nbsp &nbsp &nbsp XX,XXX Feet &nbsp &nbsp | &nbsp &nbsp XX,XXX
+                                Meters</button>
+                        </div>
+                    </div>
+                </nav>
+                <!-- Main Content Control Control -->
+                <div class="maincontent_grid">
+                    <!-- AV Diagnostics-->
+                    <div class="maincontent_grid-item" id="AV-Data">
+                        <button type="button" class="btn btn-sm btn-primary Fill-Button-Space" id="AV-Diagnostics"
+                            disabled>AV Diagnostics</button>
+                        <div class="container overflow-hidden">
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <div id="accel_low_graph"></div>
+                                </div>
+                                <div class="col gy-1">
+                                    <div id="accel_high_graph"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <div id="gyro_graph"></div>
+                                </div>
+                                <div class="col gy-1">
+                                    <div id="baro_graph"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div style="display: flex; justify-content: center; align-items: center;"
+                                    id="velocity_graph"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Flight Path-->
+                    <div class="maincontent_grid-item" id="Flight-Data">
+                        <button type="button" class="btn btn-sm btn-primary Fill-Button-Space" disabled>Flight
+                            Path</button>
+                        <div class="container overflow-hidden">
+                            <div class="row">
+                                <div id="threeD_graph"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        disabled>Current GPS</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="latitude"
+                                        disabled>Latitude: XXXX</button>
+                                </div>
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="longitude"
+                                        disabled>Longitude: XXXX</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-primary Fill-Button-Space"
+                                        disabled>Current Altitude</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        id="altitude-feet" disabled>XXXX Feet</button>
+                                </div>
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        id="altitude-meters" disabled>XXXX Meters</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Payload Data-->
+                    </div>
+                    <div class="maincontent_grid-item" id="Payload-Data">
+                        <button type="button" class="btn btn-sm btn-primary Fill-Button-Space" disabled>Payload
+                            Data</button>
+                        <div class="container overflow-hidden">
+                            <div class="row">
+                                <div class="col gy-0">
+                                    <div id="PL_temp_graph"></div>
+                                </div>
+                                <div class="col gy-0">
+                                    <div id="PL_humid_graph"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div id="PL_accel_graph"></div>
+                                </div>
+                                <div class="col">
+                                    <div id="PL_pressure_graph"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-primary Fill-Button-Space"
+                                        disabled>Insulated</button>
+                                </div>
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-primary Fill-Button-Space"
+                                        disabled>Uninsulated</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" disabled>Mean
+                                        Temperature</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        id="PL-mean-temp-insulated" disabled>XXXX</button>
+                                </div>
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        id="PL-mean-temp-uninsualted" disabled>XXXX</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" disabled>Mean
+                                        Humidity</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        id="PL-mean-humid-insulated" disabled>XXXX</button>
+                                </div>
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        id="PL-mean-humid-uninsulated" disabled>XXXX</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" disabled>Mean
+                                        Pressure</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        id="PL-mean-pressure-insulated" disabled>XXXX</button>
+                                </div>
+                                <div class="col gy-1">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        id="PL-mean-pressure-uninsulated" disabled>XXXX</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Communication Diagnostics-->
+                    <div class="maincontent_grid-item" id="LoRa-Data">
+                        <button type="button" class="btn btn-sm btn-primary Fill-Button-Space" id="Coms-diag"
+                            disabled>Communication Diagnostics</button>
+                        <div class="container overflow-hidden">
+                            <div class="row">
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="AV-1-RSSI"
+                                        disabled>AV-1 RSSI: -124db</button>
+                                </div>
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="AV-2-RSSI"
+                                        disabled>AV-2 RSSI: XXX</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-2">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="AV-1-SNR"
+                                        disabled>AV-1 SNR: -12</button>
+                                </div>
+                                <div class="col gy-2">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="AV-2-SNR"
+                                        disabled>AV-2 SNR: XX</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-2">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space"
+                                        id="AV-1-Packets" disabled>AV-1 Packets: 124</button>
+                                </div>
+                                <div class="col gy-2">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space"
+                                        id="AV-2-Packets" disabled>AV-2 Packets: XXX</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-2">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="AV-1-uptime"
+                                        disabled>AV-1 Up Time: XX:XX</button>
+                                </div>
+                                <div class="col gy-2">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="AV-2-uptime"
+                                        disabled>AV-2 Up Time: XX:XX</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Flight Stats-->
+                    <div class="maincontent_grid-item" id="Flight-status">
+                        <div class="container overflow-hidden">
+                            <div class="row">
+                                <div class="col">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" id="flight-time"
+                                        disabled>Flight Time: XX:XX</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-8 gy-4">
+                                    <button type="button" class="btn btn-sm btn-secondary Fill-Button-Space"
+                                        disabled>Flight Status</button>
+                                </div>
+                                <div class="col gy-4">
+                                    <div id="flight-red">
+                                        <div id="flight-red-container">
+                                            <div id="flight-red-wrapper"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col gy-4">
+                                    <div id="flight-yellow">
+                                        <div id="flight-yellow-container">
+                                            <div id="flight-yellow-wrapper"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col gy-4">
+                                    <div id="flight-green">
+                                        <div id="flight-green-container">
+                                            <div id="flight-green-wrapper"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-4">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" disabled>Flight
+                                        State</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-2">
+                                    <button type="button" class="btn btn-sm btn-success Fill-Button-Space"
+                                        id="flight-state" disabled>Main Deployed</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Aerobrakes Data-->
+                    <div class="maincontent_grid-item" id="Aerobrakes-Data">
+                        <button type="button" class="btn btn-sm btn-primary Fill-Button-Space" disabled>Aerobrakes
+                            Data</button>
+                        <div class="container overflow-hidden">
+                            <div class="row">
+                                <div class="col-8 gy-3">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space" disabled>Current
+                                        Status</button>
+                                </div>
+                                <div class="col gy-3">
+                                    <div id="AB-red">
+                                        <div id="AB-red-container">
+                                            <div id="AB-red-wrapper"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col gy-3">
+                                    <div id="AB-yellow">
+                                        <div id="AB-yellow-container">
+                                            <div id="AB-yellow-wrapper"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col gy-3">
+                                    <div id="AB-Green">
+                                        <div id="AB-Green-container">
+                                            <div id="AB-Green-wrapper"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space"
+                                        id="AB-aim-deployment">Aim Deployment: TBC</button>
+                                </div>
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space"
+                                        id="AB-current-deployement">Current Deployment: 0%</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-3">
+                                    <button type="button" class="btn btn-sm btn-dark Fill-Button-Space"
+                                        disabled>Operation State</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col gy-2">
+                                    <button type="button" class="btn btn-sm btn-danger Fill-Button-Space"
+                                        id="AB-state">ERROR: RETRACTING</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Closing Divs-->
+            </div>
+        </div>
+    </div>
+    <script src="./js/base_and_AV.js"></script>
+</body>
+
+</html>
