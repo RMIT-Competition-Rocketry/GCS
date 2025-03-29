@@ -43,6 +43,7 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 - [Pendant Emulator Quick Refference](docs/pendant_emulator.md)
 - [Application Layers](docs/application_layers.md)
 - [Development](docs/development.md)
+- [Glossary](docs/glossary.md)
 
 ### Notes
 
