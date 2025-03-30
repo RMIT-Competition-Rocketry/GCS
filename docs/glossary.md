@@ -21,6 +21,7 @@ Rocktry definitions for HIVE
 | COTS | Commercial Off The Shelf | Classification for rocket parts |
 | SRAD | Student Researched And Designed | Classification for rocket parts |
 | STEVE | Solenoid Triggering Electrical Verification Entity | Our GSE PCB for IREC 2025. |
+| SOTERIA | Greek goddess for safety and deliverance from harm, and a backronym for Synchronous Operational and Telecommunications Environment for Rocket In Air | This is the name for our GCS |
 
 
 
