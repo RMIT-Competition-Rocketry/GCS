@@ -2,6 +2,13 @@
 
 Rocktry definitions for HIVE
 
+## Rockets
+
+| Rocket Name/Program | Description & Relevance |
+| --- | --- |
+| Legacy | IREC 2025 competition rocket. The best rocket - Jono |
+| Aurora | AURC 2024 competition rocket|
+
 ## Acronyms
 
 | Acronym | Definition | Description & Relevance |
@@ -15,11 +22,20 @@ Rocktry definitions for HIVE
 | SRAD | Student Researched And Designed | Classification for rocket parts |
 
 
+
 ## Definitions
 
 | Word | Definition | Description & Relevance |
 | --- | --- | --- |
 | [Hybrid (motor)](https://en.wikipedia.org/wiki/Hybrid-propellant_rocket) | A rocket motor that uses both solid and liquid propellant | This is our 2025 IREC motor choice |
+| AV | Avionics | For flight telemetry systems |
+| Australis | Our avionics ecosystem | Currently used for Legacy |
+| A3 | Avionics board series  | Previously used for Aurora |
+| AV2 | Avionics board series  | Currently used for Legacy |
+
+
+![AV Board Comparison](assets/A3-Australis-rev1.png)
+
 
 ---
 
