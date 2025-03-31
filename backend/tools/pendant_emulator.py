@@ -287,7 +287,7 @@ def validate_states():
     ]
 
     # Validate input states. Check for physically impossible states
-    # Don't send packet if in invalid state
+    # Send fallback packet if in invalid state
 
     error_present = False  # Check all errors and return at the end
     # An SPDT switch output must be XOR checked
