@@ -40,6 +40,7 @@ class ByteParser {
           std::to_string(byte_index_) + " of " + std::to_string(size_) +
           " bytes (bit offset: " + std::to_string(bit_offset_) + ")");
     }
+    // I don't care this kills everything. I want it to fail ASAP in debug
     assert(bits_remaining() == 0);
   }
 #else
