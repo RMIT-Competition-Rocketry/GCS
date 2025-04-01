@@ -98,6 +98,8 @@ class LoggedSubProcess:
             self._stderr_thread.join()
         try:
             self.__class__._instances.remove(self)
+            INSTANCE_DEBUG_PID = [f'({x._name}: {x._process.pid})' for x in self.__class__._instances]
+            self._logger_adapter.debug(f"Remaining instances: {INSTANCE_DEBUG_PID}")
         except ValueError:
             self._logger_adapter.error(
                 f"Failed to close my subprocess: {self._name} (PID:{self._process.pid})")
