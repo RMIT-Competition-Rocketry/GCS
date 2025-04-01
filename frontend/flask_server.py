@@ -7,7 +7,7 @@ import os
 # Initialise flask
 APP = Flask(__name__)
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')  # TODO: Load from config.ini?
-VALID_FILE_EXTENSIONS = ('.html', '.css', '.js', '.png', '.jpg', '.ico')  # TODO: Determine other filetypes (fonts)
+VALID_FILE_EXTENSIONS = ('.html', '.css', '.js', '.png', '.jpg', '.ico', '.svg')  # TODO: Determine other filetypes (fonts?)
 
 
 # Serve index page

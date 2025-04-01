@@ -5,34 +5,34 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Index page</title>
+    <link rel="stylesheet" type="text/css" href="css/tailwind.css" media="screen" />
 </head>
 
 <body>
-    <header>
-        <h1>Index page</h1>
+    <header class="p-4 bg-blue-200">
+        <h1 class="text-4xl font-semibold">Index page</h1>
     </header>
 
-    <p>Hello, world!</p>
-
-    <nav>
-        <ul>
-            <li>
-                <a href=".">
-                    index.html
-                </a>
-            </li>
-            <li>
-                <a href="test.html">
-                    test.html
-                </a>
-            </li>
-            <li>
-                <a href="oldgui.html">
-                    oldgui.html
-                </a>
-            </li>
-        </ul>
+    <nav class="flex flex-row justify-center gap-1">
+        <a href="." class="text-lg underline text-blue-700 px-8 py-2 bg-blue-100">
+            index
+        </a>
+        <a href="oldgui.html" class="text-lg underline text-blue-700 px-8 py-2 bg-blue-100">
+            oldgui
+        </a>
     </nav>
+
+    <main class="p-4">
+        <p>Hello, world!</p>
+        <p>This is a test page to make sure that:</p>
+        <ul class="list-disc pl-4">
+            <li>The server runs properly</li>
+            <li>Files are being loaded properly (css, img, etc)</li>
+            <li>Tailwind.css is able to generate stylesheets</li>
+        </ul>
+        <p>The page should look like this:</p>
+        <img src="img/testpage.png" width="800" height="600" class="w-[400px]">
+    </main>
 </body>
 
 </html>
