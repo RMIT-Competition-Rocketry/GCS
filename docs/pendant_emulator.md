@@ -11,6 +11,7 @@ Refference schematic
 > - System is always powered on, but not activated
 > - Rotary is in neutral by default
 > - System select is in neutral by default
+> - Push in controller stick to engage a mode and hold deadman for that mode to engage it. This emulates the spring loaded rotary switch 
 >
 > The SPDT and rotaries swap to whatever you last pressed on. Pressing on the same option twice will not go from true to false, but will go from true to true. Likewise, if you click on gas option then click on ignition option, it will change from gas to ignition and not enable both. 
 > The SPST will just be a basic on off toggle over multiple presses
