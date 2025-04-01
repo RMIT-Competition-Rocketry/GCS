@@ -11,12 +11,12 @@ class InterfaceType(enum.Enum):
     TEST = "TEST"
 
 
-def get_middleware_path(BINARY_NAME) -> Optional[str]:
+def get_middleware_path(BINARY_NAME: str) -> Optional[str]:
     """Check if middleware is in build/ then check if it is in root folder.
     This helps when sharing releases, but still prioritises the build/ folder.
     """
-    build_path = os.path.join(".", "build", BINARY_NAME),
-    root_path = os.path.join(".", BINARY_NAME),
+    build_path = os.path.join(".", "build", BINARY_NAME)
+    root_path = os.path.join(".", BINARY_NAME)
 
     if os.path.exists(build_path):
         return build_path
