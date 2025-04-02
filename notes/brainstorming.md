@@ -129,3 +129,5 @@ Note that this could be Python, but just have to add note in README about having
 I like the design and type of the [vite](https://vite.dev/) website
 
 This is what won the competition last year - [video](https://youtu.be/SLUn1QFNpBQ?si=DRXjuzoFflPLeQhZ)
+
+Good post processing visualisation inspiration - [video](https://www.youtube.com/watch?v=WTQ1Kb1Fvj8&t=2s&ab_channel=BPS.space)
