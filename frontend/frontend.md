@@ -18,4 +18,9 @@ The `/frontend/scripts/` folder has a number of scripts for using Tailwind:
 
 ## D3.js
 D3.js is used for data visualisation.
-caspar was here
+
+## Three.js
+Three.js is used to render the 3D model of the rocket (extension task).
+
+
+caspar wuz here!!!!1!
