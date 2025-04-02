@@ -5,4 +5,4 @@
 # Call this from the GCS repository root folder
 # -----
 
-./third_party/tailwindcss --cwd ./frontend -i ./config/tailwind.input.css -o ./static/css/tailwind.css --minify
+./third_party/tailwindcss --cwd ./frontend -i ./static/css/tailwind.input.css -o ./static/css/tailwind.css --minify

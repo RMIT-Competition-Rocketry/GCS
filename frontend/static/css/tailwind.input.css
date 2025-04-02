@@ -7,6 +7,10 @@ Please don't link to it from the site,
 and only modify it if you know what you're doing :)
 */
 
+@theme {
+    --color-hive: #f79521; /* TODO: Make sure this is the correct orange */
+}
+
 p {
     @apply my-4;
 }
