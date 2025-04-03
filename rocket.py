@@ -24,7 +24,11 @@ cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup m
 @click.group()
 def cli():
     """CLI interface to manage GCS software initialisation"""
-    pass
+    # Check you're in a valid directory.
+    # Implicit check is to make sure the logo file exists in expected spot
+    if not os.path.exists(os.path.join("cli", "ascii_art_logo.txt")):
+        raise RuntimeError(
+            "Please run this program from project root directory")
 
 
 @click.command()
