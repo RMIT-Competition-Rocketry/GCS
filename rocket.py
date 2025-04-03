@@ -109,7 +109,7 @@ def dev(nodocker):
 
     # 2.
     # TODO convert this to read from INI for default with CLI priotity
-    INTERFACE_TYPE = InterfaceType.TEST
+    INTERFACE_TYPE = InterfaceType.UART
     match INTERFACE_TYPE:
         case InterfaceType.UART:
             logger.info("Starting UART interface")

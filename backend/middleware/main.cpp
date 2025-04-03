@@ -86,6 +86,7 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
   set_thread_name("input_read_loop");
   std::vector<uint8_t> buffer(256);
   auto last_read_time = std::chrono::steady_clock::now();
+  auto last_timeout_warning_time = std::chrono::steady_clock::now();
 
   while (running) {
     ssize_t count = interface->read_data(buffer);
@@ -141,10 +142,18 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
       // Timeout warning
       auto now = std::chrono::steady_clock::now();
-      if (std::chrono::duration_cast<std::chrono::seconds>(now - last_read_time)
-              .count() >= 3) {
-        slogger::warning("No data received for over 3 seconds.");
-        last_read_time = now;  // Wait another 3 seconds
+      // Amount of seconds since last read total
+      int seconds_waited =
+          std::chrono::duration_cast<std::chrono::seconds>(now - last_read_time)
+              .count();
+      int seconds_waited_timeout =
+          std::chrono::duration_cast<std::chrono::seconds>(
+              now - last_timeout_warning_time)
+              .count();
+      if (seconds_waited >= 3 && seconds_waited_timeout >= 3) {
+        slogger::warning("No data received for " +
+                         std::to_string(seconds_waited) + " seconds.");
+        last_timeout_warning_time = now;  // Wait another 3 seconds
       }
     }
   }

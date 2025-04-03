@@ -92,6 +92,9 @@ pressed_states = {button: False for button in CONTROLLER_MAP.keys()}
 pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]] = True
 pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]] = True
 
+# Used for change detection
+previous_pressed_states = pressed_states.copy()
+
 stop_event = threading.Event()
 state_lock = threading.Lock()
 
@@ -282,6 +285,7 @@ def print_information():
 
 
 def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
+    global previous_pressed_states
     clock = pygame.time.Clock()
     if joystick is None:
         # Set the (nothing) default state
@@ -289,7 +293,7 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
             pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]] = True
             pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]] = True
             pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]] = True
-
+    first_time = True
     while not stop_event.is_set():
         if joystick is not None:
             event = pygame.event.poll()
@@ -303,7 +307,11 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
             time.sleep(0.05)
         clock.tick(60)  # 60 FPS
         # Run CLI notifications
-        print_information()
+        if (pressed_states != previous_pressed_states or first_time):
+            # Print on change. Many STDOUT ANSCI writes are expensive
+            print_information()
+            first_time = False
+        previous_pressed_states = pressed_states.copy()
 
 
 def handle_button_press(button_id, pressed):
@@ -483,6 +491,8 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
                 slogger.warning(
                     "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping")
                 time.sleep(1)
+            # No need to go full blast. Socket will fill up
+            time.sleep(0.2)
     finally:
         slogger.debug("Packet sender closing socket")
         push_socket.close()
