@@ -1,7 +1,7 @@
 import threading
 import backend.tools.device_emulator as device_emulator
 import backend.process_logging as slogger
-from backend.config import load_config
+import config.config as config
 import backend.ansci as ansci
 from pprint import pprint
 import os
@@ -85,7 +85,7 @@ KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
 # fml again
 BTN_TOGGLE_MAP = {v[0]: v[1] for v in KEY_MAP.values()}
 
-LOCK_FILE_GSE_RESPONSE_PATH: str = load_config(
+LOCK_FILE_GSE_RESPONSE_PATH: str = config.load_config(
 )["locks"]["lock_file_gse_response_path"]
 
 pressed_states = {button: False for button in CONTROLLER_MAP.keys()}
@@ -493,7 +493,8 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
 
 
 def main():
-    device_emulator.MockPacket.initialize_settings(load_config()['emulation'])
+    device_emulator.MockPacket.initialize_settings(
+        config.load_config()['emulation'])
     slogger.debug("Starting pendant emulator")
 
     signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C

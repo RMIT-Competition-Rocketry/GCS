@@ -1,5 +1,5 @@
 import logging
-from backend.config import load_config
+from config.config import load_config
 
 # log level (between INFO (20) and WARNING (30))
 SUCCESS_LEVEL_NUM = 25
@@ -73,9 +73,12 @@ def success(self, message, *args, **kws):
     if self.isEnabledFor(SUCCESS_LEVEL_NUM):
         self._log(SUCCESS_LEVEL_NUM, message, args, **kws)
 
+
 logging.Logger.success = success
+
 
 def adapter_success(self, message, *args, **kwargs):
     self.logger.success(message, *args, **kwargs)
+
 
 logging.LoggerAdapter.success = adapter_success
