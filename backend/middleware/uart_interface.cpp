@@ -264,7 +264,11 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
     message.erase(std::remove(message.begin(), message.end(), '\n'),
                   message.end());
 
-    slogger::debug("Received message: " + message);
+    if (message.empty()) {
+      continue;
+    }
+
+    slogger::debug("Received message from interface: " + message);
 
     // Parse message content
     if (message.find("+TEST: LEN:") == 0) {

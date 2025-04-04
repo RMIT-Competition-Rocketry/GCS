@@ -95,6 +95,8 @@ pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]] = True
 # Used for change detection
 previous_pressed_states = pressed_states.copy()
 
+controller_offline = True
+
 stop_event = threading.Event()
 state_lock = threading.Lock()
 
@@ -285,7 +287,7 @@ def print_information():
 
 
 def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
-    global previous_pressed_states
+    global previous_pressed_states, controller_offline
     clock = pygame.time.Clock()
     if joystick is None:
         # Set the (nothing) default state
@@ -297,11 +299,23 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
     while not stop_event.is_set():
         if joystick is not None:
             event = pygame.event.poll()
-            if event.type != pygame.NOEVENT:
-                if event.type == pygame.JOYBUTTONDOWN:
+            if event.type == pygame.NOEVENT:
+                continue
+            match event.type:
+                case pygame.JOYBUTTONDOWN:
                     handle_button_press(event.button, True)
-                elif event.type == pygame.JOYBUTTONUP:
+                    # Button event discovered
+                    # Use in this block to avoid race conditions
+                    controller_offline = False
+                case pygame.JOYBUTTONUP:
                     handle_button_press(event.button, False)
+                    controller_offline = False
+                case pygame.JOYDEVICEREMOVED:
+                    slogger.warning("Controller disconnected")
+                    controller_offline = True
+                case pygame.JOYDEVICEADDED:
+                    slogger.info("Controller online")
+                    controller_offline = False
         else:
             # Reduce thread load. No need for full speed in testing
             time.sleep(0.05)
@@ -452,12 +466,12 @@ def safety_fallback_state():
     states = {
         "MANUAL_PURGE": False,
         "O2_FILL_ACTIVATE": False,
-        "SELECTOR_SWITCH_NEUTRAL_POSITION": True,
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": False,
         "N2O_FILL_ACTIVATE": False,
         "IGNITION_FIRE": False,
         "IGNITION_SELECTED": False,
         "GAS_FILL_SELECTED": False,
-        "SYSTEM_ACTIVATE": True,
+        "SYSTEM_ACTIVATE": False,
     }
 
     return states
@@ -477,11 +491,12 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
 
         while not stop_event.is_set():
             states = calculate_states()
-            if states == False:
+            if states == False or controller_offline:
                 # Error detected
-                slogger.error("Invalid controller state")
+                if states == False:
+                    slogger.error("Invalid controller state")
                 states = safety_fallback_state()
-                continue
+                slogger.warning("In fallback safety state")
             state_command = device_emulator.GCStoGSEStateCMD(**states)
             try:
                 push_socket.send(
