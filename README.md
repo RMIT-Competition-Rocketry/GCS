@@ -28,7 +28,7 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 | Caspar O'Neill (`s3899921`)  | GCS QA engineer & API integration | 2025 |
 | Anuk Jayasundara (`s3899921`)  | GCS frontend developer | 2025 |
 | Nathan La (`s4003562`)  | GCS data visualisation programmer | 2025 |
-| ... (`...`)  | ... | 2025 |
+| Jonathan Do (`s4003025`)  | GCS UI/UX Designer | 2025 |
 
 ---
 
