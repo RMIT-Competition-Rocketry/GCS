@@ -249,6 +249,34 @@ def print_information():
             output += ansci.RESET
         return output
 
+    def get_final_status_text(ON, GAS_GO, O2_GO, IGNITION_GO,
+                              SYSTEM_SELECT: system_selection,
+                              GAS_SELECT: gas_selection
+                              ) -> str:
+        if not ON:
+            return "System OFF"
+        if SYSTEM_SELECT == system_selection.NEUTRAL:
+            return "System Neutral"
+        if GAS_GO:
+            match GAS_SELECT:
+                case gas_selection.PURGE:
+                    return "Gas Purging"
+                case gas_selection.N20:
+                    return "Gas Filling N20"
+                case gas_selection.NEUTRAL:
+                    return "Gas Neutral Mode"
+        if SYSTEM_SELECT == system_selection.IGNITION:
+            if O2_GO and not IGNITION_GO:
+                return "Filling O2"
+            if O2_GO and IGNITION_GO:
+                return "Filling O2 & Ignition Firing"
+            if not O2_GO and IGNITION_GO:
+                return "Ignition Firing"
+            if not O2_GO and not IGNITION_GO:
+                return "Awiting Ignition Command"
+
+        return "Undefined state"
+
     """Prints information about current states to help the user understand where they're at"""
     # Do no validate information here. That is done in packet sender and on GSE
     if not validate_switch_states():
@@ -283,7 +311,11 @@ def print_information():
             print(gas_information_text(False, GAS_SELECT_TEXT, GAS_GO), end="")
             print(ignition_information_text(False, O2_GO, IGNITION_GO), end="")
 
-    print()
+    print(ansci.BG_GREEN + ansci.FG_BLACK +
+          get_final_status_text(
+              ON, GAS_GO, O2_GO, IGNITION_GO, SYSTEM_SELECT, GAS_SELECT)
+          + ansci.RESET
+          )
 
 
 def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
@@ -314,7 +346,7 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
                     slogger.warning("Controller disconnected")
                     controller_offline = True
                 case pygame.JOYDEVICEADDED:
-                    slogger.info("Controller online")
+                    slogger.info("Controller online. Restart likely required")
                     controller_offline = False
         else:
             # Reduce thread load. No need for full speed in testing
