@@ -245,8 +245,6 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
 
   // Read new data and append to persistent buffer
   auto raw_data = read_with_timeout(1000);
-  slogger::debug("Raw data read: " +
-                 std::string(raw_data.begin(), raw_data.end()));
   response_buffer_.append(raw_data.begin(), raw_data.end());
 
   int rssi = 0;
@@ -266,11 +264,9 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
     message.erase(std::remove(message.begin(), message.end(), '\n'),
                   message.end());
 
-    if (message.empty()) {
-      continue;
+    if (!message.empty()) {
+      slogger::debug("Received message from interface: " + message);
     }
-
-    slogger::debug("Received message from interface: " + message);
 
     // Parse message content
     if (message.find("+TEST: LEN:") == 0) {
@@ -339,7 +335,7 @@ std::vector<uint8_t> UartInterface::hex_string_to_bytes(
 }
 
 /// @brief Write serial data to the LoRa band through the LoRa interface
-/// @param data
+/// @param data Binary data bytes
 /// @return
 ssize_t UartInterface::write_data(const std::vector<uint8_t> &data) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);

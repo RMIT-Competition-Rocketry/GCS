@@ -1,14 +1,16 @@
 #include "sequence_lock.hpp"
-#ifdef DEBUG
-#include <fstream>
 
 #include "subprocess_logging.hpp"
+
+#ifdef DEBUG
+#include <fstream>
 #endif
 
 // This file hosts locking mechanisms to orchestrate the packet sequence
 
 /// @brief Thread save mutex lock with timeout features for sequence diagram
-SequenceLock::SequenceLock() {
+SequenceLock::SequenceLock(const std::string NAME)
+    : LOCK_NAME(NAME) {  // Initialize LOCK_NAME using initializer list
   // Set last lock time as little as possible so timeout initially works
   // instantly
   last_lock_time_ = std::chrono::steady_clock::time_point::min();
@@ -42,9 +44,10 @@ bool SequenceLock::unlock_if_timed_out_() {
   if (!is_locked_.load()) {
     return true;
   }
-  // If lock is timed out for more than TIMEOUT_ ms, unlock it
-  if (std::chrono::steady_clock::now() - getLastLockTime() > TIMEOUT_) {
+  // If lock is timed out for more than TIMEOUT ms, unlock it
+  if (std::chrono::steady_clock::now() - getLastLockTime() > TIMEOUT) {
     unlock();
+    slogger::warning("Timeout on " + LOCK_NAME + " sequence lock");
     return true;
   } else {
     return false;
