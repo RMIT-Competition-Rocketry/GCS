@@ -243,11 +243,12 @@ int main(int argc, char *argv[]) {
 
     // PULL socket for fowarding commands to LoRa
     zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
-    pendant_pull_socket.bind("ipc:///tmp/" + SOCKET_PATH +
-                             "_pendant_pull.sock");
-
     constexpr int PENDANT_HWM = 1;  // Only keep 1 message in buffer
     pendant_pull_socket.set(zmq::sockopt::rcvhwm, PENDANT_HWM);
+    pendant_pull_socket.set(zmq::sockopt::conflate,
+                            1);  // Only keep last message
+    pendant_pull_socket.bind("ipc:///tmp/" + SOCKET_PATH +
+                             "_pendant_pull.sock");
 
     // Start interface reading thread
     std::thread reader(input_read_loop, interface, std::ref(pub_socket),

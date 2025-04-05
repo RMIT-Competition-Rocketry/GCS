@@ -52,7 +52,7 @@ def run():
         start_middleware(logger=logger,
                          release=True,
                          INTERFACE_TYPE=InterfaceType.UART,
-                         DEVICE_PATH="/dev/serial0",
+                         DEVICE_PATH="/dev/ttyAMA0",
                          SOCKET_PATH="gcs_rocket")
     except Exception as e:
         logger.error(
@@ -114,7 +114,7 @@ def dev(nodocker):
         case InterfaceType.UART:
             logger.info("Starting UART interface")
             # Just leave second (emulator) device as None
-            devices = ("/dev/serial0", None)
+            devices = ("/dev/ttyAMA0", None)
         case InterfaceType.TEST:
             logger.info("Starting TEST interface")
             devices = start_fake_serial_device(logger)
