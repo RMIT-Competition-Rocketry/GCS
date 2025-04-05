@@ -138,6 +138,8 @@ def setup_controller() -> Optional[pygame.joystick.JoystickType]:
 
     joystick = pygame.joystick.Joystick(0)
     joystick.init()
+    global controller_offline
+    controller_offline = False
 
     if joystick.get_name() != "Logitech Gamepad F710":
         slogger.error(
@@ -328,6 +330,7 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
             pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]] = True
             pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]] = True
     first_time = True
+    firstAddedEvent = True
     while not stop_event.is_set():
         if joystick is not None:
             event = pygame.event.poll()
@@ -346,8 +349,11 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
                     slogger.warning("Controller disconnected")
                     controller_offline = True
                 case pygame.JOYDEVICEADDED:
-                    slogger.info("Controller online. Restart likely required")
-                    controller_offline = False
+                    if not firstAddedEvent:
+                        slogger.info(
+                            "Controller online. Restart likely required. Maintaining fallback state")
+                        controller_offline = True  # This is default behaviour for F710 controller
+                        firstAddedEvent = False
         else:
             # Reduce thread load. No need for full speed in testing
             time.sleep(0.05)

@@ -245,6 +245,8 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
 
   // Read new data and append to persistent buffer
   auto raw_data = read_with_timeout(1000);
+  slogger::debug("Raw data read: " +
+                 std::string(raw_data.begin(), raw_data.end()));
   response_buffer_.append(raw_data.begin(), raw_data.end());
 
   int rssi = 0;
