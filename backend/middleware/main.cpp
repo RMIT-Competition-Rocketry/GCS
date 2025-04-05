@@ -108,12 +108,15 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
         switch (packet_id) {
           case AV_TO_GCS_DATA_1::ID:  // 3
             process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
+            sequence.received_av();
             break;
           case AV_TO_GCS_DATA_2::ID:  // 4
             process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
+            sequence.received_av();
             break;
           case AV_TO_GCS_DATA_3::ID:  // 5
             process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
+            sequence.received_av();
             break;
           // TODO GCS should never recieve its own packets.
           // Electronically impossible

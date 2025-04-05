@@ -188,6 +188,7 @@ bool UartInterface::at_send_command(const std::string &command,
     if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() >
         timeout_ms) {
       // shoudld I clear buffer here? idk
+      slogger::warning("AT command timed out: " + command);
       break;
     }
 
