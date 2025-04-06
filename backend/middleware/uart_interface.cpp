@@ -18,7 +18,9 @@
 #include "subprocess_logging.hpp"
 
 UartInterface::UartInterface(const std::string &device_path, int baud_rate)
-    : baud_rate_(baud_rate), device_path_(device_path) {}
+    : baud_rate_(baud_rate),
+      device_path_(device_path),
+      modem_state_(ModemContinuousState::NOT_CONTINUOUS) {}
 
 UartInterface::~UartInterface() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
@@ -103,7 +105,8 @@ void UartInterface::at_setup() {
   //     // Reinitialize with new baud rate here if needed
   // }
 
-  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000);
+  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000,
+                  ModemContinuousState::RXLRPKT);
   // std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   slogger::info("End of Setup...");
@@ -168,7 +171,20 @@ ssize_t UartInterface::write_serial(const std::vector<uint8_t> &data) {
 
 bool UartInterface::at_send_command(const std::string &command,
                                     const std::string &expected_response,
-                                    int timeout_ms) {
+                                    const int timeout_ms,
+                                    const ModemContinuousState modem_state) {
+  // Optimisation. Do not enter mode if already in it
+  switch (modem_state) {
+    case ModemContinuousState::RXLRPKT:
+      if (modem_state_ == ModemContinuousState::RXLRPKT) {
+        return true;
+      }
+      break;
+    default:
+      // Other states not currently used
+      break;
+  }
+
   // Clear buffer before new command
   response_buffer_.clear();
 
@@ -263,7 +279,10 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
   // ...
 
   // Start listening (don't check git blame timestamp)
-  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000);
+  if (modem_state_ != ModemContinuousState::RXLRPKT) {
+    at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000,
+                    ModemContinuousState::RXLRPKT);
+  }
 
   // Read new data and append to persistent buffer
   auto raw_data = read_with_timeout(1000);

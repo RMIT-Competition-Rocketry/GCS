@@ -75,6 +75,7 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
                      ": Error processing payload: " + e.what());
     }
   } else {
+    // This may be fixed 32 bytes every time. Not sure if can be different
     slogger::error(std::string(PacketType::PACKET_NAME) +
                    ": Incorrect packet size. Expected: " +
                    std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
@@ -118,13 +119,14 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
             process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
             sequence.received_av();
             break;
-          // TODO GCS should never recieve its own packets.
-          // Electronically impossible
+          // Electronically impossible to recieve own packet
           case GCS_TO_AV_STATE_CMD::ID:  // 1
-            process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
+            // process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
+            slogger::error("Somehow received GCS_TO_AV_STATE_CMD");
             break;
           case GCS_TO_GSE_STATE_CMD::ID:  // 2
-            process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
+            // process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
+            slogger::error("Somehow received GCS_TO_GSE_STATE_CMD");
             break;
           case GSE_TO_GCS_DATA_1::ID:  // 6
             process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
