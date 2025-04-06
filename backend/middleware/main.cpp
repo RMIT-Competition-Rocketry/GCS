@@ -75,6 +75,7 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
                      ": Error processing payload: " + e.what());
     }
   } else {
+    // This may be fixed 32 bytes every time. Not sure if can be different
     slogger::error(std::string(PacketType::PACKET_NAME) +
                    ": Incorrect packet size. Expected: " +
                    std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
@@ -108,20 +109,24 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
         switch (packet_id) {
           case AV_TO_GCS_DATA_1::ID:  // 3
             process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
+            sequence.received_av();
             break;
           case AV_TO_GCS_DATA_2::ID:  // 4
             process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
+            sequence.received_av();
             break;
           case AV_TO_GCS_DATA_3::ID:  // 5
             process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
+            sequence.received_av();
             break;
-          // TODO GCS should never recieve its own packets.
-          // Electronically impossible
+          // Electronically impossible to recieve own packet
           case GCS_TO_AV_STATE_CMD::ID:  // 1
-            process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
+            // process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
+            slogger::error("Somehow received GCS_TO_AV_STATE_CMD");
             break;
           case GCS_TO_GSE_STATE_CMD::ID:  // 2
-            process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
+            // process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
+            slogger::error("Somehow received GCS_TO_GSE_STATE_CMD");
             break;
           case GSE_TO_GCS_DATA_1::ID:  // 6
             process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
@@ -135,7 +140,7 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
             std::string numeric_val =
                 std::to_string(static_cast<int>(packet_id));
             slogger::error("Unknown packet ID: " + std::to_string(packet_id) +
-                           "numeric: " + numeric_val);
+                           " numeric: " + numeric_val);
             break;
         }
       }
@@ -187,6 +192,19 @@ std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg) {
   return cmd_data;
 }
 
+// Packet creator for GCS -> AV
+std::vector<uint8_t> create_GCS_TO_AV_data() {
+  // DEBUG
+  // For debug only, just send garbage
+  std::vector<uint8_t> data;
+  data.push_back(0x01);        // ID
+  data.push_back(0b10100000);  // From excel sheet here and below
+  data.push_back(0b01011111);
+  data.push_back(0b00000000);
+
+  return data;
+}
+
 // ./file <interface type> <device path> <socket path>
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -227,6 +245,10 @@ int main(int argc, char *argv[]) {
 
     // PULL socket for fowarding commands to LoRa
     zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
+    constexpr int PENDANT_HWM = 1;  // Only keep 1 message in buffer
+    pendant_pull_socket.set(zmq::sockopt::rcvhwm, PENDANT_HWM);
+    pendant_pull_socket.set(zmq::sockopt::conflate,
+                            1);  // Only keep last message
     pendant_pull_socket.bind("ipc:///tmp/" + SOCKET_PATH +
                              "_pendant_pull.sock");
 
@@ -238,32 +260,66 @@ int main(int argc, char *argv[]) {
     // Can add multiple push pull sockets here. Useful for when front end is
     // integrated
     zmq::pollitem_t items[] = {{pendant_pull_socket, 0, ZMQ_POLLIN, 0}};
-    zmq::message_t last_pendant_msg;
+    std::vector<uint8_t> pendant_data;
 
     // Main command loop
     while (running) {
       zmq::poll(items, 1, std::chrono::milliseconds(300));  // 300ms timeout
 
+      int socket_more_intbool = 1;  // http://api.zeromq.org/2-2:zmq-getsockopt
+
       // items[0].revents represents items[0] which is the pendant data
       // In future with multiple polls, just copy this block with a different
       // items index
       if (items[0].revents & ZMQ_POLLIN) {
-        // Data to be dequeued
-        zmq::recv_result_t result =
-            pendant_pull_socket.recv(last_pendant_msg, zmq::recv_flags::none);
-        if (result) {
-          std::vector<uint8_t> cmd_data = collect_pull_data(last_pendant_msg);
-          if (!sequence.waiting_for_gse()) {
-            // TODO Should I just internalise writing data inside
-            // sequence so the locking part is not required to be
-            // written manually each time?
-            // ctrl+f "race condition" annotation on master design
-            interface->write_data(cmd_data);
-            sequence.await_gse();
+        do {  // Data to be dequeued
+          zmq::message_t pendant_msg;
+          zmq::recv_result_t pendant_result =
+              pendant_pull_socket.recv(pendant_msg, zmq::recv_flags::none);
+          if (pendant_result) {
+            pendant_data = collect_pull_data(pendant_msg);
+            socket_more_intbool =
+                pendant_pull_socket.get(zmq::sockopt::rcvmore);
           }
-        }
+        } while (socket_more_intbool);
       }
-      // Check if it's our turn to send data to GSE
+
+      if (pendant_data.empty()) {
+        // No data to send, continue and try polling again
+        // This will only be empty while the pendant software boots
+        continue;
+      }
+
+      // After getting data, continue with main logic loop
+      switch (sequence.get_state()) {
+        case Sequence::LOOP_PRE_LAUNCH:
+          // Send data to GSE
+          interface->write_data(pendant_data);
+          sequence.start_await_gse();
+          // Wait for data from GSE (blocking rest of this loop, or timeout)
+          sequence.sit_and_wait_for_gse();  // Let read thread unlock this
+          // Send data to AV
+          interface->write_data(create_GCS_TO_AV_data());
+          sequence.start_await_av();
+          // Wait for data from AV (blocking rest of this loop, or timeout)
+          sequence.sit_and_wait_for_av();
+          break;
+        case Sequence::LOOP_IGNITION:
+          slogger::info("GCS: Ignition state");
+          break;
+        case Sequence::ONCE_AV_DETERMINING_LAUNCH:
+          slogger::info("GCS: AV determining launch state");
+          break;
+        case Sequence::LOOP_AV_DATA_TRANSMISSION_BURN:
+          slogger::info("GCS: AV data transmission burn state");
+          break;
+        case Sequence::LOOP_AV_DATA_TRANSMISSION_APOGEE:
+          slogger::info("GCS: AV data transmission apogee state");
+          break;
+        case Sequence::LOOP_AV_DATA_TRANSMISSION_LANDED:
+          slogger::info("GCS: AV data transmission landed state");
+          break;
+      }
     }
 
     // Cleanup

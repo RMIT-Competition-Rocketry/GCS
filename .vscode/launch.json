@@ -38,7 +38,7 @@
             "args": [
                 // 3 args please
                 "UART",
-                "/dev/serial0",
+                "/dev/ttyAMA0",
                 "gcs_rocket.sock",
             ],
             "preLaunchTask": "middleware build-dev + generate proto",
