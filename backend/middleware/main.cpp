@@ -98,9 +98,6 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
       if (count >= 1) {
         int8_t packet_id = static_cast<int8_t>(buffer[0]);
 
-        slogger::debug("Pre process Received packet ID: " +
-                       std::to_string(static_cast<int>(packet_id)));
-
         // Send packet ID to receiving ends so they know which proto file to use
         std::string packet_id_string(1, packet_id);
         zmq::message_t msg(packet_id_string.data(), sizeof(int8_t));
@@ -147,7 +144,6 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
       }
     } else {
       // CPU sleeper
-      slogger::debug("Interface read data, but got no bytes");
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
       // Timeout warning
       auto now = std::chrono::steady_clock::now();
@@ -296,22 +292,15 @@ int main(int argc, char *argv[]) {
       switch (sequence.get_state()) {
         case Sequence::LOOP_PRE_LAUNCH:
           // Send data to GSE
-          slogger::debug("About to write pendant data");
           interface->write_data(pendant_data);
-          slogger::debug("GSE pendant data Written. About to set lock");
           sequence.start_await_gse();
-          slogger::debug("GSE Lock engaged, about to start sitting");
           // Wait for data from GSE (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_gse();  // Let read thread unlock this
-          slogger::debug("GSE unlocked, about to write to AV");
           // Send data to AV
           interface->write_data(create_GCS_TO_AV_data());
-          slogger::debug("AV request sent, about to set lock to AV");
           sequence.start_await_av();
-          slogger::debug("AV lock engaged, about to start sitting");
           // Wait for data from AV (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_av();
-          slogger::debug("AV unlocked");
           break;
         case Sequence::LOOP_IGNITION:
           slogger::info("GCS: Ignition state");

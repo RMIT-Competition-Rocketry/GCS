@@ -17,28 +17,17 @@
 
 #include "subprocess_logging.hpp"
 
-// Add a helper macro to simplify lock contention detection and logging
-#define DEBUG_LOCK(mutex)                                                   \
-  bool lock_acquired = mutex.try_lock();                                    \
-  if (!lock_acquired) {                                                     \
-    slogger::debug("Lock contention detected in " + std::string(__func__) + \
-                   " at line " + std::to_string(__LINE__));                 \
-    mutex.lock();                                                           \
-  }                                                                         \
-  std::lock_guard<std::recursive_mutex> lock_guard_##mutex(mutex,           \
-                                                           std::adopt_lock)
-
 UartInterface::UartInterface(const std::string &device_path, int baud_rate)
     : baud_rate_(baud_rate), device_path_(device_path) {}
 
 UartInterface::~UartInterface() {
-  DEBUG_LOCK(io_mutex_);
+  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   // If file descriptor indicates it is open, close it
   if (uart_fd_ >= 0) close(uart_fd_);
 }
 
 bool UartInterface::initialize() {
-  DEBUG_LOCK(io_mutex_);
+  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
   if (uart_fd_ < 0) {
     slogger::error("Failed to open UART device: " + device_path_);
@@ -136,7 +125,6 @@ std::vector<uint8_t> UartInterface::read_with_timeout(int timeout_ms) {
     int result = select(uart_fd_ + 1, &set, nullptr, nullptr, &timeout);
     if (result > 0) {
       std::vector<uint8_t> temp_buf(chunk_size);
-      slogger::debug("Attempting read");
       ssize_t n = read(uart_fd_, temp_buf.data(), temp_buf.size());
       if (n > 0) {
         buffer.insert(buffer.end(), temp_buf.begin(), temp_buf.begin() + n);
@@ -199,13 +187,28 @@ bool UartInterface::at_send_command(const std::string &command,
     auto elapsed = std::chrono::steady_clock::now() - start;
     if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() >
         timeout_ms) {
-      // shoudld I clear buffer here? idk
       slogger::warning("AT command timed out: " + command);
       break;
     }
 
     auto raw_data = read_with_timeout(100);
     response_buffer_ += std::string(raw_data.begin(), raw_data.end());
+
+    // // Remove echo of the command itself
+    // size_t echo_pos = response_buffer_.find(command);
+    // if (echo_pos != std::string::npos) {
+    //   // Find the end of the echo (either \r\n or just to the end of the
+    //   echoed
+    //   // command)
+    //   size_t echo_end = response_buffer_.find("\r\n", echo_pos);
+    //   if (echo_end != std::string::npos) {
+    //     // Remove the echo and the line ending
+    //     response_buffer_.erase(echo_pos, (echo_end + 2) - echo_pos);
+    //   } else {
+    //     // If no line ending found, just remove the command part
+    //     response_buffer_.erase(echo_pos, command.length());
+    //   }
+    // }
 
     // Check for expected response
     if (response_buffer_.find(expected_response) != std::string::npos) {
@@ -240,7 +243,7 @@ bool UartInterface::at_send_command(const std::string &command,
 /// @param buffer
 /// @return Returns amount of bytes read. -1 if failed
 ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
-  DEBUG_LOCK(io_mutex_);
+  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("UART file descriptor is invalid");
     return -1;
@@ -359,7 +362,7 @@ std::vector<uint8_t> UartInterface::hex_string_to_bytes(
 /// @param data Binary data bytes
 /// @return
 ssize_t UartInterface::write_data(const std::vector<uint8_t> &data) {
-  DEBUG_LOCK(io_mutex_);
+  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("Uart device unavailable for write");
     return -1;
