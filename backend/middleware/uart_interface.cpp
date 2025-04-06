@@ -17,17 +17,28 @@
 
 #include "subprocess_logging.hpp"
 
+// Add a helper macro to simplify lock contention detection and logging
+#define DEBUG_LOCK(mutex)                                                   \
+  bool lock_acquired = mutex.try_lock();                                    \
+  if (!lock_acquired) {                                                     \
+    slogger::debug("Lock contention detected in " + std::string(__func__) + \
+                   " at line " + std::to_string(__LINE__));                 \
+    mutex.lock();                                                           \
+  }                                                                         \
+  std::lock_guard<std::recursive_mutex> lock_guard_##mutex(mutex,           \
+                                                           std::adopt_lock)
+
 UartInterface::UartInterface(const std::string &device_path, int baud_rate)
     : baud_rate_(baud_rate), device_path_(device_path) {}
 
 UartInterface::~UartInterface() {
-  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
+  DEBUG_LOCK(io_mutex_);
   // If file descriptor indicates it is open, close it
   if (uart_fd_ >= 0) close(uart_fd_);
 }
 
 bool UartInterface::initialize() {
-  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
+  DEBUG_LOCK(io_mutex_);
   uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
   if (uart_fd_ < 0) {
     slogger::error("Failed to open UART device: " + device_path_);
@@ -104,7 +115,7 @@ void UartInterface::at_setup() {
   // }
 
   at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000);
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  // std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   slogger::info("End of Setup...");
 }
@@ -125,6 +136,7 @@ std::vector<uint8_t> UartInterface::read_with_timeout(int timeout_ms) {
     int result = select(uart_fd_ + 1, &set, nullptr, nullptr, &timeout);
     if (result > 0) {
       std::vector<uint8_t> temp_buf(chunk_size);
+      slogger::debug("Attempting read");
       ssize_t n = read(uart_fd_, temp_buf.data(), temp_buf.size());
       if (n > 0) {
         buffer.insert(buffer.end(), temp_buf.begin(), temp_buf.begin() + n);
@@ -224,8 +236,11 @@ bool UartInterface::at_send_command(const std::string &command,
   return true;
 }
 
+/// @brief
+/// @param buffer
+/// @return Returns amount of bytes read. -1 if failed
 ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
-  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
+  DEBUG_LOCK(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("UART file descriptor is invalid");
     return -1;
@@ -243,6 +258,9 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
   // "0400001908490042FFCD03F7FFCFFFC0002DFFE93C6DAABE0000000000000000"
 
   // ...
+
+  // Start listening (don't check git blame timestamp)
+  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000);
 
   // Read new data and append to persistent buffer
   auto raw_data = read_with_timeout(1000);
@@ -281,10 +299,12 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
           snr = std::stoi(message.substr(snr_pos + 4));
 
           // Signal quality monitoring
-          if (rssi < -85) {
+          constexpr int RSSI_THRESHOLD = -85;
+          constexpr int SNR_THRESHOLD = 5;
+          if (rssi < RSSI_THRESHOLD) {
             slogger::warning("Poor RSSI: " + std::to_string(rssi) + " dBm");
           }
-          if (snr < 5) {
+          if (snr < SNR_THRESHOLD) {
             slogger::warning("Low SNR: " + std::to_string(snr) + " dB");
           }
         } catch (const std::exception &e) {
@@ -339,7 +359,7 @@ std::vector<uint8_t> UartInterface::hex_string_to_bytes(
 /// @param data Binary data bytes
 /// @return
 ssize_t UartInterface::write_data(const std::vector<uint8_t> &data) {
-  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
+  DEBUG_LOCK(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("Uart device unavailable for write");
     return -1;

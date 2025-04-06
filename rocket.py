@@ -41,10 +41,6 @@ def run():
     # 1. Make sure C++ middleware is there
     # TODO add checks for ALL files please
     # TODO please add a check to make sure it's up to date?
-    if not (os.path.exists(os.path.join("build", "middleware-release"))):
-        logger.error(
-            "C++ release middleware not found. Please build it with scripts/release.sh. Exiting")
-        raise FileNotFoundError("C++ release middleware not found. Exiting")
 
     # 2. Run C++ middleware
     # Note that devices are paired pseudo-ttys

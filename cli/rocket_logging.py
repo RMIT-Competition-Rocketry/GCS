@@ -1,5 +1,12 @@
 import logging
 from config.config import load_config
+import time
+from typing import Optional
+import os
+import re  # Add import for regex
+
+# Capture application start time (initialized in `initialise()`)
+APP_START_TIME: Optional[float] = None
 
 # log level (between INFO (20) and WARNING (30))
 SUCCESS_LEVEL_NUM = 25
@@ -16,7 +23,7 @@ class CustomFormatter(logging.Formatter):
     GREEN = "\x1b[32;20m"           # New color for SUCCESS
     RESET = "\x1b[0m"
     # Maybe add %(asctime)s later if needed
-    FORMAT = "[%(levelname)-7s] %(filename)s.%(subprocess_name)s: %(message)s"
+    FORMAT = "[%(levelname)-7s] %(post_start_s)5s s | %(subprocess_name)s: %(message)s"
 
     FORMATS = {
         logging.DEBUG: GREY + FORMAT + RESET,
@@ -30,9 +37,25 @@ class CustomFormatter(logging.Formatter):
     def format(self, record):
         if not hasattr(record, "subprocess_name"):
             record.subprocess_name = ""  # Default empty value
+        if APP_START_TIME is None:
+            record.post_start_s = "0000.000"
+        else:
+            elapsed_s = (time.perf_counter() - APP_START_TIME)
+            record.post_start_s = f"{elapsed_s:09.3f}"
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
+
+
+class PlainFormatter(CustomFormatter):
+    """A formatter that strips ANSI control characters for clean log files"""
+
+    def format(self, record):
+        # First format with the parent formatter that adds colors
+        formatted_message = super().format(record)
+        # Strip ANSI escape sequences using regex
+        ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+        return ansi_escape.sub('', formatted_message)
 
 
 def create_handler() -> logging.StreamHandler:
@@ -43,8 +66,22 @@ def create_handler() -> logging.StreamHandler:
     return ch
 
 
+def create_file_handler(log_file_path: str) -> logging.FileHandler:
+    """Create file handler to write logs to a file"""
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+
+    fh = logging.FileHandler(log_file_path)
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(PlainFormatter())  # Use the PlainFormatter instead
+    return fh
+
+
 def initialise():
     """One time logging setup run as soon as the program starts"""
+
+    global APP_START_TIME
+    APP_START_TIME = time.perf_counter()
 
     logger = logging.getLogger("rocket")
     if logger.hasHandlers():
@@ -53,7 +90,14 @@ def initialise():
             "Logger has been initialised before. Stop intialising it again please")
         logger.handlers.clear()
 
-    LOG_LEVEL = load_config()['logging']['level'].upper().strip()
+    config = load_config()
+    LOG_LEVEL = config['logging']['level'].strip()
+
+    # Get log file path from config or use default
+    LOG_DIR_PATH = config['logging']['cli_log_dir'].strip()
+    log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
+    log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
+
     LOG_MAPPING = {
         'DEBUG': logging.DEBUG,
         'INFO': logging.INFO,
@@ -65,7 +109,12 @@ def initialise():
 
     LOG_LEVEL_OBJECT = LOG_MAPPING.get(LOG_LEVEL, logging.INFO)
     logger.setLevel(LOG_LEVEL_OBJECT)
+
+    # Add both console and file handlers
     logger.addHandler(create_handler())
+    logger.addHandler(create_file_handler(log_file_path))
+
+    logger.info(f"Log file created at: {log_file_path}")
     return logger
 
 

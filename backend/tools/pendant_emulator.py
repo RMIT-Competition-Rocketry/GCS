@@ -522,9 +522,10 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
         SOCKET_PATH = os.path.abspath(os.path.join(
             os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
         )
-        # Wait 1000ms before giving up on push request
-        LINGER_TIME_MS = 1000
+        # Wait LINGER_TIME_MS before giving up on push request
+        LINGER_TIME_MS = 300
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
         push_socket.connect(f"ipc://{SOCKET_PATH}")
 
         while not stop_event.is_set():

@@ -37,7 +37,7 @@ void SequenceLock::unlock() {
   mtx_.unlock();
 }
 
-/// @brief Unlocks and returns true if the lock is timed out
+/// @brief Check if timed out and return the final lock status
 /// @return true if unlocked. False otherwise
 bool SequenceLock::unlock_if_timed_out_() {
   // If lock is already open, just return true
