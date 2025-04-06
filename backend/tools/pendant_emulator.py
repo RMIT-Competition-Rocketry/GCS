@@ -326,7 +326,7 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
     if joystick is None:
         # Set the (nothing) default state
         with state_lock:
-            pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]] = True
+            pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]] = False
             pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]] = True
             pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]] = True
     first_time = True
