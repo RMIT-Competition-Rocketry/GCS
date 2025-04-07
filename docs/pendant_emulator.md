@@ -22,7 +22,9 @@ All steps require system to be on. Toggle the ON button to turn system on.
 
 #### Uncontrolled Purge (Emergency)
 
-1. Switch off the Raspberry Pi
+1. Pull the leads out of the E5 PCB.
+
+This disables the GCS radio and engages the GSE packet loss shutdown procedure
 
 #### Controlled Purge
 
