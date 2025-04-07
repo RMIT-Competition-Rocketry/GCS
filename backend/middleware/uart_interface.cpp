@@ -18,7 +18,9 @@
 #include "subprocess_logging.hpp"
 
 UartInterface::UartInterface(const std::string &device_path, int baud_rate)
-    : baud_rate_(baud_rate), device_path_(device_path) {}
+    : baud_rate_(baud_rate),
+      device_path_(device_path),
+      modem_state_(ModemContinuousState::NOT_CONTINUOUS) {}
 
 UartInterface::~UartInterface() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
@@ -103,8 +105,9 @@ void UartInterface::at_setup() {
   //     // Reinitialize with new baud rate here if needed
   // }
 
-  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000);
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000,
+                  ModemContinuousState::RXLRPKT);
+  // std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   slogger::info("End of Setup...");
 }
@@ -168,7 +171,20 @@ ssize_t UartInterface::write_serial(const std::vector<uint8_t> &data) {
 
 bool UartInterface::at_send_command(const std::string &command,
                                     const std::string &expected_response,
-                                    int timeout_ms) {
+                                    const int timeout_ms,
+                                    const ModemContinuousState modem_state) {
+  // Optimisation. Do not enter mode if already in it
+  switch (modem_state) {
+    case ModemContinuousState::RXLRPKT:
+      if (modem_state_ == ModemContinuousState::RXLRPKT) {
+        return true;
+      }
+      break;
+    default:
+      // Other states not currently used
+      break;
+  }
+
   // Clear buffer before new command
   response_buffer_.clear();
 
@@ -187,12 +203,28 @@ bool UartInterface::at_send_command(const std::string &command,
     auto elapsed = std::chrono::steady_clock::now() - start;
     if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() >
         timeout_ms) {
-      // shoudld I clear buffer here? idk
+      slogger::warning("AT command timed out: " + command);
       break;
     }
 
     auto raw_data = read_with_timeout(100);
     response_buffer_ += std::string(raw_data.begin(), raw_data.end());
+
+    // // Remove echo of the command itself
+    // size_t echo_pos = response_buffer_.find(command);
+    // if (echo_pos != std::string::npos) {
+    //   // Find the end of the echo (either \r\n or just to the end of the
+    //   echoed
+    //   // command)
+    //   size_t echo_end = response_buffer_.find("\r\n", echo_pos);
+    //   if (echo_end != std::string::npos) {
+    //     // Remove the echo and the line ending
+    //     response_buffer_.erase(echo_pos, (echo_end + 2) - echo_pos);
+    //   } else {
+    //     // If no line ending found, just remove the command part
+    //     response_buffer_.erase(echo_pos, command.length());
+    //   }
+    // }
 
     // Check for expected response
     if (response_buffer_.find(expected_response) != std::string::npos) {
@@ -223,6 +255,9 @@ bool UartInterface::at_send_command(const std::string &command,
   return true;
 }
 
+/// @brief
+/// @param buffer
+/// @return Returns amount of bytes read. -1 if failed
 ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
@@ -242,6 +277,12 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
   // "0400001908490042FFCD03F7FFCFFFC0002DFFE93C6DAABE0000000000000000"
 
   // ...
+
+  // Start listening (don't check git blame timestamp)
+  if (modem_state_ != ModemContinuousState::RXLRPKT) {
+    at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000,
+                    ModemContinuousState::RXLRPKT);
+  }
 
   // Read new data and append to persistent buffer
   auto raw_data = read_with_timeout(1000);
@@ -264,7 +305,9 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
     message.erase(std::remove(message.begin(), message.end(), '\n'),
                   message.end());
 
-    slogger::debug("Received message: " + message);
+    if (!message.empty()) {
+      slogger::debug("Received message from interface: " + message);
+    }
 
     // Parse message content
     if (message.find("+TEST: LEN:") == 0) {
@@ -278,10 +321,12 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
           snr = std::stoi(message.substr(snr_pos + 4));
 
           // Signal quality monitoring
-          if (rssi < -85) {
+          constexpr int RSSI_THRESHOLD = -85;
+          constexpr int SNR_THRESHOLD = 5;
+          if (rssi < RSSI_THRESHOLD) {
             slogger::warning("Poor RSSI: " + std::to_string(rssi) + " dBm");
           }
-          if (snr < 5) {
+          if (snr < SNR_THRESHOLD) {
             slogger::warning("Low SNR: " + std::to_string(snr) + " dB");
           }
         } catch (const std::exception &e) {
@@ -333,7 +378,7 @@ std::vector<uint8_t> UartInterface::hex_string_to_bytes(
 }
 
 /// @brief Write serial data to the LoRa band through the LoRa interface
-/// @param data
+/// @param data Binary data bytes
 /// @return
 ssize_t UartInterface::write_data(const std::vector<uint8_t> &data) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);

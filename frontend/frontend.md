@@ -17,12 +17,20 @@ Unless updating them is absolutely necessary, we will be using these specific ve
 ### Tailwind
 **Tailwind v4.0.17 is used for stylesheets.**
 
-The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to **tailwindcss**, and place it in `/third_party/` for development. 
+The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to *tailwindcss*, and place it INSIDE `/third_party/` for development. 
 
 The `/frontend/scripts/` folder has a number of scripts for using Tailwind:
 
-- **tailwind_dev.sh** will update tailwind.css in realtime, as you make changes to the html. Use this while developing the webpage.
-- **tailwind_build.sh** will build an optimised and minified version of tailwind.css for production. This probably isn't necessary since it's a fairly small website, but we'll take any optimisations we can get.
+- *tailwind_dev.sh* will update tailwind.css in realtime, as you make changes to the html. Use this while developing the webpage.
+- *tailwind_build.sh* will build an optimised and minified version of tailwind.css for production. This probably isn't necessary since it's a fairly small website, but we'll take any optimisations we can get.
+
+#### **Windows Instructions**
+
+Make sure to unblock the executable in explorer by **right clicking > properties > unblock**. You'll also need to make sure the file is named *tailwindcss.exe*.
+
+In order to run either of the scripts in VS Code, on the toolbar click **Terminal > New Task > [any of the tailwind scripts] > Continue without scanning task output**
+
+If you're not using VS Code, you can try running *tailwind_dev.bat* and *tailwind_build.bat* by opening a new terminal and typing `frontend\scripts\tailwind_dev.bat` or `frontend\scripts\tailwind_build.bat` from the repository root.
 
 ### D3.js
 **D3.js v7.9.0 is used for data visualisation.**

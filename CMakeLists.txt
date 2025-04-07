@@ -44,7 +44,7 @@ add_library(middleware_lib ${LIB_SRCS})
 add_executable(middleware_server ${MAIN_SRC})
 
 # Protobuf generation for cpp and python files
-# Docs: https://github.com/protocolbuffers/protobuf/blob/e1faf09604d26cc6803970815f91225b220175d4/docs/cmake_protobuf_generate.md
+# Docs: https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
 file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
 add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
@@ -70,13 +70,6 @@ protobuf_generate(
     APPEND_PATH
     FILES ${PROTO_FILES}
 )
-
-# Add python protobuf generation
-# For now just use  4249  protoc --proto_path=./backend/proto/payloads --python_out=./backend/proto/generated ./backend/proto/payloads/AV_TO_GCS_DATA_1.proto
-
-# # Get all generated protobuf source files
-# # TODO this might need to be edited after you start using things outside of payloads
-# file(GLOB PROTO_SOURCES "${PROTO_BINARY_DIR}/payloads/*.pb.cc")
 
 # Define DEBUG macro in debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

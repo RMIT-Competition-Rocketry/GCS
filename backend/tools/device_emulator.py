@@ -1,10 +1,9 @@
 from __future__ import absolute_import
 from abc import ABC, abstractmethod
-from backend import config
+import config.config as config
 from typing import Optional, List
 import sys
 from backend import metric
-from backend import config
 import os
 import time
 import backend.process_logging as slogger  # slog deez nuts

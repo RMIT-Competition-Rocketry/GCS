@@ -1,7 +1,7 @@
 import threading
 import backend.tools.device_emulator as device_emulator
 import backend.process_logging as slogger
-from backend.config import load_config
+import config.config as config
 import backend.ansci as ansci
 from pprint import pprint
 import os
@@ -85,12 +85,17 @@ KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
 # fml again
 BTN_TOGGLE_MAP = {v[0]: v[1] for v in KEY_MAP.values()}
 
-LOCK_FILE_GSE_RESPONSE_PATH: str = load_config(
+LOCK_FILE_GSE_RESPONSE_PATH: str = config.load_config(
 )["locks"]["lock_file_gse_response_path"]
 
 pressed_states = {button: False for button in CONTROLLER_MAP.keys()}
 pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]] = True
 pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]] = True
+
+# Used for change detection
+previous_pressed_states = pressed_states.copy()
+
+controller_offline = True
 
 stop_event = threading.Event()
 state_lock = threading.Lock()
@@ -133,6 +138,8 @@ def setup_controller() -> Optional[pygame.joystick.JoystickType]:
 
     joystick = pygame.joystick.Joystick(0)
     joystick.init()
+    global controller_offline
+    controller_offline = False
 
     if joystick.get_name() != "Logitech Gamepad F710":
         slogger.error(
@@ -244,6 +251,34 @@ def print_information():
             output += ansci.RESET
         return output
 
+    def get_final_status_text(ON, GAS_GO, O2_GO, IGNITION_GO,
+                              SYSTEM_SELECT: system_selection,
+                              GAS_SELECT: gas_selection
+                              ) -> str:
+        if not ON:
+            return "System OFF"
+        if SYSTEM_SELECT == system_selection.NEUTRAL:
+            return "System Neutral"
+        if GAS_GO:
+            match GAS_SELECT:
+                case gas_selection.PURGE:
+                    return "Gas Purging"
+                case gas_selection.N20:
+                    return "Gas Filling N20"
+                case gas_selection.NEUTRAL:
+                    return "Gas Neutral Mode"
+        if SYSTEM_SELECT == system_selection.IGNITION:
+            if O2_GO and not IGNITION_GO:
+                return "Filling O2"
+            if O2_GO and IGNITION_GO:
+                return "Filling O2 & Ignition Firing"
+            if not O2_GO and IGNITION_GO:
+                return "Ignition Firing"
+            if not O2_GO and not IGNITION_GO:
+                return "Awiting Ignition Command"
+
+        return "Undefined state"
+
     """Prints information about current states to help the user understand where they're at"""
     # Do no validate information here. That is done in packet sender and on GSE
     if not validate_switch_states():
@@ -278,32 +313,57 @@ def print_information():
             print(gas_information_text(False, GAS_SELECT_TEXT, GAS_GO), end="")
             print(ignition_information_text(False, O2_GO, IGNITION_GO), end="")
 
-    print()
+    print(ansci.BG_GREEN + ansci.FG_BLACK +
+          get_final_status_text(
+              ON, GAS_GO, O2_GO, IGNITION_GO, SYSTEM_SELECT, GAS_SELECT)
+          + ansci.RESET
+          )
 
 
 def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
+    global previous_pressed_states, controller_offline
     clock = pygame.time.Clock()
     if joystick is None:
         # Set the (nothing) default state
         with state_lock:
-            pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]] = True
+            pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]] = False
             pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]] = True
             pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]] = True
-
+    first_time = True
+    firstAddedEvent = True
     while not stop_event.is_set():
         if joystick is not None:
             event = pygame.event.poll()
-            if event.type != pygame.NOEVENT:
-                if event.type == pygame.JOYBUTTONDOWN:
+            if event.type == pygame.NOEVENT:
+                continue
+            match event.type:
+                case pygame.JOYBUTTONDOWN:
                     handle_button_press(event.button, True)
-                elif event.type == pygame.JOYBUTTONUP:
+                    # Button event discovered
+                    # Use in this block to avoid race conditions
+                    controller_offline = False
+                case pygame.JOYBUTTONUP:
                     handle_button_press(event.button, False)
+                    controller_offline = False
+                case pygame.JOYDEVICEREMOVED:
+                    slogger.warning("Controller disconnected")
+                    controller_offline = True
+                case pygame.JOYDEVICEADDED:
+                    if not firstAddedEvent:
+                        slogger.info(
+                            "Controller online. Restart likely required. Maintaining fallback state")
+                        controller_offline = True  # This is default behaviour for F710 controller
+                        firstAddedEvent = False
         else:
             # Reduce thread load. No need for full speed in testing
             time.sleep(0.05)
         clock.tick(60)  # 60 FPS
         # Run CLI notifications
-        print_information()
+        if (pressed_states != previous_pressed_states or first_time):
+            # Print on change. Many STDOUT ANSCI writes are expensive
+            print_information()
+            first_time = False
+        previous_pressed_states = pressed_states.copy()
 
 
 def handle_button_press(button_id, pressed):
@@ -444,12 +504,12 @@ def safety_fallback_state():
     states = {
         "MANUAL_PURGE": False,
         "O2_FILL_ACTIVATE": False,
-        "SELECTOR_SWITCH_NEUTRAL_POSITION": True,
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": False,
         "N2O_FILL_ACTIVATE": False,
         "IGNITION_FIRE": False,
         "IGNITION_SELECTED": False,
         "GAS_FILL_SELECTED": False,
-        "SYSTEM_ACTIVATE": True,
+        "SYSTEM_ACTIVATE": False,
     }
 
     return states
@@ -462,18 +522,20 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
         SOCKET_PATH = os.path.abspath(os.path.join(
             os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
         )
-        # Wait 1000ms before giving up on push request
-        LINGER_TIME_MS = 1000
+        # Wait LINGER_TIME_MS before giving up on push request
+        LINGER_TIME_MS = 300
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
         push_socket.connect(f"ipc://{SOCKET_PATH}")
 
         while not stop_event.is_set():
             states = calculate_states()
-            if states == False:
+            if states == False or controller_offline:
                 # Error detected
-                slogger.error("Invalid controller state")
+                if states == False:
+                    slogger.error("Invalid controller state")
                 states = safety_fallback_state()
-                continue
+                slogger.warning("In fallback safety state")
             state_command = device_emulator.GCStoGSEStateCMD(**states)
             try:
                 push_socket.send(
@@ -483,6 +545,8 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
                 slogger.warning(
                     "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping")
                 time.sleep(1)
+            # No need to go full blast. Socket will fill up
+            time.sleep(0.2)
     finally:
         slogger.debug("Packet sender closing socket")
         push_socket.close()
@@ -493,7 +557,8 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
 
 
 def main():
-    device_emulator.MockPacket.initialize_settings(load_config()['emulation'])
+    device_emulator.MockPacket.initialize_settings(
+        config.load_config()['emulation'])
     slogger.debug("Starting pendant emulator")
 
     signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C

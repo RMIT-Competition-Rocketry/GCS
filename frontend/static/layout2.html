@@ -1,80 +1,83 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Layout 2</title>
+		<link rel="stylesheet" type="text/css" href="css/tailwind.css" media="screen" />
+	</head>
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Layout 2</title>
-    <link rel="stylesheet" type="text/css" href="css/tailwind.css" media="screen" />
-</head>
-
-<body class="bg-black w-screen h-screen">
-	<main class="w-full h-full flex flex-col gap-4 p-4 text-white text-2xl text-center">
-		<div class="w-full flex flex-row gap-4">
-			<div class="bg-cyan-800 w-1/3">
-				<p>
-					AV Status Indicators?<br>
-					(Global recovery status, GPS fix, etc.)
-				</p>
-			</div>
-			<nav class="bg-cyan-800 w-1/3">
-				<p>
-					Page selector (as designed)
-				</p>
-			</nav>
-			<div class="bg-cyan-800 w-1/3">
-				<p>
-					Telemetry Data?<br>
-					(RSSI, No. of packets received)
-				</p>
-			</div>
-		</div>
-		
-		<div class="w-full flex flex-row gap-4 grow">
-			<div class="w-[calc(calc(2/3*100%)+1rem)] flex flex-col gap-4 h-full">
-				<div class="w-full flex flex-row gap-4 grow">
-					<div class="bg-cyan-800 w-1/2">
-						<p>
-							Continuity Check Buttons
-						</p>
-					</div>
-					<div class="bg-cyan-800 w-1/2">
-						<p>
-							Continuity Check Results
-						</p>
-					</div>
-				</div>
-				<div class="bg-cyan-800 w-full grow">
+	<body class="w-screen h-screen bg-black">
+		<main class="w-full h-full flex flex-col gap-2 text-white border-hive border-2 text-center">
+			<div class="w-full flex flex-row gap-2">
+				<div class="bg-cyan-800 w-1/6 grow">
 					<p>
-						Other Remote System Control buttons/info
+						AV Status Indicators?
+						<br />
+						(Global recovery status, GPS fix, etc.)
+					</p>
+				</div>
+				<nav class="w-auto grow bg-navbar flex px-[4%] py-2 gap-2 font-medium">
+					<a href="" class="w-1/5 wrap-nowrap">
+						<div class="aspect-square bg-white w-auto mx-4"></div>
+						Main Interface
+					</a>
+					<a href="" class="w-1/5 wrap-nowrap">
+						<div class="aspect-square bg-white w-auto mx-4"></div>
+						Single Operator
+					</a>
+					<a href="" class="w-1/5">
+						<div class="aspect-square bg-white w-auto mx-4"></div>
+						Live Feeds 1
+					</a>
+					<a href="" class="w-1/5">
+						<div class="aspect-square bg-white w-auto mx-4"></div>
+						Live Feeds 2
+					</a>
+					<a href="" class="w-1/5">
+						<div class="aspect-square bg-white w-auto mx-4"></div>
+						HMI
+					</a>
+				</nav>
+				<div class="bg-cyan-800 w-1/6 grow">
+					<p>
+						Telemetry Data?
+						<br />
+						(RSSI, No. of packets received)
 					</p>
 				</div>
 			</div>
-			<div class="bg-cyan-800 w-1/3">
-				<p>
-					Pop Test Buttons​
-				</p>
-			</div>
-		</div>
 
-		<div class="w-full flex flex-row gap-4">
-			<div class="bg-cyan-800 w-1/3">
-				<p>
-					HIVE logo/RMIT logo/other?
-				</p>
+			<div class="w-full flex flex-row gap-2 grow">
+				<div class="w-2/3 flex flex-col gap-2 h-full">
+					<div class="w-full flex flex-row gap-2 grow">
+						<div class="bg-cyan-800 w-1/2">
+							<p>Continuity Check Buttons</p>
+						</div>
+						<div class="bg-cyan-800 w-1/2">
+							<p>Continuity Check Results</p>
+						</div>
+					</div>
+					<div class="bg-cyan-800 w-full grow">
+						<p>Other Remote System Control buttons/info</p>
+					</div>
+				</div>
+				<div class="bg-cyan-800 w-1/3">
+					<p>Pop Test Buttons​</p>
+				</div>
 			</div>
-			<nav class="bg-cyan-800 w-1/3">
-				<p>
-					Max altitude reached? (Both Meters and Feet)
-				</p>
-			</nav>
-			<div class="bg-cyan-800 w-1/3">
-				<p>
-					Project Name/Rocket Name/Competition name/etc?
-				</p>
-			</div>
-		</div>
-	</main>
-</body>
 
+			<div class="w-full flex flex-row gap-2">
+				<div class="bg-cyan-800 w-1/3">
+					<p>HIVE logo/RMIT logo/other?</p>
+				</div>
+				<div class="bg-cyan-800 w-1/3">
+					<p>Max altitude reached? (Both Meters and Feet)</p>
+				</div>
+				<div class="bg-cyan-800 w-1/3">
+					<p>Project Name/Rocket Name/Competition name/etc?</p>
+				</div>
+			</div>
+		</main>
+	</body>
 </html>

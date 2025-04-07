@@ -38,7 +38,7 @@
             "args": [
                 // 3 args please
                 "UART",
-                "/dev/serial0",
+                "/dev/ttyAMA0",
                 "gcs_rocket.sock",
             ],
             "preLaunchTask": "middleware build-dev + generate proto",
@@ -49,7 +49,7 @@
             "MIMode": "gdb"
         },
         {
-            "name": "Python Debugger: cli dev --nodocker",
+            "name": "Python Debugger: cli dev",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/rocket.py",
@@ -60,7 +60,6 @@
             "subProcess": true,
             "args": [
                 "dev",
-                "--nodocker"
             ]
         },
         {
