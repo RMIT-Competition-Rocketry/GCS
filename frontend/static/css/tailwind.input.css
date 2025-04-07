@@ -1,4 +1,4 @@
-@import "tailwindcss"; 
+@import "tailwindcss";
 
 /*
 This is a template/config file required by Tailwind.
@@ -8,9 +8,14 @@ and only modify it if you know what you're doing :)
 */
 
 @theme {
-    --color-hive: #f79521; /* TODO: Make sure this is the correct orange */
+	--color-hive: #f79521; /* TODO: Make sure this is the correct orange */
 }
 
 p {
-    @apply my-4;
+	@apply my-4;
+}
+
+.bg-navbar {
+	background-image: url("/img/navbar.svg#svgView(preserveAspectRatio(none))");
+	background-size: 100% 100%;
 }
