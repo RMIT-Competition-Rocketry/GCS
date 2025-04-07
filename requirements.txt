@@ -3,3 +3,5 @@ pyzmq>=25.1.1
 zmq>=0.0.0
 protobuf>=5.29.3
 pygame>=2.5.1
+rocketpy>=1.9.0
+pandas>=2.2.3
