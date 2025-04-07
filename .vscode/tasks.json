@@ -75,9 +75,28 @@
         {
             "label": "start ZeroMQ debug subscriber",
             "type": "shell",
-            "command": "python",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
             "args": [
                 "backend/tools/zeromq_debug_sub_raw.py",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend API manually",
+            "type": "shell",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/frontend_api.py",
+                "--socket-path",
                 "gcs_rocket"
             ],
             "icon": {
