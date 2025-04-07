@@ -2,13 +2,15 @@
 
 import click
 import cli.rocket_logging as rocket_logging
-import logging
 import cli.proccess as process
+import config.config as config
+import logging
 import subprocess
 import sys
 import time
 import os
 import signal
+from typing import Optional
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
@@ -63,9 +65,34 @@ def run():
     # 7. Database stuff in future
 
 
+def get_interface_type(interface: Optional[str]) -> InterfaceType:
+    """Get the interface type from the command line argument or config"""
+    if interface is None:  # Unspecified by user
+        interface = config.load_config(
+        )['hardware']['interface'].strip().upper()
+        logger.debug(f"Using interface type from config: {interface}")
+    else:
+        interface = interface.strip().upper()
+        logger.debug(f"Using interface type from CLI: {interface}")
+
+    # Convert string to InterfaceType enum
+    try:
+        for enum_member in InterfaceType:
+            if enum_member.name == interface:
+                return enum_member
+        # If we get here, no matching enum value was found
+        valid_types = [e.name for e in InterfaceType]
+        raise ValueError(
+            f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}")
+    except Exception as e:
+        logger.error(f"Error processing interface type: {e}")
+        raise ValueError(f"Invalid interface type: {interface}")
+
+
 @click.command()
 @click.option('--docker', is_flag=True, help="Run inside Docker")
-def dev(docker):
+@click.option('--interface', help="Set hardware interface type. This overrides the config parameter")
+def dev(docker, interface):
     """Start software in development mode"""
     def start_docker_container():
         try:
@@ -104,8 +131,7 @@ def dev(docker):
         raise
 
     # 2.
-    # TODO convert this to read from INI for default with CLI priotity
-    INTERFACE_TYPE = InterfaceType.UART
+    INTERFACE_TYPE = get_interface_type(interface)
     match INTERFACE_TYPE:
         case InterfaceType.UART:
             logger.info("Starting UART interface")
