@@ -64,8 +64,8 @@ def run():
 
 
 @click.command()
-@click.option('--nodocker', is_flag=True, help="Run without Docker. This skips containerisation")
-def dev(nodocker):
+@click.option('--docker', is_flag=True, help="Run inside Docker")
+def dev(docker):
     """Start software in development mode"""
     def start_docker_container():
         try:
@@ -85,7 +85,7 @@ def dev(nodocker):
 
     print_splash()
 
-    if nodocker:
+    if not docker:
         # This is called in Docker anyway.
         # Just to avoid recursive containerisation
         logger.info(
