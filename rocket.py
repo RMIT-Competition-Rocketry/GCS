@@ -92,7 +92,8 @@ def get_interface_type(interface: Optional[str]) -> InterfaceType:
 @click.command()
 @click.option('--docker', is_flag=True, help="Run inside Docker")
 @click.option('--interface', help="Set hardware interface type. This overrides the config parameter")
-def dev(docker, interface):
+@click.option('--nobuild', is_flag=True, help="Do not build binaries. Search for pre-built binaries")
+def dev(docker, interface, nobuild):
     """Start software in development mode"""
     def start_docker_container():
         try:
@@ -123,12 +124,15 @@ def dev(docker, interface):
         start_docker_container()
 
     # 1. Build C++ middleware
-    try:
-        start_middleware_build(logger, CMakeBuildModes.DEBUG)
-    except Exception as e:
-        logger.error(
-            f"Failed to build middleware: {e}\nPropogating fatal error")
-        raise
+    if not nobuild:
+        try:
+            start_middleware_build(logger, CMakeBuildModes.DEBUG)
+        except Exception as e:
+            logger.error(
+                f"Failed to build middleware: {e}\nPropogating fatal error")
+            raise
+    else:
+        logger.info("Skipping middleware build. Using pre-built binaries")
 
     # 2.
     INTERFACE_TYPE = get_interface_type(interface)
@@ -160,7 +164,7 @@ def dev(docker, interface):
             f"Failed to start middleware: {e}\nPropogating fatal error")
         raise
 
-    # TODO fix this with middleware blocking
+    # TODO fix this with middleware callback blocking
     time.sleep(0.5)
 
     # 4. Start device emulator
