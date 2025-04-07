@@ -98,8 +98,10 @@ class LoggedSubProcess:
             self._stderr_thread.join()
         try:
             self.__class__._instances.remove(self)
-            INSTANCE_DEBUG_PID = [f'({x._name}: {x._process.pid})' for x in self.__class__._instances]
-            self._logger_adapter.debug(f"Remaining instances: {INSTANCE_DEBUG_PID}")
+            INSTANCE_DEBUG_PID = [
+                f'({x._name}: {x._process.pid})' for x in self.__class__._instances]
+            self._logger_adapter.debug(
+                f"Remaining instances: {INSTANCE_DEBUG_PID}")
         except ValueError:
             self._logger_adapter.error(
                 f"Failed to close my subprocess: {self._name} (PID:{self._process.pid})")
@@ -190,10 +192,12 @@ class LoggedSubProcess:
             if line:  # Non-empty lines by 'truthy' check of blank string
                 if self._PARSE_OUTPUT:
                     match = re.match(slogger.REGEX_MATCH, line)
-                    group: Optional[str] = match.group(1) if match else None
+                    level: Optional[str] = match.group(1) if match else None
                 else:
-                    group = None
-                self._log_monitored_stream(line, stream_name, group)
+                    level = None
+                # remove level prefix
+                line = re.sub(slogger.REGEX_MATCH, '', line)
+                self._log_monitored_stream(line, stream_name, level)
                 if self._stop_callbacks == False:
                     self._run_callbacks(line, stream_name)
                     self._stop_callbacks = self._update_callback_condition()

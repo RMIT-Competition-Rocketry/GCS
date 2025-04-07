@@ -43,7 +43,7 @@ def start_middleware(logger: logging.Logger,
 
         if MIDDLEWARE_BINARY_PATH is None:
             raise FileNotFoundError(
-                f"Could not find middleware binary ({BINARY_NAME}) in build/ or root folder")
+                f"Could not find middleware binary ({BINARY_NAME}) in build/ or root folder. Please run $ bash scripts/release.sh")
 
         MIDDLEWARE_COMMAND = [
             # Should always be relative to cwd. Just use the (.):

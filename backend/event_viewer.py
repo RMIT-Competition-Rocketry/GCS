@@ -6,17 +6,17 @@ import csv
 from abc import ABC, abstractmethod
 import sys
 from google.protobuf.message import Message as PbMessage
-import proto.generated.payloads.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
-import proto.generated.payloads.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
-import proto.generated.payloads.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
-import proto.generated.payloads.GCS_TO_AV_STATE_CMD_pb2 as GCS_TO_AV_STATE_CMD_pb
-import proto.generated.payloads.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_pb
-import proto.generated.payloads.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
-import proto.generated.payloads.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
+import proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
+import proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
+import proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
+import proto.generated.GCS_TO_AV_STATE_CMD_pb2 as GCS_TO_AV_STATE_CMD_pb
+import proto.generated.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_pb
+import proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
+import proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 from typing import List, Dict
 import backend.process_logging as slogger  # slog deez nuts
 import backend.ansci as ansci
-import backend.config as config
+import config.config as config
 
 # Just prints useful information from AV and saves it to csv file
 

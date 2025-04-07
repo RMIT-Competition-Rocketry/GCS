@@ -98,5 +98,6 @@
         "scoped_allocator": "cpp",
         "valarray": "cpp",
         "ranges": "cpp"
-    }
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

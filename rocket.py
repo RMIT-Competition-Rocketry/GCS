@@ -2,13 +2,15 @@
 
 import click
 import cli.rocket_logging as rocket_logging
-import logging
 import cli.proccess as process
+import config.config as config
+import logging
 import subprocess
 import sys
 import time
 import os
 import signal
+from typing import Optional
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
@@ -24,7 +26,11 @@ cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup m
 @click.group()
 def cli():
     """CLI interface to manage GCS software initialisation"""
-    pass
+    # Check you're in a valid directory.
+    # Implicit check is to make sure the logo file exists in expected spot
+    if not os.path.exists(os.path.join("cli", "ascii_art_logo.txt")):
+        raise RuntimeError(
+            "Please run this program from project root directory")
 
 
 @click.command()
@@ -37,10 +43,6 @@ def run():
     # 1. Make sure C++ middleware is there
     # TODO add checks for ALL files please
     # TODO please add a check to make sure it's up to date?
-    if not (os.path.exists(os.path.join("build", "middleware-release"))):
-        logger.error(
-            "C++ release middleware not found. Please build it with scripts/release.sh. Exiting")
-        raise FileNotFoundError("C++ release middleware not found. Exiting")
 
     # 2. Run C++ middleware
     # Note that devices are paired pseudo-ttys
@@ -48,7 +50,7 @@ def run():
         start_middleware(logger=logger,
                          release=True,
                          INTERFACE_TYPE=InterfaceType.UART,
-                         DEVICE_PATH="/dev/serial0",
+                         DEVICE_PATH="/dev/ttyAMA0",
                          SOCKET_PATH="gcs_rocket")
     except Exception as e:
         logger.error(
@@ -63,9 +65,39 @@ def run():
     # 7. Database stuff in future
 
 
+def get_interface_type(interface: Optional[str]) -> InterfaceType:
+    """Get the interface type from the command line argument or config"""
+    if interface is None:  # Unspecified by user
+        interface = config.load_config(
+        )['hardware']['interface'].strip().upper()
+        logger.debug(f"Using interface type from config: {interface}")
+    else:
+        interface = interface.strip().upper()
+        logger.debug(f"Using interface type from CLI: {interface}")
+
+    # Convert string to InterfaceType enum
+    try:
+        for enum_member in InterfaceType:
+            if enum_member.name == interface:
+                return enum_member
+        # If we get here, no matching enum value was found
+        valid_types = [e.name for e in InterfaceType]
+        raise ValueError(
+            f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}")
+    except Exception as e:
+        logger.error(f"Error processing interface type: {e}")
+        raise ValueError(f"Invalid interface type: {interface}")
+
+
 @click.command()
-@click.option('--nodocker', is_flag=True, help="Run without Docker. This skips containerisation")
-def dev(nodocker):
+@click.option('--docker', is_flag=True, help="Run inside Docker")
+@click.option(
+    '--interface',
+    type=click.Choice([e.value for e in InterfaceType], case_sensitive=False),
+    help="Hardware interface type. Overrides config parameter"
+)
+@click.option('--nobuild', is_flag=True, help="Do not build binaries. Search for pre-built binaries")
+def dev(docker, interface, nobuild):
     """Start software in development mode"""
     def start_docker_container():
         try:
@@ -85,7 +117,7 @@ def dev(nodocker):
 
     print_splash()
 
-    if nodocker:
+    if not docker:
         # This is called in Docker anyway.
         # Just to avoid recursive containerisation
         logger.info(
@@ -96,20 +128,23 @@ def dev(nodocker):
         start_docker_container()
 
     # 1. Build C++ middleware
-    try:
-        start_middleware_build(logger, CMakeBuildModes.DEBUG)
-    except Exception as e:
-        logger.error(
-            f"Failed to build middleware: {e}\nPropogating fatal error")
-        raise
+    if not nobuild:
+        try:
+            start_middleware_build(logger, CMakeBuildModes.DEBUG)
+        except Exception as e:
+            logger.error(
+                f"Failed to build middleware: {e}\nPropogating fatal error")
+            raise
+    else:
+        logger.info("Skipping middleware build. Using pre-built binaries")
 
     # 2.
-    INTERFACE_TYPE = InterfaceType.UART  # TODO convert this to read from INI for default with CLI priotity
+    INTERFACE_TYPE = get_interface_type(interface)
     match INTERFACE_TYPE:
         case InterfaceType.UART:
             logger.info("Starting UART interface")
             # Just leave second (emulator) device as None
-            devices = ("/dev/serial0", None)
+            devices = ("/dev/ttyAMA0", None)
         case InterfaceType.TEST:
             logger.info("Starting TEST interface")
             devices = start_fake_serial_device(logger)
@@ -133,7 +168,7 @@ def dev(nodocker):
             f"Failed to start middleware: {e}\nPropogating fatal error")
         raise
 
-    # TODO fix this with middleware blocking
+    # TODO fix this with middleware callback blocking
     time.sleep(0.5)
 
     # 4. Start device emulator

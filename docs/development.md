@@ -6,7 +6,7 @@
 To start in dev mode, please use:
 
 ```terminal
-$ rocket dev --nodocker
+$ rocket dev
 ```
 
 In comparison to release mode (`run`), dev will additionally:
