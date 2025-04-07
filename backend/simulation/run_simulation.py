@@ -1,8 +1,14 @@
 from rocket_sim import flight_simulation
 from backend.tools.device_emulator import AVtoGCSData1, MockPacket
-import pandas as pd
+import sys
 import time
+import pandas as pd
+import backend.process_logging as slogger
+import config.config as config
 
+# Setting timeout, we can config this later
+TIMEOUT_INTERVAL = 0.01
+       
 def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float):
     packet = AVtoGCSData1(
         FLIGHT_STATE_MSB=False,
@@ -35,39 +41,52 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         MOVE_TO_BROADCAST=False
     )
     packet.write_payload()
+    
+def isImportantPacket(current_row, last_row):
+    if last_row is None:
+        return True
+    if current_row["flight_state"] != last_row["flight_state"]:
+        return True
+    
+    # @TODO More important calculations
+
+def run_emulator(flight_data: pd.Dataframe, device_name: str):
+    # Init mockpacket
+    MockPacket.initialize_settings(config.load_config()['emulation'],FAKE_DEVICE_NAME=device_name,)
+    
+    last_time = float('-inf')
+    last_row = None
+    
+    # Filteration and sending packets
+    for _, row in flight_data.iterrows():
+        current_time = row["# Time(s)"]
+        if (current_time - last_time) >= TIMEOUT_INTERVAL or isImportantPacket(current_row=row, last_row=last_row):
+            send_simulated_packet(
+                row[" Altitude AGL (m)"],
+                row[" Speed - Velocity Magnitude (m/s)"],
+                row[" ω1 (rad/s)"],
+                row[" ω2 (rad/s)"],
+                row[" ω3 (rad/s)"],
+                row[" Ax (m/s²)"],
+                row[" Ay (m/s²)"],
+                row[" Az (m/s²)"]       
+            )
+            last_time = current_time
+            last_row = row
+            
+        time.sleep(TIMEOUT_INTERVAL)
 
 def main():
-    # This should give a pandas dataframe
-    flight_data = flight_simulation.get_simulated_flight_data()
+    slogger.debug("Emulator Starting Simulation...")
+   
+    try:
+        # @TODO PLEASE EDIT THIS DEVICE NAME ITS JUST COPIED STRAIGHT FROM EMULATOR
+        DEVICE_NAME = sys.argv[sys.argv.index('--device-rocket') + 1]
+        flight_data = flight_simulation.get_simulated_flight_data()
+        run_emulator(flight_data, DEVICE_NAME)
+    except Exception as e:
+        sys.exit(1)
     
-    # Time to push to the real function
-    # columns = [
-    # "# Time (s)",
-    # " Altitude AGL (m)",
-    # " Speed - Velocity Magnitude (m/s)",
-    # " ω1 (rad/s)",
-    # " ω2 (rad/s)",
-    # " ω3 (rad/s)",
-    # " Ax (m/s²)",
-    # " Ay (m/s²)",
-    # " Az (m/s²)"
-    # ]
-    timeout = 0.01
-    for idx, row in flight_data.iterrows():
-        send_simulated_packet(
-            row[" Altitude AGL (m)"],
-            row[" Speed - Velocity Magnitude (m/s)"],
-            row[" ω1 (rad/s)"],
-            row[" ω2 (rad/s)"],
-            row[" ω3 (rad/s)"],
-            row[" Ax (m/s²)"],
-            row[" Ay (m/s²)"],
-            row[" Az (m/s²)"]       
-        )
-        time.sleep(timeout)
 
-    
-    
-    
 if __name__ == "__main__":
     main()
