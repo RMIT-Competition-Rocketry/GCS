@@ -91,7 +91,11 @@ def get_interface_type(interface: Optional[str]) -> InterfaceType:
 
 @click.command()
 @click.option('--docker', is_flag=True, help="Run inside Docker")
-@click.option('--interface', help="Set hardware interface type. This overrides the config parameter")
+@click.option(
+    '--interface',
+    type=click.Choice([e.value for e in InterfaceType], case_sensitive=False),
+    help="Hardware interface type. Overrides config parameter"
+)
 @click.option('--nobuild', is_flag=True, help="Do not build binaries. Search for pre-built binaries")
 def dev(docker, interface, nobuild):
     """Start software in development mode"""
