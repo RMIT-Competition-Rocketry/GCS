@@ -28,6 +28,8 @@ class UartInterface : public LoraInterface {
   std::string device_path_;
   std::string response_buffer_;
 
+  constexpr static int AT_TIMEOUT_MS = 1000;
+
   // Enums to track if you need to override continuous modes
   enum ModemContinuousState {
     NOT_CONTINUOUS,
@@ -40,7 +42,7 @@ class UartInterface : public LoraInterface {
 
   bool at_send_command(
       const std::string &command, const std::string &expected_response,
-      const int timeout_ms = 1000,
+      const int timeout_ms = AT_TIMEOUT_MS,
       const ModemContinuousState = ModemContinuousState::NOT_CONTINUOUS);
   void configure_uart();
   void at_setup();

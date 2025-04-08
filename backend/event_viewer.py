@@ -293,7 +293,7 @@ class AV_TO_GCS_DATA_1(Packet):
     def __init__(self):
         super().__init__(0x03, None)
         # How long to wait before printing basic information
-        self._INFORMATION_TIMEOUT = 1  # 1 Second
+        self._INFORMATION_TIMEOUT = 5  # Second
         self._last_information_display_time = time.monotonic()  # Fake minimum starting time
         self._last_flight_state: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState = None
         self._last_state_flags = {"dual_board_connectivity_state_flag": None,
@@ -736,7 +736,7 @@ class GSE_TO_GCS_DATA_2(Packet):
     def __init__(self):
         super().__init__(0x07, None)
         self._last_information_display_time = time.monotonic()  # Fake minimum starting time
-        self._INFORMATION_TIMEOUT = 1  # 1 Second
+        self._INFORMATION_TIMEOUT = 5  # Second s
         self._last_gse_state_flags = {
             "manual_purge_activated": None,
             "o2_fill_activated": None,

@@ -91,12 +91,12 @@ void UartInterface::at_setup() {
 
   slogger::info("E5 module found");
   // Configuration sequence
-  at_send_command("AT+MODE=TEST", "+MODE: TEST", 1000);
+  at_send_command("AT+MODE=TEST", "+MODE: TEST", AT_TIMEOUT_MS);
   // Returns like:
   // +TEST: RFCFG F:915000000, SF9, BW500K, TXPR:12, RXPR:16, POW:14dBm,
   // CRC:OFF, IQ:OFF, NET:OFF
   at_send_command("AT+TEST=RFCFG,915,SF9,500,12,16,14,OFF,OFF,OFF",
-                  "+TEST: RFCFG", 1000);
+                  "+TEST: RFCFG", AT_TIMEOUT_MS);
 
   // Uncomment to change baud rate (requires module reset)
   // if (at_send_command("AT+UART=BR, 230400", "+UART=BR, 230400", 1000)) {
@@ -105,7 +105,7 @@ void UartInterface::at_setup() {
   //     // Reinitialize with new baud rate here if needed
   // }
 
-  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000,
+  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", AT_TIMEOUT_MS,
                   ModemContinuousState::RXLRPKT);
   // std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
@@ -278,14 +278,14 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
 
   // ...
 
-  // Start listening (don't check git blame timestamp)
+  // Start listening
   if (modem_state_ != ModemContinuousState::RXLRPKT) {
-    at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", 1000,
+    at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", AT_TIMEOUT_MS,
                     ModemContinuousState::RXLRPKT);
   }
 
   // Read new data and append to persistent buffer
-  auto raw_data = read_with_timeout(1000);
+  auto raw_data = read_with_timeout(AT_TIMEOUT_MS);
   response_buffer_.append(raw_data.begin(), raw_data.end());
 
   int rssi = 0;
@@ -392,7 +392,7 @@ ssize_t UartInterface::write_data(const std::vector<uint8_t> &data) {
 
   // Format AT command for pure packet TX
   std::string command = "AT+TEST=TXLRPKT, \"" + hex_payload + '\"';
-  bool success = at_send_command(command, "+TEST: TX DONE", 1000);
+  bool success = at_send_command(command, "+TEST: TX DONE", AT_TIMEOUT_MS);
   if (success) {
     return data.size();
   } else {
