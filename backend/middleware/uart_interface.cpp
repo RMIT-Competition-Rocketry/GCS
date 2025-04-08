@@ -189,6 +189,7 @@ bool UartInterface::at_send_command(const std::string &command,
   response_buffer_.clear();
 
   std::string full_command = command + "\r\n";
+  slogger::debug("Sending AT command: " + full_command);
   std::vector<uint8_t> cmd_data(full_command.begin(), full_command.end());
 
   if (write_serial(cmd_data) != static_cast<ssize_t>(cmd_data.size())) {

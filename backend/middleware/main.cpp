@@ -261,17 +261,19 @@ int main(int argc, char *argv[]) {
     // integrated
     zmq::pollitem_t items[] = {{pendant_pull_socket, 0, ZMQ_POLLIN, 0}};
     std::vector<uint8_t> pendant_data;
+    int pendant_poll_failures = 0;
 
     // Main command loop
     while (running) {
       zmq::poll(items, 1, std::chrono::milliseconds(300));  // 300ms timeout
 
       int socket_more_intbool = 1;  // http://api.zeromq.org/2-2:zmq-getsockopt
-
       // items[0].revents represents items[0] which is the pendant data
       // In future with multiple polls, just copy this block with a different
       // items index
-      if (items[0].revents & ZMQ_POLLIN) {
+      constexpr int MAX_FAILURES = 5;
+      if (items[0].revents & ZMQ_POLLIN &&
+          pendant_poll_failures < MAX_FAILURES) {
         do {  // Data to be dequeued
           zmq::message_t pendant_msg;
           zmq::recv_result_t pendant_result =
@@ -282,6 +284,16 @@ int main(int argc, char *argv[]) {
                 pendant_pull_socket.get(zmq::sockopt::rcvmore);
           }
         } while (socket_more_intbool);
+      } else {
+        if (pendant_poll_failures >= MAX_FAILURES) {
+          slogger::warning(
+              "Failed to get any new pendant data from pendant service " +
+              std::to_string(MAX_FAILURES) + " times");
+          constexpr std::vector<uint8_t> FALLBACK_DATA = {0x00, 0x00, 0x00,
+                                                          0x00};
+          pendant_data = ;
+        }
+        pendant_poll_failures++;
       }
 
       if (pendant_data.empty()) {
