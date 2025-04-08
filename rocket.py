@@ -97,7 +97,8 @@ def get_interface_type(interface: Optional[str]) -> InterfaceType:
     help="Hardware interface type. Overrides config parameter"
 )
 @click.option('--nobuild', is_flag=True, help="Do not build binaries. Search for pre-built binaries")
-def dev(docker, interface, nobuild):
+@click.option('--logpkt', is_flag=True, help="Log packet data to csv")
+def dev(docker, interface, nobuild, logpkt):
     """Start software in development mode"""
     def start_docker_container():
         try:
@@ -178,7 +179,7 @@ def dev(docker, interface, nobuild):
         start_fake_serial_device_emulator(logger, devices[1])
 
     # 5. Start the event viewer
-    start_event_viewer(logger, "gcs_rocket", file_logging_enabled=False)
+    start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
 
     # 6. Could start the pendent emulator
     start_pendant_emulator(logger)
