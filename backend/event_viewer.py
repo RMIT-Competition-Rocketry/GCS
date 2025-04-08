@@ -5,6 +5,7 @@ import os
 import csv
 from abc import ABC, abstractmethod
 import sys
+import subprocess
 from google.protobuf.message import Message as PbMessage
 import proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
 import proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
@@ -13,7 +14,7 @@ import proto.generated.GCS_TO_AV_STATE_CMD_pb2 as GCS_TO_AV_STATE_CMD_pb
 import proto.generated.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_pb
 import proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
-from typing import List, Dict
+from typing import List, Dict, Optional
 import backend.process_logging as slogger  # slog deez nuts
 import backend.ansci as ansci
 import config.config as config
@@ -310,6 +311,7 @@ class AV_TO_GCS_DATA_1(Packet):
                                    "main_primary_test_results": None,
                                    "main_secondary_test_results": None}
         self._supersonic = False
+        self._max_velocity = 0
         self._last_broadcast_value = False
 
     def _process_flight_state(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
@@ -502,8 +504,12 @@ class AV_TO_GCS_DATA_1(Packet):
         )
 
     @staticmethod
-    def _mt_to_ft(meters):
-        return meters * 3.28084
+    def _mt_to_ft(METERS):
+        return METERS * 3.28084
+
+    @staticmethod
+    def _mps_to_mach(MPS):
+        return MPS / 343
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
@@ -562,6 +568,10 @@ class AV_TO_GCS_DATA_1(Packet):
                 f"{alt_color}Altitude: {ALT_M:<8.3f}m {ALT_FT:<9.3f}ft{ansci.RESET}")
             slogger.info(
                 f"{vel_color}Velocity: {VELOCITY:<8.3f}m/s{ansci.RESET}")
+            if (VELOCITY > self._max_velocity):
+                self._max_velocity = VELOCITY
+                slogger.info(
+                    f"New max velocity: {self._mps_to_mach(VELOCITY)} mach")
             self._last_information_display_time = time.monotonic()
 
         self._process_AV_tests(PROTO_DATA)
@@ -586,11 +596,34 @@ class AV_TO_GCS_DATA_2(Packet):
 
     def __init__(self):
         super().__init__(0x04, None)
+        self._GPS_latitude_old = ""
+        self._GPS_longitude_old = ""
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2) -> None:
         super().process(PROTO_DATA)
         # Output the GPS data as an ASCII QR code
-        # GPS_latitude =
+        GPS_latitude = PROTO_DATA.GPS_latitude
+        GPS_longitude = PROTO_DATA.GPS_longitude
+        if (GPS_latitude != self._GPS_latitude_old or GPS_longitude != self._GPS_longitude_old):
+            slogger.info(
+                f"GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
+            maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
+            result: Optional[str] = None
+            try:
+                result = subprocess.run(
+                    ['qrencode', maps_url, '-t', 'ANSI'],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                self._GPS_latitude_old = GPS_latitude
+                self._GPS_longitude_old = GPS_longitude
+            except Exception as e:
+                slogger.error(
+                    f"Failed to generate QR code for GPS coordinates: {GPS_latitude}, {GPS_longitude}")
+            slogger.info(result.stdout)
+
         slogger.debug("AV_TO_GCS_DATA_2 packet received")
 
 
