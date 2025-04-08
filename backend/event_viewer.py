@@ -571,7 +571,7 @@ class AV_TO_GCS_DATA_1(Packet):
             if (VELOCITY > self._max_velocity):
                 self._max_velocity = VELOCITY
                 slogger.info(
-                    f"New max velocity: {self._mps_to_mach(VELOCITY)} mach")
+                    f"New max velocity: {self._mps_to_mach(VELOCITY):<3.3f} mach")
             self._last_information_display_time = time.monotonic()
 
         self._process_AV_tests(PROTO_DATA)
@@ -735,31 +735,32 @@ class GSE_TO_GCS_DATA_1(Packet):
 
         # Regular infomation updates
         if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
-            TRANSDUCER_VALUE_ERROR = [
-                (PROTO_DATA.transducer_1, PROTO_DATA.transducer_1_error),
-                (PROTO_DATA.transducer_2, PROTO_DATA.transducer_2_error),
-                (PROTO_DATA.transducer_3, PROTO_DATA.transducer_3_error),
-            ]
-            for i, trans_values in enumerate(TRANSDUCER_VALUE_ERROR):
-                if not (-1 < trans_values[0] < 64.5) or trans_values[1]:
-                    log_function = slogger.error
-                else:
-                    log_function = slogger.info
-                log_function(f"Transducer_{i+1} value: {trans_values[0]} bar")
+            # TODO Uncomment when implimented
+            # TRANSDUCER_VALUE_ERROR = [
+            #     (PROTO_DATA.transducer_1, PROTO_DATA.transducer_1_error),
+            #     (PROTO_DATA.transducer_2, PROTO_DATA.transducer_2_error),
+            #     (PROTO_DATA.transducer_3, PROTO_DATA.transducer_3_error),
+            # ]
+            # for i, trans_values in enumerate(TRANSDUCER_VALUE_ERROR):
+            #     if not (-1 < trans_values[0] < 64.5) or trans_values[1]:
+            #         log_function = slogger.error
+            #     else:
+            #         log_function = slogger.info
+            #     log_function(f"Transducer_{i+1} value: {trans_values[0]} bar")
 
-            THERMOCOUPLE_VALUE_ERROR = [
-                (PROTO_DATA.thermocouple_1, PROTO_DATA.thermocouple_1_error),
-                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
-                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
-                (PROTO_DATA.thermocouple_4, PROTO_DATA.thermocouple_4_error),
-            ]
-            for i, thermocouple_values in enumerate(THERMOCOUPLE_VALUE_ERROR):
-                if not (-1 < thermocouple_values[0] < 34.5) or thermocouple_values[1]:
-                    log_function = slogger.error
-                else:
-                    log_function = slogger.info
-                log_function(
-                    f"Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
+            # THERMOCOUPLE_VALUE_ERROR = [
+            #     (PROTO_DATA.thermocouple_1, PROTO_DATA.thermocouple_1_error),
+            #     (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
+            #     (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
+            #     (PROTO_DATA.thermocouple_4, PROTO_DATA.thermocouple_4_error),
+            # ]
+            # for i, thermocouple_values in enumerate(THERMOCOUPLE_VALUE_ERROR):
+            #     if not (-1 < thermocouple_values[0] < 34.5) or thermocouple_values[1]:
+            #         log_function = slogger.error
+            #     else:
+            #         log_function = slogger.info
+            #     log_function(
+            #         f"Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
             self._last_information_display_time = time.monotonic()
         # Error flags. Note that transducer and thermocouple errors are logged above too
         for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[16:31]:
@@ -834,22 +835,40 @@ class GSE_TO_GCS_DATA_2(Packet):
         self._process_gse_state_flags(PROTO_DATA)
         # Regular information updates
         if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
-            slogger.info(
+            LOG_TEMP = slogger.info if (
+                0 < PROTO_DATA.internal_temp < 60) else slogger.error
+            LOG_WIND = slogger.info if (
+                -0.00001 < PROTO_DATA.wind_speed < 0.00001) else slogger.error
+            LOG_BOTTLE_1 = slogger.info if (
+                -0.00001 < PROTO_DATA.gas_bottle_weight_1 < 0.00001) else slogger.error
+            LOG_BOTTLE_2 = slogger.info if (
+                -0.00001 < PROTO_DATA.gas_bottle_weight_2 < 0.00001) else slogger.error
+            LOG_VAC_1 = slogger.info if (
+                -0.00001 < PROTO_DATA.analog_voltage_input_1 < 0.00001) else slogger.error
+            LOG_VAC_2 = slogger.info if (
+                -0.00001 < PROTO_DATA.analog_voltage_input_2 < 0.00001) else slogger.error
+            LOG_CURR_1 = slogger.info if (
+                -0.00001 < PROTO_DATA.additional_current_input_1 < 0.00001) else slogger.error
+            LOG_CURR_2 = slogger.info if (
+                -0.00001 < PROTO_DATA.additional_current_input_2 < 0.00001) else slogger.error
+
+            LOG_TEMP(
                 f"GSE internal temp: {round(PROTO_DATA.internal_temp, 2)} deg C")
-            slogger.info(
-                f"GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
-            slogger.info(
-                f"GSE gas bottle 1 weight: {PROTO_DATA.gas_bottle_weight_1} kg")
-            slogger.info(
-                f"GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
-            slogger.info(
-                f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1, 2)} ?")
-            slogger.info(
-                f"VAC input 2: {round(PROTO_DATA.analog_voltage_input_2, 2)} ?")
-            slogger.info(
-                f"Current input 1: {round(PROTO_DATA.additional_current_input_1, 2)} ?")
-            slogger.info(
-                f"Current input 2: {round(PROTO_DATA.additional_current_input_2, 2)} ?")
+            # TODO Uncomment when implimented
+            # LOG_WIND(
+            #     f"GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
+            # LOG_BOTTLE_1(
+            #     f"GSE gas bottle 1 weight: {PROTO_DATA.gas_bottle_weight_1} kg")
+            # LOG_BOTTLE_2(
+            #     f"GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
+            # LOG_VAC_1(
+            #     f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1, 2)} ?")
+            # LOG_VAC_2(
+            #     f"VAC input 2: {round(PROTO_DATA.analog_voltage_input_2, 2)} ?")
+            # LOG_CURR_1(
+            #     f"Current input 1: {round(PROTO_DATA.additional_current_input_1, 2)} ?")
+            # LOG_CURR_2(
+            #     f"Current input 2: {round(PROTO_DATA.additional_current_input_2, 2)} ?")
             self._last_information_display_time = time.monotonic()
         # Error flags. Note the different index compared to GSE packet 1
         for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[17:32]:
