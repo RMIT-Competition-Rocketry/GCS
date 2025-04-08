@@ -201,7 +201,7 @@
     }
   }
 
-  textarea {
+  textarea {nav
     resize: vertical;
   }
 
@@ -289,6 +289,11 @@
     background-size: 100% 100%;
   }
 
+  .bg-vector {
+    background-image: url("/img/Main_int_vector.svg#svgView(preserveAspectRatio(none))");
+    background-size: 100% 100%;
+  }
+  
   .indicator-numeric {
     border-radius: var(--radius-sm);
     background-color: var(--color-zinc-900);
