@@ -25,7 +25,7 @@
 				<span class="text-[#FF0000] font-mono text-[14px]">ERROR</span>
 			  </div>
 			  <!-- <div class="relative w-full h-screen"> -->
-			  <nav class="sticky top-0 w-200 grow bg-navbar flex px-[4%] py-2 gap-2 font-medium absolute top-0 left-1/2 transform -translate-x-1/2">
+			  <nav class="w-200 flex justify-center bg-navbar px-[4%] py-2 gap-2 font-medium">
 				<a href="" class="w-1/5 wrap-nowrap">
 					<div class="aspect-square bg-white w-1/2 mx-4 "></div>
 					<span class="text-white font-mono text-[12px]">Main Interface</span>
@@ -49,20 +49,53 @@
 				</a>
 			</nav>
 			<!-- </div> -->
-			<div class="bg-cyan-800 w-1/3">
-				<p>
-					Telemetry Data?<br>
-					(RSSI, No. of packets received)
-				</p>
-			</div>
+			<div>
+				<span class="text-[#4DFFC4] font-mono text-[14px]">AV RSSI</span>
+				<span class="text-white font-mono text-[14px] ">:</span>
+				<span class="text-white font-mono text-[14px]">{{ Value }}</span>
+				<span class="text-white font-mono text-[14px]">db</span> <br>
+			  
+				<span class="text-[#4DFFC4] font-mono text-[14px]">GSE RSSI</span>
+				<span class="text-white font-mono text-[14px]">:</span>
+				<span class="text-white font-mono text-[14px]">{{ longitude_value }}</span>
+				<span class="text-white font-mono text-[14px]">db</span> <br>
+
+				<span class="text-[#4DFFC4] font-mono text-[14px]">SNR</span>
+				<span class="text-white font-mono text-[14px]">:</span>
+				<span class="text-[#FF0000] font-mono text-[14px]">ERROR</span>
+				<span class="text-white font-mono text-[14px]">db</span> <br>
+
+				<span class="text-[#4DFFC4] font-mono text-[14px]">Packets Received</span>
+				<span class="text-white font-mono text-[14px]">:</span>
+				<span class="text-[#FF0000] font-mono text-[14px]">ERROR</span>
+				<span class="text-white font-mono text-[14px]">db</span> <br>
+			  </div>
 		</div>
 		
 		<div class="w-full flex flex-row gap-4 grow">
-			<div class="bg-cyan-800 w-1/3">
-				<p>
-					AV Data?, graphs, indicators, etc.
-				</p>
-			</div>
+			<div class="relative h-64 w-96">
+				<span class="absolute top-0 left-0 h-5 w-48 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-teal-300">Accel. X low</span>
+				<span class="absolute top-[30px] left-[10px] h-5 w-32 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-white">b m/s²</span>
+
+				<span class="absolute top-0 left-[150.50px] h-5 w-44 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-teal-300">Accel. X high</span>
+				<span class="absolute top-[30px] left-[165px] h-5 w-32 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-white">e m/s²</span>
+
+				<span class="absolute top-[60px] left-0 h-5 w-48 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-teal-300">Accel. Y low</span>
+				<span class="absolute top-[90px] left-[10px] h-6 w-32 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-white">a m/s²</span>
+
+				<span class="absolute top-[60px] left-[150px] h-5 w-44 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-teal-300">Accel. Y high</span>
+				<span class="absolute top-[90px] left-[165px] h-6 w-24 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-white">d m/s²</span>
+
+				<span class="absolute top-[120px] left-0 h-5 w-48 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-teal-300">Accel. Z low</span>
+				<span class="absolute top-[150px] left-[10px] h-6 w-36 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-red-600">ERROR</span>
+	
+				<span class="absolute top-[120px] left-[150px] h-5 w-44 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-teal-300">Accel. Z high</span>
+				<span class="absolute top-[150px] left-[165px] h-6 w-24 justify-start text-left font-['Roboto_Mono'] text-xs font-normal text-white">c m/s²</span>
+				
+				
+			
+			  </div>
+			  
 			<div class="bg-cyan-800 w-1/3">
 				<p>
 					The pièce de resistance - 3d model of the rocket, and 3d flight path
@@ -80,21 +113,16 @@
 						(for legacy, this will be GSE, other rockets may be aerobrakes, etc)
 					</p>
 				</div>
+				
 			</div>
-		</div>
-
-		<div class="w-full flex flex-row gap-4">
-			<div class="bg-cyan-800 w-1/3">
-				<p>
-					HIVE logo/RMIT logo/other?
-				</p>
-			</div>
-			<nav class="bg-cyan-800 w-1/3">
-				<p>
-					Max altitude reached? (Both Meters and Feet)
-				</p>
-			</nav>
-			<div class="bg-cyan-800 w-1/3">
+		
+			<div class="fixed bottom-0 left-0 w-full flex flex-row gap-4 pb-16 inline-block">
+				<div>
+					<img src="\img\HIVE_LOGO.png" class="w-1/20 h-auto" alt="HIVE logo">
+				</div>
+			<div>
+		
+			<div class="fixed bottom-0 left-200 w-full flex flex-row gap-4 pb-16">
 				<p>
 					Project Name/Rocket Name/Competition name/etc?
 				</p>
