@@ -75,7 +75,7 @@
         {
             "label": "start ZeroMQ debug subscriber",
             "type": "shell",
-            "command": "python",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
             "args": [
                 "backend/tools/zeromq_debug_sub_raw.py",
                 "gcs_rocket"
