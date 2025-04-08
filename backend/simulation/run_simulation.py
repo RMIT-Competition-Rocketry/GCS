@@ -5,9 +5,13 @@ import time
 import pandas as pd
 import backend.process_logging as slogger
 import config.config as config
+import configparser
 
-# Setting timeout, we can config this later
-TIMEOUT_INTERVAL = 0.01
+# Setting up the config
+cfg = configparser.ConfigParser()
+cfg.read("backend/simulation.ini")
+sim_cfg = cfg["Simulation"]
+TIMEOUT_INTERVAL = sim_cfg["timeout_interval"]
        
 def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float):
     packet = AVtoGCSData1(
@@ -52,7 +56,7 @@ def isImportantPacket(current_row, last_row):
 
 def run_emulator(flight_data: pd.Dataframe, device_name: str):
     # Init mockpacket
-    MockPacket.initialize_settings(config.load_config()['emulation'],FAKE_DEVICE_NAME=device_name,)
+    #MockPacket.initialize_settings(config.load_config()['emulation'],FAKE_DEVICE_NAME=device_name,)
     
     # Getting the last few rows
     last_time = float('-inf')
