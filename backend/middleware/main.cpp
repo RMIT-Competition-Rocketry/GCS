@@ -261,7 +261,10 @@ int main(int argc, char *argv[]) {
     // integrated
     zmq::pollitem_t items[] = {{pendant_pull_socket, 0, ZMQ_POLLIN, 0}};
     std::vector<uint8_t> pendant_data;
-    int pendant_poll_failures = 0;
+
+    const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
+    auto last_pendant_receival = std::chrono::steady_clock::now();
+    constexpr std::chrono::milliseconds PENDANT_TIMEOUT_MS{1000};
 
     // Main command loop
     while (running) {
@@ -271,10 +274,9 @@ int main(int argc, char *argv[]) {
       // items[0].revents represents items[0] which is the pendant data
       // In future with multiple polls, just copy this block with a different
       // items index
-      constexpr int MAX_FAILURES = 5;
-      if (items[0].revents & ZMQ_POLLIN &&
-          pendant_poll_failures < MAX_FAILURES) {
+      if (items[0].revents & ZMQ_POLLIN) {
         do {  // Data to be dequeued
+          last_pendant_receival = std::chrono::steady_clock::now();
           zmq::message_t pendant_msg;
           zmq::recv_result_t pendant_result =
               pendant_pull_socket.recv(pendant_msg, zmq::recv_flags::none);
@@ -285,15 +287,17 @@ int main(int argc, char *argv[]) {
           }
         } while (socket_more_intbool);
       } else {
-        if (pendant_poll_failures >= MAX_FAILURES) {
+        auto now = std::chrono::steady_clock::now();
+        int seconds_waited = std::chrono::duration_cast<std::chrono::seconds>(
+                                 now - last_pendant_receival)
+                                 .count();
+        constexpr int PENDANT_FALLBACK_TIMEOUT_SECONDS = 5;
+        if (seconds_waited >= PENDANT_FALLBACK_TIMEOUT_SECONDS) {
           slogger::warning(
-              "Failed to get any new pendant data from pendant service " +
-              std::to_string(MAX_FAILURES) + " times");
-          constexpr std::vector<uint8_t> FALLBACK_DATA = {0x00, 0x00, 0x00,
-                                                          0x00};
-          pendant_data = ;
+              "Failed to get any new pendant data from pendant service for " +
+              std::to_string(PENDANT_FALLBACK_TIMEOUT_SECONDS) + " seconds");
+          pendant_data = FALLBACK_PENDANT_DATA;
         }
-        pendant_poll_failures++;
       }
 
       if (pendant_data.empty()) {
