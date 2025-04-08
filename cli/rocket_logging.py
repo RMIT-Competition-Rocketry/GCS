@@ -3,7 +3,7 @@ from config.config import load_config
 import time
 from typing import Optional
 import os
-import re  # Add import for regex
+import re
 
 # Capture application start time (initialized in `initialise()`)
 APP_START_TIME: Optional[float] = None
@@ -20,7 +20,7 @@ class CustomFormatter(logging.Formatter):
     YELLOW = "\x1b[33;20m"
     RED = "\x1b[31;20m"
     BOLD_RED = "\x1b[31;1m"
-    GREEN = "\x1b[32;20m"           # New color for SUCCESS
+    GREEN = "\x1b[32;20m"
     RESET = "\x1b[0m"
     # Maybe add %(asctime)s later if needed
     FORMAT = "[%(levelname)-7s] %(post_start_s)5s s | %(subprocess_name)s: %(message)s"
@@ -58,10 +58,10 @@ class PlainFormatter(CustomFormatter):
         return ansi_escape.sub('', formatted_message)
 
 
-def create_handler() -> logging.StreamHandler:
-    """Create console handler with a highest log level"""
+def create_handler(LEVEL: int = logging.DEBUG) -> logging.StreamHandler:
+    """Create console handler with specified level"""
     ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
+    ch.setLevel(LEVEL)
     ch.setFormatter(CustomFormatter())
     return ch
 
@@ -73,7 +73,7 @@ def create_file_handler(log_file_path: str) -> logging.FileHandler:
 
     fh = logging.FileHandler(log_file_path)
     fh.setLevel(logging.DEBUG)
-    fh.setFormatter(PlainFormatter())  # Use the PlainFormatter instead
+    fh.setFormatter(PlainFormatter())
     return fh
 
 
@@ -108,11 +108,12 @@ def initialise():
     }
 
     LOG_LEVEL_OBJECT = LOG_MAPPING.get(LOG_LEVEL, logging.INFO)
-    logger.setLevel(LOG_LEVEL_OBJECT)
+    # Parent level is debug, capture everything
+    logger.setLevel(logging.DEBUG)
 
-    # Add both console and file handlers
-    logger.addHandler(create_handler())
-    logger.addHandler(create_file_handler(log_file_path))
+    # Add both console and file handlers with different levels
+    logger.addHandler(create_handler(LOG_LEVEL_OBJECT))
+    logger.addHandler(create_file_handler(log_file_path))  # Always DEBUG
 
     logger.info(f"Log file created at: {log_file_path}")
     return logger
