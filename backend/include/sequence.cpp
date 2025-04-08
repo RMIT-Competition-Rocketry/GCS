@@ -9,7 +9,7 @@
 // on each new instance
 Sequence::Sequence() {
   assert(singleton_created_ == false);
-  current_state_ = LOOP_PRE_LAUNCH;
+  current_state = LOOP_PRE_LAUNCH;
   singleton_created_ = true;
   // First communication must be GCS -> GSE/AV. None talk without asking
   // This only applies pre launch confirmation

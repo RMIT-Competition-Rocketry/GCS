@@ -293,7 +293,7 @@ class AV_TO_GCS_DATA_1(Packet):
     def __init__(self):
         super().__init__(0x03, None)
         # How long to wait before printing basic information
-        self._INFORMATION_TIMEOUT = 5  # Second
+        self._information_timeout = 5  # Second
         self._last_information_display_time = time.monotonic()  # Fake minimum starting time
         self._last_flight_state: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState = None
         self._last_state_flags = {"dual_board_connectivity_state_flag": None,
@@ -310,6 +310,7 @@ class AV_TO_GCS_DATA_1(Packet):
                                    "main_primary_test_results": None,
                                    "main_secondary_test_results": None}
         self._supersonic = False
+        self._last_broadcast_value = False
 
     def _process_flight_state(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         if self._last_flight_state != PROTO_DATA.flightState:
@@ -531,7 +532,7 @@ class AV_TO_GCS_DATA_1(Packet):
             self._supersonic = False
 
         # Regular infomation updates
-        if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
+        if time.monotonic() - self._last_information_display_time > self._information_timeout:
             # Print basic information
             ALT_M = PROTO_DATA.altitude
             ALT_FT = AV_TO_GCS_DATA_1._mt_to_ft(PROTO_DATA.altitude)
@@ -566,9 +567,18 @@ class AV_TO_GCS_DATA_1(Packet):
         self._process_AV_tests(PROTO_DATA)
 
         # Notify if moving to broadcast
+        if PROTO_DATA.broadcast_flag and self._last_broadcast_value == False:
+            slogger.info(ansci.BG_MAGENTA + ansci.FG_BLACK +
+                         "@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@" + ansci.RESET)
+        elif PROTO_DATA.broadcast_flag == False and self._last_broadcast_value == True:
+            slogger.critical("FC HAS DECIDED TO STOP BROADCASTING")
+
+        self._last_broadcast_value = PROTO_DATA.broadcast_flag
+
         if PROTO_DATA.broadcast_flag:
-            slogger.info(
-                "@@@@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@@@@")
+            # When rocket is in air, send data faster.
+            # In release, this should be the only timeout value noticed?
+            self._information_timeout = 0.7
 
 
 # TODO add proccessing for this task post White Cliffs
@@ -579,7 +589,9 @@ class AV_TO_GCS_DATA_2(Packet):
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2) -> None:
         super().process(PROTO_DATA)
-        # slogger.debug("AV_TO_GCS_DATA_2 packet received")
+        # Output the GPS data as an ASCII QR code
+        # GPS_latitude =
+        slogger.debug("AV_TO_GCS_DATA_2 packet received")
 
 
 # TODO add proccessing for this task post White Cliffs
@@ -637,7 +649,7 @@ class GSE_TO_GCS_DATA_1(Packet):
     def __init__(self):
         super().__init__(0x06, None)
         self._last_information_display_time = time.monotonic()  # Fake minimum starting time
-        self._INFORMATION_TIMEOUT = 1  # 1 Second
+        self._INFORMATION_TIMEOUT = 5  # Seconds
         self._last_gse_state_flags = {
             "manual_purge_activated": None,
             "o2_fill_activated": None,

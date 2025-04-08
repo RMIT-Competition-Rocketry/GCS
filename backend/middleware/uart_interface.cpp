@@ -93,9 +93,9 @@ void UartInterface::at_setup() {
   // Configuration sequence
   at_send_command("AT+MODE=TEST", "+MODE: TEST", AT_TIMEOUT_MS);
   // Returns like:
-  // +TEST: RFCFG F:915000000, SF9, BW500K, TXPR:12, RXPR:16, POW:14dBm,
+  // +TEST: RFCFG F:915000000, SF9, BW500K, TXPR:12, RXPR:16, POW:22dBm,
   // CRC:OFF, IQ:OFF, NET:OFF
-  at_send_command("AT+TEST=RFCFG,915,SF9,500,12,16,14,OFF,OFF,OFF",
+  at_send_command("AT+TEST=RFCFG,915,SF9,500,12,16,22,OFF,OFF,OFF",
                   "+TEST: RFCFG", AT_TIMEOUT_MS);
 
   // Uncomment to change baud rate (requires module reset)
@@ -323,12 +323,12 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
 
           // Signal quality monitoring
           constexpr int RSSI_THRESHOLD = -85;
-          constexpr int SNR_THRESHOLD = 5;
+          constexpr int SNR_THRESHOLD = 10;
           if (rssi < RSSI_THRESHOLD) {
             slogger::warning("Poor RSSI: " + std::to_string(rssi) + " dBm");
           }
-          if (snr < SNR_THRESHOLD) {
-            slogger::warning("Low SNR: " + std::to_string(snr) + " dB");
+          if (snr > SNR_THRESHOLD) {
+            slogger::warning("High SNR: " + std::to_string(snr));
           }
         } catch (const std::exception &e) {
           slogger::error("Failed to parse metrics: " + std::string(e.what()));

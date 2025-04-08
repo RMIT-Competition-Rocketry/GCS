@@ -13,7 +13,7 @@ class SequenceLock {
   void unlock();
   bool is_locked();
 
-  static constexpr std::chrono::milliseconds TIMEOUT{100};
+  static constexpr std::chrono::milliseconds TIMEOUT{1000};
 
  private:
   std::chrono::steady_clock::time_point getLastLockTime() const;

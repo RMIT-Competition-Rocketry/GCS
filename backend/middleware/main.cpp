@@ -11,8 +11,11 @@
 #include <zmq.hpp>
 
 #include "AV_TO_GCS_DATA_1.hpp"
+#include "AV_TO_GCS_DATA_1.pb.h"
 #include "AV_TO_GCS_DATA_2.hpp"
+#include "AV_TO_GCS_DATA_2.pb.h"
 #include "AV_TO_GCS_DATA_3.hpp"
+#include "AV_TO_GCS_DATA_3.pb.h"
 #include "GCS_TO_AV_STATE_CMD.hpp"
 #include "GCS_TO_GSE_STATE_CMD.hpp"
 #include "GSE_TO_GCS_DATA_1.hpp"
@@ -40,18 +43,20 @@ inline void set_thread_name([[maybe_unused]] const char *name) {
 }
 
 template <typename PacketType>
-void process_packet(const ssize_t BUFFER_BYTE_COUNT,
-                    std::vector<uint8_t> &buffer, zmq::socket_t &pub_socket) {
+std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
+                                           std::vector<uint8_t> &buffer,
+                                           zmq::socket_t &pub_socket) {
   // SIZE does not include ID byte that's already been read
   slogger::debug("Processing packet: " + std::string(PacketType::PACKET_NAME) +
                  " ID: " + std::to_string(PacketType::ID));
   if (BUFFER_BYTE_COUNT == PacketType::SIZE + 1) {
     try {
       // Construct the packet object (skipping the ID byte)
-      PacketType payload(&buffer[1]);
+      std::unique_ptr<PacketType> payload =
+          std::make_unique<PacketType>(&buffer[1]);
 
       // Convert to protobuf and serialize to a string
-      auto proto_msg = payload.toProtobuf();
+      auto proto_msg = payload->toProtobuf();
       if (!proto_msg.IsInitialized()) {
         std::string missing_info = proto_msg.InitializationErrorString();
         slogger::warning(std::string(PacketType::PACKET_NAME) +
@@ -59,6 +64,7 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
                          "message. Missing: " +
                          missing_info);
       }
+      // Run sequence related updates
       std::string serialized;
       if (proto_msg.SerializeToString(&serialized)) {
         // Has to be At LEAST bigger than the input size with proto
@@ -70,6 +76,7 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
         slogger::error(std::string(PacketType::PACKET_NAME) +
                        ": Failed to serialize to string for protobuf");
       }
+      return payload;
     } catch (const std::exception &e) {
       slogger::error(std::string(PacketType::PACKET_NAME) +
                      ": Error processing payload: " + e.what());
@@ -80,8 +87,8 @@ void process_packet(const ssize_t BUFFER_BYTE_COUNT,
                    ": Incorrect packet size. Expected: " +
                    std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
                    std::to_string(BUFFER_BYTE_COUNT) + " bytes");
-    return;  // TODO: Test what the leftover data will do after this
   }
+  return nullptr;
 }
 
 void input_read_loop(std::shared_ptr<LoraInterface> interface,
@@ -107,41 +114,69 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
         // Note that some packet types are observed can be skipped if not meant
         // for GCS
         switch (packet_id) {
-          case AV_TO_GCS_DATA_1::ID:  // 3
-            process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
+          case AV_TO_GCS_DATA_1::ID: {  // 3
+            std::unique_ptr<AV_TO_GCS_DATA_1> proto_msg =
+                process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
             sequence.received_av();
+            if (proto_msg->flight_state() ==
+                payload::AV_TO_GCS_DATA_1_FlightState::
+                    AV_TO_GCS_DATA_1_FlightState_LAUNCH) {
+              sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
+            }
+            if (proto_msg->broadcast_flag()) {
+              sequence.current_state = Sequence::LOOP_AV_DATA_TRANSMISSION_BURN;
+            }
             break;
-          case AV_TO_GCS_DATA_2::ID:  // 4
-            process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
+          }
+          case AV_TO_GCS_DATA_2::ID: {  // 4
+            std::unique_ptr<AV_TO_GCS_DATA_2> proto_msg =
+                process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
             sequence.received_av();
-            break;
-          case AV_TO_GCS_DATA_3::ID:  // 5
-            process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
+            if (proto_msg->flight_state() ==
+                payload::AV_TO_GCS_DATA_2_FlightState::
+                    AV_TO_GCS_DATA_2_FlightState_LAUNCH) {
+              sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
+            }
+          } break;
+          case AV_TO_GCS_DATA_3::ID: {  // 5
+            std::unique_ptr<AV_TO_GCS_DATA_3> proto_msg =
+                process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
             sequence.received_av();
+            if (proto_msg->flight_state() ==
+                payload::AV_TO_GCS_DATA_3_FlightState::
+                    AV_TO_GCS_DATA_3_FlightState_LAUNCH) {
+              sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
+            }
             break;
+          }
           // Electronically impossible to recieve own packet
-          case GCS_TO_AV_STATE_CMD::ID:  // 1
+          case GCS_TO_AV_STATE_CMD::ID: {  // 1
             // process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
             slogger::error("Somehow received GCS_TO_AV_STATE_CMD");
             break;
-          case GCS_TO_GSE_STATE_CMD::ID:  // 2
+          }
+          case GCS_TO_GSE_STATE_CMD::ID: {  // 2
             // process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
             slogger::error("Somehow received GCS_TO_GSE_STATE_CMD");
             break;
-          case GSE_TO_GCS_DATA_1::ID:  // 6
+          }
+          case GSE_TO_GCS_DATA_1::ID: {  // 6
             process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
             sequence.received_gse();
             break;
-          case GSE_TO_GCS_DATA_2::ID:  // 7
+          }
+          case GSE_TO_GCS_DATA_2::ID: {  // 7
             process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
             sequence.received_gse();
             break;
-          default:
+          }
+          default: {
             std::string numeric_val =
                 std::to_string(static_cast<int>(packet_id));
             slogger::error("Unknown packet ID: " + std::to_string(packet_id) +
                            " numeric: " + numeric_val);
             break;
+          }
         }
       }
     } else {
@@ -193,14 +228,18 @@ std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg) {
 }
 
 // Packet creator for GCS -> AV
-std::vector<uint8_t> create_GCS_TO_AV_data() {
+std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST) {
   // DEBUG
   // For debug only, just send garbage
   std::vector<uint8_t> data;
   data.push_back(0x01);        // ID
   data.push_back(0b10100000);  // From excel sheet here and below
   data.push_back(0b01011111);
-  data.push_back(0b00000000);
+  if (BROADCAST) {
+    data.push_back(0b10101010);
+  } else {
+    data.push_back(0b00000000);
+  }
 
   return data;
 }
@@ -227,6 +266,8 @@ int main(int argc, char *argv[]) {
     // Create an interface
     const std::string DEVICE_PATH = std::string(argv[2]);
     const std::string SOCKET_PATH = std::string(argv[3]);
+    // One per device object. If you're using 2 devices, best to have 2
+    // interfaces
     std::shared_ptr<LoraInterface> interface =
         create_interface(std::string(argv[1]), DEVICE_PATH);
 
@@ -264,7 +305,7 @@ int main(int argc, char *argv[]) {
 
     const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
     auto last_pendant_receival = std::chrono::steady_clock::now();
-    constexpr std::chrono::milliseconds PENDANT_TIMEOUT_MS{1000};
+    constexpr std::chrono::milliseconds PENDANT_SERVICE_TIMEOUT_MS{1000};
 
     // Main command loop
     while (running) {
@@ -315,25 +356,31 @@ int main(int argc, char *argv[]) {
           // Wait for data from GSE (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_gse();  // Let read thread unlock this
           // Send data to AV
-          interface->write_data(create_GCS_TO_AV_data());
+          interface->write_data(create_GCS_TO_AV_data(false));
           sequence.start_await_av();
           // Wait for data from AV (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_av();
           break;
         case Sequence::LOOP_IGNITION:
-          slogger::info("GCS: Ignition state");
+          // This stage is identical to pre-launch for GCS
           break;
+        // It says once, but it's a conditional loop anyway.
         case Sequence::ONCE_AV_DETERMINING_LAUNCH:
-          slogger::info("GCS: AV determining launch state");
+          interface->write_data(pendant_data);
+          sequence.start_await_gse();
+          sequence.sit_and_wait_for_gse();
+          interface->write_data(create_GCS_TO_AV_data(true));
+          sequence.start_await_av();
+          sequence.sit_and_wait_for_av();
           break;
         case Sequence::LOOP_AV_DATA_TRANSMISSION_BURN:
-          slogger::info("GCS: AV data transmission burn state");
+          // Just listen. This thread can just close bassically
           break;
         case Sequence::LOOP_AV_DATA_TRANSMISSION_APOGEE:
-          slogger::info("GCS: AV data transmission apogee state");
+          // Just listen. This thread can just close bassically
           break;
         case Sequence::LOOP_AV_DATA_TRANSMISSION_LANDED:
-          slogger::info("GCS: AV data transmission landed state");
+          // Just listen. This thread can just close bassically
           break;
       }
     }

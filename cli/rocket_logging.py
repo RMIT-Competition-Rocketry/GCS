@@ -115,7 +115,7 @@ def initialise():
     logger.addHandler(create_handler(LOG_LEVEL_OBJECT))
     logger.addHandler(create_file_handler(log_file_path))  # Always DEBUG
 
-    logger.info(f"Log file created at: {log_file_path}")
+    # logger.info(f"Log file created at: {log_file_path}")
     return logger
 
 
