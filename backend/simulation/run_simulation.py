@@ -54,6 +54,7 @@ def run_emulator(flight_data: pd.Dataframe, device_name: str):
     # Init mockpacket
     MockPacket.initialize_settings(config.load_config()['emulation'],FAKE_DEVICE_NAME=device_name,)
     
+    # Getting the last few rows
     last_time = float('-inf')
     last_row = None
     
