@@ -12,7 +12,7 @@ The GSE software is run by using a Python based CLI.
 
 | Software   | Must have | Docker Dev  | Native Dev |
 |---------------|----------|--------------------|--------------------|
-| Python >= 3.10 | ✅        | ✅                  | ✅                  |
+| Python 3.11 | ✅        | ✅                  | ✅                  |
 | Docker        | ❌       | ✅                  | ❌                  |
 | Socat         | ❌        |  🐳                 | ✅                  
 | Cmake        | ❌ (_can use release binaries_)       | 🐳                  | ❌                  |
