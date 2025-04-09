@@ -305,7 +305,6 @@ int main(int argc, char *argv[]) {
 
     const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
     auto last_pendant_receival = std::chrono::steady_clock::now();
-    constexpr std::chrono::milliseconds PENDANT_SERVICE_TIMEOUT_MS{1000};
 
     // Main command loop
     while (running) {
