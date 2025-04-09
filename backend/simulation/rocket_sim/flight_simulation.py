@@ -49,3 +49,6 @@ def get_simulated_flight_data() -> pd.DataFrame:
      
     print("Flight data processed successfully.")
     return flight_data
+
+def run_sim():
+    run_flight()
