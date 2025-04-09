@@ -42,6 +42,26 @@ inline void set_thread_name([[maybe_unused]] const char *name) {
 #endif
 }
 
+std::string vectorToHexString(const std::vector<uint8_t> &data,
+                              const ssize_t BUFFER_BYTE_COUNT) {
+  std::ostringstream oss;
+  oss << std::uppercase << std::hex << std::setfill('0');
+  if (BUFFER_BYTE_COUNT == 0) {
+    return "Empty vector";
+  }
+  if (BUFFER_BYTE_COUNT > 255) {
+    return "Vector too long: " + std::to_string(BUFFER_BYTE_COUNT);
+  }
+  if (BUFFER_BYTE_COUNT < 0) {
+    return "Vector too short: " + std::to_string(BUFFER_BYTE_COUNT);
+  }
+  for (ssize_t i = 0; i < BUFFER_BYTE_COUNT; ++i) {
+    oss << std::setw(2) << static_cast<int>(data[i]);
+    if (i != BUFFER_BYTE_COUNT - 1) oss << " ";
+  }
+  return oss.str();
+}
+
 template <typename PacketType>
 std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
                                            std::vector<uint8_t> &buffer,
@@ -87,6 +107,8 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
                    ": Incorrect packet size. Expected: " +
                    std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
                    std::to_string(BUFFER_BYTE_COUNT) + " bytes");
+    slogger::debug("Buffer contents: " +
+                   vectorToHexString(buffer, BUFFER_BYTE_COUNT));
   }
   return nullptr;
 }
