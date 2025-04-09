@@ -604,7 +604,10 @@ class AV_TO_GCS_DATA_2(Packet):
         # Output the GPS data as an ASCII QR code
         GPS_latitude = PROTO_DATA.GPS_latitude
         GPS_longitude = PROTO_DATA.GPS_longitude
-        if (GPS_latitude != self._GPS_latitude_old or GPS_longitude != self._GPS_longitude_old):
+        # Add condition for to only work when in state:
+        # AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.LANDED
+        if (GPS_latitude != self._GPS_latitude_old or
+                GPS_longitude != self._GPS_longitude_old):
             slogger.info(
                 f"GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
             maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
