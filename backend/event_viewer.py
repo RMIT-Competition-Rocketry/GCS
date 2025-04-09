@@ -625,8 +625,9 @@ class AV_TO_GCS_DATA_2(Packet):
             except Exception as e:
                 slogger.error(
                     f"Failed to generate QR code for GPS coordinates: {GPS_latitude}, {GPS_longitude}")
-            for line in result.stdout.split("\n"):
-                slogger.info(line)
+            if result is not None:
+                for line in result.stdout.split("\n"):
+                    slogger.info(line)
 
         slogger.debug("AV_TO_GCS_DATA_2 packet received")
 

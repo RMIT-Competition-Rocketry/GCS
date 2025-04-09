@@ -35,8 +35,12 @@ class AV_TO_GCS_DATA_2 {
     camera_controller_connection_flag_ =
         static_cast<bool>(parser.extract_unsigned_bits(1));
 
-    GPS_latitude_ = parser.extract_string(15);
-    GPS_longitude_ = parser.extract_string(15);
+    try {
+      GPS_latitude_ = parser.extract_string(15);
+      GPS_longitude_ = parser.extract_string(15);
+    } catch (const std::exception &e) {
+      slogger::error(e.what());
+    }
   }
 
   // Getters for the private members
@@ -72,8 +76,12 @@ class AV_TO_GCS_DATA_2 {
     SET_PROTO_FIELD(proto_data, payload_connection_flag);
     SET_PROTO_FIELD(proto_data, camera_controller_connection_flag);
 
-    SET_PROTO_FIELD(proto_data, gps_latitude);
-    SET_PROTO_FIELD(proto_data, gps_longitude);
+    try {
+      SET_PROTO_FIELD(proto_data, gps_latitude);
+      SET_PROTO_FIELD(proto_data, gps_longitude);
+    } catch (const std::exception &e) {
+      slogger::error(e.what());
+    }
 
     return proto_data;
   }

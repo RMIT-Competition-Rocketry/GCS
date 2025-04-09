@@ -38,7 +38,6 @@ def run():
     """Start software for production usage in native environment. Indented for usage on GCS only"""
 
     print_splash()
-    logger.setLevel(logging.INFO)
 
     # 1. Make sure C++ middleware is there
     # TODO add checks for ALL files please
