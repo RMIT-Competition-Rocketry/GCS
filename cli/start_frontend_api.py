@@ -15,12 +15,12 @@ def start_frontend_api(logger: logging.Logger, SUB_SOCKET_PATH: str):
 
         emulator_process = process.LoggedSubProcess(
             API_SERVICE_COMMAND,
-            name="frontend_api",
+            name=SERVICE_NAME,
             parse_output=True
         )
         emulator_process.start()
 
     except Exception as e:
         logger.error(
-            f"An error occurred while starting the rocket frontend api: {e}")
+            f"An error occurred while starting the rocket {SERVICE_NAME} {e}")
         return None, None

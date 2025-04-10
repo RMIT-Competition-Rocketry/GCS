@@ -24,6 +24,7 @@ def successful_event_viewer_start_callback(line: str, stream_name: str):
 
 
 def start_event_viewer(logger: logging.Logger, SOCKET_PATH: str, file_logging_enabled: bool):
+    SERVICE_NAME = "event viewer"
     try:
 
         EVENT_VIEWER_COMMAND = [
@@ -33,7 +34,7 @@ def start_event_viewer(logger: logging.Logger, SOCKET_PATH: str, file_logging_en
         if file_logging_enabled:
             EVENT_VIEWER_COMMAND.append("--no-log")
 
-        logger.debug(f"Starting event viewer with: {EVENT_VIEWER_COMMAND}")
+        logger.debug(f"Starting {SERVICE_NAME} with: {EVENT_VIEWER_COMMAND}")
 
         # Set PYTHONPATH to the project root to ensure imports work correctly.
         env = os.environ.copy()
@@ -42,7 +43,7 @@ def start_event_viewer(logger: logging.Logger, SOCKET_PATH: str, file_logging_en
 
         event_viewer_process = EventViewerSubprocess(
             EVENT_VIEWER_COMMAND,
-            name="event_viewer",
+            name=SERVICE_NAME,
             env=env,
             parse_output=True
         )
@@ -56,9 +57,9 @@ def start_event_viewer(logger: logging.Logger, SOCKET_PATH: str, file_logging_en
         while not finished:
             finished = event_viewer_process.get_parsed_data()
 
-        logger.info("Event viewer started successfully")
+        logger.info(f"{SERVICE_NAME} started successfully")
 
     except Exception as e:
         logger.error(
-            f"An error occurred while starting the rocket AV emulator: {e}")
+            f"An error occurred while starting {SERVICE_NAME}: {e}")
         return None, None
