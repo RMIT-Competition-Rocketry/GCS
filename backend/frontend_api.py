@@ -48,7 +48,12 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                 if packet_id in packet_handlers:
                     proto_object = packet_handlers[packet_id]()
                     proto_object.ParseFromString(message)
-                    await websocket.send(json.dumps(MessageToDict(proto_object)))
+                    output = MessageToDict(proto_object)
+                    output = {
+                        "id": packet_id,
+                        "data": output
+                    }
+                    await websocket.send(json.dumps(output))
                 else:
                     slogger.error(f"Unexpected packet ID: {packet_id}")
 
