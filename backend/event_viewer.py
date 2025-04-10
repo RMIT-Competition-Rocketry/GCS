@@ -613,13 +613,21 @@ class AV_TO_GCS_DATA_2(Packet):
             maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
             result: Optional[str] = None
             try:
-                result = subprocess.run(
-                    ['qrencode', maps_url, '-t', 'ANSI'],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True
-                )
+                valid = True
+                try:
+                    # GPS Unimplimented
+                    if float(GPS_latitude) == 0.0 or float(GPS_longitude) == 0.0:
+                        valid = False
+                except ValueError:
+                    valid = False
+                if valid:
+                    result = subprocess.run(
+                        ['qrencode', maps_url, '-t', 'ANSI'],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
                 self._GPS_latitude_old = GPS_latitude
                 self._GPS_longitude_old = GPS_longitude
             except Exception as e:

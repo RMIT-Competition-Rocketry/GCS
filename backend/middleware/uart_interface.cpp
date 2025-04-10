@@ -82,7 +82,7 @@ void UartInterface::at_setup() {
   // Retry AT command until successful
   bool module_found = false;
   while (!module_found) {
-    module_found = at_send_command("AT", "+AT: OK", 100);
+    module_found = at_send_command("AT", "+AT: OK", 200);
     if (!module_found) {
       slogger::error("No E5 module found");
       std::this_thread::sleep_for(std::chrono::milliseconds(100));

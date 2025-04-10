@@ -91,9 +91,9 @@
             "problemMatcher": []
         },
         {
-            "label": "start hardware pendant emulator manually",
+            "label": "start hardware pendant emulator manually with profiling",
             "type": "shell",
-            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "command": "pyinstrument",
             "args": [
                 "backend/tools/pendant_emulator.py",
             ],

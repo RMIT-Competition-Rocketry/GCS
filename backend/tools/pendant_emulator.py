@@ -129,6 +129,7 @@ def signal_handler(signum, frame):
 
 def setup_controller() -> Optional[pygame.joystick.JoystickType]:
     pygame.init()
+    pygame.mixer.quit()  # https: // stackoverflow.com/a/50552161/14141223
     pygame.joystick.init()
 
     # Attempt controller connection
@@ -334,27 +335,29 @@ def handle_controller_events():
     firstAddedEvent = True
     while not stop_event.is_set():
         if joystick is not None:
-            event = pygame.event.wait(1)
-            if event.type == pygame.NOEVENT:
+            events = pygame.event.get()
+            if not events:
+                time.sleep(0.01)  # Reduce CPU load
                 continue
-            match event.type:
-                case pygame.JOYBUTTONDOWN:
-                    handle_button_press(event.button, True)
-                    # Button event discovered
-                    # Use in this block to avoid race conditions
-                    controller_offline = False
-                case pygame.JOYBUTTONUP:
-                    handle_button_press(event.button, False)
-                    controller_offline = False
-                case pygame.JOYDEVICEREMOVED:
-                    slogger.warning("Controller disconnected")
-                    controller_offline = True
-                case pygame.JOYDEVICEADDED:
-                    if not firstAddedEvent:
-                        slogger.info(
-                            "Controller online. Restart likely required. Maintaining fallback state")
-                        controller_offline = True  # This is default behaviour for F710 controller
-                        firstAddedEvent = False
+            for event in events:
+                match event.type:
+                    case pygame.JOYBUTTONDOWN:
+                        handle_button_press(event.button, True)
+                        # Button event discovered
+                        # Use in this block to avoid race conditions
+                        controller_offline = False
+                    case pygame.JOYBUTTONUP:
+                        handle_button_press(event.button, False)
+                        controller_offline = False
+                    case pygame.JOYDEVICEREMOVED:
+                        slogger.warning("Controller disconnected")
+                        controller_offline = True
+                    case pygame.JOYDEVICEADDED:
+                        if not firstAddedEvent:
+                            slogger.info(
+                                "Controller online. Restart likely required. Maintaining fallback state")
+                            controller_offline = True  # This is default behaviour for F710 controller
+                            firstAddedEvent = False
         else:
             # Reduce thread load. No need for full speed in testing
             time.sleep(0.05)
