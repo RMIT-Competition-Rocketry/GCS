@@ -7,24 +7,25 @@
     --color-red-600: oklch(.577 .245 27.325);
     --color-red-800: oklch(.444 .177 26.899);
     --color-red-900: oklch(.396 .141 25.723);
-    --color-orange-500: oklch(.705 .213 47.604);
     --color-orange-800: oklch(.47 .157 37.304);
-    --color-yellow-300: oklch(.905 .182 98.111);
-    --color-yellow-500: oklch(.795 .184 86.047);
+    --color-amber-800: oklch(.473 .137 46.201);
     --color-yellow-800: oklch(.476 .114 61.907);
     --color-yellow-900: oklch(.421 .095 57.708);
     --color-yellow-950: oklch(.286 .066 53.813);
+    --color-lime-800: oklch(.453 .124 130.933);
     --color-green-400: oklch(.792 .209 151.711);
-    --color-green-500: oklch(.723 .219 149.579);
     --color-green-800: oklch(.448 .119 151.328);
     --color-green-900: oklch(.393 .095 152.535);
     --color-green-950: oklch(.266 .065 152.934);
-    --color-emerald-300: oklch(.845 .143 164.978);
+    --color-emerald-800: oklch(.432 .095 166.913);
+    --color-teal-800: oklch(.437 .078 188.216);
     --color-cyan-800: oklch(.45 .085 224.283);
-    --color-blue-500: oklch(.623 .214 259.815);
+    --color-sky-800: oklch(.443 .11 240.79);
     --color-blue-800: oklch(.424 .199 265.638);
-    --color-purple-500: oklch(.627 .265 303.9);
+    --color-indigo-800: oklch(.398 .195 277.366);
+    --color-violet-800: oklch(.432 .232 292.759);
     --color-purple-800: oklch(.438 .218 303.724);
+    --color-fuchsia-800: oklch(.452 .211 324.591);
     --color-pink-800: oklch(.459 .187 3.815);
     --color-zinc-200: oklch(.92 .004 286.32);
     --color-zinc-500: oklch(.552 .016 285.938);
@@ -290,6 +291,12 @@
 }
 
 @layer components {
+  .module {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+  }
+
   .bg-navbar {
     background-image: url("/img/navbar.svg#svgView(preserveAspectRatio(none))");
     background-size: 100% 100%;
@@ -462,10 +469,6 @@
     }
   }
 
-  .m-2 {
-    margin: calc(var(--spacing) * 2);
-  }
-
   .mx-2 {
     margin-inline: calc(var(--spacing) * 2);
   }
@@ -486,24 +489,12 @@
     margin-block: calc(var(--spacing) * 2);
   }
 
-  .mt-2 {
-    margin-top: calc(var(--spacing) * 2);
-  }
-
-  .mr-0 {
-    margin-right: calc(var(--spacing) * 0);
-  }
-
-  .mr-2 {
-    margin-right: calc(var(--spacing) * 2);
+  .my-auto {
+    margin-block: auto;
   }
 
   .mb-0 {
     margin-bottom: calc(var(--spacing) * 0);
-  }
-
-  .ml-2 {
-    margin-left: calc(var(--spacing) * 2);
   }
 
   .block {
@@ -720,10 +711,6 @@
     row-gap: calc(var(--spacing) * 1);
   }
 
-  .self-center {
-    align-self: center;
-  }
-
   .self-start {
     align-self: flex-start;
   }
@@ -780,12 +767,12 @@
     border-color: var(--color-zinc-200);
   }
 
-  .bg-black {
-    background-color: var(--color-black);
+  .bg-amber-800 {
+    background-color: var(--color-amber-800);
   }
 
-  .bg-blue-500 {
-    background-color: var(--color-blue-500);
+  .bg-black {
+    background-color: var(--color-black);
   }
 
   .bg-blue-800 {
@@ -796,12 +783,12 @@
     background-color: var(--color-cyan-800);
   }
 
-  .bg-emerald-300 {
-    background-color: var(--color-emerald-300);
+  .bg-emerald-800 {
+    background-color: var(--color-emerald-800);
   }
 
-  .bg-green-500 {
-    background-color: var(--color-green-500);
+  .bg-fuchsia-800 {
+    background-color: var(--color-fuchsia-800);
   }
 
   .bg-green-800 {
@@ -816,8 +803,12 @@
     background-color: var(--color-hive);
   }
 
-  .bg-orange-500 {
-    background-color: var(--color-orange-500);
+  .bg-indigo-800 {
+    background-color: var(--color-indigo-800);
+  }
+
+  .bg-lime-800 {
+    background-color: var(--color-lime-800);
   }
 
   .bg-orange-800 {
@@ -826,10 +817,6 @@
 
   .bg-pink-800 {
     background-color: var(--color-pink-800);
-  }
-
-  .bg-purple-500 {
-    background-color: var(--color-purple-500);
   }
 
   .bg-purple-800 {
@@ -844,16 +831,20 @@
     background-color: var(--color-red-800);
   }
 
+  .bg-sky-800 {
+    background-color: var(--color-sky-800);
+  }
+
+  .bg-teal-800 {
+    background-color: var(--color-teal-800);
+  }
+
+  .bg-violet-800 {
+    background-color: var(--color-violet-800);
+  }
+
   .bg-white {
     background-color: var(--color-white);
-  }
-
-  .bg-yellow-300 {
-    background-color: var(--color-yellow-300);
-  }
-
-  .bg-yellow-500 {
-    background-color: var(--color-yellow-500);
   }
 
   .bg-yellow-800 {
@@ -958,10 +949,6 @@
 
   .text-\[\#FF0000\] {
     color: red;
-  }
-
-  .text-black {
-    color: var(--color-black);
   }
 
   .text-hive {

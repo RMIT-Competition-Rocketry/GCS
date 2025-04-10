@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, send_from_directory, abort
+from flask import Flask, send_from_directory, abort, render_template
 import os
 
 
@@ -10,10 +10,10 @@ STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')  # TODO: Load fro
 VALID_FILE_EXTENSIONS = ('.html', '.css', '.js', '.png', '.jpg', '.ico', '.svg')  # TODO: Determine other filetypes (fonts?)
 
 
-# Serve index page
+# Serve main interface
 @APP.route('/')
 def index():
-    return send_from_directory(STATIC_DIR, 'index.html')
+    return render_template("layout.html")
 
 
 # Serve static files
