@@ -28,7 +28,8 @@ def start_event_viewer(logger: logging.Logger, SOCKET_PATH: str, file_logging_en
     try:
 
         EVENT_VIEWER_COMMAND = [
-            "python3", "backend/event_viewer.py", "-u", "--socket-path", SOCKET_PATH
+            "python3", os.path.join(
+                "backend", "event_viewer.py"), "-u", "--socket-path", SOCKET_PATH
         ]
 
         if file_logging_enabled:

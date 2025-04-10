@@ -1,6 +1,6 @@
 click>=8.1.7
 pyzmq>=25.1.1
 zmq>=0.0.0
-protobuf>=5.29.3
+protobuf>=6.30.2
 pygame>=2.5.1
-websockets-15.0.1>=15.0.1
+websockets>=15.0.1

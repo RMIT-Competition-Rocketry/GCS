@@ -17,6 +17,7 @@ from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
 from cli.start_middleware import start_middleware, InterfaceType
 from cli.start_event_viewer import start_event_viewer
 from cli.start_pendant_emulator import start_pendant_emulator
+from cli.start_frontend_api import start_frontend_api
 
 
 logger: logging.Logger = None
@@ -184,7 +185,8 @@ def dev(docker, interface, nobuild, logpkt):
     # 6. Could start the pendent emulator
     start_pendant_emulator(logger)
 
-    # 7. Database stuff in future
+    # 7. Start frontend
+    start_frontend_api(logger, "gcs_rocket")
 
 
 def print_splash():
