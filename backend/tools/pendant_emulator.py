@@ -320,8 +320,9 @@ def print_information():
           )
 
 
-def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
+def handle_controller_events():
     global previous_pressed_states, controller_offline
+    joystick: Optional[pygame.joystick.JoystickType] = setup_controller()
     clock = pygame.time.Clock()
     if joystick is None:
         # Set the (nothing) default state
@@ -333,7 +334,7 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
     firstAddedEvent = True
     while not stop_event.is_set():
         if joystick is not None:
-            event = pygame.event.poll()
+            event = pygame.event.wait(1)
             if event.type == pygame.NOEVENT:
                 continue
             match event.type:
@@ -359,11 +360,14 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
             time.sleep(0.05)
         clock.tick(60)  # 60 FPS
         # Run CLI notifications
-        if (pressed_states != previous_pressed_states or first_time):
+        with state_lock:
+            # Thread safe instance copy
+            current_states = pressed_states.copy()
+        if (current_states != previous_pressed_states or first_time):
             # Print on change. Many STDOUT ANSCI writes are expensive
             print_information()
             first_time = False
-        previous_pressed_states = pressed_states.copy()
+        previous_pressed_states = current_states
 
 
 def handle_button_press(button_id, pressed):
@@ -567,10 +571,9 @@ def main():
     global packet_thread
 
     try:
-        joystick: Optional[pygame.joystick.JoystickType] = setup_controller()
         packet_thread = threading.Thread(target=send_packet)
         packet_thread.start()
-        handle_controller_events(joystick)
+        handle_controller_events()
 
     except KeyboardInterrupt:
         cleanup_()

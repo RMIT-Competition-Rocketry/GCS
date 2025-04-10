@@ -18,8 +18,8 @@ class Sequence {
     LOOP_AV_DATA_TRANSMISSION_LANDED   // Landed / recovery
   };
 
-  void set_state(State state) { current_state_ = state; }
-  State get_state() const { return current_state_; }
+  void set_state(State state) { current_state = state; }
+  State get_state() const { return current_state; }
 
   bool waiting_for_gse();
   bool sit_and_wait_for_gse();
@@ -31,8 +31,9 @@ class Sequence {
   void start_await_av();
   void received_av();
 
+  State current_state;
+
  private:
-  State current_state_;
   SequenceLock gse_write_lock_{"GSE"};
   SequenceLock av_write_lock_{"AV"};
   static constexpr std::chrono::milliseconds TIMEOUT = SequenceLock::TIMEOUT;

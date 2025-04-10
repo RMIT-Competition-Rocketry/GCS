@@ -19,6 +19,7 @@ The GSE software is run by using a Python based CLI.
 | g++ or clang++ |✅|🐳|✅|
 | [ZeroMQ](https://zeromq.org/download/) and `cppzmq`|✅|🐳|✅| 
 | Protobuf (and `proto` compiler, `libprotodev` with dependencies) |✅|🐳|✅| 
+| qrencode |✅|🐳|✅| 
 
 Building all from source can be found the `build.yml` action.
 
