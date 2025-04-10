@@ -11,9 +11,10 @@ import configparser
 cfg = configparser.ConfigParser()
 cfg.read("backend/simulation/simulation.ini")
 sim_cfg = cfg["Simulation"]
-TIMEOUT_INTERVAL = sim_cfg["timeout_interval"]
+TIMEOUT_INTERVAL = float(sim_cfg["timeout_interval"])
        
 def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float):
+    slogger.info(str(az * 2048))
     packet = AVtoGCSData1(
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
@@ -23,12 +24,12 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        ACCEL_LOW_X=2048*ax,
-        ACCEL_LOW_Y=ay * 2048,
-        ACCEL_LOW_Z=az * 2048,
-        ACCEL_HIGH_X=ax * 2048,
-        ACCEL_HIGH_Y=ay * 2048,
-        ACCEL_HIGH_Z=ay * 2048,
+        ACCEL_LOW_X=int(2048*ax),
+        ACCEL_LOW_Y=int(ay / 9.81 * 2048),
+        ACCEL_LOW_Z=int(az  / 9.81 * 2048),
+        ACCEL_HIGH_X=int(ax / 9.81 * -1048),
+        ACCEL_HIGH_Y=int(ay / 9.81 * -1048),
+        ACCEL_HIGH_Z=int(ay / 9.81 * 1048),
         GYRO_X=int(w1/0.00875),
         GYRO_Y=int(w2/0.00875),
         GYRO_Z=int(w3/0.00875),
@@ -54,17 +55,17 @@ def isImportantPacket(current_row, last_row):
     
     # @TODO More important calculations
 
-def run_emulator(flight_data: pd.Dataframe, device_name: str):
+def run_emulator(flight_data: pd.DataFrame, device_name: str):
     # Init mockpacket
     #MockPacket.initialize_settings(config.load_config()['emulation'],FAKE_DEVICE_NAME=device_name,)
     
     # Getting the last few rows
-    last_time = float('-inf')
+    last_time = -1
     last_row = None
-    
     # Filteration and sending packets
     for _, row in flight_data.iterrows():
-        current_time = row["# Time(s)"]
+        current_time = row["# Time (s)"]
+        slogger.info(str(current_time))
         if (current_time - last_time) >= TIMEOUT_INTERVAL or isImportantPacket(current_row=row, last_row=last_row):
             send_simulated_packet(
                 row[" Altitude AGL (m)"],
@@ -86,10 +87,15 @@ def main():
    
     try:
         # @TODO PLEASE EDIT THIS DEVICE NAME ITS JUST COPIED STRAIGHT FROM EMULATOR
-        DEVICE_NAME = sys.argv[sys.argv.index('--device-rocket') + 1]
+        DEVICE_NAME = "DUMMY"
         flight_data = flight_simulation.get_simulated_flight_data()
+        MockPacket.initialize_settings(
+        config.load_config()['emulation'],
+        FAKE_DEVICE_NAME=DEVICE_NAME,
+    )
         run_emulator(flight_data, DEVICE_NAME)
     except Exception as e:
+        slogger.critical(e)
         sys.exit(1)
     
 

@@ -12,7 +12,7 @@ def get_default_config_path():
     """
     system = platform.system()
     if system == 'Darwin':
-        return "/Users/freddy/Desktop/Stuff/Code_Local/Rocket/config/config.ini"
+        return "/Users/admin/Programming/hive/gcs/GCS/config/config.ini"
     elif system == 'Linux':
         return "/home/rmit/GCS/config/config.ini"
     else:

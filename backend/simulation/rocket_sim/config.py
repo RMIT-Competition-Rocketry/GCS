@@ -78,14 +78,11 @@ def get_env_config():
         "longitude": float(e["longitude"]),
         "elevation": float(e["elevation"]),
         "atmospheric_type": (e["atmospheric_type"]),
-        "atmospheric_model_file": (e["atmospheric_model_file"]),
+        #"atmospheric_model_file": (e["atmospheric_model_file"]),
         "max_height": float(e["max_height"])
     }
     
-def get_fuel_tank_config(file_path):
-    config = configparser.ConfigParser()
-    config.read(file_path)
-
+def get_fuel_tank_config():
     # Fuel
     oxidizer_liq_name = config['Fuel']['oxidizer_liquid_name']
     oxidizer_liq_density = float(config['Fuel']['oxidizer_liquid_density'])

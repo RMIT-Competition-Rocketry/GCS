@@ -1,5 +1,6 @@
 from rocketpy import Fluid, CylindricalTank, MassFlowRateBasedTank
 from rocket_sim.config import get_fuel_tank_config
+
 def create_oxidizer_tank():
     """
         Creates the tank necessary for hybrid motors
@@ -8,9 +9,8 @@ def create_oxidizer_tank():
     """
     # Creating fuel examples
     cfg = get_fuel_tank_config()
-    oxidizer_liq = Fluid(name=cfg["fuel"]["liquid"]["name"], density=cfg["fuel"]["liquid"]["density"])
-    oxidizer_gas = Fluid(name=cfg["fuel"]["gas"]["name"], density=cfg["fuel"]["liquid"]["density"])
-
+    oxidizer_liq = Fluid(name=cfg["fuels"]["liquid"]["name"], density=cfg["fuels"]["liquid"]["density"])
+    oxidizer_gas = Fluid(name=cfg["fuels"]["gas"]["name"], density=cfg["fuels"]["liquid"]["density"])
     # Get tank geometry
     tank_shape = CylindricalTank(cfg["tank"]["geometry"]["radius"], cfg["tank"]["geometry"]["height"])
 

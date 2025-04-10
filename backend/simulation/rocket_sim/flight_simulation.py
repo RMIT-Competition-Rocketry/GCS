@@ -1,6 +1,6 @@
 from rocket_sim.flight import run_flight
 import pandas as pd
-
+import backend.process_logging as slogger
 def determine_flight_state(t: int, max_speed_time: int, apogee_time: int, landing_time: int) -> int:
     """Determine the flight state based on elapsed time."""
     # 0.1% tolerance for the apogee
@@ -19,7 +19,7 @@ def determine_flight_state(t: int, max_speed_time: int, apogee_time: int, landin
 
 def get_simulated_flight_data() -> pd.DataFrame:
     test_flight = run_flight()
-
+    slogger.debug("Flight has launched successfully!")
     # Extract key information from the test flight
     # Using the apogee time and max speed time to find the launch states
     apogee_time = test_flight.apogee_time
@@ -34,7 +34,6 @@ def get_simulated_flight_data() -> pd.DataFrame:
     "w1","w2","w3",
     "ax","ay","az"
     )
-
     # Convert the test data csv into a pandas dataframe
     flight_data = pd.read_csv(csv_export_name)
     # Grab the landing time which is just the last result in the simulation
@@ -45,7 +44,7 @@ def get_simulated_flight_data() -> pd.DataFrame:
     # Verify if apogee exists
     apogee_data = flight_data[flight_data["flight_state"] == 4]
     if apogee_data.empty:
-        raise ValueError("Apogee state (state 4) is not found in flight data")
+        slogger.critical("THERE IS NO APOGEE DATA")
      
     return flight_data
 

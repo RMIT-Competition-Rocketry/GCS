@@ -13,7 +13,7 @@ def create_environment():
     # Required by rocketpy for "launch time"
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
     env.set_date((tomorrow.year, tomorrow.month, tomorrow.day, 12))  # UTC time
-    env.set_atmospheric_model(type=cfg["atmospheric_type"], file=cfg["atmospheric_model_file"])
+    env.set_atmospheric_model(type=cfg["atmospheric_type"], file="GFS")
     env.max_expected_height = cfg["max_height"]  # Adjusts plot height
 
     return env
