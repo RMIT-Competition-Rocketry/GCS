@@ -47,7 +47,6 @@ def get_simulated_flight_data() -> pd.DataFrame:
     if apogee_data.empty:
         raise ValueError("Apogee state (state 4) is not found in flight data")
      
-    print("Flight data processed successfully.")
     return flight_data
 
 def run_sim():

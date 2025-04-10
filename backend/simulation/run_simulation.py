@@ -9,7 +9,7 @@ import configparser
 
 # Setting up the config
 cfg = configparser.ConfigParser()
-cfg.read("backend/simulation.ini")
+cfg.read("backend/simulation/simulation.ini")
 sim_cfg = cfg["Simulation"]
 TIMEOUT_INTERVAL = sim_cfg["timeout_interval"]
        
