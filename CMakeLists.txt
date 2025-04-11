@@ -163,6 +163,14 @@ execute_process(
 # Same as $ uname -m -> "arm64"
 set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 
+# Clean up old binaries with different names before building
+file(GLOB OLD_BINARIES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/middleware_*")
+
+if(OLD_BINARIES)
+    message(STATUS "Cleaning up old binaries: ${OLD_BINARIES}")
+    file(REMOVE ${OLD_BINARIES})
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_release_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
 else()

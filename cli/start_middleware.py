@@ -39,6 +39,16 @@ def get_middleware_path(BINARY_NAME_PREFIX: str) -> Optional[str]:
     elif len(file_matches) == 0:
         return None
 
+    BINARY_PATH = file_matches[0]
+
+    with open("VERSION", "r") as f:
+        version = f.read().strip()
+
+    # Actual file may have build metadata in it. Substring match is fine
+    if version not in os.path.basename(BINARY_PATH):
+        raise RuntimeError(
+            f"Middleware binary version mismatch. Expected substring: {version}, found: {os.path.basename(BINARY_PATH)}. The repository branch VERSION file does not match the binary version found")
+
     return file_matches[0]
 
 
