@@ -18,6 +18,9 @@ def determine_flight_state(t: int, max_speed_time: int, apogee_time: int, landin
     return 6  # Landed
 
 def get_simulated_flight_data() -> pd.DataFrame:
+    """
+        Use this function to run the api, you will get all the necessary data for the backend in a pandas dataframe
+    """
     test_flight = run_flight()
     slogger.debug("Flight has launched successfully!")
     # Extract key information from the test flight

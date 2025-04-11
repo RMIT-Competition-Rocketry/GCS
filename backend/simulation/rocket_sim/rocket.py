@@ -5,6 +5,10 @@ from rocket_sim.config import get_rocket_config
 
 
 def create_rocket():
+    """
+        Creates the rocket ready for flight test, adds the rail buttons, motor, nose, fins, tail and parachutes currently
+        @TODO this will be made more modular later in an API
+    """
     config = get_rocket_config()
     test_rocket = Rocket(
         radius=config["radius"] / 2000,

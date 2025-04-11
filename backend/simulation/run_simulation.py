@@ -14,6 +14,21 @@ sim_cfg = cfg["Simulation"]
 TIMEOUT_INTERVAL = float(sim_cfg["timeout_interval"])
        
 def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float):
+    """
+    Sends a simulated telemetry packet with the provided sensor values.
+
+    Parameters:
+    - altitude (float): Altitude of the rocket in meters.
+    - speed (float): Speed of the rocket in meters per second.
+    - w1, w2, w3 (float): Angular velocity readings (typically from a gyroscope).
+      These should be divided by 0.00875 to convert to degrees per second.
+    - ax, ay, az (float): Acceleration readings (typically from an accelerometer).
+      These should be converted from m/s^2 to g-force units (divide by 9.80665).
+    
+    Notes:
+    - The conversion is currently being done in this function so don't worry about that
+    - The packet format and transmission method should match the backend
+    """
     slogger.info(str(az * 2048))
     packet = AVtoGCSData1(
         FLIGHT_STATE_MSB=False,
@@ -48,6 +63,9 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
     packet.write_payload()
     
 def isImportantPacket(current_row, last_row):
+    """
+        Takes in two dataframe rows, this function simply determines if the flight state is different indicating that its an important packet
+    """
     if last_row is None:
         return True
     if current_row["flight_state"] != last_row["flight_state"]:
@@ -56,8 +74,11 @@ def isImportantPacket(current_row, last_row):
     # @TODO More important calculations
 
 def run_emulator(flight_data: pd.DataFrame, device_name: str):
+    """
+        Runs the emulator based on the flight data
+    """
     # Init mockpacket
-    #MockPacket.initialize_settings(config.load_config()['emulation'],FAKE_DEVICE_NAME=device_name,)
+    MockPacket.initialize_settings(config.load_config()['emulation'],FAKE_DEVICE_NAME=device_name,)
     
     # Getting the last few rows
     last_time = -1
@@ -66,6 +87,7 @@ def run_emulator(flight_data: pd.DataFrame, device_name: str):
     for _, row in flight_data.iterrows():
         current_time = row["# Time (s)"]
         slogger.info(str(current_time))
+        # Simply check if there's been enough time or that there is an important packet
         if (current_time - last_time) >= TIMEOUT_INTERVAL or isImportantPacket(current_row=row, last_row=last_row):
             send_simulated_packet(
                 row[" Altitude AGL (m)"],
@@ -84,17 +106,13 @@ def run_emulator(flight_data: pd.DataFrame, device_name: str):
 
 def main():
     slogger.debug("Emulator Starting Simulation...")
-   
     try:
         # @TODO PLEASE EDIT THIS DEVICE NAME ITS JUST COPIED STRAIGHT FROM EMULATOR
         DEVICE_NAME = "DUMMY"
         flight_data = flight_simulation.get_simulated_flight_data()
-        MockPacket.initialize_settings(
-        config.load_config()['emulation'],
-        FAKE_DEVICE_NAME=DEVICE_NAME,
-    )
         run_emulator(flight_data, DEVICE_NAME)
     except Exception as e:
+        # @TODO Add more debugs
         slogger.critical(e)
         sys.exit(1)
     
