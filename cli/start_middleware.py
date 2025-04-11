@@ -11,19 +11,35 @@ class InterfaceType(enum.Enum):
     TEST = "TEST"
 
 
-def get_middleware_path(BINARY_NAME: str) -> Optional[str]:
+def get_middleware_path(BINARY_NAME_PREFIX: str) -> Optional[str]:
     """Check if middleware is in build/ then check if it is in root folder.
     This helps when sharing releases, but still prioritises the build/ folder.
     """
-    build_path = os.path.join(".", "build", BINARY_NAME)
-    root_path = os.path.join(".", BINARY_NAME)
 
-    if os.path.exists(build_path):
-        return build_path
-    elif os.path.exists(root_path):
-        return root_path
-    else:
+    # Cmake folder
+    BUILD_PATH_ABS = os.path.join(os.getcwd(), "build", "build")
+    build_path_files = [os.path.join(BUILD_PATH_ABS, x)
+                        for x in os.listdir(BUILD_PATH_ABS)]
+    build_path_files = [x for x in build_path_files if os.path.isfile(x)]
+    # User placed
+    PROJECT_PATH_ABS = os.getcwd()
+    project_root_files = [os.path.join(BUILD_PATH_ABS, x)
+                          for x in os.listdir(PROJECT_PATH_ABS)]
+    project_root_files = [x for x in project_root_files if os.path.isfile(x)]
+
+    file_matches = []
+    for path in build_path_files + project_root_files:
+        filename = os.path.basename(path)
+        if filename.startswith(BINARY_NAME_PREFIX):
+            file_matches.append(path)
+
+    if len(file_matches) > 1:
+        raise RuntimeError(
+            f"Multiple middleware binaries found. Please remove or archive the extra ones: {file_matches}")
+    elif len(file_matches) == 0:
         return None
+
+    return file_matches[0]
 
 
 def start_middleware(logger: logging.Logger,
@@ -38,7 +54,7 @@ def start_middleware(logger: logging.Logger,
             f"INTERFACE_TYPE must be a InterfaceType value, got: {INTERFACE_TYPE} as type {type(INTERFACE_TYPE)}")
     try:
 
-        BINARY_NAME = "middleware_server_release" if release else "middleware_server"
+        BINARY_NAME = "middleware_release" if release else "middleware_debug"
         MIDDLEWARE_BINARY_PATH = get_middleware_path(BINARY_NAME)
 
         if MIDDLEWARE_BINARY_PATH is None:

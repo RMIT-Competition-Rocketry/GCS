@@ -151,8 +151,22 @@ target_link_libraries(middleware_lib PUBLIC
 
 target_link_libraries(middleware_server PUBLIC middleware_lib)
 
+file(STRINGS VERSION PROJECT_VERSION)
+
+# Get current git commit hash
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    OUTPUT_VARIABLE GIT_COMMIT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Same as $ uname -m -> "arm64"
+set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_server_release")
+    set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_release_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
+else()
+    set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_debug_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
 endif()
 
 install(TARGETS middleware_server DESTINATION bin)
