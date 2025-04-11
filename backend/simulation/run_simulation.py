@@ -108,7 +108,7 @@ def main():
     slogger.debug("Emulator Starting Simulation...")
     try:
         # @TODO PLEASE EDIT THIS DEVICE NAME ITS JUST COPIED STRAIGHT FROM EMULATOR
-        DEVICE_NAME = "DUMMY"
+        DEVICE_NAME = "FAKE_DEVICE_NAME"
         flight_data = flight_simulation.get_simulated_flight_data()
         run_emulator(flight_data, DEVICE_NAME)
     except Exception as e:
