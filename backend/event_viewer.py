@@ -359,6 +359,8 @@ class AV_TO_GCS_DATA_1(Packet):
                 else:
                     slogger.warning(
                         f"{state_flag_name} changed to {state_flag_value}")
+                if state_flag_name == "GPS_fix_flag" and state_flag_value:
+                    slogger.success("GPS Fix aquired")
             # Update historical value
             self._last_state_flags[state_flag_name] = state_flag_value
 
