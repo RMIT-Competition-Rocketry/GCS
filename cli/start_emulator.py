@@ -1,6 +1,5 @@
 import logging
 import cli.proccess as process
-from typing import Tuple
 
 
 def start_fake_serial_device_emulator(logger: logging.Logger, DEVICE: str):

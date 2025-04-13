@@ -5,6 +5,7 @@ import os
 import csv
 from abc import ABC, abstractmethod
 import sys
+import subprocess
 from google.protobuf.message import Message as PbMessage
 import proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
 import proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
@@ -13,7 +14,7 @@ import proto.generated.GCS_TO_AV_STATE_CMD_pb2 as GCS_TO_AV_STATE_CMD_pb
 import proto.generated.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_pb
 import proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
-from typing import List, Dict
+from typing import List, Dict, Optional
 import backend.process_logging as slogger  # slog deez nuts
 import backend.ansci as ansci
 import config.config as config
@@ -293,7 +294,7 @@ class AV_TO_GCS_DATA_1(Packet):
     def __init__(self):
         super().__init__(0x03, None)
         # How long to wait before printing basic information
-        self._INFORMATION_TIMEOUT = 1  # 1 Second
+        self._information_timeout = 5  # Second
         self._last_information_display_time = time.monotonic()  # Fake minimum starting time
         self._last_flight_state: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState = None
         self._last_state_flags = {"dual_board_connectivity_state_flag": None,
@@ -310,6 +311,8 @@ class AV_TO_GCS_DATA_1(Packet):
                                    "main_primary_test_results": None,
                                    "main_secondary_test_results": None}
         self._supersonic = False
+        self._max_velocity = 0
+        self._last_broadcast_value = False
 
     def _process_flight_state(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         if self._last_flight_state != PROTO_DATA.flightState:
@@ -356,6 +359,8 @@ class AV_TO_GCS_DATA_1(Packet):
                 else:
                     slogger.warning(
                         f"{state_flag_name} changed to {state_flag_value}")
+                if state_flag_name == "GPS_fix_flag" and state_flag_value:
+                    slogger.success("GPS Fix aquired")
             # Update historical value
             self._last_state_flags[state_flag_name] = state_flag_value
 
@@ -501,8 +506,12 @@ class AV_TO_GCS_DATA_1(Packet):
         )
 
     @staticmethod
-    def _mt_to_ft(meters):
-        return meters * 3.28084
+    def _mt_to_ft(METERS):
+        return METERS * 3.28084
+
+    @staticmethod
+    def _mps_to_mach(MPS):
+        return MPS / 343
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         super().process(PROTO_DATA)
@@ -531,7 +540,7 @@ class AV_TO_GCS_DATA_1(Packet):
             self._supersonic = False
 
         # Regular infomation updates
-        if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
+        if time.monotonic() - self._last_information_display_time > self._information_timeout:
             # Print basic information
             ALT_M = PROTO_DATA.altitude
             ALT_FT = AV_TO_GCS_DATA_1._mt_to_ft(PROTO_DATA.altitude)
@@ -561,14 +570,27 @@ class AV_TO_GCS_DATA_1(Packet):
                 f"{alt_color}Altitude: {ALT_M:<8.3f}m {ALT_FT:<9.3f}ft{ansci.RESET}")
             slogger.info(
                 f"{vel_color}Velocity: {VELOCITY:<8.3f}m/s{ansci.RESET}")
+            if (VELOCITY > self._max_velocity):
+                self._max_velocity = VELOCITY
+                slogger.info(
+                    f"New max velocity: {self._mps_to_mach(VELOCITY):<3.3f} mach")
             self._last_information_display_time = time.monotonic()
 
         self._process_AV_tests(PROTO_DATA)
 
         # Notify if moving to broadcast
+        if PROTO_DATA.broadcast_flag and self._last_broadcast_value == False:
+            slogger.info(ansci.BG_MAGENTA + ansci.FG_BLACK +
+                         "@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@" + ansci.RESET)
+        elif PROTO_DATA.broadcast_flag == False and self._last_broadcast_value == True:
+            slogger.critical("FC HAS DECIDED TO STOP BROADCASTING")
+
+        self._last_broadcast_value = PROTO_DATA.broadcast_flag
+
         if PROTO_DATA.broadcast_flag:
-            slogger.info(
-                "@@@@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@@@@")
+            # When rocket is in air, send data faster.
+            # In release, this should be the only timeout value noticed?
+            self._information_timeout = 0.7
 
 
 # TODO add proccessing for this task post White Cliffs
@@ -576,10 +598,48 @@ class AV_TO_GCS_DATA_2(Packet):
 
     def __init__(self):
         super().__init__(0x04, None)
+        self._GPS_latitude_old = ""
+        self._GPS_longitude_old = ""
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2) -> None:
         super().process(PROTO_DATA)
-        # slogger.debug("AV_TO_GCS_DATA_2 packet received")
+        # Output the GPS data as an ASCII QR code
+        GPS_latitude = PROTO_DATA.GPS_latitude
+        GPS_longitude = PROTO_DATA.GPS_longitude
+        # Add condition for to only work when in state:
+        # AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.LANDED
+        if (GPS_latitude != self._GPS_latitude_old or
+                GPS_longitude != self._GPS_longitude_old):
+            slogger.info(
+                f"GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
+            maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
+            result: Optional[str] = None
+            try:
+                valid = True
+                try:
+                    # GPS Unimplimented
+                    if float(GPS_latitude) == 0.0 or float(GPS_longitude) == 0.0:
+                        valid = False
+                except ValueError:
+                    valid = False
+                if valid:
+                    result = subprocess.run(
+                        ['qrencode', maps_url, '-t', 'ANSI'],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
+                self._GPS_latitude_old = GPS_latitude
+                self._GPS_longitude_old = GPS_longitude
+            except Exception as e:
+                slogger.error(
+                    f"Failed to generate QR code for GPS coordinates: {GPS_latitude}, {GPS_longitude}")
+            if result is not None:
+                for line in result.stdout.split("\n"):
+                    slogger.info(line)
+
+        slogger.debug("AV_TO_GCS_DATA_2 packet received")
 
 
 # TODO add proccessing for this task post White Cliffs
@@ -637,7 +697,7 @@ class GSE_TO_GCS_DATA_1(Packet):
     def __init__(self):
         super().__init__(0x06, None)
         self._last_information_display_time = time.monotonic()  # Fake minimum starting time
-        self._INFORMATION_TIMEOUT = 1  # 1 Second
+        self._INFORMATION_TIMEOUT = 5  # Seconds
         self._last_gse_state_flags = {
             "manual_purge_activated": None,
             "o2_fill_activated": None,
@@ -689,31 +749,32 @@ class GSE_TO_GCS_DATA_1(Packet):
 
         # Regular infomation updates
         if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
-            TRANSDUCER_VALUE_ERROR = [
-                (PROTO_DATA.transducer_1, PROTO_DATA.transducer_1_error),
-                (PROTO_DATA.transducer_2, PROTO_DATA.transducer_2_error),
-                (PROTO_DATA.transducer_3, PROTO_DATA.transducer_3_error),
-            ]
-            for i, trans_values in enumerate(TRANSDUCER_VALUE_ERROR):
-                if not (-1 < trans_values[0] < 64.5) or trans_values[1]:
-                    log_function = slogger.error
-                else:
-                    log_function = slogger.info
-                log_function(f"Transducer_{i+1} value: {trans_values[0]} bar")
+            # TODO Uncomment when implimented
+            # TRANSDUCER_VALUE_ERROR = [
+            #     (PROTO_DATA.transducer_1, PROTO_DATA.transducer_1_error),
+            #     (PROTO_DATA.transducer_2, PROTO_DATA.transducer_2_error),
+            #     (PROTO_DATA.transducer_3, PROTO_DATA.transducer_3_error),
+            # ]
+            # for i, trans_values in enumerate(TRANSDUCER_VALUE_ERROR):
+            #     if not (-1 < trans_values[0] < 64.5) or trans_values[1]:
+            #         log_function = slogger.error
+            #     else:
+            #         log_function = slogger.info
+            #     log_function(f"Transducer_{i+1} value: {trans_values[0]} bar")
 
-            THERMOCOUPLE_VALUE_ERROR = [
-                (PROTO_DATA.thermocouple_1, PROTO_DATA.thermocouple_1_error),
-                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
-                (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
-                (PROTO_DATA.thermocouple_4, PROTO_DATA.thermocouple_4_error),
-            ]
-            for i, thermocouple_values in enumerate(THERMOCOUPLE_VALUE_ERROR):
-                if not (-1 < thermocouple_values[0] < 34.5) or thermocouple_values[1]:
-                    log_function = slogger.error
-                else:
-                    log_function = slogger.info
-                log_function(
-                    f"Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
+            # THERMOCOUPLE_VALUE_ERROR = [
+            #     (PROTO_DATA.thermocouple_1, PROTO_DATA.thermocouple_1_error),
+            #     (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
+            #     (PROTO_DATA.thermocouple_2, PROTO_DATA.thermocouple_2_error),
+            #     (PROTO_DATA.thermocouple_4, PROTO_DATA.thermocouple_4_error),
+            # ]
+            # for i, thermocouple_values in enumerate(THERMOCOUPLE_VALUE_ERROR):
+            #     if not (-1 < thermocouple_values[0] < 34.5) or thermocouple_values[1]:
+            #         log_function = slogger.error
+            #     else:
+            #         log_function = slogger.info
+            #     log_function(
+            #         f"Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
             self._last_information_display_time = time.monotonic()
         # Error flags. Note that transducer and thermocouple errors are logged above too
         for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[16:31]:
@@ -736,7 +797,7 @@ class GSE_TO_GCS_DATA_2(Packet):
     def __init__(self):
         super().__init__(0x07, None)
         self._last_information_display_time = time.monotonic()  # Fake minimum starting time
-        self._INFORMATION_TIMEOUT = 1  # 1 Second
+        self._INFORMATION_TIMEOUT = 5  # Second s
         self._last_gse_state_flags = {
             "manual_purge_activated": None,
             "o2_fill_activated": None,
@@ -788,22 +849,40 @@ class GSE_TO_GCS_DATA_2(Packet):
         self._process_gse_state_flags(PROTO_DATA)
         # Regular information updates
         if time.monotonic() - self._last_information_display_time > self._INFORMATION_TIMEOUT:
-            slogger.info(
+            LOG_TEMP = slogger.info if (
+                0 < PROTO_DATA.internal_temp < 60) else slogger.error
+            LOG_WIND = slogger.info if (
+                -0.00001 < PROTO_DATA.wind_speed < 0.00001) else slogger.error
+            LOG_BOTTLE_1 = slogger.info if (
+                -0.00001 < PROTO_DATA.gas_bottle_weight_1 < 0.00001) else slogger.error
+            LOG_BOTTLE_2 = slogger.info if (
+                -0.00001 < PROTO_DATA.gas_bottle_weight_2 < 0.00001) else slogger.error
+            LOG_VAC_1 = slogger.info if (
+                -0.00001 < PROTO_DATA.analog_voltage_input_1 < 0.00001) else slogger.error
+            LOG_VAC_2 = slogger.info if (
+                -0.00001 < PROTO_DATA.analog_voltage_input_2 < 0.00001) else slogger.error
+            LOG_CURR_1 = slogger.info if (
+                -0.00001 < PROTO_DATA.additional_current_input_1 < 0.00001) else slogger.error
+            LOG_CURR_2 = slogger.info if (
+                -0.00001 < PROTO_DATA.additional_current_input_2 < 0.00001) else slogger.error
+
+            LOG_TEMP(
                 f"GSE internal temp: {round(PROTO_DATA.internal_temp, 2)} deg C")
-            slogger.info(
-                f"GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
-            slogger.info(
-                f"GSE gas bottle 1 weight: {PROTO_DATA.gas_bottle_weight_1} kg")
-            slogger.info(
-                f"GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
-            slogger.info(
-                f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1, 2)} ?")
-            slogger.info(
-                f"VAC input 2: {round(PROTO_DATA.analog_voltage_input_2, 2)} ?")
-            slogger.info(
-                f"Current input 1: {round(PROTO_DATA.additional_current_input_1, 2)} ?")
-            slogger.info(
-                f"Current input 2: {round(PROTO_DATA.additional_current_input_2, 2)} ?")
+            # TODO Uncomment when implimented
+            # LOG_WIND(
+            #     f"GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
+            # LOG_BOTTLE_1(
+            #     f"GSE gas bottle 1 weight: {PROTO_DATA.gas_bottle_weight_1} kg")
+            # LOG_BOTTLE_2(
+            #     f"GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
+            # LOG_VAC_1(
+            #     f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1, 2)} ?")
+            # LOG_VAC_2(
+            #     f"VAC input 2: {round(PROTO_DATA.analog_voltage_input_2, 2)} ?")
+            # LOG_CURR_1(
+            #     f"Current input 1: {round(PROTO_DATA.additional_current_input_1, 2)} ?")
+            # LOG_CURR_2(
+            #     f"Current input 2: {round(PROTO_DATA.additional_current_input_2, 2)} ?")
             self._last_information_display_time = time.monotonic()
         # Error flags. Note the different index compared to GSE packet 1
         for error_flag_name, error_flag_value in PROTO_DATA.ListFields()[17:32]:

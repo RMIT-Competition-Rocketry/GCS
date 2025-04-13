@@ -444,8 +444,8 @@ def main():
     LOCK_PATH = config.load_config()['locks']['lock_file_gse_response_path']
     try:
         while True:
-            # Pretending to be GSE for today
-            for packet in [GSEtoGCSData1(), GSEtoGCSData2()]:
+            # [GSEtoGCSData1(), GSEtoGCSData2()]:
+            for packet in [AVtoGCSData2()]:
                 # As a cheeky emulation, only write when the lock file is PRESENT
                 if os.path.exists(LOCK_PATH):
                     packet.write_payload()

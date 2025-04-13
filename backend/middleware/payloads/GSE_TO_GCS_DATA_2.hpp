@@ -83,6 +83,39 @@ class GSE_TO_GCS_DATA_2 {
   bool gas_fill_selected() const { return gas_fill_selected_; }
   bool system_activated() const { return system_activated_; }
 
+  float internal_temp() const { return internal_temp_; }
+  float wind_speed() const { return wind_speed_; }
+  int gas_bottle_weight_1() const { return gas_bottle_weight_1_; }
+  int gas_bottle_weight_2() const { return gas_bottle_weight_2_; }
+  float analog_voltage_input_1() const { return analog_voltage_input_1_; }
+  float analog_voltage_input_2() const { return analog_voltage_input_2_; }
+  float additional_current_input_1() const {
+    return additional_current_input_1_;
+  }
+  float additional_current_input_2() const {
+    return additional_current_input_2_;
+  }
+
+  // Note 10
+  bool ignition_error() const { return ignition_error_; }
+  bool relay_3_error() const { return relay_3_error_; }
+  bool relay_2_error() const { return relay_2_error_; }
+  bool relay_1_error() const { return relay_1_error_; }
+  bool thermocouple_4_error() const { return thermocouple_4_error_; }
+  bool thermocouple_3_error() const { return thermocouple_3_error_; }
+  bool thermocouple_2_error() const { return thermocouple_2_error_; }
+  bool thermocouple_1_error() const { return thermocouple_1_error_; }
+
+  // Note 11
+  bool load_cell_4_error() const { return load_cell_4_error_; }
+  bool load_cell_3_error() const { return load_cell_3_error_; }
+  bool load_cell_2_error() const { return load_cell_2_error_; }
+  bool load_cell_1_error() const { return load_cell_1_error_; }
+  bool transducer_4_error() const { return transducer_4_error_; }
+  bool transducer_3_error() const { return transducer_3_error_; }
+  bool transducer_2_error() const { return transducer_2_error_; }
+  bool transducer_1_error() const { return transducer_1_error_; }
+
   // Protobuf serialization
 
   payload::GSE_TO_GCS_DATA_2 toProtobuf() const {
@@ -97,6 +130,33 @@ class GSE_TO_GCS_DATA_2 {
     SET_PROTO_FIELD(proto_data, ignition_selected);
     SET_PROTO_FIELD(proto_data, gas_fill_selected);
     SET_PROTO_FIELD(proto_data, system_activated);
+
+    SET_PROTO_FIELD(proto_data, internal_temp);
+    SET_PROTO_FIELD(proto_data, wind_speed);
+    SET_PROTO_FIELD(proto_data, gas_bottle_weight_1);
+    SET_PROTO_FIELD(proto_data, gas_bottle_weight_2);
+    SET_PROTO_FIELD(proto_data, analog_voltage_input_1);
+    SET_PROTO_FIELD(proto_data, analog_voltage_input_2);
+    SET_PROTO_FIELD(proto_data, additional_current_input_1);
+    SET_PROTO_FIELD(proto_data, additional_current_input_2);
+
+    SET_PROTO_FIELD(proto_data, ignition_error);
+    SET_PROTO_FIELD(proto_data, relay_3_error);
+    SET_PROTO_FIELD(proto_data, relay_2_error);
+    SET_PROTO_FIELD(proto_data, relay_1_error);
+    SET_PROTO_FIELD(proto_data, thermocouple_4_error);
+    SET_PROTO_FIELD(proto_data, thermocouple_3_error);
+    SET_PROTO_FIELD(proto_data, thermocouple_2_error);
+    SET_PROTO_FIELD(proto_data, thermocouple_1_error);
+
+    SET_PROTO_FIELD(proto_data, load_cell_4_error);
+    SET_PROTO_FIELD(proto_data, load_cell_3_error);
+    SET_PROTO_FIELD(proto_data, load_cell_2_error);
+    SET_PROTO_FIELD(proto_data, load_cell_1_error);
+    SET_PROTO_FIELD(proto_data, transducer_4_error);
+    SET_PROTO_FIELD(proto_data, transducer_3_error);
+    SET_PROTO_FIELD(proto_data, transducer_2_error);
+    SET_PROTO_FIELD(proto_data, transducer_1_error);
 
     return proto_data;
   }
