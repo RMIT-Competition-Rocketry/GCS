@@ -343,7 +343,7 @@ class AV_TO_GCS_DATA_1(Packet):
             if PROTO_DATA.flightState == AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.APOGEE:
                 __ft_estimation = AV_TO_GCS_DATA_1._mt_to_ft(
                     PROTO_DATA.altitude)
-                slogger.success(
+                slogger.info(
                     f"Instantaneous Apogee estimation: {__ft_estimation} ft")
 
     def _process_state_flags(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
