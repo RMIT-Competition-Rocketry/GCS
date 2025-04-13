@@ -20,13 +20,12 @@
     --color-emerald-800: oklch(.432 .095 166.913);
     --color-teal-800: oklch(.437 .078 188.216);
     --color-cyan-800: oklch(.45 .085 224.283);
-    --color-sky-800: oklch(.443 .11 240.79);
     --color-blue-800: oklch(.424 .199 265.638);
     --color-indigo-800: oklch(.398 .195 277.366);
     --color-violet-800: oklch(.432 .232 292.759);
+    --color-purple-500: oklch(.627 .265 303.9);
     --color-purple-800: oklch(.438 .218 303.724);
     --color-fuchsia-800: oklch(.452 .211 324.591);
-    --color-pink-800: oklch(.459 .187 3.815);
     --color-zinc-200: oklch(.92 .004 286.32);
     --color-zinc-500: oklch(.552 .016 285.938);
     --color-zinc-600: oklch(.442 .017 285.786);
@@ -489,10 +488,6 @@
     margin-block: calc(var(--spacing) * 2);
   }
 
-  .my-auto {
-    margin-block: auto;
-  }
-
   .mb-0 {
     margin-bottom: calc(var(--spacing) * 0);
   }
@@ -525,10 +520,6 @@
     display: inline-block;
   }
 
-  .table {
-    display: table;
-  }
-
   .aspect-square {
     aspect-ratio: 1;
   }
@@ -537,20 +528,16 @@
     aspect-ratio: var(--aspect-video);
   }
 
-  .h-1 {
-    height: calc(var(--spacing) * 1);
-  }
-
-  .h-1\/2 {
-    height: 50%;
-  }
-
   .h-6 {
     height: calc(var(--spacing) * 6);
   }
 
   .h-22 {
     height: calc(var(--spacing) * 22);
+  }
+
+  .h-24 {
+    height: calc(var(--spacing) * 24);
   }
 
   .h-48 {
@@ -573,16 +560,8 @@
     height: 100vh;
   }
 
-  .w-1 {
-    width: calc(var(--spacing) * 1);
-  }
-
   .w-1\/2 {
     width: 50%;
-  }
-
-  .w-1\/3 {
-    width: 33.3333%;
   }
 
   .w-1\/5 {
@@ -613,12 +592,8 @@
     width: 100vw;
   }
 
-  .flex-grow, .grow {
+  .grow {
     flex-grow: 1;
-  }
-
-  .border-collapse {
-    border-collapse: collapse;
   }
 
   .transform {
@@ -655,10 +630,6 @@
 
   .flex-nowrap {
     flex-wrap: nowrap;
-  }
-
-  .flex-wrap {
-    flex-wrap: wrap;
   }
 
   .items-center {
@@ -815,8 +786,8 @@
     background-color: var(--color-orange-800);
   }
 
-  .bg-pink-800 {
-    background-color: var(--color-pink-800);
+  .bg-purple-500 {
+    background-color: var(--color-purple-500);
   }
 
   .bg-purple-800 {
@@ -829,10 +800,6 @@
 
   .bg-red-800 {
     background-color: var(--color-red-800);
-  }
-
-  .bg-sky-800 {
-    background-color: var(--color-sky-800);
   }
 
   .bg-teal-800 {
@@ -961,10 +928,6 @@
 
   .text-white {
     color: var(--color-white);
-  }
-
-  .underline {
-    text-decoration-line: underline;
   }
 
   .shadow {

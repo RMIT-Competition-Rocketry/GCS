@@ -10,7 +10,7 @@
 	<body class="w-screen h-screen bg-black text-white border-hive border-2 flex flex-col">
 		<!-- Header, consistent on all pages -->
 		<header class="w-full flex flex-row gap-2">
-			<div class="w-1/6 grow">{% include 'module_flight_status_gps.html' %}</div>
+			<div class="w-1/6 grow">{% include 'module_avionics_status.html' %}</div>
 
 			<nav
 				class="w-auto grow h-auto self-start bg-navbar flex px-[4%] py-2 gap-2 font-medium text-center">
@@ -44,9 +44,9 @@
 		<!-- and can be dynamically shown/hidden based on the m-name classes and nav links -->
 		<main class="w-full grow grid grid-cols-12 gap-2 p-2">
 			<!-- Main interface modules -->
-			<div class="module m-main col-span-4 row-span-2">{% include 'module_av_data.html' %}</div>
-			<div class="module m-main col-span-4 row-span-2">{% include 'module_3d_rocket.html' %}</div>
-			<div class="module m-main col-span-4">{% include 'module_payload_data.html' %}</div>
+			<div class="module m-main col-span-4 row-span-2">{% include 'module_avionics.html' %}</div>
+			<div class="module m-main col-span-4 row-span-2">{% include 'module_rocket.html' %}</div>
+			<div class="module m-main col-span-4">{% include 'module_payload.html' %}</div>
 			<div class="module m-main col-span-4">{% include 'module_aux_system_data.html' %}</div>
 
 			<!-- Operations modules -->
@@ -56,10 +56,10 @@
 			<div class="module m-ops col-span-8">{% include 'module_controls_other.html' %}</div>
 
 			<!-- Video 1 modules -->
-			<div class="module m-lf1 col-span-3 row-span-2">{% include 'module_av_data.html' %}</div>
+			<div class="module m-lf1 col-span-3 row-span-2">{% include 'module_avionics.html' %}</div>
 			<div class="module m-lf1 col-span-6 row-span-2">{% include 'module_video.html' %}</div>
-			<div class="module m-lf1 col-span-3">{% include 'module_payload_data.html' %}</div>
-			<div class="module m-lf1 col-span-3">{% include 'module_misc_data.html' %}</div>
+			<div class="module m-lf1 col-span-3">{% include 'module_payload.html' %}</div>
+			<div class="module m-lf1 col-span-3">{% include 'module_aux_system_data.html' %}</div>
 
 			<!-- Video 2 modules -->
 			<div class="module m-lf2 col-span-5">{% include 'module_video.html' %}</div>
@@ -73,7 +73,7 @@
 
 		<!-- Footer, which has shared modules in common between each page -->
 		<footer class="w-full grid grid-cols-12 gap-2 p-2 pt-0">
-			<div class="col-span-4">{% include 'module_max_altitude.html' %}</div>
+			<div class="col-span-4">{% include 'module_altitude.html' %}</div>
 			<div class="col-span-4">{% include 'module_flight_state.html' %}</div>
 			<div class="col-span-4">{% include 'module_logos_project_info.html' %}</div>
 		</footer>
