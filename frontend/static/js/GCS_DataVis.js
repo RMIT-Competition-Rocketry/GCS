@@ -6,7 +6,7 @@
 // needs changes for both size and naming coventions when referencing the data
 // Set up the SVG canvas dimensions
 const width = 100;
-const height = 400;
+const height = 200;
 
 // for next graph
 const linewidth = 800;
@@ -72,7 +72,7 @@ const y2 = d3.scaleLinear()
 
 
 // Load the CSV data
-d3.csv("frontend/static/Data/testData.csv", d3.autoType).then(function(data) {
+d3.csv("Data/testData.csv", d3.autoType).then(function(data) {
 
   // Set initial domain for x and y scales
   x.domain([0]); //0 for animation purposes/one bar graph
