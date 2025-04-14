@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.31) # 3.31 for github runner
 project(middleware_server LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
