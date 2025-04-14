@@ -241,7 +241,7 @@ jobs:
               -DBUILD_TESTS=ON \
               -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
               -DProtobuf_ROOT="$HOME/protobuf-install" \
-              -Dabsl_DIR="$HOME/abseil-install" \
+              -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" \
               -DGTest_ROOT="$HOME/googletest-install" \
               -S "${{ github.workspace }}"
 

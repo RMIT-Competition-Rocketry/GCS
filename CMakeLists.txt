@@ -137,6 +137,7 @@ target_link_libraries(middleware_lib PUBLIC
     absl::strings
     absl::log_internal_check_op
     absl::log_internal_message
+    absl::cord_internal
     $<TARGET_OBJECTS:proto-objects>
     cppzmq
     m
