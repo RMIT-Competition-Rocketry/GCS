@@ -10,8 +10,8 @@ def run_flight():
         Please refer to config files for the rail length, inclination and heading
     """
     rocket = create_rocket()
-    slogger.debug("Rocket has been successfully created!")
+    slogger.info("Rocket has been successfully created!")
     env = create_environment()
-    slogger.debug("Environment has been successfully created!")
+    slogger.info("Environment has been successfully created!")
     cfg = get_flight_config()
     return Flight(rocket=rocket, environment=env, rail_length=cfg["rail_length"], inclination=cfg["inclination"], heading=cfg["heading"])

@@ -22,7 +22,7 @@ def get_simulated_flight_data() -> pd.DataFrame:
         Use this function to run the api, you will get all the necessary data for the backend in a pandas dataframe
     """
     test_flight = run_flight()
-    slogger.debug("Flight has launched successfully!")
+    slogger.info("Flight has launched successfully!")
     # Extract key information from the test flight
     # Using the apogee time and max speed time to find the launch states
     apogee_time = test_flight.apogee_time

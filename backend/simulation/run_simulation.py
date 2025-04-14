@@ -12,7 +12,8 @@ cfg = configparser.ConfigParser()
 cfg.read("config/simulation.ini")
 sim_cfg = cfg["Simulation"]
 TIMEOUT_INTERVAL = float(sim_cfg["timeout_interval"])
-       
+
+
 def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float):
     """
     Sends a simulated telemetry packet with the provided sensor values.
@@ -24,12 +25,11 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
       These should be divided by 0.00875 to convert to degrees per second.
     - ax, ay, az (float): Acceleration readings (typically from an accelerometer).
       These should be converted from m/s^2 to g-force units (divide by 9.80665).
-    
+
     Notes:
     - The conversion is currently being done in this function so don't worry about that
     - The packet format and transmission method should match the backend
     """
-    slogger.info(str(az * 2048))
     packet = AVtoGCSData1(
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
@@ -41,7 +41,7 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         CAMERA_CONTROLLER_CONNECTION=True,
         ACCEL_LOW_X=int(2048*ax),
         ACCEL_LOW_Y=int(ay / 9.81 * 2048),
-        ACCEL_LOW_Z=int(az  / 9.81 * 2048),
+        ACCEL_LOW_Z=int(az / 9.81 * 2048),
         ACCEL_HIGH_X=int(ax / 9.81 * -1048),
         ACCEL_HIGH_Y=int(ay / 9.81 * -1048),
         ACCEL_HIGH_Z=int(ay / 9.81 * 1048),
@@ -61,7 +61,8 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         MOVE_TO_BROADCAST=False
     )
     packet.write_payload()
-    
+
+
 def isImportantPacket(current_row, last_row):
     """
         Takes in two dataframe rows, this function simply determines if the flight state is different indicating that its an important packet
@@ -70,16 +71,18 @@ def isImportantPacket(current_row, last_row):
         return True
     if current_row["flight_state"] != last_row["flight_state"]:
         return True
-    
+
     # @TODO More important calculations
+
 
 def run_emulator(flight_data: pd.DataFrame, device_name: str):
     """
         Runs the emulator based on the flight data
     """
     # Init mockpacket
-    MockPacket.initialize_settings(config.load_config()['emulation'],FAKE_DEVICE_NAME=device_name,)
-    
+    MockPacket.initialize_settings(
+        config.load_config()['emulation'], FAKE_DEVICE_NAME=device_name,)
+
     # Getting the last few rows
     last_time = -1
     last_row = None
@@ -97,15 +100,16 @@ def run_emulator(flight_data: pd.DataFrame, device_name: str):
                 row[" ω3 (rad/s)"],
                 row[" Ax (m/s²)"],
                 row[" Ay (m/s²)"],
-                row[" Az (m/s²)"]       
+                row[" Az (m/s²)"]
             )
             last_time = current_time
             last_row = row
-            
+
         time.sleep(TIMEOUT_INTERVAL)
 
+
 def main():
-    slogger.debug("Emulator Starting Simulation...")
+    slogger.info("Emulator Starting Simulation...")
     try:
         # @TODO PLEASE EDIT THIS DEVICE NAME ITS JUST COPIED STRAIGHT FROM EMULATOR
         DEVICE_NAME = "FAKE_DEVICE_NAME"
@@ -113,9 +117,9 @@ def main():
         run_emulator(flight_data, DEVICE_NAME)
     except Exception as e:
         # @TODO Add more debugs
-        slogger.critical(e)
+        slogger.error(e)
         sys.exit(1)
-    
+
 
 if __name__ == "__main__":
     main()
