@@ -16,10 +16,15 @@ The GSE software is run by using a Python based CLI.
 | Docker        | ❌       | ✅                  | ❌                  |
 | Socat         | ❌        |  🐳                 | ✅                  
 | Cmake        | ❌ (_can use release binaries_)       | 🐳                  | ❌                  |
-| g++ or clang++ |✅|🐳|✅|
-| [ZeroMQ](https://zeromq.org/download/) and `cppzmq`|✅|🐳|✅| 
-| Protobuf (and `proto` compiler, `libprotodev` with dependencies) |✅|🐳|✅| 
+| g++ or clang++ |❌ (_can use release binaries_)|🐳|✅|
+| [ZeroMQ](https://zeromq.org/download/) and `cppzmq`|❌ (_can use release binaries_)|🐳|✅| 
+| Protobuf* (and `proto` compiler, `libprotodev` with dependencies) |✅ (_needed for gencode_)|🐳|✅| 
 | qrencode |✅|🐳|✅| 
+
+> [!NOTE]
+> *Protobuf gencode without building can be done by running the proto script in `scripts/`.
+> 
+> Some C++ libraries have untested `FetchContent` support for cmake. This means you may be able to build after installing just CMake. Provided you are connected to internet to download those packages
 
 Building all from source can be found the `build.yml` action.
 
