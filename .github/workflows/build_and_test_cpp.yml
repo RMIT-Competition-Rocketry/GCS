@@ -156,8 +156,7 @@ jobs:
         mkdir -p "$HOME/protobuf"
         git clone https://github.com/protocolbuffers/protobuf.git "$HOME/protobuf"
         cd "$HOME/protobuf"
-        git checkout v29.3
-        cd "$HOME/protobuf/protobuf-${PB_VERSION}"
+        git checkout "v${PB_VERSION}"
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX="$HOME/protobuf-install" \
               -DCMAKE_CXX_STANDARD=17 \
