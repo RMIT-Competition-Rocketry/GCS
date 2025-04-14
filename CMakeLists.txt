@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 4.0)
 project(middleware_server LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
@@ -35,9 +35,11 @@ endfunction()
 
 # Abseil libraries for protobuf
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.0")
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
 fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v29.3")
 fetch_git_dependency(libzmq "ZeroMQ" "https://github.com/zeromq/libzmq.git" "v4.3.5")
 fetch_git_dependency(cppzmq "cppzmq" "https://github.com/zeromq/cppzmq.git" "v4.10.0")
+find_library(UTF8_RANGE_LIBRARY NAMES utf8_range)
 
 # Set proto file path correctly
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path
@@ -132,6 +134,8 @@ target_include_directories(middleware_lib PUBLIC
 # Link libraries
 # Absl libaries do not link themselves. Fuck you absl
 target_link_libraries(middleware_lib PUBLIC
+    protobuf::libprotobuf
+    $<TARGET_OBJECTS:proto-objects>
     absl::base
     absl::log
     absl::strings
@@ -142,24 +146,14 @@ target_link_libraries(middleware_lib PUBLIC
     absl::raw_logging_internal
     absl::spinlock_wait
     absl::synchronization
-    protobuf::libprotobuf
-    $<TARGET_OBJECTS:proto-objects>
+    absl::hash
+    absl::status
+    absl::statusor
+    absl::flat_hash_map
     cppzmq
     m
 )
-
-target_link_libraries(middleware_server PUBLIC
-    absl::base
-    absl::log
-    absl::strings
-    absl::log_internal_check_op
-    absl::log_internal_message
-    absl::cord_internal
-    absl::cord
-    absl::raw_logging_internal
-    absl::spinlock_wait
-    absl::synchronization
-)
+target_link_libraries(middleware_lib PRIVATE ${UTF8_RANGE_LIBRARY})
 
 target_link_libraries(middleware_server PUBLIC middleware_lib)
 
