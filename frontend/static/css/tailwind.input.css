@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss"; 
 
 /*
 This is a template/config file required by Tailwind.
@@ -8,56 +8,9 @@ and only modify it if you know what you're doing :)
 */
 
 @theme {
-	--color-hive: #f79521; /* TODO: Make sure this is the correct orange */
+    --color-hive: #f79322; 
 }
 
-@layer base {
-	/*
-	p {
-		@apply my-4;
-	}
-	*/
-}
-
-@layer components {
-	.module {
-		@apply flex justify-center items-center;
-	}
-
-	.bg-navbar {
-		background-image: url("/img/navbar.svg#svgView(preserveAspectRatio(none))");
-		background-size: 100% 100%;
-	}
-
-	.indicator-numeric {
-		@apply bg-zinc-900 rounded-sm flex justify-between py-0.5 px-2 items-center;
-
-		& span:first-child {
-			@apply text-hive font-medium;
-		}
-
-		& span:last-child {
-			@apply font-mono;
-		}
-	}
-
-	.indicator-boolean {
-		@apply bg-zinc-900 rounded-sm flex justify-between py-0.5 px-2 items-center;
-
-		& span:first-child {
-			@apply text-white;
-		}
-
-		& span:last-child {
-			@apply font-mono text-red-500 font-bold;
-		}
-
-		& span:last-child.true {
-			@apply font-mono text-green-400 font-bold text-lg;
-		}
-	}
-
-	.continuity-check-button {
-		@apply bg-zinc-700 border-1 border-zinc-500 rounded-md px-4 py-2 hover:bg-zinc-600 cursor-pointer;
-	}
+p {
+    @apply my-4;
 }
