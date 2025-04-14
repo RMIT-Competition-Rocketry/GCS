@@ -155,6 +155,7 @@ jobs:
         PB_VERSION=29.3
         mkdir -p "$HOME/protobuf"
         git clone https://github.com/protocolbuffers/protobuf.git "$HOME/protobuf"
+        cd protobuf
         git checkout v29.3
         cd "$HOME/protobuf/protobuf-${PB_VERSION}"
         mkdir build && cd build
