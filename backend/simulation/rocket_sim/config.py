@@ -4,7 +4,7 @@ import configparser
 """
 # Read the config
 config = configparser.ConfigParser()
-config.read("backend/simulation/simulation.ini")
+config.read("config/simulation.ini")
 
 def get_motor_config():
     """
