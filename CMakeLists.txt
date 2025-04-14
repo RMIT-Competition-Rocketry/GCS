@@ -80,7 +80,7 @@ target_link_libraries(proto-objects PUBLIC
     absl::log_internal_check_op
     absl::log_internal_message
 )
-set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated/")
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/backend/proto/generated/")
 file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
 
 target_include_directories(proto-objects PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
