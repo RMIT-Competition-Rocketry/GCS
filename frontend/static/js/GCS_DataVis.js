@@ -72,13 +72,13 @@ const y2 = d3.scaleLinear()
 
 
 // Load the CSV data
-d3.csv("testdata.csv", d3.autoType).then(function(data) {
+d3.csv("frontend/static/Data/testData.csv", d3.autoType).then(function(data) {
 
   // Set initial domain for x and y scales
   x.domain([0]); //0 for animation purposes/one bar graph
-  y.domain([0, d3.max(data, d => d.Altitude)]);
+  y.domain([0, d3.max(data, d => d.Baro_Altitude_AGL)]);
   x1.domain([0])
-  y2.domain([d3.min(data, d=> d.velocity),d3.max(data, d=> d.velocity)])
+  y2.domain([d3.min(data, d=> d.Velocity_Up),d3.max(data, d=> d.Velocity_Up)])
 
 
 
@@ -113,16 +113,16 @@ d3.csv("testdata.csv", d3.autoType).then(function(data) {
     bar2.transition()
       .duration(1) // Transition duration
       .ease(d3.easeCubicInOut) // Smooth easing function
-      .attr("y", y2(currentData.velocity))  
-      .attr("height", velocityHeight - y2(currentData.velocity)); 
+      .attr("y", y2(currentData.Velocity_Up))  
+      .attr("height", velocityHeight - y2(currentData.Velocity_Up)); 
     
 
     // Update the bar's y position and height
     bar.transition()
       .duration(1) // Transition duration
       .ease(d3.easeCubicInOut) // Smooth easing function
-      .attr("y", y(currentData.Altitude))  // Set the new y position based on the value
-      .attr("height", graphHeight - y(currentData.Altitude)); // Set the new height based on the value
+      .attr("y", y(currentData.Baro_Altitude_AGL))  // Set the new y position based on the value
+      .attr("height", graphHeight - y(currentData.Baro_Altitude_AGL)); // Set the new height based on the value
 
 
    
