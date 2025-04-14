@@ -141,6 +141,7 @@ target_link_libraries(middleware_lib PUBLIC
     absl::cord
     absl::raw_logging_internal
     absl::spinlock_wait
+    absl::synchronization
     protobuf::libprotobuf
     $<TARGET_OBJECTS:proto-objects>
     cppzmq
