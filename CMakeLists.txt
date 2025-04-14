@@ -148,6 +148,19 @@ target_link_libraries(middleware_lib PUBLIC
     m
 )
 
+target_link_libraries(middleware_server PUBLIC
+    absl::base
+    absl::log
+    absl::strings
+    absl::log_internal_check_op
+    absl::log_internal_message
+    absl::cord_internal
+    absl::cord
+    absl::raw_logging_internal
+    absl::spinlock_wait
+    absl::synchronization
+)
+
 target_link_libraries(middleware_server PUBLIC middleware_lib)
 
 file(STRINGS VERSION PROJECT_VERSION)
