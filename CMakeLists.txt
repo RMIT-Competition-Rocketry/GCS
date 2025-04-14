@@ -3,12 +3,60 @@ project(middleware_server LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
 
-# Find Protobuf
-find_package(Protobuf CONFIG QUIET)
+set(CMAKE_CXX_STANDARD 20) # For std::bit_cast
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(NOT Protobuf_FOUND)
-    find_package(Protobuf MODULE REQUIRED)
+include(FetchContent)
+
+# If you need to force an offline state, use set(FETCHCONTENT_FULLY_DISCONNECTED, ON)
+# Use this for GCS device to avoid downloading dependencies
+
+# Abseil libraries for protobuf
+find_package(abseil QUIET)
+if(NOT abseil_FOUND)
+    message(STATUS "Fetching abseil")
+    FetchContent_Declare(
+    abseil
+    GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+    GIT_TAG 20250127.0
+    )  
+    FetchContent_MakeAvailable(abseil)
 endif()
+
+find_package(Protobuf QUIET)
+if(NOT Protobuf_FOUND)
+    message(STATUS "Fetching protobuf")
+    FetchContent_Declare(
+    Protobuf
+    GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+    GIT_TAG v29.3
+    )  
+    FetchContent_MakeAvailable(Protobuf)
+endif()
+ 
+find_package(libzmq QUIET)
+if(NOT libzmq_FOUND)
+    message(STATUS "Fetching libzmq")
+    FetchContent_Declare(
+        libzmq
+        GIT_REPOSITORY https://github.com/zeromq/libzmq.git
+        GIT_TAG v4.3.5
+    )
+    FetchContent_MakeAvailable(libzmq)
+endif()
+
+find_package(cppzmq QUIET)
+if(NOT cppzmq_FOUND)
+    message(STATUS "Fetching cppzmq")
+    FetchContent_Declare(
+        cppzmq
+        GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
+        GIT_TAG v4.10.0
+    )
+    FetchContent_MakeAvailable(cppzmq)
+endif()
+
 
 # Set proto file path correctly
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path
@@ -17,10 +65,6 @@ set(PROTO_FILE "${PROTO_DIR}/AV_TO_GCS_DATA_1.proto")
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
-
-set(CMAKE_CXX_STANDARD 20) # For std::bit_cast
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -pthread")
@@ -47,7 +91,14 @@ add_executable(middleware_server ${MAIN_SRC})
 # Docs: https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
 file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
 add_library(proto-objects OBJECT ${PROTO_FILES})
-target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf)
+target_link_libraries(proto-objects PUBLIC 
+    protobuf::libprotobuf
+    absl::base
+    absl::log
+    absl::strings
+    absl::log_internal_check_op
+    absl::log_internal_message
+)
 set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/backend/proto/generated/")
 file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
 
@@ -85,49 +136,6 @@ target_include_directories(middleware_server PUBLIC
     ${Protobuf_INCLUDE_DIRS}
 )
 
-# Find cppzmq
-find_path(ZMQ_INCLUDE_DIR zmq.hpp
-    HINTS
-    /usr/local/include
-    /opt/local/include
-    /usr/include
-    /opt/homebrew/Cellar/cppzmq/4.10.0/include
-    $ENV{HOME}/zeromq/zeromq-source/include
-    $ENV{HOME}/cppzmq-install/include
-    $ENV{HOME}/cppzmq-install/share/cmake/cppzmq
-)
-
-# Find ZeroMQ C headers (zmq.h)
-find_path(ZMQ_C_INCLUDE_DIR zmq.h
-    HINTS
-    /usr/local/include
-    /opt/local/include
-    /usr/include
-    $ENV{HOME}/zeromq/zeromq-source/include
-    $ENV{HOME}/zeromq-install/include
-)
-
-if(NOT ZMQ_C_INCLUDE_DIR)
-    message(FATAL_ERROR "ZeroMQ C headers (zmq.h) not found")
-endif()
-
-if(NOT ZMQ_INCLUDE_DIR)
-    message(FATAL_ERROR "ZeroMQ headers not found")
-endif()
-
-# Find ZMQ library
-find_library(ZMQ_LIBRARY NAMES zmq
-    HINTS
-    /usr/local/lib
-    /opt/local/lib
-    /usr/lib
-    /opt/homebrew/Cellar/zeromq/4.3.4/lib
-    $ENV{HOME}/zeromq-install/lib
-)
-
-if(NOT ZMQ_LIBRARY)
-    message(FATAL_ERROR "ZeroMQ library not found")
-endif()
 
 # Include directories
 target_include_directories(middleware_lib PUBLIC
@@ -143,9 +151,14 @@ target_include_directories(middleware_lib PUBLIC
 
 # Link libraries
 target_link_libraries(middleware_lib PUBLIC
-    protobuf::libprotobuf # Modern target-based linking
+    protobuf::libprotobuf 
+    absl::base
+    absl::log
+    absl::strings
+    absl::log_internal_check_op
+    absl::log_internal_message
     $<TARGET_OBJECTS:proto-objects>
-    ${ZMQ_LIBRARY}
+    cppzmq
     m
 )
 
@@ -189,10 +202,9 @@ if(BUILD_TESTS)
         include(FetchContent)
         FetchContent_Declare(
             googletest
-            URL https://github.com/google/googletest/archive/e7b26b72461e0bfcb5a2a9c1cafd849108f834ae.zip
-            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.16.0
         )
-
         FetchContent_MakeAvailable(googletest)
     else()
         message(STATUS "GoogleTest found at: ${GTest_DIR}")
