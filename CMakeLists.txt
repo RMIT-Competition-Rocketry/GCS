@@ -93,6 +93,7 @@ file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
 add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC
     protobuf::libprotobuf
+    utf8_range
     absl::base
     absl::log
     absl::strings
@@ -170,7 +171,7 @@ target_link_libraries(middleware_lib PUBLIC
     cppzmq
     m
 )
-target_link_libraries(middleware_lib PRIVATE ${UTF8_RANGE_LIBRARY})
+target_link_libraries(middleware_lib PUBLIC utf8_range)
 
 target_link_libraries(middleware_server PUBLIC middleware_lib)
 
