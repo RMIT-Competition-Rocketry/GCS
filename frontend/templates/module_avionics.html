@@ -1,16 +1,57 @@
 <!-- AV data module -->
-<div class="w-full h-full bg-red-800">
-	<p class="text-center">[ MODULE // AVIONICS DATA ]</p>
-	<p>Accel X - Low</p>
-	<p>Accel Y - Low</p>
-	<p>Accel Z - Low</p>
-	<p>Accel X - High</p>
-	<p>Accel Y - High</p>
-	<p>Accel Z - High</p>
-	<p>Gyro X</p>
-	<p>Gyro Y</p>
-	<p>Gyro Z</p>
-	<p>Vertical velocity</p>
-	<p>Horizontal velocity</p>
-	<p>Total velocity</p>
+<div class="col-span-4 p-2"> 
+	<div class="flex flex-row w-full justify-evenly font-mono text-[14px] p-2">
+
+		<div> 
+			<span class="text-[#4DFFC4]">Accel. X low</span> <br>
+			<span class="text-white">b m/s²</span>
+		</div>
+
+		<div>
+			<span class="text-[#4DFFC4]">Accel. X high</span> <br>
+			<span class="text-white">e m/s²</span> 
+		</div>
+
+	</div>
+
+	<div class="flex flex-row w-full justify-evenly font-mono text-[14px] p-2">
+
+		<div>
+			<span class="text-[#4DFFC4]">Accel. Y low</span> <br>
+			<span class="text-white">a m/s²</span> 
+		</div>
+
+		<div>
+			<span class="text-[#4DFFC4]">Accel. Y high</span> <br>
+			<span class="text-white">d m/s²</span> <br>
+		</div>
+
+	</div>
+
+	<div class="flex flex-row w-full justify-evenly font-mono text-[14px] p-2">
+
+		<div>
+			<span class="text-[#4DFFC4]">Accel. Z low</span> <br>
+			<span class="text-red-600">ERROR</span>
+		</div>
+
+		<div>
+			<span class="text-[#4DFFC4]">Accel. Z high</span> <br>
+			<span class="text-white">c m/s²</span>
+		</div>	
+
+	</div>
+
+	<div class="w-full text-center font-mono text-[14px] p-2">
+		<div class="p-2">
+		  <span class="text-[#4DFFC4]">Gyro</span>
+		</div>
+		<div class="flex justify-evenly  space-x-8">
+		  <p class="text-white">X: {{Value}}°/s</p>
+		  <p class="text-white">Y: {{Value}}°/s</p>
+		  <p class="text-white">Z: {{Value}}°/s</p>
+		</div>
+	  </div>
+
 </div>
+
