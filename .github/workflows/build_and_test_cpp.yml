@@ -142,7 +142,7 @@ jobs:
         cd "$HOME/abseil"
         git checkout 20250127.0
         mkdir build && cd build
-        cmake -DABSL_BUILD_TESTING=ON -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" ..
+        cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" ..
         make "-j$(nproc)"
         make install
 

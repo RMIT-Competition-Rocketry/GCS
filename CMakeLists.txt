@@ -130,6 +130,7 @@ target_include_directories(middleware_lib PUBLIC
 )
 
 # Link libraries
+# Absl libaries do not link themselves. Fuck you absl
 target_link_libraries(middleware_lib PUBLIC
     protobuf::libprotobuf
     absl::base
@@ -139,6 +140,8 @@ target_link_libraries(middleware_lib PUBLIC
     absl::log_internal_message
     absl::cord_internal
     absl::cord
+    absl::raw_logging_internal
+    absl::spinlock_wait
     $<TARGET_OBJECTS:proto-objects>
     cppzmq
     m
