@@ -9,54 +9,35 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
+# For mac installs
+# list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib/cmake")
+
 # If you need to force an offline state, use set(FETCHCONTENT_FULLY_DISCONNECTED, ON)
 # Use this for GCS device to avoid downloading dependencies
+list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib/cmake")
+
+# Name is for internal targets, findname is for the find_package command
+function(fetch_git_dependency NAME FIND_NAME URL VERSION)
+    find_package(${FIND_NAME} QUIET)
+
+    if(NOT ${FIND_NAME}_FOUND)
+        message(STATUS "Fetching ${NAME}")
+        FetchContent_Declare(
+            ${NAME}
+            GIT_REPOSITORY ${URL}
+            GIT_TAG ${VERSION}
+        )
+        FetchContent_MakeAvailable(${NAME})
+    else()
+        message(STATUS "${FIND_NAME} found at: ${${FIND_NAME}_DIR}")
+    endif()
+endfunction()
 
 # Abseil libraries for protobuf
-find_package(abseil QUIET)
-if(NOT abseil_FOUND)
-    message(STATUS "Fetching abseil")
-    FetchContent_Declare(
-    abseil
-    GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-    GIT_TAG 20250127.0
-    )  
-    FetchContent_MakeAvailable(abseil)
-endif()
-
-find_package(Protobuf QUIET)
-if(NOT Protobuf_FOUND)
-    message(STATUS "Fetching protobuf")
-    FetchContent_Declare(
-    Protobuf
-    GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-    GIT_TAG v29.3
-    )  
-    FetchContent_MakeAvailable(Protobuf)
-endif()
- 
-find_package(libzmq QUIET)
-if(NOT libzmq_FOUND)
-    message(STATUS "Fetching libzmq")
-    FetchContent_Declare(
-        libzmq
-        GIT_REPOSITORY https://github.com/zeromq/libzmq.git
-        GIT_TAG v4.3.5
-    )
-    FetchContent_MakeAvailable(libzmq)
-endif()
-
-find_package(cppzmq QUIET)
-if(NOT cppzmq_FOUND)
-    message(STATUS "Fetching cppzmq")
-    FetchContent_Declare(
-        cppzmq
-        GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
-        GIT_TAG v4.10.0
-    )
-    FetchContent_MakeAvailable(cppzmq)
-endif()
-
+fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.0")
+fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v29.3")
+fetch_git_dependency(libzmq "ZeroMQ" "https://github.com/zeromq/libzmq.git" "v4.3.5")
+fetch_git_dependency(cppzmq "cppzmq" "https://github.com/zeromq/cppzmq.git" "v4.10.0")
 
 # Set proto file path correctly
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path
@@ -91,7 +72,7 @@ add_executable(middleware_server ${MAIN_SRC})
 # Docs: https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
 file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
 add_library(proto-objects OBJECT ${PROTO_FILES})
-target_link_libraries(proto-objects PUBLIC 
+target_link_libraries(proto-objects PUBLIC
     protobuf::libprotobuf
     absl::base
     absl::log
@@ -136,7 +117,6 @@ target_include_directories(middleware_server PUBLIC
     ${Protobuf_INCLUDE_DIRS}
 )
 
-
 # Include directories
 target_include_directories(middleware_lib PUBLIC
     ${CMAKE_SOURCE_DIR}/generated # Protobuf generated headers
@@ -151,7 +131,7 @@ target_include_directories(middleware_lib PUBLIC
 
 # Link libraries
 target_link_libraries(middleware_lib PUBLIC
-    protobuf::libprotobuf 
+    protobuf::libprotobuf
     absl::base
     absl::log
     absl::strings
