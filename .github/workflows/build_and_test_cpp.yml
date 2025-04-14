@@ -145,6 +145,8 @@ jobs:
         cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" ..
         make "-j$(nproc)"
         make install
+        echo "CMAKE_PREFIX_PATH=$HOME/abseil-install" >> "$GITHUB_ENV"
+
 
 
     # --- Build Protoc and Protobuf ---
@@ -160,7 +162,7 @@ jobs:
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX="$HOME/protobuf-install" \
               -DCMAKE_CXX_STANDARD=17 \
-              -Dprotobuf_ABSL_PROVIDER=package \
+              -Dprotobuf_ABSL_PROVIDER=cmake \
               -Dprotobuf_BUILD_TESTS=OFF \
               -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" ..
         make -j"$(nproc)"
