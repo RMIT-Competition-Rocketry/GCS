@@ -39,7 +39,24 @@ set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
 fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v29.3")
 fetch_git_dependency(libzmq "ZeroMQ" "https://github.com/zeromq/libzmq.git" "v4.3.5")
 fetch_git_dependency(cppzmq "cppzmq" "https://github.com/zeromq/cppzmq.git" "v4.10.0")
-find_library(UTF8_RANGE_LIBRARY NAMES utf8_range)
+find_library(UTF8_RANGE_LIBRARY NAMES utf8_range
+    HINTS
+    ${CMAKE_PREFIX_PATH}/lib
+    $ENV{HOME}/protobuf-install/lib
+    ${PROTOBUF_ROOT_DIR}/lib
+    ${Protobuf_DIR}/../lib
+    ${Protobuf_DIR}/../../lib)
+
+find_path(UTF8_RANGE_INCLUDE_DIR NAMES utf8_range.h
+    HINTS
+    ${CMAKE_PREFIX_PATH}/include
+    $ENV{HOME}/protobuf-install/include
+    ${PROTOBUF_ROOT_DIR}/include
+    ${Protobuf_DIR}/../include
+    ${Protobuf_DIR}/../../include
+    ${PROTOBUF_SOURCE_DIR}/third_party/utf8_range)
+message(STATUS "utf8_range library found at:     ${UTF8_RANGE_LIBRARY}")
+message(STATUS "utf8_range include dir found at: ${UTF8_RANGE_INCLUDE_DIR}")
 
 # Set proto file path correctly
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/backend/proto") # Adjusted path
