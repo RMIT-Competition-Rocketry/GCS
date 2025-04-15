@@ -180,6 +180,7 @@ jobs:
         mkdir build && cd build
         cmake .. \
           -DZMQ_BUILD_TESTS=OFF \
+          -DBUILD_SHARED_LIBS=OFF \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX="$HOME/zeromq-install"
         make install
