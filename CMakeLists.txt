@@ -34,12 +34,17 @@ function(fetch_git_dependency NAME FIND_NAME URL VERSION)
 endfunction()
 
 # Abseil libraries for protobuf
-fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.0")
+fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
 fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v29.3")
+
+# Force static ZMQ build before fetching
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static ZeroMQ libraries" FORCE)
+set(BUILD_STATIC_LIBS ON CACHE BOOL "Build static ZeroMQ libraries" FORCE)
 fetch_git_dependency(libzmq "ZeroMQ" "https://github.com/zeromq/libzmq.git" "v4.3.5")
 set(CPPZMQ_BUILD_TESTS OFF CACHE BOOL "Disable cppzmq tests" FORCE)
 fetch_git_dependency(cppzmq "cppzmq" "https://github.com/zeromq/cppzmq.git" "v4.10.0")
+
 find_library(UTF8_RANGE_LIBRARY NAMES utf8_range
     HINTS
     ${CMAKE_PREFIX_PATH}/lib
@@ -172,11 +177,20 @@ target_link_libraries(middleware_lib PUBLIC
     absl::statusor
     absl::flat_hash_map
     cppzmq
-    libzmq
+    $<IF:$<BOOL:${BUILD_SHARED_LIBS}>,libzmq,libzmq-static>
     m
 )
 
 target_link_libraries(middleware_server PUBLIC middleware_lib)
+
+# Add RPATH settings for the middleware server executable as well
+if(APPLE)
+    set_target_properties(middleware_server PROPERTIES
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "@loader_path;@loader_path/../lib;/usr/local/lib"
+        MACOSX_RPATH TRUE
+    )
+endif()
 
 file(STRINGS VERSION PROJECT_VERSION)
 

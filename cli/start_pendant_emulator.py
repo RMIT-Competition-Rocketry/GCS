@@ -114,6 +114,7 @@ def start_pendant_emulator(logger: logging.Logger) -> None:
 
         # Add project root for imports to work
         env["PYTHONPATH"] = os.path.abspath(os.getcwd())
+        env["CONFIG_PATH"] = os.path.join(os.path.abspath(os.getcwd()), "config","config.ini")
         logger.debug(
             f"Starting pendant emulator with: {PENDANT_EMULATOR_COMMAND}")
         pendant_process = PendantEmulatorSubprocess(
