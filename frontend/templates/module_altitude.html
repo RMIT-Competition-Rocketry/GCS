@@ -2,13 +2,42 @@
 <div class="w-full h-full bg-purple-800">
 	<p class="text-center">[ MODULE // MAX ALTITUDE INFO ]</p>
 	<div class="w-full h-auto flex flex-row justify-between">
-		<div>
-			<p>Altitude (m)</p>
-			<p>Altitude (ft)</p>
-			<p class="font-mono text-[#4DFFC4]">Max altitude reached: </p>
-				<p class="font-mono text-white">{{value}}m</p>
-				<p class="font-mono text-white">{{value}}ft</p>
-		</div>
+		<table class="table-fixed w-1/2">
+			<tr>
+				<td>
+					Altitude
+				</td>
+				<td>
+					<input readonly autocomplete="off" class="av-alt-m">
+				</td>
+				<td>
+					m
+				</td>
+				<td>
+					<input readonly autocomplete="off" class="av-alt-ft">
+				</td>
+				<td>
+					ft
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Max altitude
+				</td>
+				<td>
+					<input readonly autocomplete="off" class="av-maxalt-m">
+				</td>
+				<td>
+					m
+				</td>
+				<td>
+					<input readonly autocomplete="off" class="av-maxalt-ft">
+				</td>
+				<td>
+					ft
+				</td>
+			</tr>
+		</table>
 		<div class="bg-purple-500 w-1/2 h-auto">
 			<p>Altitude Graph</p>
 			<svg id="altitude" width="600" height="400"> </svg>

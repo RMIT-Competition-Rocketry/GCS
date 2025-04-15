@@ -21,6 +21,10 @@ const TESTING_INTERFACE_ITEMS = [
     "av-gyro-x",
     "av-gyro-y",
     "av-gyro-z",
+    "av-alt-m",
+    "av-alt-ft",
+    "av-maxalt-m",
+    "av-maxalt-ft"
 ];
 
 function testing_updateAllInterfaceValues() {
