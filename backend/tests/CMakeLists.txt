@@ -22,6 +22,7 @@ target_link_libraries(runTests PRIVATE
 
 # Ensure test executable inherits middleware library's include directories
 target_include_directories(runTests PRIVATE
+    ${UTF8_RANGE_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/backend/include
     ${CMAKE_SOURCE_DIR}/backend/proto/generated/payloads
 )

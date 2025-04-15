@@ -152,9 +152,10 @@ jobs:
     - name: Build Protoc and Protobuf
       if: steps.cache_protobuf.outputs.cache-hit != 'true'
       run: |
-        PB_VERSION=29.3
+        PB_VERSION=30.1
         mkdir -p "$HOME/protobuf"
         git clone https://github.com/protocolbuffers/protobuf.git "$HOME/protobuf"
+        git submodule update --init --recursive 
         cd "$HOME/protobuf"
         git checkout "v${PB_VERSION}"
         mkdir build && cd build

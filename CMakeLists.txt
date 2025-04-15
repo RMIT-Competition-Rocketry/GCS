@@ -18,7 +18,7 @@ list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib/cmake")
 
 # Name is for internal targets, findname is for the find_package command
 function(fetch_git_dependency NAME FIND_NAME URL VERSION)
-    find_package(${FIND_NAME} QUIET)
+    find_package(${FIND_NAME} CONFIG QUIET)
 
     if(NOT ${FIND_NAME}_FOUND)
         message(STATUS "Fetching ${NAME}")
@@ -93,7 +93,7 @@ file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
 add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC
     protobuf::libprotobuf
-    utf8_range
+    ${UTF8_RANGE_LIBRARY}
     absl::base
     absl::log
     absl::strings
@@ -139,6 +139,7 @@ target_include_directories(middleware_server PUBLIC
 
 # Include directories
 target_include_directories(middleware_lib PUBLIC
+    ${UTF8_RANGE_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/generated # Protobuf generated headers
     ${Protobuf_INCLUDE_DIRS}
     ${ZMQ_INCLUDE_DIR}
@@ -154,6 +155,7 @@ target_include_directories(middleware_lib PUBLIC
 target_link_libraries(middleware_lib PUBLIC
     protobuf::libprotobuf
     $<TARGET_OBJECTS:proto-objects>
+    ${UTF8_RANGE_LIBRARY}
     absl::base
     absl::log
     absl::strings
@@ -171,7 +173,6 @@ target_link_libraries(middleware_lib PUBLIC
     cppzmq
     m
 )
-target_link_libraries(middleware_lib PUBLIC utf8_range)
 
 target_link_libraries(middleware_server PUBLIC middleware_lib)
 
