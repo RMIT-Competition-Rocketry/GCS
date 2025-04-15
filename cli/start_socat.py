@@ -4,6 +4,13 @@ import cli.proccess as process
 from typing import Tuple, Optional
 
 
+class IgnoreWriteMessagesFilter(logging.Filter):
+    """Filter to exclude log messages containing 'N write('"""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "N write(" not in record.getMessage()
+
+
 class SocatSubprocess(process.ERRLoggedSubProcess):
     """Subclass of the ERRLoggedSubProcess with a stop condition for callbacks.
     """
@@ -12,6 +19,8 @@ class SocatSubprocess(process.ERRLoggedSubProcess):
         if self._callback_hits >= 2:
             # We only need to read 2 devices from the terminal output. 2 hits is enough
             self._logger_adapter.debug("Stopping socat callbacks")
+            self._logger_adapter.debug("Filtering socat write messages")
+            self._parent_logger.addFilter(IgnoreWriteMessagesFilter())
             return True
         return False
 

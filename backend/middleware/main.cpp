@@ -67,8 +67,6 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
                                            std::vector<uint8_t> &buffer,
                                            zmq::socket_t &pub_socket) {
   // SIZE does not include ID byte that's already been read
-  slogger::debug("Processing packet: " + std::string(PacketType::PACKET_NAME) +
-                 " ID: " + std::to_string(PacketType::ID));
   if (BUFFER_BYTE_COUNT == PacketType::SIZE + 1) {
     try {
       // Construct the packet object (skipping the ID byte)

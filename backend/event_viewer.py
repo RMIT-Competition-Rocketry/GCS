@@ -639,7 +639,7 @@ class AV_TO_GCS_DATA_2(Packet):
                 for line in result.stdout.split("\n"):
                     slogger.info(line)
 
-        slogger.debug("AV_TO_GCS_DATA_2 packet received")
+        # slogger.debug("AV_TO_GCS_DATA_2 packet received")
 
 
 # TODO add proccessing for this task post White Cliffs
@@ -789,7 +789,7 @@ class GSE_TO_GCS_DATA_1(Packet):
                         f"{error_flag_name} changed to {error_flag_value}")
             # Update historical value
             self._last_gse_errors[error_flag_name] = error_flag_value
-        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+        # slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
 
 class GSE_TO_GCS_DATA_2(Packet):
@@ -898,7 +898,7 @@ class GSE_TO_GCS_DATA_2(Packet):
             # Update historical value
             self._last_gse_errors[error_flag_name] = error_flag_value
         # Release lock after. Consider making the process logic check for errors that contribute to invalid lock state .
-        slogger.debug("GSE_TO_GCS_DATA_2 packet received")
+        # slogger.debug("GSE_TO_GCS_DATA_2 packet received")
 
 
 def main(SOCKET_PATH, CREATE_LOGS):
