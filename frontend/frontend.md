@@ -2,8 +2,6 @@
 
 *Developer notes and documentation for working on the GCS frontend.*
 
-
-
 ## Libraries
 We're using the following libraries for frontend:
 - Tailwind v4.0.17
@@ -43,9 +41,11 @@ It lets us make pretty graphs
 Included with this is the **GLTFLoader.js** loader, which lets us load .gltf and .glb model files.
 
 ## Old GUI
+
 The old interface has been included as developer reference, including the CSS. These files shouldn't be used for our frontend, but they're a good starting point for understanding what might be expected in our interface.
 
 The following files are part of the old GUI:
 - /oldgui.html
 - /css/bootstrap.css
 - /css/oldgui.css
+
