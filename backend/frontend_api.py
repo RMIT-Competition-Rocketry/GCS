@@ -4,6 +4,7 @@ import sys
 import json
 import websockets
 import zmq
+import zmq.asyncio
 from google.protobuf.json_format import MessageToDict
 import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
 import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
@@ -17,7 +18,7 @@ shutdown_event = asyncio.Event()
 
 
 async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
-    context = zmq.Context()
+    context = zmq.asyncio.Context()
     sub_socket = context.socket(zmq.SUB)
     try:
         sub_socket.connect(ZMQ_SUB_SOCKET)
@@ -31,14 +32,11 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
             7: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2,
         }
 
-        poller = zmq.Poller()
-        poller.register(sub_socket, zmq.POLLIN)
-
         while not shutdown_event.is_set():
-            socks = dict(poller.poll(100))  # 100ms timeout
-            if sub_socket in socks:
-                packet_id = int.from_bytes(sub_socket.recv(), 'big')
-                message = sub_socket.recv()
+            events = await sub_socket.poll(timeout=100)
+            if events:
+                packet_id = int.from_bytes(await sub_socket.recv(), 'big')
+                message = await sub_socket.recv()
 
                 if len(message) == 1:
                     new_id = int.from_bytes(message, 'big')
@@ -56,13 +54,17 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     await websocket.send(json.dumps(output))
                 else:
                     slogger.error(f"Unexpected packet ID: {packet_id}")
+            # Give event handler time to check shutdown event
+            await asyncio.sleep(0.01)
 
     except websockets.ConnectionClosed:
         slogger.info("WebSocket connection closed")
     except Exception as e:
         slogger.error(f"ZMQ error: {e}")
     finally:
-        sub_socket.close()
+        # Wait LINGER_TIME_MS before giving up on push request
+        LINGER_TIME_MS = 300
+        sub_socket.close(linger=LINGER_TIME_MS)
         context.term()
 
 
@@ -74,7 +76,7 @@ async def amain():
     # Set up signal handlers
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, shutdown_event.set)
+        loop.add_signal_handler(sig, lambda: shutdown_event.set())
 
     server = await websockets.serve(handler, WEBSOCKET_HOST, WEBSOCKET_PORT)
     slogger.info(

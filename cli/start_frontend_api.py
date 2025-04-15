@@ -8,7 +8,7 @@ def start_frontend_api(logger: logging.Logger, SUB_SOCKET_PATH: str):
     try:
 
         API_SERVICE_COMMAND = [
-            "python3", os.path.join(
+            "python3", "-u", os.path.join(
                 "backend", "frontend_api.py"), "--socket-path", SUB_SOCKET_PATH
         ]
 

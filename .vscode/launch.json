@@ -61,7 +61,8 @@
             "args": [
                 "dev",
                 "--interface",
-                "test"
+                "test",
+                "--nopendant"
             ]
         },
         {
