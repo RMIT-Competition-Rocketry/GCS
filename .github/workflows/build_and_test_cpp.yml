@@ -199,6 +199,7 @@ jobs:
         cmake .. -DZeroMQ_DIR="$HOME/zeromq-install/lib/cmake/ZeroMQ" \
           -DCMAKE_INSTALL_PREFIX="$HOME/cppzmq-install"
         make install
+        echo "cppzmq_DIR=$HOME/cppzmq-install" >> "$GITHUB_ENV"
 
     # --- Install tree for debugging (if ACT is true) ---
     - name: Install tree
@@ -239,6 +240,7 @@ jobs:
               -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
               -DProtobuf_ROOT="$HOME/protobuf-install" \
               -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" \
+              -Dcppzmq_DIR="$HOME/cppzmq-install" \
               -DGTest_ROOT="$HOME/googletest-install" \
               -S "${{ github.workspace }}"
 

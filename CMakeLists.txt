@@ -38,8 +38,8 @@ fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "2
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
 fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v29.3")
 fetch_git_dependency(libzmq "ZeroMQ" "https://github.com/zeromq/libzmq.git" "v4.3.5")
-fetch_git_dependency(cppzmq "cppzmq" "https://github.com/zeromq/cppzmq.git" "v4.10.0")
 set(CPPZMQ_BUILD_TESTS OFF CACHE BOOL "Disable cppzmq tests" FORCE)
+fetch_git_dependency(cppzmq "cppzmq" "https://github.com/zeromq/cppzmq.git" "v4.10.0")
 find_library(UTF8_RANGE_LIBRARY NAMES utf8_range
     HINTS
     ${CMAKE_PREFIX_PATH}/lib
