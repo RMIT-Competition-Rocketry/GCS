@@ -60,6 +60,9 @@
             "subProcess": true,
             "args": [
                 "dev",
+                "--interface",
+                "test",
+                "--nopendant"
             ]
         },
         {

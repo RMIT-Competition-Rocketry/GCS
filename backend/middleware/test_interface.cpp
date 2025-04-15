@@ -61,8 +61,7 @@ ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer) {
 
   ssize_t count = read(uart_fd_, buffer.data(), buffer.size());
   if (count < 0) {
-    throw std::system_error(errno, std::system_category(),
-                            "TEST UART read failed");
+    throw std::system_error(errno, std::system_category(), "TEST read failed");
   }
   return count;
 }

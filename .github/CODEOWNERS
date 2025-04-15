@@ -10,3 +10,6 @@ frontend/  @RMIT-Competition-Rocketry/gcs-frontend-capstone
 # Anyone on the org can add to docs and notes
 docs/* 
 notes/* 
+
+# Tristian simulation tooling
+backend/simulation/ @trist4nl3

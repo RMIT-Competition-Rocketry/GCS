@@ -106,6 +106,7 @@ def get_command() -> List[str]:
 
 
 def start_pendant_emulator(logger: logging.Logger) -> None:
+    SERVICE_NAME = "pendant_emulator"
     try:
         # Make sure to open it in a new terminal window.
         # Errors probably wont be shown if this is wrong
@@ -114,16 +115,17 @@ def start_pendant_emulator(logger: logging.Logger) -> None:
 
         # Add project root for imports to work
         env["PYTHONPATH"] = os.path.abspath(os.getcwd())
+        env["CONFIG_PATH"] = os.path.join(os.path.abspath(os.getcwd()), "config","config.ini")
         logger.debug(
-            f"Starting pendant emulator with: {PENDANT_EMULATOR_COMMAND}")
+            f"Starting {SERVICE_NAME} with: {PENDANT_EMULATOR_COMMAND}")
         pendant_process = PendantEmulatorSubprocess(
             PENDANT_EMULATOR_COMMAND,
-            name="pendant_emulator",
+            name=SERVICE_NAME,
             env=env)
 
         pendant_process.start()
 
     except Exception as e:
         logger.error(
-            f"An error occurred while starting a Socat fake serial device: {e}")
+            f"An error occurred while starting {SERVICE_NAME}: {e}")
         return None, None

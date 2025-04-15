@@ -4,7 +4,7 @@
         {
             "label": "middleware build-dev + generate proto",
             "type": "shell",
-            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug .. && make", // VERBOSE = 1
+            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j", // VERBOSE = 1
             "options": {
                 "cwd": "${workspaceFolder}" // Default?
             },
@@ -24,7 +24,7 @@
         {
             "label": "middleware build-dev + generate proto + build tests",
             "type": "shell",
-            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make", // VERBOSE = 1
+            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make -j", // VERBOSE = 1
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -78,6 +78,44 @@
             "command": "./venv/bin/python",
             "args": [
                 "backend/tools/zeromq_debug_sub_raw.py",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend API manually",
+            "type": "shell",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/frontend_api.py",
+                "--socket-path",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend API manually",
+            "type": "shell",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/frontend_api.py",
+                "--socket-path",
                 "gcs_rocket"
             ],
             "icon": {

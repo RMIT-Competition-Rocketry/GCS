@@ -129,6 +129,7 @@ def signal_handler(signum, frame):
 
 def setup_controller() -> Optional[pygame.joystick.JoystickType]:
     pygame.init()
+    pygame.mixer.quit()  # https: // stackoverflow.com/a/50552161/14141223
     pygame.joystick.init()
 
     # Attempt controller connection
@@ -320,8 +321,9 @@ def print_information():
           )
 
 
-def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
+def handle_controller_events():
     global previous_pressed_states, controller_offline
+    joystick: Optional[pygame.joystick.JoystickType] = setup_controller()
     clock = pygame.time.Clock()
     if joystick is None:
         # Set the (nothing) default state
@@ -333,37 +335,42 @@ def handle_controller_events(joystick: Optional[pygame.joystick.JoystickType]):
     firstAddedEvent = True
     while not stop_event.is_set():
         if joystick is not None:
-            event = pygame.event.poll()
-            if event.type == pygame.NOEVENT:
+            events = pygame.event.get()
+            if not events:
+                time.sleep(0.01)  # Reduce CPU load
                 continue
-            match event.type:
-                case pygame.JOYBUTTONDOWN:
-                    handle_button_press(event.button, True)
-                    # Button event discovered
-                    # Use in this block to avoid race conditions
-                    controller_offline = False
-                case pygame.JOYBUTTONUP:
-                    handle_button_press(event.button, False)
-                    controller_offline = False
-                case pygame.JOYDEVICEREMOVED:
-                    slogger.warning("Controller disconnected")
-                    controller_offline = True
-                case pygame.JOYDEVICEADDED:
-                    if not firstAddedEvent:
-                        slogger.info(
-                            "Controller online. Restart likely required. Maintaining fallback state")
-                        controller_offline = True  # This is default behaviour for F710 controller
-                        firstAddedEvent = False
+            for event in events:
+                match event.type:
+                    case pygame.JOYBUTTONDOWN:
+                        handle_button_press(event.button, True)
+                        # Button event discovered
+                        # Use in this block to avoid race conditions
+                        controller_offline = False
+                    case pygame.JOYBUTTONUP:
+                        handle_button_press(event.button, False)
+                        controller_offline = False
+                    case pygame.JOYDEVICEREMOVED:
+                        slogger.warning("Controller disconnected")
+                        controller_offline = True
+                    case pygame.JOYDEVICEADDED:
+                        if not firstAddedEvent:
+                            slogger.info(
+                                "Controller online. Restart likely required. Maintaining fallback state")
+                            controller_offline = True  # This is default behaviour for F710 controller
+                            firstAddedEvent = False
         else:
             # Reduce thread load. No need for full speed in testing
             time.sleep(0.05)
         clock.tick(60)  # 60 FPS
         # Run CLI notifications
-        if (pressed_states != previous_pressed_states or first_time):
+        with state_lock:
+            # Thread safe instance copy
+            current_states = pressed_states.copy()
+        if (current_states != previous_pressed_states or first_time):
             # Print on change. Many STDOUT ANSCI writes are expensive
             print_information()
             first_time = False
-        previous_pressed_states = pressed_states.copy()
+        previous_pressed_states = current_states
 
 
 def handle_button_press(button_id, pressed):
@@ -567,10 +574,9 @@ def main():
     global packet_thread
 
     try:
-        joystick: Optional[pygame.joystick.JoystickType] = setup_controller()
         packet_thread = threading.Thread(target=send_packet)
         packet_thread.start()
-        handle_controller_events(joystick)
+        handle_controller_events()
 
     except KeyboardInterrupt:
         cleanup_()
