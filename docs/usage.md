@@ -44,8 +44,15 @@ Options:
   --nobuild                Do not build binaries. Search for pre-built
                            binaries
   --logpkt                 Log packet data to csv
+  --nopendant              Do not run the pendant emulator
   --help                   Show this message and exit.
 ```
+
+> [!NOTE] Suggested frontend dev command
+> The current frontend dev command is as follows
+> ```
+> $ rocket dev --interface test --nopendant    
+> ```
 
 By default for `dev` mode: 
 - The selected interface will be grabbed from `config/config.ini`
@@ -54,6 +61,9 @@ By default for `dev` mode:
   - Use `--nobuild` to skip this
 - Packets will not be logged in `/logs`, but the CLI output will
   - Use `--logpkt` to log packets in dev mode
+- The pendant emulator will start in a new window
+  - This is not needed for **frontend** development
+  - You can stop this by using the `--nopendant` flag
 
 ## Usage for operators
 
