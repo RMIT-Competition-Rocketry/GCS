@@ -183,7 +183,9 @@
             "type": "shell",
             "command": "./.venv/bin/python",
             "args": [
-                "backend/simulation/run_simulation.py"
+                "backend/simulation/run_simulation.py",
+                "--device-rocket",
+                "gcs_rocket"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",

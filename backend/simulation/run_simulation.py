@@ -75,19 +75,19 @@ def isImportantPacket(current_row, last_row):
     # @TODO More important calculations
 
 
-def run_emulator(flight_data: pd.DataFrame, device_name: str):
+def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
     """
         Runs the emulator based on the flight data
     """
     # Init mockpacket
     MockPacket.initialize_settings(
-        config.load_config()['emulation'], FAKE_DEVICE_NAME=device_name,)
+        config.load_config()['emulation'], FAKE_DEVICE_NAME=DEVICE_NAME)
 
     # Getting the last few rows
     last_time = -1
     last_row = None
     # Filteration and sending packets
-    for _, row in flight_data.iterrows():
+    for _, row in FLIGHT_DATA.iterrows():
         current_time = row["# Time (s)"]
         slogger.info(str(current_time))
         # Simply check if there's been enough time or that there is an important packet
@@ -112,9 +112,14 @@ def main():
     slogger.info("Emulator Starting Simulation...")
     try:
         # @TODO PLEASE EDIT THIS DEVICE NAME ITS JUST COPIED STRAIGHT FROM EMULATOR
-        DEVICE_NAME = "FAKE_DEVICE_NAME"
-        flight_data = flight_simulation.get_simulated_flight_data()
-        run_emulator(flight_data, DEVICE_NAME)
+        try:
+            FAKE_DEVICE_NAME = sys.argv[sys.argv.index('--device-rocket') + 1]
+        except ValueError:
+            slogger.error(
+                "Failed to find device names in arguments for simulator")
+            raise
+        FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
+        run_emulator(FLIGHT_DATA, FAKE_DEVICE_NAME)
     except Exception as e:
         # @TODO Add more debugs
         slogger.error(e)
