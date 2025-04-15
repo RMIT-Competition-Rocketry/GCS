@@ -4,7 +4,7 @@
         {
             "label": "middleware build-dev + generate proto",
             "type": "shell",
-            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug .. && make", // VERBOSE = 1
+            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j", // VERBOSE = 1
             "options": {
                 "cwd": "${workspaceFolder}" // Default?
             },
@@ -24,7 +24,7 @@
         {
             "label": "middleware build-dev + generate proto + build tests",
             "type": "shell",
-            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make", // VERBOSE = 1
+            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make -j", // VERBOSE = 1
             "group": {
                 "kind": "build",
                 "isDefault": false

@@ -1,6 +1,7 @@
 import logging
 import cli.proccess as process
 from enum import Enum
+import os
 
 
 class CMakeBuildModes(Enum):
@@ -42,9 +43,10 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
     try:
         build_flag_string = BUILD_FLAG.value
 
+        os.makedirs("build", exist_ok=True)
+        os.chdir("build")
         MIDDLEWARE_BUILD_COMMAND_CMAKE = [
-            "cmake", f"-DCMAKE_BUILD_TYPE={build_flag_string}", "."
-        ]
+            "cmake", f"-DCMAKE_BUILD_TYPE={build_flag_string}", ".."]
 
         logger.debug(
             f"Starting {SERVICE_NAME} build [cmake] with: {MIDDLEWARE_BUILD_COMMAND_CMAKE}")
@@ -85,6 +87,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
         while not finished:
             finished = middleware_build_process_make.get_parsed_data()
 
+        os.chdir("..")  # Back out of build dir
         logger.info("Make build finished")
 
     except Exception as e:

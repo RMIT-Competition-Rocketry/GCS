@@ -7,13 +7,13 @@ from abc import ABC, abstractmethod
 import sys
 import subprocess
 from google.protobuf.message import Message as PbMessage
-import proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
-import proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
-import proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
-import proto.generated.GCS_TO_AV_STATE_CMD_pb2 as GCS_TO_AV_STATE_CMD_pb
-import proto.generated.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_pb
-import proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
-import proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
+import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
+import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
+import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
+import backend.proto.generated.GCS_TO_AV_STATE_CMD_pb2 as GCS_TO_AV_STATE_CMD_pb
+import backend.proto.generated.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_pb
+import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
+import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 from typing import List, Dict, Optional
 import backend.process_logging as slogger  # slog deez nuts
 import backend.ansci as ansci
@@ -343,7 +343,7 @@ class AV_TO_GCS_DATA_1(Packet):
             if PROTO_DATA.flightState == AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1.FlightState.APOGEE:
                 __ft_estimation = AV_TO_GCS_DATA_1._mt_to_ft(
                     PROTO_DATA.altitude)
-                slogger.success(
+                slogger.info(
                     f"Instantaneous Apogee estimation: {__ft_estimation} ft")
 
     def _process_state_flags(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
@@ -359,6 +359,8 @@ class AV_TO_GCS_DATA_1(Packet):
                 else:
                     slogger.warning(
                         f"{state_flag_name} changed to {state_flag_value}")
+                if state_flag_name == "GPS_fix_flag" and state_flag_value:
+                    slogger.success("GPS Fix aquired")
             # Update historical value
             self._last_state_flags[state_flag_name] = state_flag_value
 
@@ -613,13 +615,21 @@ class AV_TO_GCS_DATA_2(Packet):
             maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
             result: Optional[str] = None
             try:
-                result = subprocess.run(
-                    ['qrencode', maps_url, '-t', 'ANSI'],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True
-                )
+                valid = True
+                try:
+                    # GPS Unimplimented
+                    if float(GPS_latitude) == 0.0 or float(GPS_longitude) == 0.0:
+                        valid = False
+                except ValueError:
+                    valid = False
+                if valid:
+                    result = subprocess.run(
+                        ['qrencode', maps_url, '-t', 'ANSI'],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
                 self._GPS_latitude_old = GPS_latitude
                 self._GPS_longitude_old = GPS_longitude
             except Exception as e:

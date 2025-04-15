@@ -99,7 +99,8 @@ def get_interface_type(interface: Optional[str]) -> InterfaceType:
 )
 @click.option('--nobuild', is_flag=True, help="Do not build binaries. Search for pre-built binaries")
 @click.option('--logpkt', is_flag=True, help="Log packet data to csv")
-def dev(docker, interface, nobuild, logpkt):
+@click.option('--nopendant', is_flag=True, help="Do not run the pendant emulator")
+def dev(docker, interface, nobuild, logpkt, nopendant):
     """Start software in development mode"""
     def start_docker_container():
         try:
@@ -183,7 +184,8 @@ def dev(docker, interface, nobuild, logpkt):
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
 
     # 6. Could start the pendent emulator
-    start_pendant_emulator(logger)
+    if not nopendant:
+        start_pendant_emulator(logger)
 
     # 7. Start frontend
     start_frontend_api(logger, "gcs_rocket")
