@@ -49,7 +49,7 @@ Options:
 ```
 
 > [!NOTE] 
-> The current frontend dev command is as follows
+> The current *suggested* frontend dev command is as follows
 > ```
 > $ rocket dev --interface test --nopendant    
 > ```
