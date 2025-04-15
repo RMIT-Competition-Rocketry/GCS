@@ -171,6 +171,7 @@ target_link_libraries(middleware_lib PUBLIC
     absl::statusor
     absl::flat_hash_map
     cppzmq
+    libzmq
     m
 )
 

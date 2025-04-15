@@ -27,4 +27,12 @@ target_include_directories(runTests PRIVATE
     ${CMAKE_SOURCE_DIR}/backend/proto/generated/payloads
 )
 
+if(APPLE)
+    set_target_properties(runTests PROPERTIES
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "@loader_path;@loader_path/../lib;/usr/local/lib"
+        MACOSX_RPATH TRUE
+    )
+endif()
+
 add_test(NAME RunAllTests COMMAND runTests)
