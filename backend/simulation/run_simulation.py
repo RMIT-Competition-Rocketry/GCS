@@ -111,15 +111,14 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
 def main():
     slogger.info("Emulator Starting Simulation...")
     try:
-        # @TODO PLEASE EDIT THIS DEVICE NAME ITS JUST COPIED STRAIGHT FROM EMULATOR
         try:
-            FAKE_DEVICE_NAME = sys.argv[sys.argv.index('--device-rocket') + 1]
+            FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
         except ValueError:
             slogger.error(
                 "Failed to find device names in arguments for simulator")
             raise
         FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
-        run_emulator(FLIGHT_DATA, FAKE_DEVICE_NAME)
+        run_emulator(FLIGHT_DATA, FAKE_DEVICE_PATH)
     except Exception as e:
         # @TODO Add more debugs
         slogger.error(e)

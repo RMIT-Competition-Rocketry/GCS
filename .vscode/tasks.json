@@ -185,7 +185,7 @@
             "args": [
                 "backend/simulation/run_simulation.py",
                 "--device-rocket",
-                "gcs_rocket"
+                "/tmp/gcs_rocket.sock"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",
