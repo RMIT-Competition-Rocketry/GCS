@@ -21,7 +21,6 @@ window.addEventListener("load", function () {
 	var selected = window.location.hash
 		? this.window.location.hash.substring(1)
 		: document.querySelector("nav a").href.split("#")[1];
-	console.log(selected);
 
 	// Determine which modules are "selected"
 	updateModules(selected);
@@ -54,3 +53,22 @@ window.addEventListener("load", function () {
 		});
 	});
 });
+
+
+
+// FUNCTIONS FOR UPDATING VALUES IN THE INTERFACE
+function updateInterfaceValue(item, value) {
+	// Updates the value for a display item
+	let elements = document.querySelectorAll(`.${item}`);
+	
+	// Use classes instead of IDs since IDs must be unique
+	// and some items occur on multiple pages
+	if (elements && elements.length > 0) {
+		elements.forEach((elem) => {
+			// Update value
+			elem.value = value;
+		});
+	}
+}
+
+// updateInterfaceValue("av-vel-h", 5.5)

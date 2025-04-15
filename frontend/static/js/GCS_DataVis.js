@@ -72,7 +72,7 @@ const y2 = d3.scaleLinear()
 
 
 // Load the CSV data
-d3.csv("Data/testData.csv", d3.autoType).then(function(data) {
+d3.csv("data/testData.csv", d3.autoType).then(function(data) {
 
   // Set initial domain for x and y scales
   x.domain([0]); //0 for animation purposes/one bar graph
