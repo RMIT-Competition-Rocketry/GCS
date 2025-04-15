@@ -177,7 +177,7 @@ target_link_libraries(middleware_lib PUBLIC
     absl::statusor
     absl::flat_hash_map
     cppzmq
-    $<IF:$<BOOL:${BUILD_SHARED_LIBS}>,libzmq,libzmq-static>
+    libzmq
     m
 )
 
