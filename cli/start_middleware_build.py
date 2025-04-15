@@ -39,6 +39,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
     if not isinstance(BUILD_FLAG, CMakeBuildModes):
         raise ValueError(
             f"BUILD_FLAG must be a CMakeBuildModes value, got: {BUILD_FLAG} as type {type(BUILD_FLAG)}")
+    SERVICE_NAME = "middleware"
     try:
         build_flag_string = BUILD_FLAG.value
 
@@ -48,7 +49,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
             "cmake", f"-DCMAKE_BUILD_TYPE={build_flag_string}", ".."]
 
         logger.debug(
-            f"Starting middleware build [cmake] with: {MIDDLEWARE_BUILD_COMMAND_CMAKE}")
+            f"Starting {SERVICE_NAME} build [cmake] with: {MIDDLEWARE_BUILD_COMMAND_CMAKE}")
 
         middleware_build_process_cmake = MiddlewareBuildSubprocess(
             MIDDLEWARE_BUILD_COMMAND_CMAKE,
@@ -71,7 +72,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
         ]
 
         logger.debug(
-            f"Starting middleware build [make] with: {MIDDLEWARE_BUILD_COMMAND_MAKE}")
+            f"Starting {SERVICE_NAME} build [make] with: {MIDDLEWARE_BUILD_COMMAND_MAKE}")
 
         middleware_build_process_make = MiddlewareBuildSubprocess(
             MIDDLEWARE_BUILD_COMMAND_MAKE,
@@ -91,7 +92,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
 
     except Exception as e:
         logger.error(
-            f"An error occurred while building middleware: {e}")
+            f"An error occurred while building {SERVICE_NAME}: {e}")
         # Propogate to a blocking handler in cli
         raise
         # return None, None
