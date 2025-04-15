@@ -62,6 +62,7 @@ def start_middleware(logger: logging.Logger,
     if not isinstance(INTERFACE_TYPE, InterfaceType):
         raise ValueError(
             f"INTERFACE_TYPE must be a InterfaceType value, got: {INTERFACE_TYPE} as type {type(INTERFACE_TYPE)}")
+    SERVICE_NAME = "middleware_server"
     try:
 
         BINARY_NAME = "middleware_release" if release else "middleware_debug"
@@ -69,7 +70,7 @@ def start_middleware(logger: logging.Logger,
 
         if MIDDLEWARE_BINARY_PATH is None:
             raise FileNotFoundError(
-                f"Could not find middleware binary ({BINARY_NAME}) in build/ or root folder. Please run $ bash scripts/release.sh")
+                f"Could not find {SERVICE_NAME} binary ({BINARY_NAME}) in build/ or root folder. Please run $ bash scripts/release.sh")
 
         MIDDLEWARE_COMMAND = [
             # Should always be relative to cwd. Just use the (.):
@@ -81,17 +82,17 @@ def start_middleware(logger: logging.Logger,
             SOCKET_PATH
         ]
 
-        logger.debug(f"Starting middleware with: {MIDDLEWARE_COMMAND}")
+        logger.debug(f"Starting {SERVICE_NAME} with: {MIDDLEWARE_COMMAND}")
 
         middleware_process = process.LoggedSubProcess(
             MIDDLEWARE_COMMAND,
-            name="middleware_server",
+            name=SERVICE_NAME,
             parse_output=True
         )
         middleware_process.start()
 
     except Exception as e:
         logger.error(
-            f"An error occurred while starting middleware: {e}")
+            f"An error occurred while starting {SERVICE_NAME}: {e}")
         # This is important, propogate this one
         raise

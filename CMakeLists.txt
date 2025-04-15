@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.31) # 3.31 for github runner
 project(middleware_server LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
+option(FORCE_FETCH_DEPENDENCIES "Force fetching dependencies even if they are found by find_package" OFF)
+
+# TODO check on this and remove it when the noted pr is merged
+if (FORCE_FETCH_DEPENDENCIES)
+    message(AUTHOR_WARNING "FORCE_FETCH_DEPENDENCIES is ON. libzmq is likely to fail until https://github.com/zeromq/libzmq/pull/4776 is resolved")
+endif()
 
 set(CMAKE_CXX_STANDARD 20) # For std::bit_cast
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,16 +24,19 @@ list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib/cmake")
 
 # Name is for internal targets, findname is for the find_package command
 function(fetch_git_dependency NAME FIND_NAME URL VERSION)
-    find_package(${FIND_NAME} CONFIG QUIET)
+    if(NOT FORCE_FETCH_DEPENDENCIES)
+        find_package(${FIND_NAME} CONFIG QUIET)
+    endif()
 
-    if(NOT ${FIND_NAME}_FOUND)
-        message(STATUS "Fetching ${NAME}")
+    if(FORCE_FETCH_DEPENDENCIES OR NOT ${FIND_NAME}_FOUND)
+        message(STATUS "Fetching ${NAME} from ${URL} (${VERSION})")
         FetchContent_Declare(
             ${NAME}
             GIT_REPOSITORY ${URL}
             GIT_TAG ${VERSION}
         )
         FetchContent_MakeAvailable(${NAME})
+        message(STATUS "${NAME} has been fetched and made available")
     else()
         message(STATUS "${FIND_NAME} found at: ${${FIND_NAME}_DIR}")
     endif()
@@ -177,7 +186,7 @@ target_link_libraries(middleware_lib PUBLIC
     absl::statusor
     absl::flat_hash_map
     cppzmq
-    $<IF:$<BOOL:${BUILD_SHARED_LIBS}>,libzmq,libzmq-static>
+    libzmq
     m
 )
 

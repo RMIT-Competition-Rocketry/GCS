@@ -639,7 +639,7 @@ class AV_TO_GCS_DATA_2(Packet):
                 for line in result.stdout.split("\n"):
                     slogger.info(line)
 
-        slogger.debug("AV_TO_GCS_DATA_2 packet received")
+        # slogger.debug("AV_TO_GCS_DATA_2 packet received")
 
 
 # TODO add proccessing for this task post White Cliffs
@@ -789,7 +789,7 @@ class GSE_TO_GCS_DATA_1(Packet):
                         f"{error_flag_name} changed to {error_flag_value}")
             # Update historical value
             self._last_gse_errors[error_flag_name] = error_flag_value
-        slogger.debug("GSE_TO_GCS_DATA_1 packet received")
+        # slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
 
 class GSE_TO_GCS_DATA_2(Packet):
@@ -898,7 +898,7 @@ class GSE_TO_GCS_DATA_2(Packet):
             # Update historical value
             self._last_gse_errors[error_flag_name] = error_flag_value
         # Release lock after. Consider making the process logic check for errors that contribute to invalid lock state .
-        slogger.debug("GSE_TO_GCS_DATA_2 packet received")
+        # slogger.debug("GSE_TO_GCS_DATA_2 packet received")
 
 
 def main(SOCKET_PATH, CREATE_LOGS):
@@ -923,7 +923,6 @@ def main(SOCKET_PATH, CREATE_LOGS):
     slogger.info("Listening for messages...")
 
     # Setup handler objects
-    # this is dogshit. please make not sad to work with
     AV_TO_GCS_DATA_1_handler = AV_TO_GCS_DATA_1()
     AV_TO_GCS_DATA_2_handler = AV_TO_GCS_DATA_2()
     AV_TO_GCS_DATA_3_handler = AV_TO_GCS_DATA_3()
@@ -933,63 +932,43 @@ def main(SOCKET_PATH, CREATE_LOGS):
     GSE_TO_GCS_DATA_2_handler = GSE_TO_GCS_DATA_2()
 
     try:
-        while True:
-            try:
-                message = sub_socket.recv(flags=zmq.NOBLOCK)
-                if len(message) > 1:
-                    # We've missed the ID publish message. Wait for next one
-                    continue
-                packet_id = int.from_bytes(message, byteorder='big')
-                message = sub_socket.recv()
-                if len(message) == 1:
-                    # Something failed and we've got a new ID instead of the last message.
-                    new_erronous_packet_id = int.from_bytes(
-                        message, byteorder='big')
-                    slogger.error(
-                        f"Event viewer subscription did find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
-                    continue
+        # Create a mapping of packet IDs to their handlers and message types
+        packet_handlers = {
+            1: (GCS_TO_AV_STATE_CMD_handler, GCS_TO_AV_STATE_CMD_pb.GCS_TO_AV_STATE_CMD),
+            2: (GCS_TO_GSE_STATE_CMD_handler, GCS_TO_GSE_STATE_CMD_pb.GCS_TO_GSE_STATE_CMD),
+            3: (AV_TO_GCS_DATA_1_handler, AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1),
+            4: (AV_TO_GCS_DATA_2_handler, AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2),
+            5: (AV_TO_GCS_DATA_3_handler, AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3),
+            6: (GSE_TO_GCS_DATA_1_handler, GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1),
+            7: (GSE_TO_GCS_DATA_2_handler, GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2),
+        }
 
-                match packet_id:
-                    case 1:
-                        GCS_TO_AV_STATE_CMD_packet = GCS_TO_AV_STATE_CMD_pb.GCS_TO_AV_STATE_CMD()
-                        GCS_TO_AV_STATE_CMD_packet.ParseFromString(message)
-                        GCS_TO_AV_STATE_CMD_handler.process(
-                            GCS_TO_AV_STATE_CMD_packet)
-                    case 2:
-                        GCS_TO_GSE_STATE_CMD_packet = GCS_TO_GSE_STATE_CMD_pb.GCS_TO_GSE_STATE_CMD()
-                        GCS_TO_GSE_STATE_CMD_packet.ParseFromString(message)
-                        GCS_TO_GSE_STATE_CMD_handler.process(
-                            GCS_TO_GSE_STATE_CMD_packet)
-                    case 3:
-                        AV_TO_GCS_DATA_1_packet = AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1()
-                        AV_TO_GCS_DATA_1_packet.ParseFromString(message)
-                        AV_TO_GCS_DATA_1_handler.process(
-                            AV_TO_GCS_DATA_1_packet)
-                    case 4:
-                        AV_TO_GCS_DATA_2_packet = AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2()
-                        AV_TO_GCS_DATA_2_packet.ParseFromString(message)
-                        AV_TO_GCS_DATA_2_handler.process(
-                            AV_TO_GCS_DATA_2_packet)
-                    case 5:
-                        AV_TO_GCS_DATA_3_packet = AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3()
-                        AV_TO_GCS_DATA_3_packet.ParseFromString(message)
-                        AV_TO_GCS_DATA_3_handler.process(
-                            AV_TO_GCS_DATA_3_packet)
-                    case 6:
-                        GSE_TO_GCS_DATA_1_packet = GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1()
-                        GSE_TO_GCS_DATA_1_packet.ParseFromString(message)
-                        GSE_TO_GCS_DATA_1_handler.process(
-                            GSE_TO_GCS_DATA_1_packet)
-                    case 7:
-                        GSE_TO_GCS_DATA_2_packet = GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2()
-                        GSE_TO_GCS_DATA_2_packet.ParseFromString(message)
-                        GSE_TO_GCS_DATA_2_handler.process(
-                            GSE_TO_GCS_DATA_2_packet)
-                    case _:
-                        slogger.error(f"Unexpected packet ID: {packet_id}")
-            except zmq.Again:
-                # No message received, sleep to prevent CPU spin
-                pass
+        while True:
+            # Blocking
+            message = sub_socket.recv()
+            if len(message) > 1:
+                # We've missed the ID publish message. Wait for next one
+                continue
+
+            packet_id = int.from_bytes(message, byteorder='big')
+            message = sub_socket.recv()
+
+            if len(message) == 1:
+                # Something failed and we've got a new ID instead of the last message.
+                new_erronous_packet_id = int.from_bytes(
+                    message, byteorder='big')
+                slogger.error(
+                    f"Event viewer subscription did not find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
+                continue
+
+            if packet_id in packet_handlers:
+                handler, message_type = packet_handlers[packet_id]
+                packet = message_type()
+                packet.ParseFromString(message)
+                handler.process(packet)
+            else:
+                slogger.error(f"Unexpected packet ID: {packet_id}")
+
     except KeyboardInterrupt:
         # Graceful exit if KeyboardInterrupt occurs outside the loop
         slogger.warning("Keyboard interrupt received. Stopping program.")

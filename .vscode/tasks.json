@@ -91,9 +91,28 @@
             "problemMatcher": []
         },
         {
-            "label": "start hardware pendant emulator manually with profiling",
+            "label": "start frontend API manually",
             "type": "shell",
-            "command": "pyinstrument",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/frontend_api.py",
+                "--socket-path",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start hardware pendant emulator manually",
+            "type": "shell",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
             "args": [
                 "backend/tools/pendant_emulator.py",
             ],
