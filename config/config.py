@@ -1,22 +1,20 @@
 from configparser import ConfigParser
 from typing import Dict
 import os
-import platform
 
 
 def get_default_config_path():
     """
     Get absolute path based on where you're running the script.
-    This is just stupid hard code because the hardware pendant is in a seperate environment.
+    This is just stupid hard code because the hardware pendant is in a seperate environment/process.
     Can remove this crap when you don't need pendant emulator anymore.
     """
-    system = platform.system()
-    if system == 'Darwin':
-        return "/Users/freddy/Desktop/Stuff/Code_Local/Rocket/config/config.ini"
-    elif system == 'Linux':
-        return "/home/rmit/GCS/config/config.ini"
-    else:
-        raise NotImplementedError(f"Unsupported OS: {system}")
+    # This is defined in the pendant emulator environment only
+    CONFIG_PATH = os.environ.get("CONFIG_PATH",None)
+    if CONFIG_PATH is None:
+        return os.path.join("config","config.ini")
+    return CONFIG_PATH
+    
 
 
 def load_config(file_path=get_default_config_path()) -> Dict[str, str]:

@@ -357,7 +357,7 @@ int main(int argc, char *argv[]) {
         if (seconds_waited >= PENDANT_FALLBACK_TIMEOUT_SECONDS) {
           slogger::warning(
               "Failed to get any new pendant data from pendant service for " +
-              std::to_string(PENDANT_FALLBACK_TIMEOUT_SECONDS) + " seconds");
+              std::to_string(seconds_waited) + " seconds");
           pendant_data = FALLBACK_PENDANT_DATA;
         }
       }
