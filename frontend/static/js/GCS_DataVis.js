@@ -119,9 +119,20 @@ window.addEventListener("load", function () {
 
         let index = 0;
 
+        max_Baro_Altitude_AGL = 0
         // Set an interval to cycle through the data every 0.02 seconds
         setInterval(function () {
             animateBar(index);
+
+            //Updates the html value
+            const current = data[index];
+            if (current) {
+                interface_updateValue("av-alt-ft", current.Baro_Altitude_AGL);
+                if (current.Baro_Altitude_AGL > max_Baro_Altitude_AGL) {
+                    max_Baro_Altitude_AGL = current.Baro_Altitude_AGL
+                }
+                interface_updateValue("av-maxalt-ft", max_Baro_Altitude_AGL);
+            }
 
             // Update the index to the next data point, and reset to 0 when it exceeds the data length
             index = (index + 1) % data.length;
