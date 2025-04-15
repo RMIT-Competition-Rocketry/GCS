@@ -48,7 +48,7 @@ Options:
   --help                   Show this message and exit.
 ```
 
-> [!NOTE] Suggested frontend dev command
+> [!NOTE] 
 > The current frontend dev command is as follows
 > ```
 > $ rocket dev --interface test --nopendant    
