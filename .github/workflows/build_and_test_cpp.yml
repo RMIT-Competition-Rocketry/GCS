@@ -140,30 +140,30 @@ jobs:
         mkdir -p "$HOME/abseil"
         git clone https://github.com/abseil/abseil-cpp.git "$HOME/abseil"
         cd "$HOME/abseil"
-        git checkout 20250127.0
+        git checkout 20250127.1
         mkdir build && cd build
         cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" ..
-        make "-j$(nproc)"
         make install
+        echo "CMAKE_PREFIX_PATH=$HOME/abseil-install" >> "$GITHUB_ENV"
+
 
 
     # --- Build Protoc and Protobuf ---
     - name: Build Protoc and Protobuf
       if: steps.cache_protobuf.outputs.cache-hit != 'true'
       run: |
-        PB_VERSION=29.3
-        curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PB_VERSION}/protobuf-${PB_VERSION}.zip"
+        PB_VERSION=30.1
         mkdir -p "$HOME/protobuf"
-        unzip -o "protobuf-${PB_VERSION}.zip" -d "$HOME/protobuf"
-        rm "protobuf-${PB_VERSION}.zip"
-        cd "$HOME/protobuf/protobuf-${PB_VERSION}"
+        git clone https://github.com/protocolbuffers/protobuf.git "$HOME/protobuf"
+        git submodule update --init --recursive 
+        cd "$HOME/protobuf"
+        git checkout "v${PB_VERSION}"
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX="$HOME/protobuf-install" \
               -DCMAKE_CXX_STANDARD=17 \
               -Dprotobuf_ABSL_PROVIDER=package \
-              -Dprotobuf_BUILD_TESTS=OFF .. \
+              -Dprotobuf_BUILD_TESTS=OFF \
               -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" ..
-        make -j"$(nproc)"
         make install
         echo "$HOME/protobuf-install/bin" >> "$GITHUB_PATH"
 
@@ -182,7 +182,6 @@ jobs:
           -DZMQ_BUILD_TESTS=OFF \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX="$HOME/zeromq-install"
-        make -j"$(nproc)"
         make install
         echo "ZeroMQ_DIR=$HOME/zeromq-install/lib/cmake/ZeroMQ" >> "$GITHUB_ENV"
 
@@ -199,8 +198,8 @@ jobs:
         mkdir build && cd build
         cmake .. -DZeroMQ_DIR="$HOME/zeromq-install/lib/cmake/ZeroMQ" \
           -DCMAKE_INSTALL_PREFIX="$HOME/cppzmq-install"
-        make -j"$(nproc)"
         make install
+        echo "cppzmq_DIR=$HOME/cppzmq-install" >> "$GITHUB_ENV"
 
     # --- Install tree for debugging (if ACT is true) ---
     - name: Install tree
@@ -223,7 +222,6 @@ jobs:
         cd "$HOME/googletest"
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX="$HOME/googletest-install" ..
-        make -j"$(nproc)"
         make install
 
     # --- Set reusable strings for build output directory ---
@@ -242,6 +240,7 @@ jobs:
               -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
               -DProtobuf_ROOT="$HOME/protobuf-install" \
               -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" \
+              -Dcppzmq_DIR="$HOME/cppzmq-install" \
               -DGTest_ROOT="$HOME/googletest-install" \
               -S "${{ github.workspace }}"
 
