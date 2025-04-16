@@ -87,7 +87,7 @@ window.addEventListener("load", function () {
             .attr("height", 0); // Initially, height = 0
 
         // Create the bar initially with zero height
-        DATA_CHART_ALT.bar = DATA_CHART_VEL.graph
+        DATA_CHART_VEL.bar = DATA_CHART_VEL.graph
             .append("rect")
             .attr("class", "bar2")
             .attr("x", DATA_CHART_VEL.x(0))
@@ -110,7 +110,7 @@ window.addEventListener("load", function () {
                         DATA_CHART_ALT.y(currentData.Baro_Altitude_AGL)
                 ); // Set the new height based on the value
 
-            DATA_CHART_ALT.bar
+            DATA_CHART_VEL.bar
                 .transition()
                 .duration(1) // Transition duration
                 .ease(d3.easeCubicInOut) // Smooth easing function
