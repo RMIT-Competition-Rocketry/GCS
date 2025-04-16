@@ -12,7 +12,7 @@ def get_default_config_path():
     # This is defined in the pendant emulator environment only
     CONFIG_PATH = os.environ.get("CONFIG_PATH", None)
     if CONFIG_PATH is None:
-        return os.path.join("config", "config.ini")
+        return os.path.join(os.getcwd(), "config", "config.ini")
     return CONFIG_PATH
 
 
