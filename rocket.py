@@ -113,7 +113,7 @@ def start_services(COMMAND: Command,
         start_docker_container(logger)
 
     # 0.1 Build C++ middleware
-    if not nobuild and COMMAND == Command.DEV:
+    if not nobuild:
         try:
             start_middleware_build(logger, CMakeBuildModes.DEBUG)
         except Exception as e:
