@@ -12,7 +12,7 @@ const DATA_CHART_ALT = {
     margin: { top: 20, right: 20, bottom: 40, left: 50 },
     width: 100,
     height: 200,
-    xlabel: "Altitude (feet)"
+    xlabel: "Altitude (feet)",
 };
 
 const DATA_CHART_VEL = {
@@ -20,17 +20,14 @@ const DATA_CHART_VEL = {
     margin: { top: 20, right: 20, bottom: 40, left: 50 },
     width: 800,
     height: 400,
-    xlabel: "Velocity (ft/s)"
+    xlabel: "Velocity (ft/s)",
 };
-
-function data_graphUpdateMargins(chart) {
-    chart.graphWidth = chart.width - chart.margin.left - chart.margin.right;
-    chart.graphHeight = chart.height - chart.margin.top - chart.margin.bottom;
-}
 
 function data_graphCreate(chart) {
     /// Create and initialise a graph
-    data_graphUpdateMargins(chart);
+    // Update graph margins
+    chart.graphWidth = chart.width - chart.margin.left - chart.margin.right;
+    chart.graphHeight = chart.height - chart.margin.top - chart.margin.bottom;
 
     // Create SVG
     chart.svg = d3
@@ -59,41 +56,39 @@ function data_graphCreate(chart) {
     chart.graph.append("g").attr("class", "y-axis").call(d3.axisLeft(chart.y));
 }
 
+function data_graphCreate_Bar(chart) {
+    data_graphCreate(chart);
+
+    // Create the bar initially with zero height
+    chart.bar = chart.graph
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", chart.x(0)) // The bar will be placed at the x position 0
+        .attr("y", chart.graphHeight) // Start at the bottom (height = 0)
+        .attr("width", chart.x.bandwidth()) // Width based on the x scale
+        .attr("height", 0); // Initially, height = 0
+}
 
 window.addEventListener("load", function () {
     // Initialise graphs on page
-    data_graphCreate(DATA_CHART_ALT);
-    data_graphCreate(DATA_CHART_VEL);
+    data_graphCreate_Bar(DATA_CHART_ALT);
+    data_graphCreate_Bar(DATA_CHART_VEL);
 
     // Load the CSV data
     d3.csv("data/testData.csv", d3.autoType).then(function (data) {
         // Set initial domain for x and y scales
+        console.log(d3.max(data, (d) => d.Baro_Altitude_AGL));
+
         DATA_CHART_ALT.x.domain([0]); //0 for animation purposes/one bar graph
         DATA_CHART_ALT.y.domain([0, d3.max(data, (d) => d.Baro_Altitude_AGL)]);
+        //DATA_CHART_ALT.graph.attr("class", "y-axis").call(d3.axisLeft(DATA_CHART_ALT.y));
+
 
         DATA_CHART_VEL.x.domain([0]);
         DATA_CHART_VEL.y.domain([
             d3.min(data, (d) => d.Velocity_Up),
             d3.max(data, (d) => d.Velocity_Up),
         ]);
-
-        // Create the bar initially with zero height
-        DATA_CHART_ALT.bar = DATA_CHART_ALT.graph
-            .append("rect")
-            .attr("class", "bar")
-            .attr("x", DATA_CHART_ALT.x(0)) // The bar will be placed at the x position 0
-            .attr("y", DATA_CHART_ALT.graphHeight) // Start at the bottom (height = 0)
-            .attr("width", DATA_CHART_ALT.x.bandwidth()) // Width based on the x scale
-            .attr("height", 0); // Initially, height = 0
-
-        // Create the bar initially with zero height
-        DATA_CHART_VEL.bar = DATA_CHART_VEL.graph
-            .append("rect")
-            .attr("class", "bar2")
-            .attr("x", DATA_CHART_VEL.x(0))
-            .attr("y", DATA_CHART_VEL.graphHeight)
-            .attr("width", DATA_CHART_VEL.x.bandwidth())
-            .attr("height", 0);
 
         // Function to animate the bar with different data values
         function animateBar(index) {
