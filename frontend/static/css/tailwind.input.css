@@ -22,9 +22,57 @@ and only modify it if you know what you're doing :)
         @apply flex justify-center items-center;
     }
 
-    .bg-navbar {
+    nav {
         background-image: url("/img/navbar.svg#svgView(preserveAspectRatio(none))");
         background-size: 100% 100%;
+
+        & a {
+            @apply flex flex-col items-center;
+        }
+
+        & span {
+            @apply whitespace-nowrap;
+        }
+
+        & .selected {
+            @apply text-hive font-bold;
+        }
+
+        & .selected .icon {
+            @apply bg-hive;
+        }
+
+        & a:hover span {
+            @apply underline;
+        }
+    }
+
+    .icon {
+        @apply w-16 h-16 bg-white mx-auto aspect-square;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+
+    .icon-rocket {
+        -webkit-mask-image: url('/img/icons/rocket.svg');
+        mask-image: url('/img/icons/rocket.svg');
+    }
+
+    .icon-gamepad {
+        -webkit-mask-image: url('/img/icons/gamepad.svg');
+        mask-image: url('/img/icons/gamepad.svg');
+    }
+
+    .icon-video-camera {
+        -webkit-mask-image: url('/img/icons/video-camera.svg');
+        mask-image: url('/img/icons/video-camera.svg');
+    }
+
+    .icon-sitemap {
+        -webkit-mask-image: url('/img/icons/sitemap.svg');
+        mask-image: url('/img/icons/sitemap.svg');
     }
 
     .indicator-numeric {
@@ -56,6 +104,6 @@ and only modify it if you know what you're doing :)
     }
 
     .continuity-check-button {
-        @apply bg-zinc-700 border-1 border-zinc-500 rounded-md px-4 py-2 hover:bg-zinc-600 cursor-pointer;
+        @apply bg-zinc-700 border-1 border-zinc-500 rounded-md px-4 py-2 bg-zinc-600 cursor-pointer;
     }
 }

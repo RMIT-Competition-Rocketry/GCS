@@ -19,6 +19,8 @@ function interface_updateModules(selected) {
 }
 
 window.addEventListener("load", function () {
+    const selectedClasses = ["selected"];
+
     // Get selected page
     var selected = window.location.hash
         ? this.window.location.hash.substring(1)
@@ -28,7 +30,7 @@ window.addEventListener("load", function () {
     interface_updateModules(selected);
 
     // Highlight selected tab link
-    //document.querySelector(`a[href='#${selectedTab}']`).classList.add(...selectedClasses);
+    document.querySelector(`a[href='#${selected}']`).classList.add(...selectedClasses);
 
     // Switch tabs when links are pressed
     document.querySelectorAll("nav a").forEach((elem) => {
@@ -40,12 +42,10 @@ window.addEventListener("load", function () {
             interface_updateModules(selected);
 
             // Highlight new selected tab link
-            /*
 			document.querySelectorAll("nav a").forEach((elem) => {
 				elem.classList.remove(...selectedClasses);
 			});
-			document.querySelector(`a[href='#${tab}']`).classList.add(...selectedClasses);
-			*/
+			document.querySelector(`a[href='#${selected}']`).classList.add(...selectedClasses);
 
             // Update URL
             history.replaceState(null, "", `#${selected}`);

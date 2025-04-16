@@ -7,7 +7,7 @@
 		<link rel="stylesheet" type="text/css" href="css/tailwind.css" media="screen" />
 	</head>
 
-	<body class="w-screen h-screen bg-black text-white border-hive border-2 flex flex-col font-mono">
+	<body class="w-screen h-screen bg-black text-white border-hive border-2 flex flex-col">
 		<!-- Header, consistent on all pages -->
 		<header class="w-full flex flex-row gap-2">
 			<div class="w-1/6 grow">{% include 'module_avionics_status.html' %}</div>
@@ -15,24 +15,24 @@
 			<nav
 				class="w-auto grow h-auto self-start bg-navbar flex px-[4%] py-2 gap-2 font-medium text-center">
 				<a href="#m-main" class="w-1/5">
-					<div class="aspect-square bg-white w-auto mx-4"></div>
-					Main Interface
+					<div class="icon icon-rocket"></div>
+					<span>Main Interface</span>
 				</a>
 				<a href="#m-ops" class="w-1/5">
-					<div class="aspect-square bg-white w-auto mx-4"></div>
-					Operations
+					<div class="icon icon-gamepad"></div>
+					<span>Operations</span>
 				</a>
 				<a href="#m-lf1" class="w-1/5">
-					<div class="aspect-square bg-white w-auto mx-4"></div>
-					Live Feeds 1
+					<div class="icon icon-video-camera"></div>
+					<span>Live Feeds 1</span>
 				</a>
 				<a href="#m-lf2" class="w-1/5">
-					<div class="aspect-square bg-white w-auto mx-4"></div>
-					Live Feeds 2
+					<div class="icon icon-video-camera"></div>
+					<span>Live Feeds 2</span>
 				</a>
 				<a href="#m-hmi" class="w-1/5">
-					<div class="aspect-square bg-white w-auto mx-4"></div>
-					HMI
+					<div class="icon icon-sitemap"></div>
+					<span>HMI</span>
 				</a>
 			</nav>
 

@@ -302,9 +302,65 @@
     display: flex;
   }
 
-  .bg-navbar {
+  nav {
     background-image: url("/img/navbar.svg#svgView(preserveAspectRatio(none))");
     background-size: 100% 100%;
+  }
+
+  nav a {
+    flex-direction: column;
+    align-items: center;
+    display: flex;
+  }
+
+  nav span {
+    white-space: nowrap;
+  }
+
+  nav .selected {
+    --tw-font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-hive);
+  }
+
+  nav .selected .icon {
+    background-color: var(--color-hive);
+  }
+
+  nav a:hover span {
+    text-decoration-line: underline;
+  }
+
+  .icon {
+    aspect-ratio: 1;
+    height: calc(var(--spacing) * 16);
+    width: calc(var(--spacing) * 16);
+    background-color: var(--color-white);
+    margin-inline: auto;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+  .icon-rocket {
+    -webkit-mask-image: url("/img/icons/rocket.svg");
+    mask-image: url("/img/icons/rocket.svg");
+  }
+
+  .icon-gamepad {
+    -webkit-mask-image: url("/img/icons/gamepad.svg");
+    mask-image: url("/img/icons/gamepad.svg");
+  }
+
+  .icon-video-camera {
+    -webkit-mask-image: url("/img/icons/video-camera.svg");
+    mask-image: url("/img/icons/video-camera.svg");
+  }
+
+  .icon-sitemap {
+    -webkit-mask-image: url("/img/icons/sitemap.svg");
+    mask-image: url("/img/icons/sitemap.svg");
   }
 
   .indicator-numeric {
@@ -363,15 +419,10 @@
     border-style: var(--tw-border-style);
     border-width: 1px;
     border-color: var(--color-zinc-500);
+    background-color: var(--color-zinc-600);
     background-color: var(--color-zinc-700);
     padding-inline: calc(var(--spacing) * 4);
     padding-block: calc(var(--spacing) * 2);
-  }
-
-  @media (hover: hover) {
-    .continuity-check-button:hover {
-      background-color: var(--color-zinc-600);
-    }
   }
 }
 
