@@ -16,10 +16,16 @@ def start_simulator(logger: logging.Logger, DEVICE: str):
         logger.debug(
             f"Starting {SERVICE_NAME} module with: {SIMULATOR_COMMAND}")
 
+        # Set PYTHONPATH to the project root to ensure imports work correctly.
+        env = os.environ.copy()
+        env["PYTHONPATH"] = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), ".."))
+
         emulator_process = process.LoggedSubProcess(
             SIMULATOR_COMMAND,
             name=SERVICE_NAME,
-            parse_output=True
+            parse_output=True,
+            env=env,
         )
         emulator_process.start()
 

@@ -104,15 +104,13 @@ def start_services(COMMAND: Command,
     print_splash()
 
     # 0. Start docker container if requested in dev environment
-    if not DOCKER and COMMAND == Command.DEV:
+    if not DOCKER:
         # This is called in Docker anyway.
         # Just to avoid recursive containerisation
-        logger.info(
-            "Starting development mode, skipping containerisation. This is OK if you are already in a Docker container")
-
+        logger.info("Starting development mode")
     else:
-        logger.info("Starting dev container in Docker")
-        start_docker_container()
+        logger.info("Starting development container in Docker")
+        start_docker_container(logger)
 
     # 0.1 Build C++ middleware
     if not nobuild and COMMAND == Command.DEV:
@@ -164,8 +162,10 @@ def start_services(COMMAND: Command,
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical
-    if INTERFACE_TYPE == InterfaceType.TEST:
+    if INTERFACE_TYPE == InterfaceType.TEST and COMMAND == Command.DEV:
         start_fake_serial_device_emulator(logger, devices[1])
+    elif COMMAND == Command.SIMULATION:
+        start_simulator(logger, devices[1])
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
@@ -190,7 +190,7 @@ def cli():
 
 @click.command()
 def run():
-    """Start software for production usage in native environment. Indented for usage on GCS only"""
+    """Start software for launch day usage"""
     # Set logging level to INFO for production here. Issue: #93
     # ...
     start_services(Command.RUN,
@@ -207,6 +207,19 @@ def run():
 def dev(docker, interface, nobuild, logpkt, nopendant):
     """Start software in development mode"""
     start_services(Command.DEV,
+                   DOCKER=docker,
+                   INTERFACE_ARG=interface,
+                   nobuild=nobuild,
+                   logpkt=logpkt,
+                   nopendant=nopendant
+                   )
+
+
+@click.command()
+@shared_dev_options
+def simulation(docker, interface, nobuild, logpkt, nopendant):
+    """Start software in simulation mode"""
+    start_services(Command.SIMULATION,
                    DOCKER=docker,
                    INTERFACE_ARG=interface,
                    nobuild=nobuild,
@@ -266,6 +279,7 @@ def main():
     # Use groups for nested positional arugments `rocket run dev/prod`
     cli.add_command(run)
     cli.add_command(dev)
+    cli.add_command(simulation)
 
     # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)   # Handle Ctrl+C

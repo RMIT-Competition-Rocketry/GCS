@@ -58,7 +58,7 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         MAIN_SECONDARY_TEST_COMPETE=False,
         MAIN_PRIMARY_TEST_RESULTS=False,
         MAIN_SECONDARY_TEST_RESULTS=False,
-        MOVE_TO_BROADCAST=False
+        MOVE_TO_BROADCAST=True
     )
     packet.write_payload()
 
@@ -89,7 +89,7 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
     # Filteration and sending packets
     for _, row in FLIGHT_DATA.iterrows():
         current_time = row["# Time (s)"]
-        slogger.info(str(current_time))
+        # slogger.info(str(current_time))
         # Simply check if there's been enough time or that there is an important packet
         if (current_time - last_time) >= TIMEOUT_INTERVAL or isImportantPacket(current_row=row, last_row=last_row):
             send_simulated_packet(
