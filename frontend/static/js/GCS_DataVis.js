@@ -135,8 +135,7 @@ window.addEventListener("load", function () {
                 if (alt_metres > max_alt_m) {
                     max_alt_m = alt_metres;
                 }
-                console.log(current.baroAltitude_AGL)
-                console.log(alt_metres)
+                interface_updateValue("av-vel-v",current.Velocity_Up)
                 interface_updateValue("av-maxalt-ft", max_Baro_Altitude_AGL);
                 interface_updateValue("av-maxalt-m", max_alt_m);
             }
