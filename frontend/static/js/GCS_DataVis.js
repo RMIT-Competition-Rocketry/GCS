@@ -12,6 +12,7 @@ const DATA_CHART_ALT = {
     margin: { top: 20, right: 20, bottom: 40, left: 50 },
     width: 100,
     height: 200,
+    xlabel: "Altitude (feet)"
 };
 
 const DATA_CHART_VEL = {
@@ -19,6 +20,7 @@ const DATA_CHART_VEL = {
     margin: { top: 20, right: 20, bottom: 40, left: 50 },
     width: 800,
     height: 400,
+    xlabel: "Velocity (ft/s)"
 };
 
 function data_graphUpdateMargins(chart) {
@@ -41,7 +43,7 @@ function data_graphCreate(chart) {
         .attr("text-anchor", "end")
         .attr("x", chart.width)
         .attr("y", chart.height - 6)
-        .text("Altitude (feet)");
+        .text(chart.xlabel);
 
     // Axes
     chart.x = d3.scaleBand().range([0, chart.graphWidth]).padding(0.1);
