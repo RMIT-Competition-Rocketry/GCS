@@ -26,84 +26,42 @@ function data_graphUpdateMargins(chart) {
     chart.graphHeight = chart.height - chart.margin.top - chart.margin.bottom;
 }
 
-function data_graphCreate_Altitude() {
-    /// Create the altitude graph
-    data_graphUpdateMargins(DATA_CHART_ALT);
+function data_graphCreate(chart) {
+    /// Create and initialise a graph
+    data_graphUpdateMargins(chart);
 
     // Create SVG
-    DATA_CHART_ALT.svg = d3
-        .select(DATA_CHART_ALT.selector)
-        .attr("width", DATA_CHART_ALT.width)
-        .attr("height", DATA_CHART_ALT.height);
-    DATA_CHART_ALT.svg
+    chart.svg = d3
+        .select(chart.selector)
+        .attr("width", chart.width)
+        .attr("height", chart.height);
+    chart.svg
         .append("text")
         .attr("class", "x label")
         .attr("text-anchor", "end")
-        .attr("x", DATA_CHART_ALT.width)
-        .attr("y", DATA_CHART_ALT.height - 6)
+        .attr("x", chart.width)
+        .attr("y", chart.height - 6)
         .text("Altitude (feet)");
 
     // Axes
-    DATA_CHART_ALT.x = d3
-        .scaleBand()
-        .range([0, DATA_CHART_ALT.graphWidth])
-        .padding(0.1);
-    DATA_CHART_ALT.y = d3.scaleLinear().range([DATA_CHART_ALT.graphHeight, 0]);
+    chart.x = d3.scaleBand().range([0, chart.graphWidth]).padding(0.1);
+    chart.y = d3.scaleLinear().range([chart.graphHeight, 0]);
 
     // Build graph
-    DATA_CHART_ALT.graph = DATA_CHART_ALT.svg
+    chart.graph = chart.svg
         .append("g")
         .attr(
             "transform",
-            `translate(${DATA_CHART_ALT.margin.left},${DATA_CHART_ALT.margin.top})`
+            `translate(${chart.margin.left},${chart.margin.top})`
         );
-    DATA_CHART_ALT.graph
-        .append("g")
-        .attr("class", "y-axis")
-        .call(d3.axisLeft(DATA_CHART_ALT.y));
+    chart.graph.append("g").attr("class", "y-axis").call(d3.axisLeft(chart.y));
 }
 
-function data_graphCreate_Velocity() {
-    /// Create the velocity graph
-    data_graphUpdateMargins(DATA_CHART_VEL);
-
-    // Create SVG
-    DATA_CHART_VEL.svg = d3
-        .select(DATA_CHART_VEL.selector)
-        .attr("width", DATA_CHART_VEL.width)
-        .attr("height", DATA_CHART_VEL.height);
-    DATA_CHART_VEL.svg
-        .append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "end")
-        .attr("x", DATA_CHART_VEL.width)
-        .attr("y", DATA_CHART_VEL.height - 6)
-        .text("velocity(ft/s)");
-
-    // Setup axes
-    DATA_CHART_VEL.x = d3
-        .scaleBand()
-        .range([0, DATA_CHART_VEL.graphWidth])
-        .padding(0.1);
-    DATA_CHART_VEL.y = d3.scaleLinear().range([DATA_CHART_VEL.graphHeight, 0]);
-
-    // Build graph
-    DATA_CHART_VEL.graph = DATA_CHART_VEL.svg
-        .append("g")
-        .attr(
-            "transform",
-            `translate(${DATA_CHART_VEL.margin.left},${DATA_CHART_VEL.margin.top})`
-        );
-    DATA_CHART_VEL.graph
-        .append("g")
-        .attr("class", "y-axis")
-        .call(d3.axisLeft(DATA_CHART_VEL.y));
-}
 
 window.addEventListener("load", function () {
     // Initialise graphs on page
-    data_graphCreate_Altitude();
-    data_graphCreate_Velocity();
+    data_graphCreate(DATA_CHART_ALT);
+    data_graphCreate(DATA_CHART_VEL);
 
     // Load the CSV data
     d3.csv("data/testData.csv", d3.autoType).then(function (data) {
