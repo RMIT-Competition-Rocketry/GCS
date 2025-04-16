@@ -57,9 +57,10 @@ function data_graphCreate(chart) {
 }
 
 function data_graphCreate_Bar(chart) {
+    // Create generic graph
     data_graphCreate(chart);
 
-    // Create the bar initially with zero height
+    // Make graph into a bar chart, initially with zero height
     chart.bar = chart.graph
         .append("rect")
         .attr("class", "bar")
@@ -77,12 +78,9 @@ window.addEventListener("load", function () {
     // Load the CSV data
     d3.csv("data/testData.csv", d3.autoType).then(function (data) {
         // Set initial domain for x and y scales
-        console.log(d3.max(data, (d) => d.Baro_Altitude_AGL));
-
         DATA_CHART_ALT.x.domain([0]); //0 for animation purposes/one bar graph
         DATA_CHART_ALT.y.domain([0, d3.max(data, (d) => d.Baro_Altitude_AGL)]);
-        //DATA_CHART_ALT.graph.attr("class", "y-axis").call(d3.axisLeft(DATA_CHART_ALT.y));
-
+        //DATA_CHART_ALT.graph.attr("class", "y-axis").call(d3.axisLeft(DATA_CHART_ALT.y)); // Update y axis
 
         DATA_CHART_VEL.x.domain([0]);
         DATA_CHART_VEL.y.domain([
@@ -94,6 +92,7 @@ window.addEventListener("load", function () {
         function animateBar(index) {
             const currentData = data[index];
             // Update the bar's y position and height
+            console.log(currentData.Baro_Altitude_AGL)
             DATA_CHART_ALT.bar
                 .transition()
                 .duration(1) // Transition duration
