@@ -92,7 +92,6 @@ window.addEventListener("load", function () {
         function animateBar(index) {
             const currentData = data[index];
             // Update the bar's y position and height
-            console.log(currentData.Baro_Altitude_AGL)
             DATA_CHART_ALT.bar
                 .transition()
                 .duration(1) // Transition duration
