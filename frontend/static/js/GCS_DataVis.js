@@ -117,6 +117,7 @@ window.addEventListener("load", function () {
 
         let index = 0;
         max_Baro_Altitude_AGL = 0;
+        max_alt_m = 0;
         // Set an interval to cycle through the data every 0.02 seconds
         setInterval(function () {
             // Animate graphs
@@ -129,7 +130,15 @@ window.addEventListener("load", function () {
                 if (current.Baro_Altitude_AGL > max_Baro_Altitude_AGL) {
                     max_Baro_Altitude_AGL = current.Baro_Altitude_AGL;
                 }
+                var alt_metres = current.Baro_Altitude_AGL *0.3048;
+                interface_updateValue("av-alt-m",alt_metres)
+                if (alt_metres > max_alt_m) {
+                    max_alt_m = alt_metres;
+                }
+                console.log(current.baroAltitude_AGL)
+                console.log(alt_metres)
                 interface_updateValue("av-maxalt-ft", max_Baro_Altitude_AGL);
+                interface_updateValue("av-maxalt-m", max_alt_m);
             }
 
             // Update the index to the next data point, and reset to 0 when it exceeds the data length
