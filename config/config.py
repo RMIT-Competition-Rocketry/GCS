@@ -10,11 +10,10 @@ def get_default_config_path():
     Can remove this crap when you don't need pendant emulator anymore.
     """
     # This is defined in the pendant emulator environment only
-    CONFIG_PATH = os.environ.get("CONFIG_PATH",None)
+    CONFIG_PATH = os.environ.get("CONFIG_PATH", None)
     if CONFIG_PATH is None:
-        return os.path.join("config","config.ini")
+        return os.path.join(os.getcwd(), "config", "config.ini")
     return CONFIG_PATH
-    
 
 
 def load_config(file_path=get_default_config_path()) -> Dict[str, str]:

@@ -84,5 +84,16 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
         },
+        {
+            "name": "Python Debugger: simulator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/simulation/run_simulation.py",
+            "console": "integratedTerminal",
+            "args": ["--device-rocket", "gcs_rocket"],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
     ],
 }

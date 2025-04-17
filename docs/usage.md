@@ -15,14 +15,22 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  dev  Start software in development mode
-  run  Start software for production usage in native environment.
+  dev         Start software in development mode
+  run         Start software for launch day usage
+  simulation  Start software in simulation mode
 ```
 
 > [!IMPORTANT]
 > Before running in release mode (`$ rocket run`), if you have not generated protobuf files previously you need to run `$ bash scripts/proto_manual.sh`.
 > 
 > Before [#29](https://github.com/RMIT-Competition-Rocketry/GCS/issues/29) is closed, you will need to keyboard intterupt when you want to close it.
+
+
+> [!NOTE] 
+> The current *suggested* frontend dev command is as follows
+> ```
+> $ rocket simulation --interface test --nopendant    
+> ```
 
 ## Using release binaries
 
@@ -48,12 +56,6 @@ Options:
   --help                   Show this message and exit.
 ```
 
-> [!NOTE] 
-> The current *suggested* frontend dev command is as follows
-> ```
-> $ rocket dev --interface test --nopendant    
-> ```
-
 By default for `dev` mode: 
 - The selected interface will be grabbed from `config/config.ini`
   - Unless `--interface` is passed which will override this
@@ -64,6 +66,21 @@ By default for `dev` mode:
 - The pendant emulator will start in a new window
   - This is not needed for **frontend** development
   - You can stop this by using the `--nopendant` flag
+
+### Simulation Mode
+
+Simulation mode can be run with 
+
+```terminal
+$ rocket simulation --interface test <options>
+```
+
+This operates the same as dev mode, but will use simulation based data 
+
+> [!WARNING]
+> Currently, this mode only **simulates** AVtoGCSData1 packets from ignition to landing.
+> 
+> Options are being developed to replay preivous flights. We still need to fly at least once for this
 
 ## Usage for operators
 

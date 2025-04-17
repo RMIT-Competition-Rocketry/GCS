@@ -66,7 +66,7 @@
         {
             "label": "start emulator manually",
             "type": "shell",
-            "command": "python3 -u -Xfrozen_modules=off -m backend.tools.device_emulator --device-rocket ${input:terminalPath}",
+            "command": "./venv/bin/python -u -Xfrozen_modules=off -m backend.tools.device_emulator --device-rocket ${input:terminalPath}",
             "icon": {
                 "id": "debug-console"
             },
@@ -75,7 +75,7 @@
         {
             "label": "start ZeroMQ debug subscriber",
             "type": "shell",
-            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "command": "./venv/bin/python",
             "args": [
                 "backend/tools/zeromq_debug_sub_raw.py",
                 "gcs_rocket"
@@ -110,9 +110,28 @@
             "problemMatcher": []
         },
         {
-            "label": "start hardware pendant emulator manually",
+            "label": "start frontend API manually",
             "type": "shell",
             "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/frontend_api.py",
+                "--socket-path",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start hardware pendant emulator manually",
+            "type": "shell",
+            "command": "./venv/bin/python",
             "args": [
                 "backend/tools/pendant_emulator.py",
             ],
@@ -157,6 +176,28 @@
             ],
             "icon": {
                 "id": "code"
+            }
+        },
+        {
+            "label": "Run Simulation",
+            "type": "shell",
+            "command": "./.venv/bin/python",
+            "args": [
+                "backend/simulation/run_simulation.py",
+                "--device-rocket",
+                "/tmp/gcs_rocket.sock"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}:$PYTHONPATH"
+                },
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
             }
         }
     ],
