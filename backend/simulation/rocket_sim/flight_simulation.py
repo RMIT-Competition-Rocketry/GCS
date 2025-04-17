@@ -30,7 +30,8 @@ def get_simulated_flight_data() -> pd.DataFrame:
     # Using the apogee time and max speed time to find the launch states
     apogee_time = test_flight.apogee_time
     max_speed_time = test_flight.max_speed_time
-    csv_export_name = "backend/simulation/sim_data/flightdataexport.csv"
+    # The Export file is here
+    csv_export_name = "backend/simulation/cache/flightdataexport.csv"
     # Export the test flight data
     # w means the angular velocity
     # a is acceleration
