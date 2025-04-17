@@ -62,7 +62,7 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         MAIN_SECONDARY_TEST_COMPETE=False,
         MAIN_PRIMARY_TEST_RESULTS=False,
         MAIN_SECONDARY_TEST_RESULTS=False,
-        MOVE_TO_BROADCAST=False
+        MOVE_TO_BROADCAST=True
     )
     packet.write_payload()
 
@@ -131,7 +131,6 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
         # Calculating priority -1 for important 0 otherwise for max heap
         isImportant = isImportantPacket(current_packet, last_packet)
         priority = -1 if isImportant else 0
-        # slogger.info(str(current_packet))
         
         # Add to current window's queue
         heapq.heappush(queue, (priority, next(queue_num), current_packet))
@@ -158,15 +157,14 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
 def main():
     slogger.info("Emulator Starting Simulation...")
     try:
-        # @TODO PLEASE EDIT THIS DEVICE NAME ITS JUST COPIED STRAIGHT FROM EMULATOR
         try:
-            FAKE_DEVICE_NAME = sys.argv[sys.argv.index('--device-rocket') + 1]
+            FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
         except ValueError:
             slogger.error(
                 "Failed to find device names in arguments for simulator")
             raise
         FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
-        run_emulator(FLIGHT_DATA, FAKE_DEVICE_NAME)
+        run_emulator(FLIGHT_DATA, FAKE_DEVICE_PATH)
     except Exception as e:
         # @TODO Add more debugs
         slogger.error(e)

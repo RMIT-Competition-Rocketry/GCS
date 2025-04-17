@@ -325,7 +325,8 @@ int main(int argc, char *argv[]) {
 
     const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
     auto last_pendant_receival = std::chrono::steady_clock::now();
-
+    auto last_timeout_warning_time = std::chrono::steady_clock::now();
+    const bool SUPPRESS_PENDANT_WARNING = std::getenv("CONFIG_PATH") == nullptr;
     // Main command loop
     while (running) {
       zmq::poll(items, 1, std::chrono::milliseconds(300));  // 300ms timeout
@@ -351,12 +352,20 @@ int main(int argc, char *argv[]) {
         int seconds_waited = std::chrono::duration_cast<std::chrono::seconds>(
                                  now - last_pendant_receival)
                                  .count();
+        int seconds_waited_timeout =
+            std::chrono::duration_cast<std::chrono::seconds>(
+                now - last_timeout_warning_time)
+                .count();
         constexpr int PENDANT_FALLBACK_TIMEOUT_SECONDS = 5;
-        if (seconds_waited >= PENDANT_FALLBACK_TIMEOUT_SECONDS) {
-          slogger::warning(
-              "Failed to get any new pendant data from pendant service for " +
-              std::to_string(seconds_waited) + " seconds");
+        if (seconds_waited >= PENDANT_FALLBACK_TIMEOUT_SECONDS &&
+            seconds_waited_timeout >= 3) {
+          if (!SUPPRESS_PENDANT_WARNING) {
+            slogger::warning(
+                "Failed to get any new pendant data from pendant service for " +
+                std::to_string(seconds_waited) + " seconds");
+          }
           pendant_data = FALLBACK_PENDANT_DATA;
+          last_timeout_warning_time = now;  // Wait another 3 seconds
         }
       }
 

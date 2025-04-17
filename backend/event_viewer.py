@@ -567,9 +567,9 @@ class AV_TO_GCS_DATA_1(Packet):
 
             # < left aligned, 11 chars reserved, .2f float with 2 decimal places
             slogger.info(
-                f"{alt_color}Altitude: {ALT_M:<8.3f}m {ALT_FT:<9.3f}ft{ansci.RESET}")
+                f"{alt_color}Altitude: {ALT_M:<8,.0f}m {ALT_FT:<9,.0f}ft{ansci.RESET}")
             slogger.info(
-                f"{vel_color}Velocity: {VELOCITY:<8.3f}m/s{ansci.RESET}")
+                f"{vel_color}Velocity: {VELOCITY:<8,.0f}m/s{ansci.RESET}")
             if (VELOCITY > self._max_velocity):
                 self._max_velocity = VELOCITY
                 slogger.info(
@@ -589,7 +589,7 @@ class AV_TO_GCS_DATA_1(Packet):
 
         if PROTO_DATA.broadcast_flag:
             # When rocket is in air, send data faster.
-            # In release, this should be the only timeout value noticed?
+            # On launch day, this should be the only timeout value noticed?
             self._information_timeout = 0.7
 
 
