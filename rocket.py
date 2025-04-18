@@ -54,22 +54,6 @@ def get_interface_type(interface: Optional[str]) -> InterfaceType:
 def shared_dev_options(func):
     """Decorator to add all dev command options to simulation."""
     # Reuse dev's options
-    func = click.option('--docker', is_flag=True, help="Run in Docker")(func)
-    INTERFACE_OPTIONS = click.Choice(
-        [e.value for e in InterfaceType], case_sensitive=False)
-    func = click.option('-i', '--interface', type=INTERFACE_OPTIONS,
-                        help="Hardware interface type. Overrides config parameter")(func)
-    func = click.option('--nobuild', is_flag=True,
-                        help="Do not build binaries. Search for pre-built binaries")(func)
-    func = click.option('--logpkt', is_flag=True,
-                        help="Log packet data to csv")(func)
-    func = click.option('--nopendant', is_flag=True,
-                        help="Do not run the pendant emulator")(func)
-    return func
-
-
-def global_options(func):
-    """Decorator for global options"""
     def _set_level(ctx, param, value):
         if value:
             CLEAN_VALUE = value.upper().strip()
@@ -81,6 +65,17 @@ def global_options(func):
     func = click.option('-l', '--log-level', is_flag=False, type=LOG_LEVEL_OPTIONS,
                         help="Overide the config log level",
                         callback=_set_level, expose_value=False)(func)
+    func = click.option('--docker', is_flag=True, help="Run in Docker")(func)
+    INTERFACE_OPTIONS = click.Choice(
+        [e.value for e in InterfaceType], case_sensitive=False)
+    func = click.option('-i', '--interface', type=INTERFACE_OPTIONS,
+                        help="Hardware interface type. Overrides config parameter")(func)
+    func = click.option('--nobuild', is_flag=True,
+                        help="Do not build binaries. Search for pre-built binaries")(func)
+    func = click.option('--logpkt', is_flag=True,
+                        help="Log packet data to csv")(func)
+    func = click.option('--nopendant', is_flag=True,
+                        help="Do not run the pendant emulator")(func)
     return func
 
 
@@ -210,11 +205,9 @@ def cli():
 
 
 @click.command()
-@global_options
 def run():
     """Start software for launch day usage"""
-    # Set logging level to INFO for production here. Issue: #93
-    # ...
+    rocket_logging.set_console_log_level("INFO")
     start_services(Command.RUN,
                    DOCKER=False,
                    INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
@@ -225,7 +218,6 @@ def run():
 
 
 @click.command()
-@global_options
 @shared_dev_options
 def dev(docker, interface, nobuild, logpkt, nopendant):
     """Start software in development mode"""
@@ -239,7 +231,6 @@ def dev(docker, interface, nobuild, logpkt, nopendant):
 
 
 @click.command()
-@global_options
 @shared_dev_options
 def simulation(docker, interface, nobuild, logpkt, nopendant):
     """Start software in simulation mode"""
@@ -311,6 +302,12 @@ def main():
     signal.signal(signal.SIGHUP, signal_handler)   # Handle terminal close
     # Handle quit signal (Ctrl+\)
     signal.signal(signal.SIGQUIT, signal_handler)
+
+    # Remove stale tmp files
+    GCS_CONFIG_HELPER_PATH = os.path.join(
+        os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt")
+    if os.path.exists(GCS_CONFIG_HELPER_PATH):
+        os.remove(GCS_CONFIG_HELPER_PATH)
 
     rocket_logging.initialise()
     logger = logging.getLogger('rocket')

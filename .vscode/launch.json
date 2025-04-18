@@ -62,20 +62,6 @@
                 "dev",
                 "--interface",
                 "test",
-                "--nopendant"
-            ]
-        },
-        {
-            "name": "Python Debugger: cli TEMP",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/rocket.py",
-            "console": "integratedTerminal",
-            "subProcess": true,
-            "args": [
-                "dev",
-                "-l",
-                "warning"
             ]
         },
         {

@@ -17,13 +17,13 @@ def get_middleware_path(BINARY_NAME_PREFIX: str) -> Optional[str]:
     """
 
     # Cmake folder
-    BUILD_PATH_ABS = os.path.join(os.getcwd(), "build", "build")
+    BUILD_PATH_ABS = os.path.join(os.getcwd(), "build")
     build_path_files = [os.path.join(BUILD_PATH_ABS, x)
                         for x in os.listdir(BUILD_PATH_ABS)]
     build_path_files = [x for x in build_path_files if os.path.isfile(x)]
     # User placed
     PROJECT_PATH_ABS = os.getcwd()
-    project_root_files = [os.path.join(BUILD_PATH_ABS, x)
+    project_root_files = [os.path.join(PROJECT_PATH_ABS, x)
                           for x in os.listdir(PROJECT_PATH_ABS)]
     project_root_files = [x for x in project_root_files if os.path.isfile(x)]
 

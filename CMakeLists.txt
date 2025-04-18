@@ -85,7 +85,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -pthread")
 
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
-set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
+set(BUILD_DIR ${CMAKE_BINARY_DIR})
 
 file(GLOB_RECURSE LIB_SRCS
     "${SRC_DIR}/*.cpp"
