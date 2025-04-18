@@ -264,19 +264,23 @@ std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST) {
   return data;
 }
 
-// ./file <interface type> <device path> <socket path>
+// ./file <interface type> <device path> <socket path> <optional mode>
+// Optional modes (string):
+// -  --GSE_ONLY
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   // Pick interface based on the first argument
   if (argc < 4) {
     slogger::error("Not enough arugments provided.");
-    slogger::error("Usage: ./file <socket type> <device path> <socket path>");
+    slogger::error(
+        "Usage: ./file <socket type> <device path> <socket path> <optional "
+        "mode>");
     // Throw error silenced by main
     throw std::runtime_error("Error: Not enough arugments provided");
     return EXIT_FAILURE;
-  } else if (argc > 4) {
-    slogger::warning("Too many arugments provided");
+  } else if (argc > 5) {
+    slogger::warning("Too many arugments provided: " + std::to_string(argc));
   }
 
   signal(SIGINT, signal_handler);
@@ -296,6 +300,11 @@ int main(int argc, char *argv[]) {
 
     // Create sequence handler singleton
     Sequence sequence;
+
+    if (argc == 5) {
+      std::string mode = std::string(argv[4]);
+      sequence.gse_only_mode(mode == "--GSE_ONLY");
+    }
 
     // ZeroMQ setup
     zmq::context_t context(1);
@@ -375,9 +384,16 @@ int main(int argc, char *argv[]) {
         continue;
       }
 
+      if (sequence.gse_only_mode()) {
+        interface->write_data(pendant_data);
+        sequence.start_await_gse();
+        sequence.sit_and_wait_for_gse();
+        continue;
+      }
+
       // After getting data, continue with main logic loop
       switch (sequence.get_state()) {
-        case Sequence::LOOP_PRE_LAUNCH:
+        case Sequence::State::LOOP_PRE_LAUNCH:
           // Send data to GSE
           interface->write_data(pendant_data);
           sequence.start_await_gse();
@@ -389,11 +405,11 @@ int main(int argc, char *argv[]) {
           // Wait for data from AV (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_av();
           break;
-        case Sequence::LOOP_IGNITION:
+        case Sequence::State::LOOP_IGNITION:
           // This stage is identical to pre-launch for GCS
           break;
         // It says once, but it's a conditional loop anyway.
-        case Sequence::ONCE_AV_DETERMINING_LAUNCH:
+        case Sequence::State::ONCE_AV_DETERMINING_LAUNCH:
           interface->write_data(pendant_data);
           sequence.start_await_gse();
           sequence.sit_and_wait_for_gse();
@@ -401,13 +417,13 @@ int main(int argc, char *argv[]) {
           sequence.start_await_av();
           sequence.sit_and_wait_for_av();
           break;
-        case Sequence::LOOP_AV_DATA_TRANSMISSION_BURN:
+        case Sequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
           // Just listen. This thread can just close bassically
           break;
-        case Sequence::LOOP_AV_DATA_TRANSMISSION_APOGEE:
+        case Sequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
           // Just listen. This thread can just close bassically
           break;
-        case Sequence::LOOP_AV_DATA_TRANSMISSION_LANDED:
+        case Sequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
           // Just listen. This thread can just close bassically
           break;
       }

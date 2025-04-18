@@ -100,6 +100,7 @@ class Command(enum.Enum):
     """Command enums to help start services"""
     RUN = enum.auto()
     DEV = enum.auto()
+    GSE = enum.auto()
     SIMULATION = enum.auto()
 
 
@@ -161,11 +162,14 @@ def start_services(COMMAND: Command,
     # 3. Run C++ middleware
     # Note that `devices` are paired pseudo-ttys
     try:
+        if COMMAND == Command.GSE:
+            optional_arg = "--GSE_ONLY"
         start_middleware(logger=logger,
                          release=COMMAND == Command.RUN,
                          INTERFACE_TYPE=INTERFACE_TYPE,
                          DEVICE_PATH=devices[0],
-                         SOCKET_PATH="gcs_rocket")
+                         SOCKET_PATH="gcs_rocket",
+                         opt_arg=optional_arg)
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
@@ -209,6 +213,19 @@ def run():
     """Start software for launch day usage"""
     rocket_logging.set_console_log_level("INFO")
     start_services(Command.RUN,
+                   DOCKER=False,
+                   INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
+                   nobuild=True,  # Do NOT auto build in production mode.
+                   logpkt=True,  # Log packets by default in production mode
+                   nopendant=False  # Pendant emulator is required in production mode
+                   )
+
+
+@click.command()
+def gse():
+    """Start software for launch day gse setup"""
+    rocket_logging.set_console_log_level("INFO")
+    start_services(Command.GSE,
                    DOCKER=False,
                    INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
                    nobuild=True,  # Do NOT auto build in production mode.
@@ -293,6 +310,7 @@ def main():
 
     # Use groups for nested positional arugments `rocket run dev/prod`
     cli.add_command(run)
+    cli.add_command(gse)
     cli.add_command(dev)
     cli.add_command(simulation)
 
