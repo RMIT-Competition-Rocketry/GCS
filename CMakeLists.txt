@@ -45,7 +45,7 @@ endfunction()
 # Abseil libraries for protobuf
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
-fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v29.3")
+fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v30.1")
 
 # Force static ZMQ build before fetching
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static ZeroMQ libraries" FORCE)
