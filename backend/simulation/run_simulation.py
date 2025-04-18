@@ -75,10 +75,10 @@ def isImportantPacket(current_row, last_row):
     # If its empty then the current row must be a new state ie important
     if last_row is None:
         return True
-    
+
     if current_row["flight_state"] != last_row["flight_state"]:
         return True
-    
+
     return False
 
     # @TODO More important calculations
@@ -92,20 +92,19 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
     # Init mockpacket
     MockPacket.initialize_settings(
         config.load_config()['emulation'], FAKE_DEVICE_NAME=DEVICE_NAME)
-    current_window_num = 0 # Start the timer at zero so we can track what timeframe window
+    current_window_num = 0  # Start the timer at zero so we can track what timeframe window
     queue = []
     last_packet = None
-    queue_num = count() # For umabiguous heap ordering
-    
+    queue_num = count()  # For umabiguous heap ordering
+
     #  Refer to the TIMEOUT_INTEVAL as the window size
     for _, current_packet in FLIGHT_DATA.iterrows():
         # Convert the data frame to milliseconds, '# Time (s)' is the exact key in the df
         current_time = current_packet['# Time (s)'] * MS_PER_SECOND
-        
+
         # Find out which window we are in to determine whether to create a new priority
         packet_window_num = int(current_time // TIMEOUT_INTERVAL)
-        
-        
+
         # If moved to a new window, then send previous window's packet
         while packet_window_num > current_window_num:
             # Process all the packets within this window frame
@@ -122,19 +121,19 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
                     packet[" Az (m/s²)"]
                 )
                 last_packet = packet
-                
+
             # Reset queue and move to next window
             current_window_num += 1
             queue = []
-        
+
         # Prcoessing packets within timeframe
         # Calculating priority -1 for important 0 otherwise for max heap
         isImportant = isImportantPacket(current_packet, last_packet)
         priority = -1 if isImportant else 0
-        
+
         # Add to current window's queue
         heapq.heappush(queue, (priority, next(queue_num), current_packet))
-        
+
     # For the final packets
     if queue:
         _, _, packet = heapq.heappop(queue)
@@ -150,25 +149,18 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
         )
         # Empty the queue after
         queue = []
-        
-        
 
 
 def main():
     slogger.info("Emulator Starting Simulation...")
     try:
-        try:
-            FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
-        except ValueError:
-            slogger.error(
-                "Failed to find device names in arguments for simulator")
-            raise
-        FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
-        run_emulator(FLIGHT_DATA, FAKE_DEVICE_PATH)
-    except Exception as e:
-        # @TODO Add more debugs
-        slogger.error(e)
-        sys.exit(1)
+        FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
+    except ValueError:
+        slogger.error(
+            "Failed to find device names in arguments for simulator")
+        raise
+    FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
+    run_emulator(FLIGHT_DATA, FAKE_DEVICE_PATH)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 from rocket_sim.flight import run_flight
 import pandas as pd
 import backend.process_logging as slogger
+import os
 
 
 def determine_flight_state(t: int, max_speed_time: int, apogee_time: int, landing_time: int) -> int:
@@ -31,10 +32,16 @@ def get_simulated_flight_data() -> pd.DataFrame:
     apogee_time = test_flight.apogee_time
     max_speed_time = test_flight.max_speed_time
     # The Export file is here
-    csv_export_name = "backend/simulation/cache/flightdataexport.csv"
+    csv_export_name = os.path.join(
+        "backend", "simulation", "cache", "flightdataexport.csv")
     # Export the test flight data
     # w means the angular velocity
     # a is acceleration
+
+    # Create missing files and directories
+    os.makedirs(os.path.dirname(csv_export_name), exist_ok=True)
+    open(csv_export_name, "w").close()
+
     test_flight.export_data(
         csv_export_name,
         "altitude", "speed",
