@@ -25,6 +25,8 @@ def get_simulated_flight_data() -> pd.DataFrame:
     """
         Use this function to run the api, you will get all the necessary data for the backend in a pandas dataframe
     """
+    # TODO Check that if you have a cache that matches your current config
+    # If you do, skip this and just load the CSV
     test_flight = run_flight()
     slogger.info("Flight has launched successfully!")
     # Extract key information from the test flight
