@@ -33,7 +33,7 @@ class Sequence {
 
   State current_state;
 
-  bool gse_only_mode(bool mode) { gse_only_mode_ = mode; }
+  void set_gse_only_mode(bool mode) { gse_only_mode_ = mode; }
   bool gse_only_mode() const { return gse_only_mode_; }
 
  private:

@@ -303,7 +303,7 @@ int main(int argc, char *argv[]) {
 
     if (argc == 5) {
       std::string mode = std::string(argv[4]);
-      sequence.gse_only_mode(mode == "--GSE_ONLY");
+      sequence.set_gse_only_mode(mode == "--GSE_ONLY");
     }
 
     // ZeroMQ setup
