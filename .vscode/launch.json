@@ -90,7 +90,10 @@
             "request": "launch",
             "program": "${workspaceFolder}/backend/simulation/run_simulation.py",
             "console": "integratedTerminal",
-            "args": ["--device-rocket", "gcs_rocket"],
+            "args": [
+                "--device-rocket",
+                "/tmp/gcs_rocket.sock"
+            ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
