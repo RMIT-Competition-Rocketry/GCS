@@ -66,6 +66,19 @@
             ]
         },
         {
+            "name": "Python Debugger: cli TEMP",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            "subProcess": true,
+            "args": [
+                "dev",
+                "-l",
+                "warning"
+            ]
+        },
+        {
             "name": "Python Debugger: emulator",
             "type": "debugpy",
             "request": "launch",

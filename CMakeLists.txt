@@ -5,7 +5,7 @@ option(BUILD_TESTS "Build the test suite" OFF)
 option(FORCE_FETCH_DEPENDENCIES "Force fetching dependencies even if they are found by find_package" OFF)
 
 # TODO check on this and remove it when the noted pr is merged
-if (FORCE_FETCH_DEPENDENCIES)
+if(FORCE_FETCH_DEPENDENCIES)
     message(AUTHOR_WARNING "FORCE_FETCH_DEPENDENCIES is ON. libzmq is likely to fail until https://github.com/zeromq/libzmq/pull/4776 is resolved")
 endif()
 

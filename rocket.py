@@ -24,6 +24,7 @@ from cli.start_simulation import start_simulator
 
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
+running_services: bool = False  # To help close the cli automatically
 
 
 def get_interface_type(interface: Optional[str]) -> InterfaceType:
@@ -54,15 +55,32 @@ def shared_dev_options(func):
     """Decorator to add all dev command options to simulation."""
     # Reuse dev's options
     func = click.option('--docker', is_flag=True, help="Run in Docker")(func)
-    func = click.option('--interface', type=click.Choice(
-        [e.value for e in InterfaceType], case_sensitive=False),
-        help="Hardware interface type. Overrides config parameter")(func)
+    INTERFACE_OPTIONS = click.Choice(
+        [e.value for e in InterfaceType], case_sensitive=False)
+    func = click.option('-i', '--interface', type=INTERFACE_OPTIONS,
+                        help="Hardware interface type. Overrides config parameter")(func)
     func = click.option('--nobuild', is_flag=True,
                         help="Do not build binaries. Search for pre-built binaries")(func)
     func = click.option('--logpkt', is_flag=True,
                         help="Log packet data to csv")(func)
     func = click.option('--nopendant', is_flag=True,
                         help="Do not run the pendant emulator")(func)
+    return func
+
+
+def global_options(func):
+    """Decorator for global options"""
+    def _set_level(ctx, param, value):
+        if value:
+            CLEAN_VALUE = value.upper().strip()
+            rocket_logging.set_console_log_level(CLEAN_VALUE)
+        return value
+    LOG_LEVEL_OPTIONS = click.Choice(list(rocket_logging.LOG_MAPPING.keys()),
+                                     case_sensitive=False
+                                     )
+    func = click.option('-l', '--log-level', is_flag=False, type=LOG_LEVEL_OPTIONS,
+                        help="Overide the config log level",
+                        callback=_set_level, expose_value=False)(func)
     return func
 
 
@@ -101,6 +119,9 @@ def start_services(COMMAND: Command,
     Args:
         COMMAND (Command): What mode are you running in?
     """
+    global running_services
+    running_services = True
+
     print_splash()
 
     # 0. Start docker container if requested in dev environment
@@ -189,6 +210,7 @@ def cli():
 
 
 @click.command()
+@global_options
 def run():
     """Start software for launch day usage"""
     # Set logging level to INFO for production here. Issue: #93
@@ -203,6 +225,7 @@ def run():
 
 
 @click.command()
+@global_options
 @shared_dev_options
 def dev(docker, interface, nobuild, logpkt, nopendant):
     """Start software in development mode"""
@@ -216,6 +239,7 @@ def dev(docker, interface, nobuild, logpkt, nopendant):
 
 
 @click.command()
+@global_options
 @shared_dev_options
 def simulation(docker, interface, nobuild, logpkt, nopendant):
     """Start software in simulation mode"""
@@ -297,9 +321,10 @@ def main():
         cli.main(args=sys.argv[1:], standalone_mode=False)
 
         # After CLI setup is done, start waiting (not busy waiting please)
-        while True:
-            # Keep program alive, but it doesn't need to do anything
-            time.sleep(1)
+        if running_services:
+            while True:
+                # Keep program alive, but it doesn't need to do anything
+                time.sleep(1)
     except KeyboardInterrupt:
         # I have a feeling this will never execute with the signal handlers?
         cleanup_reason = "Keyboard Interrupt (Ctrl+C)"
