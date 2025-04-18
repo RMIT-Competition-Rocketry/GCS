@@ -4,6 +4,7 @@ from itertools import count
 import sys
 import heapq
 import pandas as pd
+import time
 import backend.process_logging as slogger
 import config.config as config
 import configparser
@@ -65,6 +66,8 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         MOVE_TO_BROADCAST=True
     )
     packet.write_payload()
+    # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
+    time.sleep(0.01)  # Allow the buffer to update
 
 
 def isImportantPacket(current_row, last_row):
