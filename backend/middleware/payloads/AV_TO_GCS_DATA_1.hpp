@@ -3,10 +3,12 @@
 #include <cstdint>
 #include <iostream>
 
+#include "AVHelper.hpp"
+#include "AVStateFlags.pb.h"
 #include "AV_TO_GCS_DATA_1.pb.h"
 #include "ByteParser.hpp"
-
-#define SET_PROTO_FIELD(proto, field) proto.set_##field(field())
+#include "FlightState.pb.h"
+#include "ProtoHelper.hpp"
 
 class AV_TO_GCS_DATA_1 {
  public:
@@ -91,9 +93,7 @@ class AV_TO_GCS_DATA_1 {
 
   // Getters for the private members
   constexpr int8_t id_val() const { return ID; }
-  payload::AV_TO_GCS_DATA_1_FlightState flight_state() const {
-    return flight_state_;
-  }
+  common::FlightState flight_state() const { return flight_state_; }
   bool dual_board_connectivity_state_flag() const {
     return dual_board_connectivity_state_flag_;
   }
@@ -150,14 +150,18 @@ class AV_TO_GCS_DATA_1 {
   payload::AV_TO_GCS_DATA_1 toProtobuf() const {
     payload::AV_TO_GCS_DATA_1 proto_data;
 
-    // Use the macro for simple fields with same name
     proto_data.set_flightstate(flight_state_);
-    SET_PROTO_FIELD(proto_data, dual_board_connectivity_state_flag);
-    SET_PROTO_FIELD(proto_data, recovery_checks_complete_and_flight_ready);
-    SET_PROTO_FIELD(proto_data, gps_fix_flag);
-    SET_PROTO_FIELD(proto_data, payload_connection_flag);
-    SET_PROTO_FIELD(proto_data, camera_controller_connection_flag);
 
+    common::AVStateFlags *state_flags = new common::AVStateFlags();
+    SET_SUB_PROTO_FIELD(state_flags, dual_board_connectivity_state_flag);
+    SET_SUB_PROTO_FIELD(state_flags, recovery_checks_complete_and_flight_ready);
+    SET_SUB_PROTO_FIELD(state_flags, gps_fix_flag);
+    SET_SUB_PROTO_FIELD(state_flags, payload_connection_flag);
+    SET_SUB_PROTO_FIELD(state_flags, camera_controller_connection_flag);
+    SET_SUB_PROTO_FIELD(state_flags, dual_board_connectivity_state_flag);
+    proto_data.set_allocated_state_flags(state_flags);
+
+    // Use the macro for simple fields with same name
     SET_PROTO_FIELD(proto_data, accel_low_x);
     SET_PROTO_FIELD(proto_data, accel_low_y);
     SET_PROTO_FIELD(proto_data, accel_low_z);
@@ -189,47 +193,13 @@ class AV_TO_GCS_DATA_1 {
   }
 
  private:
-  static payload::AV_TO_GCS_DATA_1_FlightState calc_flight_state(
-      unsigned int val) {
-    // Also I know this can be returned implicitly, but this is self documenting
-    switch (val) {
-      case 0b000:
-        return payload::AV_TO_GCS_DATA_1_FlightState::
-            AV_TO_GCS_DATA_1_FlightState_PRE_FLIGHT_NO_FLIGHT_READY;
-      case 0b001:
-        return payload::AV_TO_GCS_DATA_1_FlightState::
-            AV_TO_GCS_DATA_1_FlightState_PRE_FLIGHT_FLIGHT_READY;
-      case 0b010:
-        return payload::AV_TO_GCS_DATA_1_FlightState::
-            AV_TO_GCS_DATA_1_FlightState_LAUNCH;
-      case 0b011:
-        return payload::AV_TO_GCS_DATA_1_FlightState::
-            AV_TO_GCS_DATA_1_FlightState_COAST;
-      case 0b100:
-        return payload::AV_TO_GCS_DATA_1_FlightState::
-            AV_TO_GCS_DATA_1_FlightState_APOGEE;
-      case 0b101:
-        return payload::AV_TO_GCS_DATA_1_FlightState::
-            AV_TO_GCS_DATA_1_FlightState_DECENT;
-      case 0b110:
-        return payload::AV_TO_GCS_DATA_1_FlightState::
-            AV_TO_GCS_DATA_1_FlightState_LANDED;
-      case 0b111:
-        return payload::AV_TO_GCS_DATA_1_FlightState::
-            AV_TO_GCS_DATA_1_FlightState_OH_NO;
-      default:
-        slogger::error("Unexpected flight state case bits in AV_TO_GCS_DATA_1");
-        throw std::runtime_error("Unexpected flight state bits");
-    }
-  }
-
   static float calc_low_accel_xy_(int16_t val) { return val / 2048.0f; }
   static float calc_low_accel_z_(int16_t val) { return val / -2048.0f; }
   static float calc_high_accel_xy_(int16_t val) { return val / -1024.0f; }
   static float calc_high_accel_z_(int16_t val) { return val / 1024.0f; }
   static float calc_gyro_(int16_t val) { return val * 0.00875f; }
 
-  payload::AV_TO_GCS_DATA_1_FlightState flight_state_;  // 3 bits all used
+  common::FlightState flight_state_;  // 3 bits all used
   bool dual_board_connectivity_state_flag_;
   bool recovery_checks_complete_and_flight_ready_;
   bool gps_fix_flag_;

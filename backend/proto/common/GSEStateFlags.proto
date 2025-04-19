@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package common;
+
+message GSEStateFlags {
+    // Note 9
+    // Note these are queries, not commands
+    optional bool manual_purge_activated = 1;
+    optional bool o2_fill_activated = 2;
+    optional bool selector_switch_neutral_position = 3;
+    optional bool n20_fill_activated = 4;
+    optional bool ignition_fired = 5;
+    optional bool ignition_selected = 6;
+    optional bool gas_fill_selected = 7;
+    optional bool system_activated = 8;
+}
+

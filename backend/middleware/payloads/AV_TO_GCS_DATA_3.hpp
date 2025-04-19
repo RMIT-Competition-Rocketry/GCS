@@ -3,10 +3,10 @@
 #include <cstdint>
 #include <iostream>
 
+#include "AVStateFlags.pb.h"
 #include "AV_TO_GCS_DATA_3.pb.h"
 #include "ByteParser.hpp"
-
-#define SET_PROTO_FIELD(proto, field) proto.set_##field(field())
+#include "ProtoHelper.hpp"
 
 class AV_TO_GCS_DATA_3 {
  public:
@@ -44,9 +44,7 @@ class AV_TO_GCS_DATA_3 {
 
   // Getters for the private members
   constexpr unsigned int id_val() const { return ID; }
-  payload::AV_TO_GCS_DATA_3_FlightState flight_state() const {
-    return flight_state_;
-  }
+  common::FlightState flight_state() const { return flight_state_; }
   bool dual_board_connectivity_state_flag() const {
     return dual_board_connectivity_state_flag_;
   }
@@ -66,52 +64,22 @@ class AV_TO_GCS_DATA_3 {
 
     // Use the macro for simple fields with same name
     proto_data.set_flightstate(flight_state_);
-    SET_PROTO_FIELD(proto_data, dual_board_connectivity_state_flag);
-    SET_PROTO_FIELD(proto_data, recovery_checks_complete_and_flight_ready);
-    SET_PROTO_FIELD(proto_data, gps_fix_flag);
-    SET_PROTO_FIELD(proto_data, payload_connection_flag);
-    SET_PROTO_FIELD(proto_data, camera_controller_connection_flag);
+    common::AVStateFlags *state_flags = new common::AVStateFlags();
+    SET_SUB_PROTO_FIELD(state_flags, dual_board_connectivity_state_flag);
+    SET_SUB_PROTO_FIELD(state_flags, recovery_checks_complete_and_flight_ready);
+    SET_SUB_PROTO_FIELD(state_flags, gps_fix_flag);
+    SET_SUB_PROTO_FIELD(state_flags, payload_connection_flag);
+    SET_SUB_PROTO_FIELD(state_flags, camera_controller_connection_flag);
+    SET_SUB_PROTO_FIELD(state_flags, dual_board_connectivity_state_flag);
+    proto_data.set_allocated_state_flags(state_flags);
 
     return proto_data;
   }
 
  private:
   // Static conversion functions here too
-  static payload::AV_TO_GCS_DATA_3_FlightState calc_flight_state(
-      unsigned int val) {
-    // Also I know this can be returned implicitly, but this is self documenting
-    switch (val) {
-      case 0b000:
-        return payload::AV_TO_GCS_DATA_3_FlightState::
-            AV_TO_GCS_DATA_3_FlightState_PRE_FLIGHT_NO_FLIGHT_READY;
-      case 0b001:
-        return payload::AV_TO_GCS_DATA_3_FlightState::
-            AV_TO_GCS_DATA_3_FlightState_PRE_FLIGHT_FLIGHT_READY;
-      case 0b010:
-        return payload::AV_TO_GCS_DATA_3_FlightState::
-            AV_TO_GCS_DATA_3_FlightState_LAUNCH;
-      case 0b011:
-        return payload::AV_TO_GCS_DATA_3_FlightState::
-            AV_TO_GCS_DATA_3_FlightState_COAST;
-      case 0b100:
-        return payload::AV_TO_GCS_DATA_3_FlightState::
-            AV_TO_GCS_DATA_3_FlightState_APOGEE;
-      case 0b101:
-        return payload::AV_TO_GCS_DATA_3_FlightState::
-            AV_TO_GCS_DATA_3_FlightState_DECENT;
-      case 0b110:
-        return payload::AV_TO_GCS_DATA_3_FlightState::
-            AV_TO_GCS_DATA_3_FlightState_LANDED;
-      case 0b111:
-        return payload::AV_TO_GCS_DATA_3_FlightState::
-            AV_TO_GCS_DATA_3_FlightState_OH_NO;
-      default:
-        slogger::error("Unexpected flight state case bits in AV_TO_GCS_DATA_3");
-        throw std::runtime_error("Unexpected flight state bits");
-    }
-  }
 
-  payload::AV_TO_GCS_DATA_3_FlightState flight_state_;  // 3 bits all used
+  common::FlightState flight_state_;  // 3 bits all used
   bool dual_board_connectivity_state_flag_;
   bool recovery_checks_complete_and_flight_ready_;
   bool gps_fix_flag_;
