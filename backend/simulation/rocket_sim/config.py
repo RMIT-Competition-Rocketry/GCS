@@ -1,10 +1,29 @@
 import configparser
+import json
+import hashlib
+
+
 """
     CONFIG FOR EVERY MODULE IN ROCKET_SIM A PAIN IN THE ASS
 """
 # Read the config
 config = configparser.ConfigParser()
 config.read("config/simulation.ini")
+
+
+def hash_ini_file() -> str:
+    """Returns the hash of the config file
+    This is used to check if the config file has changed
+
+    Returns:
+        str: output hash
+    """
+    CONFIG_DICT = {section: dict(config.items(section))
+                   for section in config.sections()}
+    # https://stackoverflow.com/a/22003440/14141223
+    JSON_STR = json.dumps(CONFIG_DICT, sort_keys=True)
+    return hashlib.sha1(JSON_STR.encode('utf-8'), usedforsecurity=False).hexdigest()
+
 
 def get_motor_config():
     """
@@ -23,7 +42,7 @@ def get_motor_config():
         ),
         # Need to convert to mm -> m
         "nozzle_radius": float(motor["nozzle_radius"]),
-        "throat_radius": float(motor["throat_radius"]), 
+        "throat_radius": float(motor["throat_radius"]),
         "grain_number": int(motor["grain_number"]),
         "grain_separation": float(motor["grain_separation"]),
         "grain_outer_radius": float(motor["grain_outer_radius"]),
@@ -35,7 +54,8 @@ def get_motor_config():
         "nozzle_position": float(motor["nozzle_position"]),
         "tank_position": float(motor["tank_position"]),
     }
-    
+
+
 def get_rocket_config():
     """
     Gets the rocket config
@@ -55,8 +75,8 @@ def get_rocket_config():
         "motor_position": float(rocket["motor_position"]),
 
     }
-    
-    
+
+
 def get_flight_config():
     """
         Returns the rail length, inclination and heading in a dictionary
@@ -67,7 +87,8 @@ def get_flight_config():
         "inclination": float(f["inclination"]),
         "heading": float(f["heading"]),
     }
-    
+
+
 def get_env_config():
     """
         Returns the latitude, longitude, elevation and max height of the flight environment
@@ -78,10 +99,11 @@ def get_env_config():
         "longitude": float(e["longitude"]),
         "elevation": float(e["elevation"]),
         "atmospheric_type": (e["atmospheric_type"]),
-        #"atmospheric_model_file": (e["atmospheric_model_file"]),
+        # "atmospheric_model_file": (e["atmospheric_model_file"]),
         "max_height": float(e["max_height"])
     }
-    
+
+
 def get_fuel_tank_config():
     # Fuel
     oxidizer_liq_name = config['Fuel']['oxidizer_liquid_name']
@@ -90,7 +112,7 @@ def get_fuel_tank_config():
     oxidizer_gas_density = float(config['Fuel']['oxidizer_gas_density'])
 
     # Tank Geometry
-    #tank_type = config['tank_geometry']['tank_type']
+    # tank_type = config['tank_geometry']['tank_type']
     radius = eval(config['tank_geometry']['radius'])
     height = float(config['tank_geometry']['height'])
 
@@ -98,10 +120,14 @@ def get_fuel_tank_config():
     flux_time = float(config['oxidizer_tank']['flux_time'])
     initial_liquid_mass = float(config['oxidizer_tank']['initial_liquid_mass'])
     initial_gas_mass = float(config['oxidizer_tank']['initial_gas_mass'])
-    liquid_mass_flow_rate_in = float(config['oxidizer_tank']['liquid_mass_flow_rate_in'])
-    liquid_mass_flow_rate_out = eval(config['oxidizer_tank']['liquid_mass_flow_rate_out'])
-    gas_mass_flow_rate_in = float(config['oxidizer_tank']['gas_mass_flow_rate_in'])
-    gas_mass_flow_rate_out = float(config['oxidizer_tank']['gas_mass_flow_rate_out'])
+    liquid_mass_flow_rate_in = float(
+        config['oxidizer_tank']['liquid_mass_flow_rate_in'])
+    liquid_mass_flow_rate_out = eval(
+        config['oxidizer_tank']['liquid_mass_flow_rate_out'])
+    gas_mass_flow_rate_in = float(
+        config['oxidizer_tank']['gas_mass_flow_rate_in'])
+    gas_mass_flow_rate_out = float(
+        config['oxidizer_tank']['gas_mass_flow_rate_out'])
 
     # Return the values (could use these to create objects)
     return {
@@ -110,7 +136,7 @@ def get_fuel_tank_config():
             'gas': {'name': oxidizer_gas_name, 'density': oxidizer_gas_density}
         },
         'tank': {
-            #'type': tank_type,
+            # 'type': tank_type,
             'geometry': {'radius': radius, 'height': height},
             'oxidizer_tank': {
                 'flux_time': flux_time,
