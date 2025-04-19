@@ -100,8 +100,11 @@ target_compile_options(middleware_lib PRIVATE
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     # fuck absl
     # https://github.com/abseil/abseil-cpp/issues/1747#issuecomment-2308667626
-    message(DEBUG "Applying clang specific absl compatability param")
+    message(STATUS "Applying clang specific absl compatability param")
     target_compile_options(middleware_lib PRIVATE -fclang-abi-compat=17)
+    target_sources(middleware_lib PRIVATE
+        ${CMAKE_SOURCE_DIR}/backend/middleware/_absl_log_fix.cpp
+    )
 endif()
 
 # Protobuf generation for cpp and python files
