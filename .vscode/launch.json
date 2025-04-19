@@ -62,7 +62,6 @@
                 "dev",
                 "--interface",
                 "test",
-                "--nopendant"
             ]
         },
         {

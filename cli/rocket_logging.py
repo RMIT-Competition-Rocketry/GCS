@@ -12,6 +12,15 @@ APP_START_TIME: Optional[float] = None
 SUCCESS_LEVEL_NUM = 25
 logging.addLevelName(SUCCESS_LEVEL_NUM, "SUCCESS")
 
+LOG_MAPPING = {
+    'DEBUG': logging.DEBUG,
+    'INFO': logging.INFO,
+    'SUCCESS': SUCCESS_LEVEL_NUM,
+    'WARNING': logging.WARNING,
+    'ERROR': logging.ERROR,
+    'CRITICAL': logging.CRITICAL
+}
+
 
 class CustomFormatter(logging.Formatter):
     """Logging formatter from https://stackoverflow.com/a/56944256/14141223"""
@@ -98,15 +107,6 @@ def initialise():
     log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
 
-    LOG_MAPPING = {
-        'DEBUG': logging.DEBUG,
-        'INFO': logging.INFO,
-        'SUCCESS': SUCCESS_LEVEL_NUM,
-        'WARNING': logging.WARNING,
-        'ERROR': logging.ERROR,
-        'CRITICAL': logging.CRITICAL
-    }
-
     LOG_LEVEL_OBJECT = LOG_MAPPING.get(LOG_LEVEL, logging.INFO)
     # Parent level is debug, capture everything
     logger.setLevel(logging.DEBUG)
@@ -132,3 +132,29 @@ def adapter_success(self, message, *args, **kwargs):
 
 
 logging.LoggerAdapter.success = adapter_success
+
+
+def set_console_log_level(level_name: str):
+    """
+    Set the log level of the console handler at runtime.
+
+    Args:
+        level_name: Name of the log level (e.g., 'DEBUG', 'INFO', 'WARNING')
+    """
+    logger = logging.getLogger("rocket")
+
+    # Convert level name to level number
+    if level_name in LOG_MAPPING:
+        level = LOG_MAPPING[level_name]
+    else:
+        logger.error(f"Invalid log level: {level_name}. Using INFO.")
+        level = logging.INFO
+
+    for handler in logger.handlers:
+        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+            handler.setLevel(level)
+            logger.debug(
+                f"Console log level set to {level_name} post intialisation")
+            return
+
+    logger.warning("No console handler found")

@@ -24,6 +24,7 @@ from cli.start_simulation import start_simulator
 
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
+running_services: bool = False  # To help close the cli automatically
 
 
 def get_interface_type(interface: Optional[str]) -> InterfaceType:
@@ -53,10 +54,22 @@ def get_interface_type(interface: Optional[str]) -> InterfaceType:
 def shared_dev_options(func):
     """Decorator to add all dev command options to simulation."""
     # Reuse dev's options
+    def _set_level(ctx, param, value):
+        if value:
+            CLEAN_VALUE = value.upper().strip()
+            rocket_logging.set_console_log_level(CLEAN_VALUE)
+        return value
+    LOG_LEVEL_OPTIONS = click.Choice(list(rocket_logging.LOG_MAPPING.keys()),
+                                     case_sensitive=False
+                                     )
+    func = click.option('-l', '--log-level', is_flag=False, type=LOG_LEVEL_OPTIONS,
+                        help="Overide the config log level",
+                        callback=_set_level, expose_value=False)(func)
     func = click.option('--docker', is_flag=True, help="Run in Docker")(func)
-    func = click.option('--interface', type=click.Choice(
-        [e.value for e in InterfaceType], case_sensitive=False),
-        help="Hardware interface type. Overrides config parameter")(func)
+    INTERFACE_OPTIONS = click.Choice(
+        [e.value for e in InterfaceType], case_sensitive=False)
+    func = click.option('-i', '--interface', type=INTERFACE_OPTIONS,
+                        help="Hardware interface type. Overrides config parameter")(func)
     func = click.option('--nobuild', is_flag=True,
                         help="Do not build binaries. Search for pre-built binaries")(func)
     func = click.option('--logpkt', is_flag=True,
@@ -87,6 +100,7 @@ class Command(enum.Enum):
     """Command enums to help start services"""
     RUN = enum.auto()
     DEV = enum.auto()
+    GSE = enum.auto()
     SIMULATION = enum.auto()
 
 
@@ -101,6 +115,9 @@ def start_services(COMMAND: Command,
     Args:
         COMMAND (Command): What mode are you running in?
     """
+    global running_services
+    running_services = True
+
     print_splash()
 
     # 0. Start docker container if requested in dev environment
@@ -145,11 +162,14 @@ def start_services(COMMAND: Command,
     # 3. Run C++ middleware
     # Note that `devices` are paired pseudo-ttys
     try:
+        if COMMAND == Command.GSE:
+            optional_arg = "--GSE_ONLY"
         start_middleware(logger=logger,
                          release=COMMAND == Command.RUN,
                          INTERFACE_TYPE=INTERFACE_TYPE,
                          DEVICE_PATH=devices[0],
-                         SOCKET_PATH="gcs_rocket")
+                         SOCKET_PATH="gcs_rocket",
+                         opt_arg=optional_arg)
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
@@ -191,9 +211,21 @@ def cli():
 @click.command()
 def run():
     """Start software for launch day usage"""
-    # Set logging level to INFO for production here. Issue: #93
-    # ...
+    rocket_logging.set_console_log_level("INFO")
     start_services(Command.RUN,
+                   DOCKER=False,
+                   INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
+                   nobuild=True,  # Do NOT auto build in production mode.
+                   logpkt=True,  # Log packets by default in production mode
+                   nopendant=False  # Pendant emulator is required in production mode
+                   )
+
+
+@click.command()
+def gse():
+    """Start software for launch day gse setup"""
+    rocket_logging.set_console_log_level("INFO")
+    start_services(Command.GSE,
                    DOCKER=False,
                    INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
                    nobuild=True,  # Do NOT auto build in production mode.
@@ -278,6 +310,7 @@ def main():
 
     # Use groups for nested positional arugments `rocket run dev/prod`
     cli.add_command(run)
+    cli.add_command(gse)
     cli.add_command(dev)
     cli.add_command(simulation)
 
@@ -288,6 +321,12 @@ def main():
     # Handle quit signal (Ctrl+\)
     signal.signal(signal.SIGQUIT, signal_handler)
 
+    # Remove stale tmp files
+    GCS_CONFIG_HELPER_PATH = os.path.join(
+        os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt")
+    if os.path.exists(GCS_CONFIG_HELPER_PATH):
+        os.remove(GCS_CONFIG_HELPER_PATH)
+
     rocket_logging.initialise()
     logger = logging.getLogger('rocket')
 
@@ -297,9 +336,10 @@ def main():
         cli.main(args=sys.argv[1:], standalone_mode=False)
 
         # After CLI setup is done, start waiting (not busy waiting please)
-        while True:
-            # Keep program alive, but it doesn't need to do anything
-            time.sleep(1)
+        if running_services:
+            while True:
+                # Keep program alive, but it doesn't need to do anything
+                time.sleep(1)
     except KeyboardInterrupt:
         # I have a feeling this will never execute with the signal handlers?
         cleanup_reason = "Keyboard Interrupt (Ctrl+C)"

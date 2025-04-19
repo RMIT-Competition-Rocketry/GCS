@@ -9,11 +9,13 @@ def get_default_config_path():
     This is just stupid hard code because the hardware pendant is in a seperate environment/process.
     Can remove this crap when you don't need pendant emulator anymore.
     """
-    # This is defined in the pendant emulator environment only
-    CONFIG_PATH = os.environ.get("CONFIG_PATH", None)
-    if CONFIG_PATH is None:
-        return os.path.join(os.getcwd(), "config", "config.ini")
-    return CONFIG_PATH
+    CONFIG_LOCATOR_FILE = os.path.join(
+        os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt")
+    if os.path.exists(CONFIG_LOCATOR_FILE):
+        with open(CONFIG_LOCATOR_FILE, "r") as f:
+            return f.read().strip()
+
+    return os.path.join(os.getcwd(), "config", "config.ini")
 
 
 def load_config(file_path=get_default_config_path()) -> Dict[str, str]:

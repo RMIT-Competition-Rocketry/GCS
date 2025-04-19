@@ -5,7 +5,7 @@ option(BUILD_TESTS "Build the test suite" OFF)
 option(FORCE_FETCH_DEPENDENCIES "Force fetching dependencies even if they are found by find_package" OFF)
 
 # TODO check on this and remove it when the noted pr is merged
-if (FORCE_FETCH_DEPENDENCIES)
+if(FORCE_FETCH_DEPENDENCIES)
     message(AUTHOR_WARNING "FORCE_FETCH_DEPENDENCIES is ON. libzmq is likely to fail until https://github.com/zeromq/libzmq/pull/4776 is resolved")
 endif()
 
@@ -45,7 +45,7 @@ endfunction()
 # Abseil libraries for protobuf
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
-fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v29.3")
+fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v30.1")
 
 # Force static ZMQ build before fetching
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static ZeroMQ libraries" FORCE)
@@ -85,7 +85,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -pthread")
 
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
-set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
+set(BUILD_DIR ${CMAKE_BINARY_DIR})
 
 file(GLOB_RECURSE LIB_SRCS
     "${SRC_DIR}/*.cpp"

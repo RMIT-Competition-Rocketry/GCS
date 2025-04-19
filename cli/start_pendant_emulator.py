@@ -115,7 +115,9 @@ def start_pendant_emulator(logger: logging.Logger) -> None:
 
         # Add project root for imports to work
         env["PYTHONPATH"] = os.path.abspath(os.getcwd())
-        env["CONFIG_PATH"] = os.path.join(os.path.abspath(os.getcwd()), "config","config.ini")
+        with open(os.path.join(os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt"), "w") as f:
+            f.write(os.path.join(os.path.abspath(
+                os.getcwd()), "config", "config.ini"))
         logger.debug(
             f"Starting {SERVICE_NAME} with: {PENDANT_EMULATOR_COMMAND}")
         pendant_process = PendantEmulatorSubprocess(
@@ -124,6 +126,7 @@ def start_pendant_emulator(logger: logging.Logger) -> None:
             env=env)
 
         pendant_process.start()
+        time.sleep(1)
 
     except Exception as e:
         logger.error(
