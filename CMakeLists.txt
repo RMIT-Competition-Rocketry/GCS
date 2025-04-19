@@ -4,23 +4,14 @@ project(middleware_server LANGUAGES CXX)
 option(BUILD_TESTS "Build the test suite" OFF)
 option(FORCE_FETCH_DEPENDENCIES "Force fetching dependencies even if they are found by find_package" OFF)
 
-# TODO check on this and remove it when the noted pr is merged
-if(FORCE_FETCH_DEPENDENCIES)
-    message(AUTHOR_WARNING "FORCE_FETCH_DEPENDENCIES is ON. libzmq is likely to fail until https://github.com/zeromq/libzmq/pull/4776 is resolved")
-endif()
-
 set(CMAKE_CXX_STANDARD 20) # For std::bit_cast
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
-# For mac installs
-# list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib/cmake")
-
 # If you need to force an offline state, use set(FETCHCONTENT_FULLY_DISCONNECTED, ON)
 # Use this for GCS device to avoid downloading dependencies
-list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib/cmake")
 
 # Name is for internal targets, findname is for the find_package command
 function(fetch_git_dependency NAME FIND_NAME URL VERSION)
@@ -29,6 +20,11 @@ function(fetch_git_dependency NAME FIND_NAME URL VERSION)
     endif()
 
     if(FORCE_FETCH_DEPENDENCIES OR NOT ${FIND_NAME}_FOUND)
+        if(NAME STREQUAL "libzmq" AND CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
+            # TODO check on this and remove it when the noted pr is merged
+            message(WARNING "libzqm auto install is likely to fail until resolution of https://github.com/zeromq/libzmq/pull/4776")
+        endif()
+
         message(STATUS "Fetching ${NAME} from ${URL} (${VERSION})")
         FetchContent_Declare(
             ${NAME}
@@ -81,9 +77,6 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -pthread")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -pthread")
-
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
 
 file(GLOB_RECURSE LIB_SRCS
@@ -98,6 +91,18 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_library(middleware_lib ${LIB_SRCS})
 add_executable(middleware_server ${MAIN_SRC})
+
+target_compile_options(middleware_lib PRIVATE
+    $<$<CONFIG:Debug>:-O0 -g -Wall -Wextra -pthread>
+    $<$<CONFIG:Release>:-O3 -DNDEBUG -Wall -Wextra -pthread>
+)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # fuck absl
+    # https://github.com/abseil/abseil-cpp/issues/1747#issuecomment-2308667626
+    message(DEBUG "Applying clang specific absl compatability param")
+    target_compile_options(middleware_lib PRIVATE -fclang-abi-compat=17)
+endif()
 
 # Protobuf generation for cpp and python files
 # Docs: https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
