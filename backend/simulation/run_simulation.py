@@ -18,7 +18,6 @@ sim_cfg = cfg["Simulation"]
 TIMEOUT_INTERVAL = float(sim_cfg["timeout_interval"])
 MS_PER_SECOND = 1000
 
-
 def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float):
     """
     Sends a simulated telemetry packet with the provided sensor values.
@@ -66,9 +65,7 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         MOVE_TO_BROADCAST=True
     )
     packet.write_payload()
-    # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
-    time.sleep(0.01)  # Allow the buffer to update
-
+    
 
 def isImportantPacket(current_row, last_row):
     """
@@ -99,7 +96,7 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
     queue = []
     last_packet = None
     queue_num = count()  # For umabiguous heap ordering
-
+    
     #  Refer to the TIMEOUT_INTEVAL as the window size
     for _, current_packet in FLIGHT_DATA.iterrows():
         # Convert the data frame to milliseconds, '# Time (s)' is the exact key in the df
@@ -109,10 +106,11 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
         packet_window_num = int(current_time // TIMEOUT_INTERVAL)
 
         # If moved to a new window, then send previous window's packet
-        while packet_window_num > current_window_num:
+        if packet_window_num > current_window_num:
             # Process all the packets within this window frame
             if queue:
                 _, _, packet = heapq.heappop(queue)
+                
                 send_simulated_packet(
                     packet[" Altitude AGL (m)"],
                     packet[" Speed - Velocity Magnitude (m/s)"],
@@ -123,6 +121,7 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
                     packet[" Ay (m/s²)"],
                     packet[" Az (m/s²)"]
                 )
+                
                 last_packet = packet
 
             # Reset queue and move to next window
