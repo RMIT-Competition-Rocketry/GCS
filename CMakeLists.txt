@@ -111,6 +111,15 @@ target_link_libraries(proto-objects PUBLIC
     absl::strings
     absl::log_internal_check_op
     absl::log_internal_message
+    absl::cord_internal
+    absl::cord
+    absl::raw_logging_internal
+    absl::spinlock_wait
+    absl::synchronization
+    absl::hash
+    absl::status
+    absl::statusor
+    absl::flat_hash_map
 )
 set(PROTO_BINARY_DIR "${CMAKE_SOURCE_DIR}/backend/proto/generated/")
 file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
@@ -188,7 +197,6 @@ target_link_libraries(middleware_lib PUBLIC
     $<TARGET_OBJECTS:proto-objects>
     ${UTF8_RANGE_LIBRARY}
     absl::base
-    absl::log
     absl::strings
     absl::log
     absl::log_internal_check_op
