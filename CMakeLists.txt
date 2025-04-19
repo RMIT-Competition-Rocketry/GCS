@@ -85,7 +85,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Wextra -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -pthread")
 
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
-set(BUILD_DIR ${CMAKE_BINARY_DIR})
 
 file(GLOB_RECURSE LIB_SRCS
     "${SRC_DIR}/*.cpp"
@@ -95,9 +94,7 @@ file(GLOB_RECURSE LIB_SRCS
 # Separate main source file from sources (main.cpp)
 list(REMOVE_ITEM LIB_SRCS "${SRC_DIR}/main.cpp")
 set(MAIN_SRC "${SRC_DIR}/main.cpp")
-file(MAKE_DIRECTORY ${BUILD_DIR})
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_library(middleware_lib ${LIB_SRCS})
 add_executable(middleware_server ${MAIN_SRC})
@@ -115,10 +112,19 @@ target_link_libraries(proto-objects PUBLIC
     absl::log_internal_check_op
     absl::log_internal_message
 )
-set(PROTO_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/backend/proto/generated/")
+set(PROTO_BINARY_DIR "${CMAKE_SOURCE_DIR}/backend/proto/generated/")
 file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
 
 target_include_directories(proto-objects PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
+
+set(FIX_IMPORT_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/scripts/__proto_import_fix.sh")
+
+# Make script executable
+configure_file(
+    ${FIX_IMPORT_SCRIPT}
+    ${CMAKE_CURRENT_BINARY_DIR}/fix_imports.sh
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+)
 
 protobuf_generate(
     LANGUAGE cpp
@@ -137,6 +143,16 @@ protobuf_generate(
     APPEND_PATH
     FILES ${PROTO_FILES}
 )
+
+add_custom_target(fix-proto-imports ALL
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fix_imports.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Fixing Python proto imports"
+    VERBATIM
+)
+
+add_dependencies(fix-proto-imports proto-objects)
+add_dependencies(middleware_server fix-proto-imports)
 
 # Define DEBUG macro in debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -214,7 +230,7 @@ execute_process(
 set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 
 # Clean up old binaries with different names before building
-file(GLOB OLD_BINARIES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/middleware_*")
+file(GLOB OLD_BINARIES "${CMAKE_BINARY_DIR}/middleware_*")
 
 if(OLD_BINARIES)
     message(STATUS "Cleaning up old binaries: ${OLD_BINARIES}")

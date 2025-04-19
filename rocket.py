@@ -162,6 +162,7 @@ def start_services(COMMAND: Command,
     # 3. Run C++ middleware
     # Note that `devices` are paired pseudo-ttys
     try:
+        optional_arg = None
         if COMMAND == Command.GSE:
             optional_arg = "--GSE_ONLY"
         start_middleware(logger=logger,
