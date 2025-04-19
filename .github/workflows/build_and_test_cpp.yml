@@ -55,7 +55,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: /home/runner/abseil-install
-        key: abseil-${{ runner.os }}
+        key: abseil-${{ runner.os }}-${{ matrix.cpp_compiler }}
 
     - id: cache_protobuf
       name: Cache Protobuf Install Directory
@@ -142,7 +142,11 @@ jobs:
         cd "$HOME/abseil"
         git checkout 20250127.1
         mkdir build && cd build
-        cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" ..
+        cmake -DCMAKE_CXX_STANDARD=17 \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
+          -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" \
+          ..
         make install
         echo "CMAKE_PREFIX_PATH=$HOME/abseil-install" >> "$GITHUB_ENV"
 
