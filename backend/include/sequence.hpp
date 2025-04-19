@@ -33,11 +33,14 @@ class Sequence {
 
   State current_state;
 
+  void set_gse_only_mode(bool mode) { gse_only_mode_ = mode; }
+  bool gse_only_mode() const { return gse_only_mode_; }
+
  private:
   SequenceLock gse_write_lock_{"GSE"};
   SequenceLock av_write_lock_{"AV"};
   static constexpr std::chrono::milliseconds TIMEOUT = SequenceLock::TIMEOUT;
-
+  bool gse_only_mode_ = false;  // GSE only mode. This is an option from CLI
   // Singleton assertion helper for constructor assertion
   bool singleton_created_ = false;
 };

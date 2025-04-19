@@ -62,7 +62,6 @@
                 "dev",
                 "--interface",
                 "test",
-                "--nopendant"
             ]
         },
         {
@@ -80,6 +79,20 @@
             "request": "launch",
             "program": "${workspaceFolder}/backend/tools/pendant_emulator.py",
             "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+        {
+            "name": "Python Debugger: simulator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/simulation/run_simulation.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--device-rocket",
+                "/tmp/gcs_rocket.sock"
+            ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },

@@ -26,7 +26,7 @@ class LoggedSubProcess:
             command (List[str]): List of terminal arguments to run the subprocess
             name (Optional[str], optional): Name for the subprocess Defaults to None.
             env (Optional[dict], optional): Environment variables. Defaults to None.
-            parse_output (bool): Parse output for logging levels? Defaults to False.
+            parse_output (bool): Parse output for logging levels? Defaults to False. Set this to true if you are using the slogger subprocess logging system.
         """
         self._parent_logger = logging.getLogger('rocket')
         if (any("python" in arg for arg in command) and not any("-u" in arg for arg in command)):

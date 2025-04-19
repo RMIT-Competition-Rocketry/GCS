@@ -10,6 +10,7 @@ import sys
 import time
 import os
 import signal
+import enum
 from typing import Optional
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
@@ -18,52 +19,12 @@ from cli.start_middleware import start_middleware, InterfaceType
 from cli.start_event_viewer import start_event_viewer
 from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
+from cli.start_simulation import start_simulator
 
 
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
-
-
-@click.group()
-def cli():
-    """CLI interface to manage GCS software initialisation"""
-    # Check you're in a valid directory.
-    # Implicit check is to make sure the logo file exists in expected spot
-    if not os.path.exists(os.path.join("cli", "ascii_art_logo.txt")):
-        raise RuntimeError(
-            "Please run this program from project root directory")
-
-
-@click.command()
-def run():
-    """Start software for production usage in native environment. Indented for usage on GCS only"""
-
-    print_splash()
-
-    # 1. Make sure C++ middleware is there
-    # TODO add checks for ALL files please
-    # TODO please add a check to make sure it's up to date?
-
-    # 2. Run C++ middleware
-    # Note that devices are paired pseudo-ttys
-    try:
-        start_middleware(logger=logger,
-                         release=True,
-                         INTERFACE_TYPE=InterfaceType.UART,
-                         DEVICE_PATH="/dev/ttyAMA0",
-                         SOCKET_PATH="gcs_rocket")
-    except Exception as e:
-        logger.error(
-            f"Failed to start middleware: {e}\nPropogating fatal error")
-        raise
-
-    # 5. Start the event viewer
-    start_event_viewer(logger, "gcs_rocket", file_logging_enabled=True)
-
-    # 6. Start the pendent emulator
-    start_pendant_emulator(logger)
-
-    # 7. Database stuff in future
+running_services: bool = False  # To help close the cli automatically
 
 
 def get_interface_type(interface: Optional[str]) -> InterfaceType:
@@ -90,47 +51,85 @@ def get_interface_type(interface: Optional[str]) -> InterfaceType:
         raise ValueError(f"Invalid interface type: {interface}")
 
 
-@click.command()
-@click.option('--docker', is_flag=True, help="Run inside Docker")
-@click.option(
-    '--interface',
-    type=click.Choice([e.value for e in InterfaceType], case_sensitive=False),
-    help="Hardware interface type. Overrides config parameter"
-)
-@click.option('--nobuild', is_flag=True, help="Do not build binaries. Search for pre-built binaries")
-@click.option('--logpkt', is_flag=True, help="Log packet data to csv")
-@click.option('--nopendant', is_flag=True, help="Do not run the pendant emulator")
-def dev(docker, interface, nobuild, logpkt, nopendant):
-    """Start software in development mode"""
-    def start_docker_container():
-        try:
-            logger.info("Building dev container")
-            subprocess.run(["docker", "build", "-t", "rocket-dev",
-                           "-f", "docker/Dockerfile.dev", "."], check=True)
-            logger.info("Running dev container")
-            subprocess.run(["docker", "run", "--rm", "-it",
-                           "rocket-dev"], check=True)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to start Docker container: {e}")
-            DOCKER_WARNING_TEXT = "PLEASE ENSURE DOCKER ENGINE IS RUNNING"
-            logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
-            logger.error(DOCKER_WARNING_TEXT)
-            logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
-            raise
+def shared_dev_options(func):
+    """Decorator to add all dev command options to simulation."""
+    # Reuse dev's options
+    def _set_level(ctx, param, value):
+        if value:
+            CLEAN_VALUE = value.upper().strip()
+            rocket_logging.set_console_log_level(CLEAN_VALUE)
+        return value
+    LOG_LEVEL_OPTIONS = click.Choice(list(rocket_logging.LOG_MAPPING.keys()),
+                                     case_sensitive=False
+                                     )
+    func = click.option('-l', '--log-level', is_flag=False, type=LOG_LEVEL_OPTIONS,
+                        help="Overide the config log level",
+                        callback=_set_level, expose_value=False)(func)
+    func = click.option('--docker', is_flag=True, help="Run in Docker")(func)
+    INTERFACE_OPTIONS = click.Choice(
+        [e.value for e in InterfaceType], case_sensitive=False)
+    func = click.option('-i', '--interface', type=INTERFACE_OPTIONS,
+                        help="Hardware interface type. Overrides config parameter")(func)
+    func = click.option('--nobuild', is_flag=True,
+                        help="Do not build binaries. Search for pre-built binaries")(func)
+    func = click.option('--logpkt', is_flag=True,
+                        help="Log packet data to csv")(func)
+    func = click.option('--nopendant', is_flag=True,
+                        help="Do not run the pendant emulator")(func)
+    return func
+
+
+def start_docker_container(logger):
+    try:
+        logger.info("Building dev container")
+        subprocess.run(["docker", "build", "-t", "rocket-dev",
+                       "-f", "docker/Dockerfile.dev", "."], check=True)
+        logger.info("Running dev container")
+        subprocess.run(["docker", "run", "--rm", "-it",
+                       "rocket-dev"], check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to start Docker container: {e}")
+        DOCKER_WARNING_TEXT = "PLEASE ENSURE DOCKER ENGINE IS RUNNING"
+        logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
+        logger.error(DOCKER_WARNING_TEXT)
+        logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
+        raise
+
+
+class Command(enum.Enum):
+    """Command enums to help start services"""
+    RUN = enum.auto()
+    DEV = enum.auto()
+    GSE = enum.auto()
+    SIMULATION = enum.auto()
+
+
+def start_services(COMMAND: Command,
+                   DOCKER: bool = False,
+                   INTERFACE_ARG: Optional[InterfaceType] = None,
+                   nobuild: bool = False,
+                   logpkt: bool = False,
+                   nopendant: bool = False):
+    """Starts all services required for the given command.
+
+    Args:
+        COMMAND (Command): What mode are you running in?
+    """
+    global running_services
+    running_services = True
 
     print_splash()
 
-    if not docker:
+    # 0. Start docker container if requested in dev environment
+    if not DOCKER:
         # This is called in Docker anyway.
         # Just to avoid recursive containerisation
-        logger.info(
-            "Starting development mode, skipping containerisation. This is OK if you are already in a Docker container")
-
+        logger.info("Starting development mode")
     else:
-        logger.info("Starting dev container in Docker")
-        start_docker_container()
+        logger.info("Starting development container in Docker")
+        start_docker_container(logger)
 
-    # 1. Build C++ middleware
+    # 0.1 Build C++ middleware
     if not nobuild:
         try:
             start_middleware_build(logger, CMakeBuildModes.DEBUG)
@@ -141,14 +140,16 @@ def dev(docker, interface, nobuild, logpkt, nopendant):
     else:
         logger.info("Skipping middleware build. Using pre-built binaries")
 
-    # 2.
-    INTERFACE_TYPE = get_interface_type(interface)
+    # 2. Intialise devices and parameters
+    INTERFACE_TYPE = get_interface_type(INTERFACE_ARG)
     match INTERFACE_TYPE:
         case InterfaceType.UART:
             logger.info("Starting UART interface")
             # Just leave second (emulator) device as None
             devices = ("/dev/ttyAMA0", None)
         case InterfaceType.TEST:
+            if COMMAND == Command.RUN:
+                logger.warning("Test interface selected in production mode")
             logger.info("Starting TEST interface")
             devices = start_fake_serial_device(logger)
             if devices == (None, None):
@@ -159,36 +160,104 @@ def dev(docker, interface, nobuild, logpkt, nopendant):
             raise ValueError("Invalid interface type")
 
     # 3. Run C++ middleware
-    # Note that devices are paired pseudo-ttys
+    # Note that `devices` are paired pseudo-ttys
     try:
+        if COMMAND == Command.GSE:
+            optional_arg = "--GSE_ONLY"
         start_middleware(logger=logger,
-                         release=False,
+                         release=COMMAND == Command.RUN,
                          INTERFACE_TYPE=INTERFACE_TYPE,
                          DEVICE_PATH=devices[0],
-                         SOCKET_PATH="gcs_rocket")
+                         SOCKET_PATH="gcs_rocket",
+                         opt_arg=optional_arg)
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")
         raise
 
     # TODO fix this with middleware callback blocking
+    # Sleep to make sure server and interface have started before starting emulator
     time.sleep(0.5)
 
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical
-    if INTERFACE_TYPE == InterfaceType.TEST:
+    if INTERFACE_TYPE == InterfaceType.TEST and COMMAND == Command.DEV:
         start_fake_serial_device_emulator(logger, devices[1])
+    elif COMMAND == Command.SIMULATION:
+        start_simulator(logger, devices[1])
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
 
-    # 6. Could start the pendent emulator
+    # 6. Start the pendent emulator
     if not nopendant:
         start_pendant_emulator(logger)
 
-    # 7. Start frontend
+    # 7. Start the webcocket / frontend API
     start_frontend_api(logger, "gcs_rocket")
+
+
+@click.group()
+def cli():
+    """CLI interface to manage GCS software initialisation"""
+    # Check you're in a valid directory.
+    # Implicit check is to make sure the logo file exists in expected spot
+    if not os.path.exists(os.path.join("cli", "ascii_art_logo.txt")):
+        raise RuntimeError(
+            "Please run this program from project root directory")
+
+
+@click.command()
+def run():
+    """Start software for launch day usage"""
+    rocket_logging.set_console_log_level("INFO")
+    start_services(Command.RUN,
+                   DOCKER=False,
+                   INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
+                   nobuild=True,  # Do NOT auto build in production mode.
+                   logpkt=True,  # Log packets by default in production mode
+                   nopendant=False  # Pendant emulator is required in production mode
+                   )
+
+
+@click.command()
+def gse():
+    """Start software for launch day gse setup"""
+    rocket_logging.set_console_log_level("INFO")
+    start_services(Command.GSE,
+                   DOCKER=False,
+                   INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
+                   nobuild=True,  # Do NOT auto build in production mode.
+                   logpkt=True,  # Log packets by default in production mode
+                   nopendant=False  # Pendant emulator is required in production mode
+                   )
+
+
+@click.command()
+@shared_dev_options
+def dev(docker, interface, nobuild, logpkt, nopendant):
+    """Start software in development mode"""
+    start_services(Command.DEV,
+                   DOCKER=docker,
+                   INTERFACE_ARG=interface,
+                   nobuild=nobuild,
+                   logpkt=logpkt,
+                   nopendant=nopendant
+                   )
+
+
+@click.command()
+@shared_dev_options
+def simulation(docker, interface, nobuild, logpkt, nopendant):
+    """Start software in simulation mode"""
+    start_services(Command.SIMULATION,
+                   DOCKER=docker,
+                   INTERFACE_ARG=interface,
+                   nobuild=nobuild,
+                   logpkt=logpkt,
+                   nopendant=nopendant
+                   )
 
 
 def print_splash():
@@ -241,7 +310,9 @@ def main():
 
     # Use groups for nested positional arugments `rocket run dev/prod`
     cli.add_command(run)
+    cli.add_command(gse)
     cli.add_command(dev)
+    cli.add_command(simulation)
 
     # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)   # Handle Ctrl+C
@@ -249,6 +320,12 @@ def main():
     signal.signal(signal.SIGHUP, signal_handler)   # Handle terminal close
     # Handle quit signal (Ctrl+\)
     signal.signal(signal.SIGQUIT, signal_handler)
+
+    # Remove stale tmp files
+    GCS_CONFIG_HELPER_PATH = os.path.join(
+        os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt")
+    if os.path.exists(GCS_CONFIG_HELPER_PATH):
+        os.remove(GCS_CONFIG_HELPER_PATH)
 
     rocket_logging.initialise()
     logger = logging.getLogger('rocket')
@@ -259,9 +336,10 @@ def main():
         cli.main(args=sys.argv[1:], standalone_mode=False)
 
         # After CLI setup is done, start waiting (not busy waiting please)
-        while True:
-            # Keep program alive, but it doesn't need to do anything
-            time.sleep(1)
+        if running_services:
+            while True:
+                # Keep program alive, but it doesn't need to do anything
+                time.sleep(1)
     except KeyboardInterrupt:
         # I have a feeling this will never execute with the signal handlers?
         cleanup_reason = "Keyboard Interrupt (Ctrl+C)"

@@ -17,13 +17,13 @@ def get_middleware_path(BINARY_NAME_PREFIX: str) -> Optional[str]:
     """
 
     # Cmake folder
-    BUILD_PATH_ABS = os.path.join(os.getcwd(), "build", "build")
+    BUILD_PATH_ABS = os.path.join(os.getcwd(), "build")
     build_path_files = [os.path.join(BUILD_PATH_ABS, x)
                         for x in os.listdir(BUILD_PATH_ABS)]
     build_path_files = [x for x in build_path_files if os.path.isfile(x)]
     # User placed
     PROJECT_PATH_ABS = os.getcwd()
-    project_root_files = [os.path.join(BUILD_PATH_ABS, x)
+    project_root_files = [os.path.join(PROJECT_PATH_ABS, x)
                           for x in os.listdir(PROJECT_PATH_ABS)]
     project_root_files = [x for x in project_root_files if os.path.isfile(x)]
 
@@ -57,6 +57,7 @@ def start_middleware(logger: logging.Logger,
                      INTERFACE_TYPE: InterfaceType,
                      DEVICE_PATH: str,
                      SOCKET_PATH: str,
+                     opt_arg: Optional[str] = None,
                      ):
 
     if not isinstance(INTERFACE_TYPE, InterfaceType):
@@ -72,20 +73,23 @@ def start_middleware(logger: logging.Logger,
             raise FileNotFoundError(
                 f"Could not find {SERVICE_NAME} binary ({BINARY_NAME}) in build/ or root folder. Please run $ bash scripts/release.sh")
 
-        MIDDLEWARE_COMMAND = [
+        middleware_command = [
             # Should always be relative to cwd. Just use the (.):
             # ./middleware/build/middleware_server {args}
             MIDDLEWARE_BINARY_PATH,
             # <interface type> <device path> <socket path>
             INTERFACE_TYPE.value,
             DEVICE_PATH,
-            SOCKET_PATH
+            SOCKET_PATH,
         ]
 
-        logger.debug(f"Starting {SERVICE_NAME} with: {MIDDLEWARE_COMMAND}")
+        if opt_arg is not None:
+            middleware_command.append(opt_arg)
+
+        logger.debug(f"Starting {SERVICE_NAME} with: {middleware_command}")
 
         middleware_process = process.LoggedSubProcess(
-            MIDDLEWARE_COMMAND,
+            middleware_command,
             name=SERVICE_NAME,
             parse_output=True
         )
