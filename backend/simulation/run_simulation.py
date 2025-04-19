@@ -64,8 +64,11 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         MAIN_SECONDARY_TEST_RESULTS=False,
         MOVE_TO_BROADCAST=True
     )
+    # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
+    time.sleep(0.01)  # Allow the buffer to update
     packet.write_payload()
     
+
 
 def isImportantPacket(current_row, last_row):
     """
@@ -96,8 +99,7 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
     queue = []
     last_packet = None
     queue_num = count()  # For umabiguous heap ordering
-    
-    #  Refer to the TIMEOUT_INTEVAL as the window size
+    #  Refer to the TIMEOUT_INTEVAL as the window size which should be 100 ms
     for _, current_packet in FLIGHT_DATA.iterrows():
         # Convert the data frame to milliseconds, '# Time (s)' is the exact key in the df
         current_time = current_packet['# Time (s)'] * MS_PER_SECOND
@@ -106,11 +108,11 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
         packet_window_num = int(current_time // TIMEOUT_INTERVAL)
 
         # If moved to a new window, then send previous window's packet
-        if packet_window_num > current_window_num:
+        while packet_window_num > current_window_num:
+            
             # Process all the packets within this window frame
             if queue:
                 _, _, packet = heapq.heappop(queue)
-                
                 send_simulated_packet(
                     packet[" Altitude AGL (m)"],
                     packet[" Speed - Velocity Magnitude (m/s)"],
@@ -121,12 +123,12 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
                     packet[" Ay (m/s²)"],
                     packet[" Az (m/s²)"]
                 )
-                
                 last_packet = packet
-
-            # Reset queue and move to next window
+                # Reset queue
+                queue = []
+                
+            # Move to the next window
             current_window_num += 1
-            queue = []
 
         # Prcoessing packets within timeframe
         # Calculating priority -1 for important 0 otherwise for max heap
