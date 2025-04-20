@@ -97,16 +97,6 @@ target_compile_options(middleware_lib PRIVATE
     $<$<CONFIG:Release>:-O3 -DNDEBUG -Wall -Wextra -pthread>
 )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    # fuck absl
-    # https://github.com/abseil/abseil-cpp/issues/1747#issuecomment-2308667626
-    message(STATUS "Applying clang specific absl compatability param")
-    target_compile_options(middleware_lib PRIVATE -fclang-abi-compat=17)
-    target_sources(middleware_lib PRIVATE
-        ${CMAKE_SOURCE_DIR}/backend/middleware/_absl_log_fix.cpp
-    )
-endif()
-
 # Protobuf generation for cpp and python files
 # Docs: https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
 file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")

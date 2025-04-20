@@ -238,6 +238,7 @@ jobs:
               -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
               -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
               -DBUILD_TESTS=ON \
+              -DCMAKE_CXX_FLAGS="-fclang-abi-compat=17" \
               -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
               -DProtobuf_ROOT="$HOME/protobuf-install" \
               -Dabsl_DIR="$HOME/abseil-install/lib/cmake/absl" \
