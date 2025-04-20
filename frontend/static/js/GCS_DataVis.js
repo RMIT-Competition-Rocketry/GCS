@@ -136,7 +136,7 @@ window.addEventListener("load", function () {
                     max_alt_m = alt_metres;
                 }
                 var velocity_metres = current.Velocity_Up * 0.3048;
-                interface_updateValue("av-vel-v",velocity_metres.toFixed(4))
+                interface_updateValue("av-velocity",velocity_metres.toFixed(4))
                 interface_updateValue("av-maxalt-ft", max_Baro_Altitude_AGL);
                 interface_updateValue("av-maxalt-m", max_alt_m);
             }

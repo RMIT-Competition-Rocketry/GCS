@@ -9,22 +9,19 @@
 
 /// INTERFACE
 const TESTING_INTERFACE_ITEMS = [
-    "av-vel-h",
-    "av-vel-v",
-    "av-vel-total",
-    "av-accel-x-lo",
-    "av-accel-x-hi",
-    "av-accel-y-lo",
-    "av-accel-y-hi",
-    "av-accel-z-lo",
-    "av-accel-z-hi",
+    "av-velocity",
+    "av-accel-x",
+    "av-accel-y",
+    "av-accel-z",
     "av-gyro-x",
     "av-gyro-y",
     "av-gyro-z",
-    "av-alt-m",
-    "av-alt-ft",
-    "av-maxalt-m",
-    "av-maxalt-ft"
+    "pos-alt-m",
+    "pos-alt-ft",
+    "pos-maxalt-m",
+    "pos-maxalt-ft",
+    "pos-gps-lat",
+    "pos-gps-lon",
 ];
 
 function testing_updateAllInterfaceValues() {

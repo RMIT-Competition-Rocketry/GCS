@@ -13,7 +13,7 @@ and only modify it if you know what you're doing :)
 
 @layer base {
     input {
-        @apply border border-zinc-500 rounded-sm max-w-full;
+        @apply border border-zinc-500 rounded-sm max-w-full font-mono text-right;
     }
 }
 

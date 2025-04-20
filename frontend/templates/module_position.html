@@ -1,22 +1,41 @@
-<!-- Max altitude module -->
-<div class="w-full h-full bg-purple-800">
-	<p class="text-center">[ MODULE // POSITION ]</p>
-	<p>
-		<label>Altitude (m): <input readonly autocomplete="off" class="pos-alt-m"></label>
-	</p>
-	<p>
-		<label>Altitude (ft): <input readonly autocomplete="off" class="pos-alt-ft"></label>
-	</p>
-	<p>
-		GPS latitude:
-	</p>
-	<p>
-		GPS longitude:
-	</p>
-	<p>
-		Max altitude (m):
-	</p>
-	<p>
-		Max altitude (ft):
-	</p>
+<!-- Position module -->
+<!-- Includes altitude, gps -->
+<div class="w-full h-full flex flex-col gap-2">
+	<!-- Altitude -->
+	<div class="border border-hive p-2 flex flex-col grow">
+		<p class="font-mono">Altitude (m)</p>
+		<div class="border border-hive bg-hive/20 flex-1">
+			<p class="font-mono text-hive text-center">[ altitude graph ]</p>
+		</div>
+		<div class="grid grid-cols-2 gap-x-2">
+			<p class="flex gap-1">
+				<label>Altitude (m):</label>
+				<input readonly autocomplete="off" class="pos-alt-m flex-1 min-w-0">
+			</p>
+			<p class="flex gap-1">
+				<label>Max Altitude (m):</label>
+				<input readonly autocomplete="off" class="pos-maxalt-m flex-1 min-w-0">
+			</p>
+			<p class="flex gap-1">
+				<label>Altitude (ft):</label>
+				<input readonly autocomplete="off" class="pos-alt-ft flex-1 min-w-0">
+			</p>
+			<p class="flex gap-1">
+				<label>Max Altitude (ft):</label>
+				<input readonly autocomplete="off" class="pos-maxalt-ft flex-1 min-w-0">
+			</p>
+		</div>
+	</div>
+
+	<!-- GPS -->
+	<div class="border border-hive p-2 grid grid-cols-2 gap-x-2">
+		<p class="flex gap-1">
+			<label>GPS latitude:</label>
+			<input readonly autocomplete="off" class="pos-gps-lat flex-1 min-w-0">
+		</p>
+		<p class="flex gap-1">
+			<label>GPS longitude:</label>
+			<input readonly autocomplete="off" class="pos-gps-lon flex-1 min-w-0">
+		</p>
+	</div>
 </div>
