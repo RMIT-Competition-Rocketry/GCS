@@ -22,6 +22,7 @@ from typing import List, Dict, Optional, Union
 import backend.process_logging as slogger  # slog deez nuts
 import backend.ansci as ansci
 import config.config as config
+from mach import Mach
 
 # Just prints useful information from AV and saves it to csv file
 
@@ -539,16 +540,11 @@ class AV_TO_GCS_DATA_1(AVPacket):
     def _mt_to_ft(METERS):
         return METERS * 3.28084
 
-    @staticmethod
-    def _mps_to_mach(MPS):
-        # TODO - Git issue #111
-        return MPS / 343
-
     def _proccess_alt_velocty(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         # Print basic information
         ALT_M = PROTO_DATA.altitude
         ALT_FT = AV_TO_GCS_DATA_1._mt_to_ft(PROTO_DATA.altitude)
-        VELOCITY = PROTO_DATA.velocity
+        VELOCITY_M = PROTO_DATA.velocity
 
         if ALT_FT <= 10010:
             alt_color = ansci.BG_GREEN + ansci.FG_BLACK  # Accent
@@ -558,13 +554,13 @@ class AV_TO_GCS_DATA_1(AVPacket):
             alt_color = ansci.BG_RED
 
         # Max speed (for Legacy) is 274 m/s
-        if VELOCITY <= 180:
+        if VELOCITY_M <= 180:
             vel_color = ansci.BG_BLUE
-        elif VELOCITY <= 200:
+        elif VELOCITY_M <= 200:
             vel_color = ansci.BG_CYAN
-        elif VELOCITY <= 240:
+        elif VELOCITY_M <= 240:
             vel_color = ansci.BG_GREEN
-        elif VELOCITY <= 270:
+        elif VELOCITY_M <= 270:
             vel_color = ansci.BG_YELLOW
         else:
             vel_color = ansci.BG_RED
@@ -573,11 +569,12 @@ class AV_TO_GCS_DATA_1(AVPacket):
         slogger.info(
             f"{alt_color}Altitude: {ALT_M:<8,.0f}m {ALT_FT:<9,.0f}ft{ansci.RESET}")
         slogger.info(
-            f"{vel_color}Velocity: {VELOCITY:<8,.0f}m/s{ansci.RESET}")
-        if (VELOCITY > self._max_velocity):
-            self._max_velocity = VELOCITY
+            f"{vel_color}Velocity: {VELOCITY_M:<8,.0f}m/s{ansci.RESET}")
+        # Yeah technically mach is not proportionate to velcoty
+        if (VELOCITY_M > self._max_velocity):
+            self._max_velocity = VELOCITY_M
             slogger.info(
-                f"New max velocity: {self._mps_to_mach(VELOCITY):<3.3f} mach")
+                f"New max velocity: {Mach.mach_from_alt_estimate(VELOCITY_M,ALT_M):<3.3f} mach")
         self._last_information_display_time = time.monotonic()
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
@@ -586,12 +583,13 @@ class AV_TO_GCS_DATA_1(AVPacket):
 
         # Supersonic alert
         # NOTE Legacy (IREC) is not extimated to go supersonic
-        SUPERSONIC_VELOCITY = 343  # TODO - Git issue #111
-        if PROTO_DATA.velocity >= SUPERSONIC_VELOCITY and self._supersonic == False:
+        MACH_SPEED = Mach.mach_from_alt_estimate(
+            PROTO_DATA.velocity, PROTO_DATA.altitude)
+        if MACH_SPEED >= 1 and self._supersonic == False:
             # Coolest line of code I've ever written btw
             slogger.info("Supersonic flight detected")
             self._supersonic = True
-        elif self._supersonic and PROTO_DATA.velocity < SUPERSONIC_VELOCITY:
+        elif self._supersonic and MACH_SPEED < 1:
             slogger.info("Supersonic flight ended")
             self._supersonic = False
 
