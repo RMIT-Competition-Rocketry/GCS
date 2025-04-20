@@ -23,7 +23,7 @@ Commands:
 > [!IMPORTANT]
 > Before running in release mode (`$ rocket run`), if you have not generated protobuf files previously you need to run `$ bash scripts/proto_manual.sh`.
 > 
-> Before [#29](https://github.com/RMIT-Competition-Rocketry/GCS/issues/29) is closed, you will need to keyboard intterupt when you want to close it.
+> You can generate release binaries from source with `$ bash scripts/release.sh` or download from a github release 
 
 
 > [!NOTE] 
@@ -41,23 +41,26 @@ If you plan to use a pre-compiled binary, please place it in the root directory 
 For development, `dev` mode is available
 
 ```terminal
-$ rocket dev --help
+$ rocket dev --help                       
 Usage: rocket dev [OPTIONS]
 
   Start software in development mode
 
 Options:
-  --docker                 Run inside Docker
-  --interface [UART|TEST]  Hardware interface type. Overrides config parameter
-  --nobuild                Do not build binaries. Search for pre-built
-                           binaries
-  --logpkt                 Log packet data to csv
-  --nopendant              Do not run the pendant emulator
-  --help                   Show this message and exit.
+  --nopendant                     Do not run the pendant emulator
+  --logpkt                        Log packet data to csv
+  --nobuild                       Do not build binaries. Search for pre-built
+                                  binaries
+  -i, --interface [UART|TEST]     Hardware interface type. Overrides config
+                                  parameter
+  --docker                        Run in Docker
+  -l, --log-level [DEBUG|INFO|SUCCESS|WARNING|ERROR|CRITICAL]
+                                  Overide the config log level
+  --help                          Show this message and exit.
 ```
 
 By default for `dev` mode: 
-- The selected interface will be grabbed from `config/config.ini`
+- Data interface will be grabbed from `config/config.ini`
   - Unless `--interface` is passed which will override this
 - Cmake and make will rebuild the project
   - Use `--nobuild` to skip this
@@ -66,6 +69,8 @@ By default for `dev` mode:
 - The pendant emulator will start in a new window
   - This is not needed for **frontend** development
   - You can stop this by using the `--nopendant` flag
+- Console log level will be grabbed from `config/config.ini`
+  - Unless `-l x` or `--log-level x` is passed which will override this
 
 ### Simulation Mode
 
@@ -95,7 +100,7 @@ Options:
   --help  Show this message and exit.
 ```
 
-1. If you have not downloaded a release binary, you can create one with `$ bash scripts/release.sh`
+1. If you have not downloaded a release binary, you can create one with `$ bash scripts/release.sh`. Do not build from a version not on main branch
 2. To start the software from the project directory, run the command `$ rocket run`
 3. To stop the software, enter <kbd>ctrl</kbd> + <kbd>c</kbd> on the pendant emulator window (if it has started) then in the other window after the emulator window has shut down. 
  
