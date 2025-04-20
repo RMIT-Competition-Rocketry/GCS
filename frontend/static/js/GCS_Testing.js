@@ -26,7 +26,7 @@ const TESTING_INTERFACE_ITEMS = [
 
 function testing_updateAllInterfaceValues() {
     TESTING_INTERFACE_ITEMS.forEach((item, i) => {
-        interface_updateValue(item, i);
+        interfaceSet(item, i);
     });
 }
 

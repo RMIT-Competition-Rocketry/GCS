@@ -20,17 +20,14 @@ function connectSocket() {
 		try {
 			const api_data = JSON.parse(event.data);
 			api_latest = api_data;
+
+			//console.log(Object.keys(api_latest.data));
+			//console.log(api_latest.data)
+
 			if (api_latest.id == 3) {
-				interface_updateValue("av-vel-total", api_latest.data.velocity);
-				interface_updateValue("av-accel-x-lo", api_latest.data.accelLowX);
-				interface_updateValue("av-accel-y-lo", api_latest.data.accelLowY);
-				interface_updateValue("av-accel-z-lo", api_latest.data.accelLowZ);
-				interface_updateValue("av-accel-x-hi", api_latest.data.accelHighX);
-				interface_updateValue("av-accel-y-hi", api_latest.data.accelHighY);
-				interface_updateValue("av-accel-z-hi", api_latest.data.accelHighZ);
-				interface_updateValue("av-gyro-x", api_latest.data.gyroX);
-				interface_updateValue("av-gyro-y", api_latest.data.gyroY);
-				interface_updateValue("av-gyro-z", api_latest.data.gyroZ);
+				// Update interface modules
+				interfaceUpdateAvionics(api_latest.data);
+				interfaceUpdatePosition(api_latest.data);
 			}
 		}
 		catch (error) {

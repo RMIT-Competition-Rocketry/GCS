@@ -4,11 +4,11 @@
  * Responsible for switching tabs/pages, button logic, etc.
  * Updates stats on the webpage based on the API and handles the password screen.
  *
- * Functions and constants should be prefixed with "interface_" 
+ * Functions and constants should be prefixed with "interface" 
 */
 
 /// DYNAMIC MODULE SWITCHING CODE
-function interface_updateModules(selected) {
+function interfaceSelectModule(selected) {
     document.querySelectorAll(".module").forEach((elem) => {
         if (elem.classList.contains(selected)) {
             elem.classList.remove("hidden");
@@ -27,7 +27,7 @@ window.addEventListener("load", function () {
         : document.querySelector("nav a").href.split("#")[1];
 
     // Determine which modules are "selected"
-    interface_updateModules(selected);
+    interfaceSelectModule(selected);
 
     // Highlight selected tab link
     document.querySelector(`a[href='#${selected}']`).classList.add(...selectedClasses);
@@ -39,7 +39,7 @@ window.addEventListener("load", function () {
 
             // Switch tabs
             selected = elem.href.split("#")[1];
-            interface_updateModules(selected);
+            interfaceSelectModule(selected);
 
             // Highlight new selected tab link
 			document.querySelectorAll("nav a").forEach((elem) => {
@@ -57,7 +57,7 @@ window.addEventListener("load", function () {
 });
 
 // FUNCTIONS FOR UPDATING VALUES IN THE INTERFACE
-function interface_updateValue(item, value) {
+function interfaceSet(item, value) {
     // Updates the value for a display item
     let elements = document.querySelectorAll(`.${item}`);
 
@@ -69,4 +69,27 @@ function interface_updateValue(item, value) {
             elem.value = value;
         });
     }
+}
+
+function interfaceUpdateAvionics() {
+    // Update data in avionics module
+    interfaceSet("av-velocity", api_latest.data.velocity);
+    interfaceSet("av-accel-x", api_latest.data.accelLowX); // api_latest.data.accelHighX
+    interfaceSet("av-accel-y", api_latest.data.accelLowY); // api_latest.data.accelHighY
+    interfaceSet("av-accel-z", api_latest.data.accelLowZ); // api_latest.data.accelHighZ
+    interfaceSet("av-gyro-x", api_latest.data.gyroX);
+    interfaceSet("av-gyro-y", api_latest.data.gyroY);
+    interfaceSet("av-gyro-z", api_latest.data.gyroZ);
+}
+
+function interfaceUpdatePosition() {
+    // Update data in position module
+    interfaceSet("pos-alt-m", api_latest.data.altitude);
+    /*
+    interfaceSet("pos-alt-ft", api_latest.data.altitude);
+    interfaceSet("pos-maxalt-m", api_latest.data.altitude);
+    interfaceSet("pos-maxalt-ft", api_latest.data.altitude);
+    interfaceSet("pos-gps-lat", api_latest.data.GPSLatitude);
+    interfaceSet("pos-gps-lon", api_latest.data.GPSLongitude);
+    */
 }

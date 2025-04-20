@@ -7,23 +7,19 @@
 		<div class="border border-hive bg-hive/20 flex-1">
 			<p class="font-mono text-hive text-center">[ altitude graph ]</p>
 		</div>
-		<div class="grid grid-cols-2 gap-x-2">
-			<p class="flex gap-1">
-				<label>Altitude (m):</label>
-				<input readonly autocomplete="off" class="pos-alt-m flex-1 min-w-0">
-			</p>
-			<p class="flex gap-1">
-				<label>Max Altitude (m):</label>
-				<input readonly autocomplete="off" class="pos-maxalt-m flex-1 min-w-0">
-			</p>
-			<p class="flex gap-1">
-				<label>Altitude (ft):</label>
-				<input readonly autocomplete="off" class="pos-alt-ft flex-1 min-w-0">
-			</p>
-			<p class="flex gap-1">
-				<label>Max Altitude (ft):</label>
-				<input readonly autocomplete="off" class="pos-maxalt-ft flex-1 min-w-0">
-			</p>
+		<div class="flex gap-x-2 font-mono">
+			<p class="text-right">&nbsp;&nbsp;&nbsp;&nbsp;Altitude:</p>
+			<input readonly autocomplete="off" class="pos-alt-m flex-1 min-w-0">
+			<p>m</p>
+			<input readonly autocomplete="off" class="pos-alt-ft flex-1 min-w-0">
+			<p>ft</p>
+		</div>
+		<div class="flex gap-x-2 font-mono">
+			<p class="text-right">Max&nbsp;Altitude:</p>
+			<input radonly autocomplete="off" class="pos-maxalt-m flex-1 min-w-0">
+			<p>m</p>
+			<input readonly autocomplete="off" class="pos-maxalt-ft flex-1 min-w-0">
+			<p>ft</p>
 		</div>
 	</div>
 
