@@ -7,7 +7,7 @@
  * Functions and constants should be prefixed with "interface" 
 */
 
-/// DYNAMIC MODULE SWITCHING CODE
+// DYNAMIC MODULE SWITCHING CODE
 function interfaceSelectModule(selected) {
     document.querySelectorAll(".module").forEach((elem) => {
         if (elem.classList.contains(selected)) {
@@ -55,6 +55,17 @@ window.addEventListener("load", function () {
         });
     });
 });
+
+
+// UNIT CONVERSION FUNCTIONS
+function metresToFeet(metres) {
+    return metres * 3.28084;
+}
+
+function feetToMetres(feet) {
+    return feet / 3.28084;
+}
+
 
 // FUNCTIONS FOR UPDATING VALUES IN THE INTERFACE
 function interfaceSet(item, value) {
@@ -106,11 +117,15 @@ function interfaceUpdateAvionics(data) {
     }
 }
 
-function interfaceUpdatePosition() {
-    // Update data in position module
-    interfaceSet("pos-alt-m", api_latest.data.altitude);
+function interfaceUpdatePosition(data) {
+    /// Update data in position module
+    // Altitude
+    if (data.altitude) {
+        interfaceSet("pos-alt-m", data.altitude);
+        interfaceSet("pos-alt-ft", Math.round(metresToFeet(data.altitude)));
+    }
+    
     /*
-    interfaceSet("pos-alt-ft", api_latest.data.altitude);
     interfaceSet("pos-maxalt-m", api_latest.data.altitude);
     interfaceSet("pos-maxalt-ft", api_latest.data.altitude);
     interfaceSet("pos-gps-lat", api_latest.data.GPSLatitude);
