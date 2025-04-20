@@ -1,29 +1,13 @@
 syntax = "proto3";
+import "FlightState.proto";
+import "AVStateFlags.proto";
 
 package payload;
 
 message AV_TO_GCS_DATA_2 {
-    // Note 3
-    enum FlightState {
-        PRE_FLIGHT_NO_FLIGHT_READY = 0;
-        PRE_FLIGHT_FLIGHT_READY = 1;
-        LAUNCH = 2;
-        COAST = 3;
-        APOGEE = 4;
-        DECENT = 5;
-        LANDED = 6;
-        OH_NO = 7; // I'm going with the data sheet ong
-    }
+    optional common.FlightState flightState = 1;
+    optional common.AVStateFlags state_flags = 2;
 
-    optional FlightState flightState = 1;
-
-    // Rest of states. Note 3
-    optional bool dual_board_connectivity_state_flag = 2;
-    optional bool recovery_checks_complete_and_flight_ready = 3;
-    optional bool GPS_fix_flag = 4;
-    optional bool payload_connection_flag = 5;
-    optional bool camera_controller_connection_flag = 6;
-
-    optional string GPS_latitude = 7;
-    optional string GPS_longitude = 8;
+    optional string GPS_latitude = 3;
+    optional string GPS_longitude = 4;
 }

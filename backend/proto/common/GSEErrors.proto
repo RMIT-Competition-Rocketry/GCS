@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package common;
+
+message GSEErrors {
+    // Note 10 
+    optional bool ignition_error = 1;
+    optional bool relay_3_error = 2;
+    optional bool relay_2_error = 3;
+    optional bool relay_1_error = 4;
+    optional bool thermocouple_4_error = 5;
+    optional bool thermocouple_3_error = 6;
+    optional bool thermocouple_2_error = 7;
+    optional bool thermocouple_1_error = 8;
+
+    // Note 11
+    optional bool load_cell_4_error = 9;
+    optional bool load_cell_3_error = 10;
+    optional bool load_cell_2_error = 11;
+    optional bool load_cell_1_error = 12;
+    optional bool transducer_4_error = 13;
+    optional bool transducer_3_error = 14;
+    optional bool transducer_2_error = 15;
+    optional bool transducer_1_error = 16;
+}
+

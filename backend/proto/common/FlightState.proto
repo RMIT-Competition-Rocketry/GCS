@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package common;
+
+enum FlightState {
+        PRE_FLIGHT_NO_FLIGHT_READY = 0;
+        PRE_FLIGHT_FLIGHT_READY = 1;
+        LAUNCH = 2;
+        COAST = 3;
+        APOGEE = 4;
+        DECENT = 5;
+        LANDED = 6;
+        OH_NO = 7; // I'm going with the data sheet ong
+    }
