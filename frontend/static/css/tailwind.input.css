@@ -88,19 +88,7 @@ and only modify it if you know what you're doing :)
     }
 
     .indicator-boolean {
-        @apply bg-zinc-900 rounded-sm flex justify-between py-0.5 px-2 items-center;
-
-        & span:first-child {
-            @apply text-white;
-        }
-
-        & span:last-child {
-            @apply font-mono text-red-500 font-bold;
-        }
-
-        & span:last-child.true {
-            @apply font-mono text-green-400 font-bold text-lg;
-        }
+        @apply w-10 h-10 rounded-full border border-hive mx-auto;
     }
 
     .continuity-check-button {

@@ -1,214 +1,87 @@
 <!-- Avionics module -->
 <!-- Includes acceleration, gyro, velocity -->
-<div class="w-full h-full font-mono">
-	<p class="text-center">[ MODULE // AVIONICS ]</p>
+<div class="w-full h-full flex flex-col gap-2">
+	<!-- Avionics indicators -->
+	<div class="border border-hive grid grid-cols-6 text-center font-mono p-2 gap-2">
+		<div>
+			<div class="indicator-boolean"></div>
+			<p>GPS Fix</p>
+		</div>
+		<div>
+			<div class="indicator-boolean"></div>
+			<p>Dual Board</p>
+		</div>
+		<div>
+			<div class="indicator-boolean"></div>
+			<p>Pyro 1</p>
+		</div>
+		<div>
+			<div class="indicator-boolean"></div>
+			<p>Pyro 2</p>
+		</div>
+		<div>
+			<div class="indicator-boolean"></div>
+			<p>Pyro 3</p>
+		</div>
+		<div>
+			<div class="indicator-boolean"></div>
+			<p>Pyro 4</p>
+		</div>
+	</div>
+
+	<!-- Accel and gyro -->
+	<div class="grid grid-cols-2 grow gap-2">
+		<!-- Acceleration -->
+		<div class="border border-hive p-2 flex flex-col">
+			<p class="font-mono">Acceleration (<i>g</i>)</p>
+			<div class="border border-hive bg-hive/20 flex-1">
+				<p class="font-mono text-hive text-center">[ accel graph ]</p>
+			</div>
+			<div class="grid grid-cols-3 gap-2">
+				<p class="flex gap-1">
+					<label>X:</label>
+					<input readonly autocomplete="off" class="av-accel-x flex-1 min-w-0">
+				</p>
+				<p class="flex gap-1">
+					<label>Y:</label>
+					<input readonly autocomplete="off" class="av-accel-y flex-1 min-w-0">
+				</p>
+				<p class="flex gap-1">
+					<label>Z:</label>
+					<input readonly autocomplete="off" class="av-accel-z flex-1 min-w-0">
+				</p>
+			</div>
+		</div>
+
+		<!-- Gyro -->
+		<div class="border border-hive p-2 flex flex-col">
+			<p class="font-mono">Gyro (deg/s)</p>
+			<div class="border border-hive bg-hive/20 flex-1">
+				<p class="font-mono text-hive text-center">[ gyro graph ]</p>
+			</div>
+			<div class="grid grid-cols-3 gap-2">
+				<p class="flex gap-1">
+					<label>X:</label>
+					<input readonly autocomplete="off" class="av-gyro-x flex-1 min-w-0">
+				</p>
+				<p class="flex gap-1">
+					<label>Y:</label>
+					<input readonly autocomplete="off" class="av-gyro-y flex-1 min-w-0">
+				</p>
+				<p class="flex gap-1">
+					<label>Z:</label>
+					<input readonly autocomplete="off" class="av-gyro-z flex-1 min-w-0">
+				</p>
+			</div>
+		</div>
+	</div>
 	
 	<!-- Velocity -->
-	<p class= "text-center">Velocity</p>
-	<p>Line graph</p>
-	<table class="table-fixed w-full">
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Horizontal
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-vel-h">
-			</td>
-			<td>
-				m/s
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Vertical
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-vel-v">
-			</td>
-			<td>
-				m/s
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Total
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-vel-total">
-			</td>
-			<td>
-				m/s
-			</td>
-		</tr>
-	</table>
-
-	<hr>
-
-	<!-- Acceleration -->
-	<p class="text-center">Acceleration</p>
-	<table class="table-fixed w-full">
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Accel X low
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-accel-x-lo">
-			</td>
-			<td>
-				m/s<sup>2</sup>
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Accel Y low
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-accel-y-lo">
-			</td>
-			<td>
-				m/s<sup>2</sup>
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Accel Z low
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-accel-z-lo">
-			</td>
-			<td>
-				m/s<sup>2</sup>
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Accel X high
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-accel-x-hi">
-			</td>
-			<td>
-				m/s<sup>2</sup>
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Accel Y high
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-accel-y-hi">
-			</td>
-			<td>
-				m/s<sup>2</sup>
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Accel Z high
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-accel-z-hi">
-			</td>
-			<td>
-				m/s<sup>2</sup>
-			</td>
-		</tr>
-	</table>
-
-	<hr>
-
-	<!-- Gyro -->
-	<p class="text-center text-[#4DFFC4]"><b>Gyro</b></p>
-	<table class="table-fixed w-full">
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Gyro X
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-gyro-x">
-			</td>
-			<td>
-				&deg;/s
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Gyro Y
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-gyro-y">
-			</td>
-			<td>
-				&deg;/s
-			</td>
-		</tr>
-		<tr>
-			<td class="text-[#4DFFC4]">
-				Gyro Z
-			</td>
-			<td>
-				<input readonly autocomplete="off" class="av-gyro-z">
-			</td>
-			<td>
-				&deg;/s
-			</td>
-		</tr>
-	</table>
+	<div class="border border-hive p-2 flex flex-col grow">
+		<p class="font-mono">Velocity (m/s)</p>
+		<div class="border border-hive bg-hive/20 flex-1">
+			<p class="font-mono text-hive text-center">[ velocity graph ]</p>
+		</div>
+		<p>Velocity: <input readonly autocomplete="off" class="av-vel-v"></p>
+	</div>
 </div>
-<!--
-<div class="col-span-4 p-2"> 
-	<div class="flex flex-row w-full justify-evenly font-mono text-[14px] p-2">
-
-		<div> 
-			<span class="text-[#4DFFC4]">Accel. X low</span> <br>
-			<span class="text-white">b m/s²</span>
-		</div>
-
-		<div>
-			<span class="text-[#4DFFC4]">Accel. X high</span> <br>
-			<span class="text-white">e m/s²</span> 
-		</div>
-
-	</div>
-
-	<div class="flex flex-row w-full justify-evenly font-mono text-[14px] p-2">
-
-		<div>
-			<span class="text-[#4DFFC4]">Accel. Y low</span> <br>
-			<span class="text-white">a m/s²</span> 
-		</div>
-
-		<div>
-			<span class="text-[#4DFFC4]">Accel. Y high</span> <br>
-			<span class="text-white">d m/s²</span> <br>
-		</div>
-
-	</div>
-
-	<div class="flex flex-row w-full justify-evenly font-mono text-[14px] p-2">
-
-		<div>
-			<span class="text-[#4DFFC4]">Accel. Z low</span> <br>
-			<span class="text-red-600">ERROR</span>
-		</div>
-
-		<div>
-			<span class="text-[#4DFFC4]">Accel. Z high</span> <br>
-			<span class="text-white">c m/s²</span>
-		</div>	
-
-	</div>
-
-	<div class="w-full text-center font-mono text-[14px] p-2">
-		<div class="p-2">
-		  <span class="text-[#4DFFC4]">Gyro</span>
-		</div>
-		<div class="flex justify-evenly  space-x-8">
-		  <p class="text-white">X: {{Value}}°/s</p>
-		  <p class="text-white">Y: {{Value}}°/s</p>
-		  <p class="text-white">Z: {{Value}}°/s</p>
-		</div>
-	  </div>
-
-</div>
--->

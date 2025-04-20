@@ -70,5 +70,3 @@ function interface_updateValue(item, value) {
         });
     }
 }
-
-// interface_updateValue("av-vel-h", 5.5)
