@@ -16,9 +16,9 @@ The GCS software is run by using a Python based CLI with a C++ server component.
 | Docker | | ❌ | ✅ | ✅ |
 | Socat | Latest? | ❌ | 🐳 | ✅ |
 | Cmake | >=`3.31` | ❌ | 🐳 | 🟨 |
-| g++ or clang++ | Latest? C++ >= `20` | ❌ | 🐳 | 🟨 |
+| g++ or clang++ | Untested | ❌ | 🐳 | 🟨 |
 | [ZeroMQ](https://zeromq.org/download/) | `4.3.x` | ❌? | 🐳 | 🟨 |
-| cppzmq | `4.10.0` | ❌? | 🐳 | 🟨 |
+| cppzmq | `4.10.x` | ❌? | 🐳 | 🟨 |
 | Abseil libraries | `20250127.x` | ❌? | 🐳 | 🟨 |
 | Protobuf* (inc. `proto` compiler & `libprotodev`) | `30.x` | ✅ (_needed for gencode_) | 🐳 | ✅ |
 | qrencode | Latest? | ✅ | 🐳 | ✅ |
