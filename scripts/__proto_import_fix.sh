@@ -6,6 +6,8 @@
 
 GENERATED_DIR="./backend/proto/generated"
 
+# Fix imports to use the correct module path
+
 find "$GENERATED_DIR" -type f -name "*.py" -exec sed -i.bak \
     -e 's/import FlightState_pb2 as FlightState__pb2/import backend.proto.generated.FlightState_pb2 as FlightState__pb2/g' \
     -e 's/import AVStateFlags_pb2 as AVStateFlags__pb2/import backend.proto.generated.AVStateFlags_pb2 as AVStateFlags__pb2/g' \
