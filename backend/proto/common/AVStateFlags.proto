@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package common;
+
+message AVStateFlags {
+    // Note 3
+    optional bool dual_board_connectivity_state_flag = 1;
+    optional bool recovery_checks_complete_and_flight_ready = 2;
+    optional bool GPS_fix_flag = 3;
+    optional bool payload_connection_flag = 4;
+    optional bool camera_controller_connection_flag = 5;
+}
+

@@ -140,9 +140,9 @@ jobs:
         mkdir -p "$HOME/abseil"
         git clone https://github.com/abseil/abseil-cpp.git "$HOME/abseil"
         cd "$HOME/abseil"
-        git checkout 20250127.1
+        git checkout 20250127.0
         mkdir build && cd build
-        cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" ..
+        cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX="$HOME/abseil-install" ..
         make install
         echo "CMAKE_PREFIX_PATH=$HOME/abseil-install" >> "$GITHUB_ENV"
 
@@ -283,7 +283,7 @@ jobs:
 
     # Set executable permissions for tests
     - name: Set executable permissions
-      run: chmod +x build/runTests
+      run: chmod +x build/backend/tests/runTests
 
     - name: Run Tests
       working-directory: ${{ github.workspace }}/build

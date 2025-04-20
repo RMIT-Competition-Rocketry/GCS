@@ -5,8 +5,7 @@
 
 #include "ByteParser.hpp"
 #include "GCS_TO_AV_STATE_CMD.pb.h"
-
-#define SET_PROTO_FIELD(proto, field) proto.set_##field(field())
+#include "ProtoHelper.hpp"
 
 class GCS_TO_AV_STATE_CMD {
  public:

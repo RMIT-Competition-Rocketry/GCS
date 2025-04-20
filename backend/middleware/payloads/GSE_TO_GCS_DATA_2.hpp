@@ -5,8 +5,7 @@
 
 #include "ByteParser.hpp"
 #include "GSE_TO_GCS_DATA_2.pb.h"
-
-#define SET_PROTO_FIELD(proto, field) proto.set_##field(field())
+#include "ProtoHelper.hpp"
 
 class GSE_TO_GCS_DATA_2 {
  public:
@@ -122,14 +121,16 @@ class GSE_TO_GCS_DATA_2 {
     payload::GSE_TO_GCS_DATA_2 proto_data;
 
     // Use the macro for simple fields with same name
-    SET_PROTO_FIELD(proto_data, manual_purge_activated);
-    SET_PROTO_FIELD(proto_data, o2_fill_activated);
-    SET_PROTO_FIELD(proto_data, selector_switch_neutral_position);
-    SET_PROTO_FIELD(proto_data, n20_fill_activated);
-    SET_PROTO_FIELD(proto_data, ignition_fired);
-    SET_PROTO_FIELD(proto_data, ignition_selected);
-    SET_PROTO_FIELD(proto_data, gas_fill_selected);
-    SET_PROTO_FIELD(proto_data, system_activated);
+    common::GSEStateFlags *gse_state_flags = new common::GSEStateFlags();
+    SET_SUB_PROTO_FIELD(gse_state_flags, manual_purge_activated);
+    SET_SUB_PROTO_FIELD(gse_state_flags, o2_fill_activated);
+    SET_SUB_PROTO_FIELD(gse_state_flags, selector_switch_neutral_position);
+    SET_SUB_PROTO_FIELD(gse_state_flags, n20_fill_activated);
+    SET_SUB_PROTO_FIELD(gse_state_flags, ignition_fired);
+    SET_SUB_PROTO_FIELD(gse_state_flags, ignition_selected);
+    SET_SUB_PROTO_FIELD(gse_state_flags, gas_fill_selected);
+    SET_SUB_PROTO_FIELD(gse_state_flags, system_activated);
+    proto_data.set_allocated_state_flags(gse_state_flags);
 
     SET_PROTO_FIELD(proto_data, internal_temp);
     SET_PROTO_FIELD(proto_data, wind_speed);
@@ -140,23 +141,24 @@ class GSE_TO_GCS_DATA_2 {
     SET_PROTO_FIELD(proto_data, additional_current_input_1);
     SET_PROTO_FIELD(proto_data, additional_current_input_2);
 
-    SET_PROTO_FIELD(proto_data, ignition_error);
-    SET_PROTO_FIELD(proto_data, relay_3_error);
-    SET_PROTO_FIELD(proto_data, relay_2_error);
-    SET_PROTO_FIELD(proto_data, relay_1_error);
-    SET_PROTO_FIELD(proto_data, thermocouple_4_error);
-    SET_PROTO_FIELD(proto_data, thermocouple_3_error);
-    SET_PROTO_FIELD(proto_data, thermocouple_2_error);
-    SET_PROTO_FIELD(proto_data, thermocouple_1_error);
-
-    SET_PROTO_FIELD(proto_data, load_cell_4_error);
-    SET_PROTO_FIELD(proto_data, load_cell_3_error);
-    SET_PROTO_FIELD(proto_data, load_cell_2_error);
-    SET_PROTO_FIELD(proto_data, load_cell_1_error);
-    SET_PROTO_FIELD(proto_data, transducer_4_error);
-    SET_PROTO_FIELD(proto_data, transducer_3_error);
-    SET_PROTO_FIELD(proto_data, transducer_2_error);
-    SET_PROTO_FIELD(proto_data, transducer_1_error);
+    common::GSEErrors *gse_errors = new common::GSEErrors();
+    SET_SUB_PROTO_FIELD(gse_errors, ignition_error);
+    SET_SUB_PROTO_FIELD(gse_errors, relay_3_error);
+    SET_SUB_PROTO_FIELD(gse_errors, relay_2_error);
+    SET_SUB_PROTO_FIELD(gse_errors, relay_1_error);
+    SET_SUB_PROTO_FIELD(gse_errors, thermocouple_4_error);
+    SET_SUB_PROTO_FIELD(gse_errors, thermocouple_3_error);
+    SET_SUB_PROTO_FIELD(gse_errors, thermocouple_2_error);
+    SET_SUB_PROTO_FIELD(gse_errors, thermocouple_1_error);
+    SET_SUB_PROTO_FIELD(gse_errors, load_cell_4_error);
+    SET_SUB_PROTO_FIELD(gse_errors, load_cell_3_error);
+    SET_SUB_PROTO_FIELD(gse_errors, load_cell_2_error);
+    SET_SUB_PROTO_FIELD(gse_errors, load_cell_1_error);
+    SET_SUB_PROTO_FIELD(gse_errors, transducer_4_error);
+    SET_SUB_PROTO_FIELD(gse_errors, transducer_3_error);
+    SET_SUB_PROTO_FIELD(gse_errors, transducer_2_error);
+    SET_SUB_PROTO_FIELD(gse_errors, transducer_1_error);
+    proto_data.set_allocated_error_flags(gse_errors);
 
     return proto_data;
   }
