@@ -46,6 +46,7 @@ def get_simulated_flight_data() -> pd.DataFrame:
 
         open(csv_export_name, "w").close()
         flight_object = run_flight()
+        flight_object.all_info()
         # w means the angular velocity
         # a is acceleration
         flight_object.export_data(

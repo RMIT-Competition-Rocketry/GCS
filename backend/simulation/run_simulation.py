@@ -1,6 +1,7 @@
 from rocket_sim import flight_simulation
 from backend.tools.device_emulator import AVtoGCSData1, MockPacket
 from itertools import count
+import math
 import sys
 import pandas as pd
 import time
@@ -43,15 +44,16 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        ACCEL_LOW_X=int(2048*ax),
+        ACCEL_LOW_X=int(ax / 9.81 * 2048),
         ACCEL_LOW_Y=int(ay / 9.81 * 2048),
         ACCEL_LOW_Z=int(az / 9.81 * 2048),
         ACCEL_HIGH_X=int(ax / 9.81 * -1048),
         ACCEL_HIGH_Y=int(ay / 9.81 * -1048),
-        ACCEL_HIGH_Z=int(ay / 9.81 * 1048),
-        GYRO_X=int(w1/0.00875),
-        GYRO_Y=int(w2/0.00875),
-        GYRO_Z=int(w3/0.00875),
+        ACCEL_HIGH_Z=int(az / 9.81 * 1048),
+        GYRO_X=int(math.degrees(w1)/0.00875),
+        GYRO_Y=int(math.degrees(w2)/0.00875),
+        GYRO_Z=int(math.degrees(w3)/0.00875),
+
         ALTITUDE=altitude,
         VELOCITY=speed,
         APOGEE_PRIMARY_TEST_COMPETE=True,
