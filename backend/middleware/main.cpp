@@ -16,6 +16,7 @@
 #include "AV_TO_GCS_DATA_2.pb.h"
 #include "AV_TO_GCS_DATA_3.hpp"
 #include "AV_TO_GCS_DATA_3.pb.h"
+#include "FlightState.pb.h"
 #include "GCS_TO_AV_STATE_CMD.hpp"
 #include "GCS_TO_GSE_STATE_CMD.hpp"
 #include "GSE_TO_GCS_DATA_1.hpp"
@@ -67,7 +68,7 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
                                            std::vector<uint8_t> &buffer,
                                            zmq::socket_t &pub_socket) {
   // SIZE does not include ID byte that's already been read
-  if (BUFFER_BYTE_COUNT == PacketType::SIZE + 1) {
+  if (BUFFER_BYTE_COUNT >= PacketType::SIZE + 1) {
     try {
       // Construct the packet object (skipping the ID byte)
       std::unique_ptr<PacketType> payload =
@@ -111,6 +112,14 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
   return nullptr;
 }
 
+void post_process_av(Sequence &sequence,
+                     const common::FlightState FLIGHT_STATE) {
+  sequence.received_av();
+  if (FLIGHT_STATE == common::FlightState::LAUNCH) {
+    sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
+  }
+}
+
 void input_read_loop(std::shared_ptr<LoraInterface> interface,
                      zmq::socket_t &pub_socket, Sequence &sequence) {
   set_thread_name("input_read_loop");
@@ -137,12 +146,7 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
           case AV_TO_GCS_DATA_1::ID: {  // 3
             std::unique_ptr<AV_TO_GCS_DATA_1> proto_msg =
                 process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
-            sequence.received_av();
-            if (proto_msg->flight_state() ==
-                payload::AV_TO_GCS_DATA_1_FlightState::
-                    AV_TO_GCS_DATA_1_FlightState_LAUNCH) {
-              sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
-            }
+            post_process_av(sequence, proto_msg->flight_state());
             if (proto_msg->broadcast_flag()) {
               sequence.current_state = Sequence::LOOP_AV_DATA_TRANSMISSION_BURN;
             }
@@ -151,22 +155,12 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
           case AV_TO_GCS_DATA_2::ID: {  // 4
             std::unique_ptr<AV_TO_GCS_DATA_2> proto_msg =
                 process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
-            sequence.received_av();
-            if (proto_msg->flight_state() ==
-                payload::AV_TO_GCS_DATA_2_FlightState::
-                    AV_TO_GCS_DATA_2_FlightState_LAUNCH) {
-              sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
-            }
+            post_process_av(sequence, proto_msg->flight_state());
           } break;
           case AV_TO_GCS_DATA_3::ID: {  // 5
             std::unique_ptr<AV_TO_GCS_DATA_3> proto_msg =
                 process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
-            sequence.received_av();
-            if (proto_msg->flight_state() ==
-                payload::AV_TO_GCS_DATA_3_FlightState::
-                    AV_TO_GCS_DATA_3_FlightState_LAUNCH) {
-              sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
-            }
+            post_process_av(sequence, proto_msg->flight_state());
             break;
           }
           // Electronically impossible to recieve own packet

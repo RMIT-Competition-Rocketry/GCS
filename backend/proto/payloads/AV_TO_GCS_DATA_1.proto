@@ -1,50 +1,37 @@
 syntax = "proto3";
+import "FlightState.proto";
+import "AVStateFlags.proto";
 
 package payload;
 
 message AV_TO_GCS_DATA_1 {
     // Note 3
-    enum FlightState {
-        PRE_FLIGHT_NO_FLIGHT_READY = 0;
-        PRE_FLIGHT_FLIGHT_READY = 1;
-        LAUNCH = 2;
-        COAST = 3;
-        APOGEE = 4;
-        DECENT = 5;
-        LANDED = 6;
-        OH_NO = 7; // I'm going with the data sheet ong
-    }
+    optional common.FlightState flightState = 1;
 
-    optional FlightState flightState = 1;
+    // Rest of states. 
+    optional common.AVStateFlags state_flags = 2;
 
-    // Rest of states. Note 3
-    optional bool dual_board_connectivity_state_flag = 2;
-    optional bool recovery_checks_complete_and_flight_ready = 3;
-    optional bool GPS_fix_flag = 4;
-    optional bool payload_connection_flag = 5;
-    optional bool camera_controller_connection_flag = 6;
+    optional float accel_low_x = 3;
+    optional float accel_low_y = 4;
+    optional float accel_low_z = 5;
+    optional float accel_high_x = 6;
+    optional float accel_high_y = 7;
+    optional float accel_high_z = 8;
+    optional float gyro_x = 9;
+    optional float gyro_y = 10;
+    optional float gyro_z = 11;
+    optional float altitude = 12;
+    optional float velocity = 13;
 
-    optional float accel_low_x = 7;
-    optional float accel_low_y = 8;
-    optional float accel_low_z = 9;
-    optional float accel_high_x = 10;
-    optional float accel_high_y = 11;
-    optional float accel_high_z = 12;
-    optional float gyro_x = 13;
-    optional float gyro_y = 14;
-    optional float gyro_z = 15;
-    optional float altitude = 16;
-    optional float velocity = 17;
+    optional bool apogee_primary_test_complete = 14; // Note 4
+    optional bool apogee_secondary_test_complete = 15; // Note 4
+    optional bool apogee_primary_test_results = 16; // True means continuity. (Note 4)
+    optional bool apogee_secondary_test_results = 17; // True means continuity. (Note 4)
 
-    optional bool apogee_primary_test_complete = 18; // Note 4
-    optional bool apogee_secondary_test_complete = 19; // Note 4
-    optional bool apogee_primary_test_results = 20; // True means continuity. (Note 4)
-    optional bool apogee_secondary_test_results = 21; // True means continuity. (Note 4)
+    optional bool main_primary_test_complete = 18; // Note 5
+    optional bool main_secondary_test_complete = 19; // Note 5
+    optional bool main_primary_test_results = 20; // Note 5
+    optional bool main_secondary_test_results = 21; // Note 5
 
-    optional bool main_primary_test_complete = 22; // Note 5
-    optional bool main_secondary_test_complete = 23; // Note 5
-    optional bool main_primary_test_results = 24; // Note 5
-    optional bool main_secondary_test_results = 25; // Note 5
-
-    optional bool broadcast_flag = 26; // Note 6
+    optional bool broadcast_flag = 22; // Note 6
 }

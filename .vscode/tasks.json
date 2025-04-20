@@ -41,7 +41,7 @@
         {
             "label": "middleware build and test",
             "type": "shell",
-            "command": "bash scripts/test_manual_cpp.sh", // VERBOSE = 1
+            "command": "bash scripts/test_manual_cpp.sh",
             "group": {
                 "kind": "build",
                 "isDefault": false
