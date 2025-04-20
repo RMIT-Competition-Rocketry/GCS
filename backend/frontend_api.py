@@ -12,9 +12,31 @@ import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 import backend.process_logging as slogger
+from mach import Mach
 
 # Global flag for shutdown control
 shutdown_event = asyncio.Event()
+
+# NOTE. if this starts getting big, consider just adding things from this into
+# the backend server output trhough protobuf anyway
+
+
+def append_data(data: dict, PACKET_ID: int) -> dict:
+    """Add data to the websocket structure that frontend uses
+
+    Args:
+        data (dict): protobuf data as a dict
+        PACKET_ID (int): packet ID from the protobuf message
+
+    Returns:
+        dict: updated output
+    """
+    match PACKET_ID:
+        case 3:
+            data["mach_speed"] = Mach.mach_from_alt_estimate(
+                VELOCITY_M=data["velocity"],
+                ALTITUDE_M=data["altitude"])
+    return data
 
 
 async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
@@ -46,10 +68,11 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                 if packet_id in packet_handlers:
                     proto_object = packet_handlers[packet_id]()
                     proto_object.ParseFromString(message)
-                    output = MessageToDict(proto_object)
+                    data = MessageToDict(proto_object)
+                    data = append_data(data, packet_id)
                     output = {
                         "id": packet_id,
-                        "data": output
+                        "data": data
                     }
                     await websocket.send(json.dumps(output))
                 else:
