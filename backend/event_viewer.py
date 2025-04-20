@@ -393,6 +393,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
         super().__init__(0x03, None)
         self._supersonic = False
         self._max_velocity = 0
+        self._max_velocity_updated = False
         self._last_broadcast_value = False
 
     def _process_AV_tests(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
@@ -570,11 +571,14 @@ class AV_TO_GCS_DATA_1(AVPacket):
             f"{alt_color}Altitude: {ALT_M:<8,.0f}m {ALT_FT:<9,.0f}ft{ansci.RESET}")
         slogger.info(
             f"{vel_color}Velocity: {VELOCITY_M:<8,.0f}m/s{ansci.RESET}")
-        # Yeah technically mach is not proportionate to velcoty
-        if (VELOCITY_M > self._max_velocity):
-            self._max_velocity = VELOCITY_M
+
+        if self._max_velocity_updated:
+            MACH_SPEED = Mach.mach_from_alt_estimate(
+                PROTO_DATA.velocity, PROTO_DATA.altitude)
             slogger.info(
-                f"New max velocity: {Mach.mach_from_alt_estimate(VELOCITY_M,ALT_M):<3.3f} mach")
+                f"New max velocity: {MACH_SPEED:<3.3f} mach")
+            self._max_velocity_updated = False
+
         self._last_information_display_time = time.monotonic()
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
@@ -592,6 +596,11 @@ class AV_TO_GCS_DATA_1(AVPacket):
         elif self._supersonic and MACH_SPEED < 1:
             slogger.info("Supersonic flight ended")
             self._supersonic = False
+
+        # Yeah technically mach is not proportionate to velocity. ik.
+        if (PROTO_DATA.velocity > self._max_velocity):
+            self._max_velocity = PROTO_DATA.velocity
+            self._max_velocity_updated = True
 
         # Regular infomation updates
         if time.monotonic() - self._last_information_display_time > AVPacket._information_timeout_s:
