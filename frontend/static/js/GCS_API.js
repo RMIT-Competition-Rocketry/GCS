@@ -29,9 +29,12 @@ function connectSocket() {
 				interface_updateValue("av-accel-y-hi", api_latest.data.accelHighY);
 				interface_updateValue("av-accel-z-hi", api_latest.data.accelHighZ);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 				interface_updateValue("av-gyro-x", api_latest.data.gyroX);
 				interface_updateValue("av-gyro-y", api_latest.data.gyroY);
 				interface_updateValue("av-gyro-z", api_latest.data.gyroZ);
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 			}
