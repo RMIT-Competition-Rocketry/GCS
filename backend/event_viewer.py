@@ -252,7 +252,7 @@ class Packet(ABC):
         if not self.__class__._setup == True:
             raise Exception("Error: Logging not set up")
 
-    def _log_to_csv(self, data: List[str]):
+    def _log_to_csv(self, PROTO_DATA: List[str]):
         """Log data to the respective CSV file
 
         Args:
@@ -261,10 +261,29 @@ class Packet(ABC):
         Raises:
             Exception: Incorrect file name
         """
+        def extract_proto_values(proto: PbMessage) -> List[Union[str, int, float, bool]]:
+            values = []
+            for field, value in proto.ListFields():
+                if field.label == field.LABEL_REPEATED:
+                    # Handle repeated fields
+                    for item in value:
+                        if field.type == field.TYPE_MESSAGE:
+                            values.extend(
+                                extract_proto_values(item))  # Recurse
+                        else:
+                            values.append(item)
+                else:
+                    if field.type == field.TYPE_MESSAGE:
+                        values.extend(extract_proto_values(value))  # Recurse
+                    else:
+                        values.append(value)
+            return values
 
         if not self.__class__._LOGGING_ENABLED:
             # slogger.error("Logging to csv disabled but attempted anyway")
             return
+
+        data = extract_proto_values(PROTO_DATA)
 
         if self._packet_name not in self.__class__._CSV_FILES_WITH_HEADERS.keys():
             raise Exception(
@@ -290,9 +309,8 @@ class Packet(ABC):
         # `PROTO_DATA.ListFields()[0][1]` returns the value
         # This will just assume it's all in order of the csv headers for now.
         # Git issue #26
-        data_as_string = [x[1] for x in PROTO_DATA.ListFields()]
         # `Logging enabled` check is internal to the csv function
-        self._log_to_csv(data_as_string)
+        self._log_to_csv(PROTO_DATA)
         # Please call super on this and add printing events afterwards
 
 
