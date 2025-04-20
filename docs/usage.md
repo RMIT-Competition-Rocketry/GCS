@@ -20,12 +20,6 @@ Commands:
   simulation  Start software in simulation mode
 ```
 
-> [!IMPORTANT]
-> Before running in release mode (`$ rocket run`), if you have not generated protobuf files previously you need to run `$ bash scripts/proto_manual.sh`.
-> 
-> You can generate release binaries from source with `$ bash scripts/release.sh` or download from a github release 
-
-
 > [!NOTE] 
 > The current *suggested* frontend dev command is as follows
 > ```
@@ -35,6 +29,11 @@ Commands:
 ## Using release binaries
 
 If you plan to use a pre-compiled binary, please place it in the root directory of the project.
+
+
+> [!IMPORTANT]
+> Before running in release mode (`$ rocket run`), if you have not generated protobuf files previously you need to run `$ bash scripts/proto_manual.sh`. These are not included in the release binary
+
 
 ## Usage for developers
 
@@ -100,7 +99,7 @@ Options:
   --help  Show this message and exit.
 ```
 
-1. If you have not downloaded a release binary, you can create one with `$ bash scripts/release.sh`. Do not build from a version not on main branch
+1. If you have not downloaded a release binary, you can create one with `$ bash scripts/release.sh`. Do not build from a version not on main branch. You will also need to generate the Protobuf files with `$ bash scripts/proto_manual.sh`
 2. To start the software from the project directory, run the command `$ rocket run`
 3. To stop the software, enter <kbd>ctrl</kbd> + <kbd>c</kbd> on the pendant emulator window (if it has started) then in the other window after the emulator window has shut down. 
  
