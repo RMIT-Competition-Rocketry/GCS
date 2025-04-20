@@ -10,6 +10,8 @@ backend/proto/generated/*
 # Test binary
 backend/tests/runTests
 
+backend/simulation/cache/
+
 # Pi puts this library in the root directory for some reason. come back
 libmiddleware_lib.a
 

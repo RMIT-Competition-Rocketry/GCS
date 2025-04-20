@@ -1,9 +1,10 @@
 from rocket_sim import flight_simulation
 from backend.tools.device_emulator import AVtoGCSData1, MockPacket
 from itertools import count
+import math
 import sys
-import heapq
 import pandas as pd
+import time
 import backend.process_logging as slogger
 import config.config as config
 import configparser
@@ -43,15 +44,16 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        ACCEL_LOW_X=int(2048*ax),
+        ACCEL_LOW_X=int(ax / 9.81 * 2048),
         ACCEL_LOW_Y=int(ay / 9.81 * 2048),
         ACCEL_LOW_Z=int(az / 9.81 * 2048),
         ACCEL_HIGH_X=int(ax / 9.81 * -1048),
         ACCEL_HIGH_Y=int(ay / 9.81 * -1048),
-        ACCEL_HIGH_Z=int(ay / 9.81 * 1048),
-        GYRO_X=int(w1/0.00875),
-        GYRO_Y=int(w2/0.00875),
-        GYRO_Z=int(w3/0.00875),
+        ACCEL_HIGH_Z=int(az / 9.81 * 1048),
+        GYRO_X=int(math.degrees(w1)/0.00875),
+        GYRO_Y=int(math.degrees(w2)/0.00875),
+        GYRO_Z=int(math.degrees(w3)/0.00875),
+
         ALTITUDE=altitude,
         VELOCITY=speed,
         APOGEE_PRIMARY_TEST_COMPETE=True,
@@ -64,80 +66,111 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         MAIN_SECONDARY_TEST_RESULTS=False,
         MOVE_TO_BROADCAST=True
     )
+    # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
+    time.sleep(0.01)  # Allow the buffer to update
     packet.write_payload()
 
 
-def isImportantPacket(current_row, last_row):
+def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
     """
-        Takes in two dataframe rows, this function simply determines if the 
-        flight state is different indicating that its an important packet
+        Returns a numerical score on how 'important' the packet is
+        We don't want to drop these packets 
+
+        Args:
+            PACKET (type): Current packet for observation
+            PREVIOUS_WINDOW_TRAILER (type): Last packet in previous window
     """
-    # If its empty then the current row must be a new state ie important
-    if last_row is None:
-        return True
-    
-    if current_row["flight_state"] != last_row["flight_state"]:
-        return True
-    
-    return False
+    importance = 0
 
-    # @TODO More important calculations
+    last_window_state = PREVIOUS_WINDOW_TRAILER["flight_state"]
+    current_packet_state = PACKET["flight_state"]
+
+    # Increase score if this packet has a different flight state than last window
+    if last_window_state is None or last_window_state != current_packet_state:
+        importance += 1
+
+    return importance
 
 
-def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
+def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
+    """Partition flight data into segments of TIMEOUT_INTERVAL
+
+    Args:
+        FLIGHT_DATA (pd.DataFrame): Flight data with physics values. Sorted by time please
+
+    Returns:
+        not sure yet. A list of something
+    """
+    windows = []
+    current_window = []
+    group_start_time = None
+    trailer_data = FLIGHT_DATA.iloc[0]  # The last packet in the last window
+
+    for _, row in FLIGHT_DATA.iterrows():
+        row_time_ms = row['# Time (s)'] * MS_PER_SECOND
+        importance = packet_importance(row, trailer_data)
+
+        if not current_window:
+            # Start first window
+            current_window.append((row, importance))
+            group_start_time = row_time_ms
+        else:
+            # Check if current row exceeds group time window
+            if row_time_ms <= group_start_time + TIMEOUT_INTERVAL:
+                current_window.append((row, importance))
+            else:
+                # Finalize current group and start new one
+                windows.append(current_window)
+                current_window = [(row, importance)]
+                group_start_time = row_time_ms
+                trailer_data = windows[-1][-1][0]
+
+    # Add the final group if any rows remain
+    if current_window:
+        windows.append(current_window)
+
+    return windows
+
+
+def remove_extra_packets(flight_data) -> list:
+    for i, window in enumerate(flight_data):
+        # Pick the one with the highest importance
+        flight_data[i] = max(window, key=lambda x: x[1])[0]
+    return flight_data
+
+
+def post_process_simulation_data(flight_data: pd.DataFrame) -> list:
+    # Cull extra packets so there's only one packet per interval
+    flight_data = flight_data.sort_values('# Time (s)').reset_index(drop=True)
+    flight_data = partition_into_windows(flight_data)
+    flight_data = remove_extra_packets(flight_data)
+    return flight_data
+
+
+def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
     """
         Runs the emulator based on the flight data
         Uses a priority queue to organise which packets to send per interval
     """
-    # Init mockpacket
+    # Initialise mockpacket
     MockPacket.initialize_settings(
         config.load_config()['emulation'], FAKE_DEVICE_NAME=DEVICE_NAME)
-    current_window_num = 0 # Start the timer at zero so we can track what timeframe window
-    queue = []
-    last_packet = None
-    queue_num = count() # For umabiguous heap ordering
-    
-    #  Refer to the TIMEOUT_INTEVAL as the window size
-    for _, current_packet in FLIGHT_DATA.iterrows():
-        # Convert the data frame to milliseconds, '# Time (s)' is the exact key in the df
-        current_time = current_packet['# Time (s)'] * MS_PER_SECOND
-        
-        # Find out which window we are in to determine whether to create a new priority
-        packet_window_num = int(current_time // TIMEOUT_INTERVAL)
-        
-        
-        # If moved to a new window, then send previous window's packet
-        while packet_window_num > current_window_num:
-            # Process all the packets within this window frame
-            if queue:
-                _, _, packet = heapq.heappop(queue)
-                send_simulated_packet(
-                    packet[" Altitude AGL (m)"],
-                    packet[" Speed - Velocity Magnitude (m/s)"],
-                    packet[" ω1 (rad/s)"],
-                    packet[" ω2 (rad/s)"],
-                    packet[" ω3 (rad/s)"],
-                    packet[" Ax (m/s²)"],
-                    packet[" Ay (m/s²)"],
-                    packet[" Az (m/s²)"]
-                )
-                last_packet = packet
-                
-            # Reset queue and move to next window
-            current_window_num += 1
-            queue = []
-        
-        # Prcoessing packets within timeframe
-        # Calculating priority -1 for important 0 otherwise for max heap
-        isImportant = isImportantPacket(current_packet, last_packet)
-        priority = -1 if isImportant else 0
-        
-        # Add to current window's queue
-        heapq.heappush(queue, (priority, next(queue_num), current_packet))
-        
-    # For the final packets
-    if queue:
-        _, _, packet = heapq.heappop(queue)
+
+    flight_data = post_process_simulation_data(flight_data)
+
+    # Send the data to the mock packet
+    start_time = time.monotonic()
+    first_packet = True
+
+    for packet in flight_data:
+        PACKET_TIME_S = packet['# Time (s)']
+        if (not first_packet):
+            TIME_UNTIL_NEXT_PACKET_S = PACKET_TIME_S - \
+                (last_packet_time - start_time)
+            if TIME_UNTIL_NEXT_PACKET_S >= 0:
+                time.sleep(TIME_UNTIL_NEXT_PACKET_S)
+        else:
+            first_packet = False
         send_simulated_packet(
             packet[" Altitude AGL (m)"],
             packet[" Speed - Velocity Magnitude (m/s)"],
@@ -148,27 +181,19 @@ def run_emulator(FLIGHT_DATA: pd.DataFrame, DEVICE_NAME: str):
             packet[" Ay (m/s²)"],
             packet[" Az (m/s²)"]
         )
-        # Empty the queue after
-        queue = []
-        
-        
+        last_packet_time = time.monotonic()
 
 
 def main():
     slogger.info("Emulator Starting Simulation...")
     try:
-        try:
-            FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
-        except ValueError:
-            slogger.error(
-                "Failed to find device names in arguments for simulator")
-            raise
-        FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
-        run_emulator(FLIGHT_DATA, FAKE_DEVICE_PATH)
-    except Exception as e:
-        # @TODO Add more debugs
-        slogger.error(e)
-        sys.exit(1)
+        FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
+    except ValueError:
+        slogger.error(
+            "Failed to find device names in arguments for simulator")
+        raise
+    FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
+    run_emulator(FLIGHT_DATA, FAKE_DEVICE_PATH)
 
 
 if __name__ == "__main__":
