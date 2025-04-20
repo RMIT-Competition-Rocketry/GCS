@@ -71,15 +71,39 @@ function interfaceSet(item, value) {
     }
 }
 
-function interfaceUpdateAvionics() {
-    // Update data in avionics module
-    interfaceSet("av-velocity", api_latest.data.velocity);
-    interfaceSet("av-accel-x", api_latest.data.accelLowX); // api_latest.data.accelHighX
-    interfaceSet("av-accel-y", api_latest.data.accelLowY); // api_latest.data.accelHighY
-    interfaceSet("av-accel-z", api_latest.data.accelLowZ); // api_latest.data.accelHighZ
-    interfaceSet("av-gyro-x", api_latest.data.gyroX);
-    interfaceSet("av-gyro-y", api_latest.data.gyroY);
-    interfaceSet("av-gyro-z", api_latest.data.gyroZ);
+function interfaceUpdateAvionics(data) {
+    /// Update data in avionics module
+    // Velocity (m/s)
+    if (data.velocity) {
+        interfaceSet("av-velocity", data.velocity);
+    }
+
+    // Acceleration (_g_)
+    // accelLow has higher resolution, so we use that if the values are within [-16,16]
+    if (data.accelLowX && data.accelHighX) {
+        interfaceSet("av-accel-x", Math.abs(data.accelHighX) < 17 ? data.accelLowX : data.accelHighX);
+    }
+
+    if (data.accelLowY && data.accelHighY) {
+        interfaceSet("av-accel-y", Math.abs(data.accelHighY) < 17 ? data.accelLowY : data.accelHighY);
+    }
+
+    if (data.accelLowZ && data.accelHighZ) {
+        interfaceSet("av-accel-z", Math.abs(data.accelHighZ) < 17 ? data.accelLowZ : data.accelHighZ);
+    }
+
+    // Gyro (deg/s)
+    if (data.gyroX) {
+        interfaceSet("av-gyro-x", data.gyroX);
+    }
+
+    if (data.gyroY) {
+        interfaceSet("av-gyro-y", data.gyroY);
+    }
+
+    if (data.gyroZ) {
+        interfaceSet("av-gyro-z", data.gyroZ);
+    }
 }
 
 function interfaceUpdatePosition() {
