@@ -5,7 +5,8 @@ import math
 import sys
 import pandas as pd
 import time
-import backend.process_logging as slogger
+import backend.includes_python.process_logging as slogger
+import backend.includes_python.service_helper as service_helper
 import config.config as config
 import configparser
 
@@ -15,7 +16,7 @@ cfg = configparser.ConfigParser()
 cfg.read("config/simulation.ini")
 sim_cfg = cfg["Simulation"]
 # In seconds
-TIMEOUT_INTERVAL = float(sim_cfg["timeout_interval"])
+TIMEOUT_INTERVAL_MS = float(sim_cfg["timeout_interval_ms"])
 MS_PER_SECOND = 1000
 
 
@@ -93,7 +94,7 @@ def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
 
 
 def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
-    """Partition flight data into segments of TIMEOUT_INTERVAL
+    """Partition flight data into segments of TIMEOUT_INTERVAL_MS
 
     Args:
         FLIGHT_DATA (pd.DataFrame): Flight data with physics values. Sorted by time please
@@ -116,7 +117,7 @@ def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
             group_start_time = row_time_ms
         else:
             # Check if current row exceeds group time window
-            if row_time_ms <= group_start_time + TIMEOUT_INTERVAL:
+            if row_time_ms <= group_start_time + TIMEOUT_INTERVAL_MS:
                 current_window.append((row, importance))
             else:
                 # Finalize current group and start new one
@@ -171,6 +172,8 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
                 time.sleep(TIME_UNTIL_NEXT_PACKET_S)
         else:
             first_packet = False
+        if service_helper.time_to_stop():
+            break
         send_simulated_packet(
             packet[" Altitude AGL (m)"],
             packet[" Speed - Velocity Magnitude (m/s)"],
@@ -184,6 +187,15 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
         last_packet_time = time.monotonic()
 
 
+def validate_timeout_interval(TIMEOUT_MS):
+    if TIMEOUT_MS < 0:
+        slogger.error(f"Timeout interval cannot be negative: {TIMEOUT_MS}")
+        raise ValueError("Timeout interval cannot be negative")
+    if TIMEOUT_MS > 10000:
+        slogger.warning(
+            f"Timeout interval is quite large, consider reducing it: {TIMEOUT_MS}")
+
+
 def main():
     slogger.info("Emulator Starting Simulation...")
     try:
@@ -193,7 +205,10 @@ def main():
             "Failed to find device names in arguments for simulator")
         raise
     FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
+    validate_timeout_interval(TIMEOUT_INTERVAL_MS)
+    # Just to skip post processing if signal was recieved in data generation
     run_emulator(FLIGHT_DATA, FAKE_DEVICE_PATH)
+    slogger.info("Simulation stopping")
 
 
 if __name__ == "__main__":

@@ -3,10 +3,10 @@ from abc import ABC, abstractmethod
 import config.config as config
 from typing import Optional, List
 import sys
-from backend import metric
+from backend.includes_python import metric
 import os
 import time
-import backend.process_logging as slogger  # slog deez nuts
+import backend.includes_python.process_logging as slogger  # slog deez nuts
 
 # TODO convert this crap into kwargs or something
 

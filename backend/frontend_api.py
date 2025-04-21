@@ -11,8 +11,8 @@ import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
-import backend.process_logging as slogger
-from mach import Mach
+import backend.includes_python.process_logging as slogger
+from backend.includes_python.mach import Mach
 
 # Global flag for shutdown control
 shutdown_event = asyncio.Event()

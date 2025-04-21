@@ -19,10 +19,10 @@ import backend.proto.generated.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 from typing import List, Dict, Optional, Union
-import backend.process_logging as slogger  # slog deez nuts
-import backend.ansci as ansci
+import backend.includes_python.process_logging as slogger  # slog deez nuts
+import backend.includes_python.ansci as ansci
 import config.config as config
-from mach import Mach
+from backend.includes_python.mach import Mach
 
 # Just prints useful information from AV and saves it to csv file
 
@@ -937,9 +937,13 @@ def main(SOCKET_PATH, CREATE_LOGS):
 
             if packet_id in packet_handlers:
                 handler, message_type = packet_handlers[packet_id]
-                packet = message_type()
-                packet.ParseFromString(message)
-                handler.process(packet)
+                try:
+                    packet = message_type()
+                    packet.ParseFromString(message)
+                    handler.process(packet)
+                except Exception as e:
+                    slogger.error(
+                        f"Error processing packet ID {packet_id}: {e}")
             else:
                 slogger.error(f"Unexpected packet ID: {packet_id}")
 

@@ -4,7 +4,7 @@ import subprocess
 from typing import List, Optional, Callable
 import threading
 from queue import Queue
-import backend.process_logging as slogger
+import backend.includes_python.process_logging as slogger
 
 logger = logging.getLogger('rocket')
 
