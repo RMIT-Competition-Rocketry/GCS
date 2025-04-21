@@ -19,6 +19,27 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 </p>
 
 
+## Contents
+
+### Documentation
+
+- [Setup](docs/setup.md)
+- [Usage](docs/usage.md)
+- [Pendant Emulator Quick Refference](docs/pendant_emulator.md)
+- [System Design](docs/system_design.md)
+- [Development](docs/development.md)
+- [Glossary](docs/glossary.md)
+
+### Notes
+
+- [Brainstorming](notes/brainstorming.md)
+- [Data](notes/data.md)
+
+
+## Description
+
+The Ground Control Station (GCS) is RMIT HIVE's computer control system for GSE control and avionics communication and visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio hardware peripherals. The SRAD software converts raw serial input from physical radio interfaces into human readable output for efficient system monitoring for the GCS operator, and aesthetic visualisations for non-technical viewers. The GCS operator will see when any of our systems are having issues with alert and warning readouts so they can make an informed GO/NO-GO call very quickly. Spectators and other team members will have access to several different views detailing all telemetry from both GSE and avionics systems.
+
 ## Credit
 
 | Name | Role | Year |
@@ -29,28 +50,6 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 | Anuk Jayasundara (`s3899921`)  | GCS frontend developer | 2025 |
 | Nathan La (`s4003562`)  | GCS data visualisation programmer | 2025 |
 | Jonathan Do (`s4003025`)  | GCS UI/UX Designer | 2025 |
-
----
-
-<!-- https://github.com/Ileriayo/markdown-badges -->
-
-## Contents
-
-### Documentation
-
-- [Setup](docs/setup.md)
-- [Usage](docs/usage.md)
-- [Pendant Emulator Quick Refference](docs/pendant_emulator.md)
-- [Application Layers](docs/application_layers.md)
-- [Development](docs/development.md)
-- [Glossary](docs/glossary.md)
-
-### Notes
-
-- [Brainstorming](notes/brainstorming.md)
-- [Data](notes/data.md)
-
----
 
 ## Development components
 
