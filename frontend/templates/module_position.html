@@ -1,37 +1,39 @@
 <!-- Position module -->
 <!-- Includes altitude, gps -->
-<div class="w-full h-full flex flex-col gap-2">
-	<!-- Altitude -->
+<div class="w-full h-full flex flex-col gap-2 font-mono">
 	<div class="border border-hive p-2 flex flex-col grow">
-		<p class="font-mono">Altitude (m)</p>
+		<!-- Altitude -->
+		<h3>Altitude (m)</h3>
 		<div class="border border-hive bg-hive/20 flex-1">
-			<p class="font-mono text-hive text-center">[ altitude graph ]</p>
+			<p class="text-hive text-center">[ altitude graph ]</p>
 		</div>
-		<div class="flex gap-x-2 font-mono">
+		<div class="flex gap-2">
 			<p class="text-right">&nbsp;&nbsp;&nbsp;&nbsp;Altitude:</p>
-			<input readonly autocomplete="off" class="pos-alt-m flex-1 min-w-0">
+			<input readonly autocomplete="off" class="pos-alt-m">
 			<p>m</p>
-			<input readonly autocomplete="off" class="pos-alt-ft flex-1 min-w-0">
+			<input readonly autocomplete="off" class="pos-alt-ft">
 			<p>ft</p>
 		</div>
-		<div class="flex gap-x-2 font-mono">
+		<div class="flex gap-2">
 			<p class="text-right">Max&nbsp;Altitude:</p>
-			<input radonly autocomplete="off" class="pos-maxalt-m flex-1 min-w-0">
+			<input radonly autocomplete="off" class="pos-maxalt-m">
 			<p>m</p>
-			<input readonly autocomplete="off" class="pos-maxalt-ft flex-1 min-w-0">
+			<input readonly autocomplete="off" class="pos-maxalt-ft">
 			<p>ft</p>
 		</div>
-	</div>
 
-	<!-- GPS -->
-	<div class="border border-hive p-2 grid grid-cols-2 gap-x-2">
-		<p class="flex gap-1">
-			<label>GPS latitude:</label>
-			<input readonly autocomplete="off" class="pos-gps-lat flex-1 min-w-0">
-		</p>
-		<p class="flex gap-1">
-			<label>GPS longitude:</label>
-			<input readonly autocomplete="off" class="pos-gps-lon flex-1 min-w-0">
-		</p>
+		<hr class="border-hive my-2">
+
+		<!-- GPS -->
+		<div class="grid grid-cols-2 gap-2">
+			<p class="flex gap-1">
+				<label>GPS Latitude:</label>
+				<input readonly autocomplete="off" class="pos-gps-lat">
+			</p>
+			<p class="flex gap-1">
+				<label>GPS Longitude:</label>
+				<input readonly autocomplete="off" class="pos-gps-lon">
+			</p>
+		</div>
 	</div>
 </div>
