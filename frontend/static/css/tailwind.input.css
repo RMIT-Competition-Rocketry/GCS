@@ -30,7 +30,7 @@ and only modify it if you know what you're doing :)
     }
     
     input {
-        @apply border border-zinc-500 rounded-sm max-w-full font-mono text-right;
+        @apply border border-zinc-700 my-0.5 rounded-sm max-w-full font-mono text-right;
     }
 
     .flex input {

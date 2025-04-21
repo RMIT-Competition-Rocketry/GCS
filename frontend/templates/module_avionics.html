@@ -2,7 +2,7 @@
 <!-- Includes acceleration, gyro, velocity -->
 <div class="w-full h-full flex flex-col gap-2 font-mono">
 	<!-- Avionics indicators -->
-	<div class="border border-hive grid grid-cols-6 text-center p-2 gap-2">
+	<div class="border border-hive/70 grid grid-cols-6 text-center p-2 gap-2">
 		<div>
 			<div class="indicator-boolean"></div>
 			<p>GPS Fix</p>
@@ -32,21 +32,21 @@
 	<!-- Accel and gyro -->
 	<div class="grid grid-cols-2 grow gap-2">
 		<!-- Acceleration -->
-		<div class="border border-hive p-2 flex flex-col">
+		<div class="border border-hive/70 p-2 flex flex-col">
 			<h3>Acceleration (<i>g</i>)</h3>
 			<div class="border border-hive bg-hive/20 flex-1">
 				<p class="text-hive text-center">[ accel graph ]</p>
 			</div>
-			<div class="grid grid-cols-3 gap-2">
-				<p class="flex gap-1">
+			<div class="grid grid-cols-3 gap-4">
+				<p class="flex gap-1 items-center">
 					<label>X:</label>
 					<input readonly autocomplete="off" class="av-accel-x">
 				</p>
-				<p class="flex gap-1">
+				<p class="flex gap-1 items-center">
 					<label>Y:</label>
 					<input readonly autocomplete="off" class="av-accel-y">
 				</p>
-				<p class="flex gap-1">
+				<p class="flex gap-1 items-center">
 					<label>Z:</label>
 					<input readonly autocomplete="off" class="av-accel-z">
 				</p>
@@ -54,21 +54,21 @@
 		</div>
 
 		<!-- Gyro -->
-		<div class="border border-hive p-2 flex flex-col">
+		<div class="border border-hive/70 p-2 flex flex-col">
 			<h3>Gyro (deg/s)</h3>
 			<div class="border border-hive bg-hive/20 flex-1">
 				<p class="text-hive text-center">[ gyro graph ]</p>
 			</div>
-			<div class="grid grid-cols-3 gap-2">
-				<p class="flex gap-1">
+			<div class="grid grid-cols-3 gap-4">
+				<p class="flex gap-1 items-center">
 					<label>X:</label>
 					<input readonly autocomplete="off" class="av-gyro-x">
 				</p>
-				<p class="flex gap-1">
+				<p class="flex gap-1 items-center">
 					<label>Y:</label>
 					<input readonly autocomplete="off" class="av-gyro-y">
 				</p>
-				<p class="flex gap-1">
+				<p class="flex gap-1 items-center">
 					<label>Z:</label>
 					<input readonly autocomplete="off" class="av-gyro-z">
 				</p>
@@ -77,11 +77,22 @@
 	</div>
 	
 	<!-- Velocity -->
-	<div class="border border-hive p-2 flex flex-col grow">
+	<div class="border border-hive/70 p-2 flex flex-col grow">
 		<h3>Velocity (m/s)</h3>
 		<div class="border border-hive bg-hive/20 flex-1">
 			<p class="text-hive text-center">[ velocity graph ]</p>
 		</div>
-		<p>Velocity: <input readonly autocomplete="off" class="av-velocity"></p>
+		<div class="grid grid-cols-2 gap-4">
+			<p class="flex gap-1 items-center">
+				<span>Velocity:</span> 
+				<input readonly autocomplete="off" class="av-velocity">
+				<span>m/s</span>
+			</p>
+			<p class="flex gap-1 items-center">
+				<span>Mach:</span>
+				<input readonly autocomplete="off" class="av-velocity">
+			</p>
+		</div>
+		
 	</div>
 </div>

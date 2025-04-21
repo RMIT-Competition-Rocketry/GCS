@@ -1,6 +1,17 @@
 <!-- Flight state module -->
-<div class="w-full h-full bg-blue-800">
-	<p class="text-center">[ MODULE // FLIGHT STATE ]</p>
-	<p>Time</p>
-	<p>Flight state</p>
+<!-- Includes time, flight state indicator -->
+<div class="w-full h-full border border-hive/70 p-2 flex flex-col gap-2 font-mono">
+	<div class="grid grid-cols-2 gap-4">
+		<p class="flex gap-1 items-center">
+			<label>Flight State:</label>
+			<input readonly autocomplete="off" class="fs-state">
+		</p>
+		<p class="flex gap-1 items-center">
+			<label>Time:</label>
+			<input readonly autocomplete="off" class="fs-time">
+		</p>
+	</div>
+	<div class="border border-hive bg-hive/20 flex-1">
+		<p class="text-hive text-center">[ flight state timeline ]</p>
+	</div>
 </div>
