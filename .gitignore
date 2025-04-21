@@ -1,5 +1,6 @@
 # Local notes that don't need to be shared
 notes/local.txt
+notes/visualParadigm/*
 
 # Device specific settings
 .vscode/c_cpp_properties.json
@@ -9,6 +10,8 @@ backend/proto/generated/*
 
 # Test binary
 backend/tests/runTests
+
+backend/simulation/cache/
 
 # Pi puts this library in the root directory for some reason. come back
 libmiddleware_lib.a

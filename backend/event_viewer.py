@@ -22,6 +22,7 @@ from typing import List, Dict, Optional, Union
 import backend.process_logging as slogger  # slog deez nuts
 import backend.ansci as ansci
 import config.config as config
+from mach import Mach
 
 # Just prints useful information from AV and saves it to csv file
 
@@ -251,7 +252,7 @@ class Packet(ABC):
         if not self.__class__._setup == True:
             raise Exception("Error: Logging not set up")
 
-    def _log_to_csv(self, data: List[str]):
+    def _log_to_csv(self, PROTO_DATA: List[str]):
         """Log data to the respective CSV file
 
         Args:
@@ -260,10 +261,29 @@ class Packet(ABC):
         Raises:
             Exception: Incorrect file name
         """
+        def extract_proto_values(proto: PbMessage) -> List[Union[str, int, float, bool]]:
+            values = []
+            for field, value in proto.ListFields():
+                if field.label == field.LABEL_REPEATED:
+                    # Handle repeated fields
+                    for item in value:
+                        if field.type == field.TYPE_MESSAGE:
+                            values.extend(
+                                extract_proto_values(item))  # Recurse
+                        else:
+                            values.append(item)
+                else:
+                    if field.type == field.TYPE_MESSAGE:
+                        values.extend(extract_proto_values(value))  # Recurse
+                    else:
+                        values.append(value)
+            return values
 
         if not self.__class__._LOGGING_ENABLED:
             # slogger.error("Logging to csv disabled but attempted anyway")
             return
+
+        data = extract_proto_values(PROTO_DATA)
 
         if self._packet_name not in self.__class__._CSV_FILES_WITH_HEADERS.keys():
             raise Exception(
@@ -289,9 +309,8 @@ class Packet(ABC):
         # `PROTO_DATA.ListFields()[0][1]` returns the value
         # This will just assume it's all in order of the csv headers for now.
         # Git issue #26
-        data_as_string = [x[1] for x in PROTO_DATA.ListFields()]
         # `Logging enabled` check is internal to the csv function
-        self._log_to_csv(data_as_string)
+        self._log_to_csv(PROTO_DATA)
         # Please call super on this and add printing events afterwards
 
 
@@ -392,6 +411,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
         super().__init__(0x03, None)
         self._supersonic = False
         self._max_velocity = 0
+        self._max_velocity_updated = False
         self._last_broadcast_value = False
 
     def _process_AV_tests(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
@@ -539,16 +559,11 @@ class AV_TO_GCS_DATA_1(AVPacket):
     def _mt_to_ft(METERS):
         return METERS * 3.28084
 
-    @staticmethod
-    def _mps_to_mach(MPS):
-        # TODO - Git issue #111
-        return MPS / 343
-
     def _proccess_alt_velocty(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
         # Print basic information
         ALT_M = PROTO_DATA.altitude
         ALT_FT = AV_TO_GCS_DATA_1._mt_to_ft(PROTO_DATA.altitude)
-        VELOCITY = PROTO_DATA.velocity
+        VELOCITY_M = PROTO_DATA.velocity
 
         if ALT_FT <= 10010:
             alt_color = ansci.BG_GREEN + ansci.FG_BLACK  # Accent
@@ -558,13 +573,13 @@ class AV_TO_GCS_DATA_1(AVPacket):
             alt_color = ansci.BG_RED
 
         # Max speed (for Legacy) is 274 m/s
-        if VELOCITY <= 180:
+        if VELOCITY_M <= 180:
             vel_color = ansci.BG_BLUE
-        elif VELOCITY <= 200:
+        elif VELOCITY_M <= 200:
             vel_color = ansci.BG_CYAN
-        elif VELOCITY <= 240:
+        elif VELOCITY_M <= 240:
             vel_color = ansci.BG_GREEN
-        elif VELOCITY <= 270:
+        elif VELOCITY_M <= 270:
             vel_color = ansci.BG_YELLOW
         else:
             vel_color = ansci.BG_RED
@@ -573,11 +588,15 @@ class AV_TO_GCS_DATA_1(AVPacket):
         slogger.info(
             f"{alt_color}Altitude: {ALT_M:<8,.0f}m {ALT_FT:<9,.0f}ft{ansci.RESET}")
         slogger.info(
-            f"{vel_color}Velocity: {VELOCITY:<8,.0f}m/s{ansci.RESET}")
-        if (VELOCITY > self._max_velocity):
-            self._max_velocity = VELOCITY
+            f"{vel_color}Velocity: {VELOCITY_M:<8,.0f}m/s{ansci.RESET}")
+
+        if self._max_velocity_updated:
+            MACH_SPEED = Mach.mach_from_alt_estimate(
+                PROTO_DATA.velocity, PROTO_DATA.altitude)
             slogger.info(
-                f"New max velocity: {self._mps_to_mach(VELOCITY):<3.3f} mach")
+                f"New max velocity: {MACH_SPEED:<3.3f} mach")
+            self._max_velocity_updated = False
+
         self._last_information_display_time = time.monotonic()
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1) -> None:
@@ -586,14 +605,20 @@ class AV_TO_GCS_DATA_1(AVPacket):
 
         # Supersonic alert
         # NOTE Legacy (IREC) is not extimated to go supersonic
-        SUPERSONIC_VELOCITY = 343  # TODO - Git issue #111
-        if PROTO_DATA.velocity >= SUPERSONIC_VELOCITY and self._supersonic == False:
+        MACH_SPEED = Mach.mach_from_alt_estimate(
+            PROTO_DATA.velocity, PROTO_DATA.altitude)
+        if MACH_SPEED >= 1 and self._supersonic == False:
             # Coolest line of code I've ever written btw
             slogger.info("Supersonic flight detected")
             self._supersonic = True
-        elif self._supersonic and PROTO_DATA.velocity < SUPERSONIC_VELOCITY:
+        elif self._supersonic and MACH_SPEED < 1:
             slogger.info("Supersonic flight ended")
             self._supersonic = False
+
+        # Yeah technically mach is not proportionate to velocity. ik.
+        if (PROTO_DATA.velocity > self._max_velocity):
+            self._max_velocity = PROTO_DATA.velocity
+            self._max_velocity_updated = True
 
         # Regular infomation updates
         if time.monotonic() - self._last_information_display_time > AVPacket._information_timeout_s:

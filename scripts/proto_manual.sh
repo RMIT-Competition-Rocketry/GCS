@@ -9,12 +9,19 @@ set -e
 
 echo "Generating Python and C++ files from proto files in ./backend/proto/payloads/"
 mkdir -p ./backend/proto/generated/
-for proto in ./backend/proto/payloads/*.proto; do
+PROTO_ROOT=./backend/proto
+find "$PROTO_ROOT" -name "*.proto" | while read -r proto; do
     echo "Processing $proto"
-    # Generate Python files
-    protoc --proto_path=./backend/proto/ --python_out=./backend/proto/generated/ "$proto"
-    # Generate C++ files
-    protoc --proto_path=./backend/proto --cpp_out=./backend/proto/generated/ "$proto"
+    protoc \
+        -I"$PROTO_ROOT" \
+        -I"$PROTO_ROOT/common" \
+        --python_out="$PROTO_ROOT/generated/" \
+        --cpp_out="$PROTO_ROOT/generated/" \
+        "$proto"
 done
+
+echo "Editing generated files to fix import paths"
+chmod +x ./scripts/__proto_import_fix.sh
+./scripts/__proto_import_fix.sh
 
 echo "Done."
