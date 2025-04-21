@@ -7,6 +7,8 @@ from backend.includes_python import metric
 import os
 import time
 import backend.includes_python.process_logging as slogger  # slog deez nuts
+import backend.includes_python.service_helper as service_helper
+
 
 # TODO convert this crap into kwargs or something
 
@@ -442,21 +444,18 @@ def main():
     # slogger.debug(f"ID Orders: {[x.ID for x in test_packets]}")
 
     LOCK_PATH = config.load_config()['locks']['lock_file_gse_response_path']
-    try:
-        while True:
-            # [GSEtoGCSData1(), GSEtoGCSData2()]:
-            for packet in test_packets:
-                # As a cheeky emulation, only write when the lock file is PRESENT
-                if os.path.exists(LOCK_PATH):
-                    packet.write_payload()
-                    # Not sure if this needs to be longer?
-                    time.sleep(0.190)  # Real timing is about 200-250ms.
+    while not service_helper.time_to_stop():
+        # [GSEtoGCSData1(), GSEtoGCSData2()]:
+        for packet in test_packets:
+            # As a cheeky emulation, only write when the lock file is PRESENT
+            if os.path.exists(LOCK_PATH):
+                packet.write_payload()
+                # Not sure if this needs to be longer?
+                time.sleep(0.190)  # Real timing is about 200-250ms.
 
-            # slogger.debug("Looped through all packets")
-            # time.sleep(0)
-    except KeyboardInterrupt:
+        # slogger.debug("Looped through all packets")
+        # time.sleep(0)
         # As soon as the CLI gets the interrupt, a race condition starts and child cleanup is not guaranteed
-        slogger.debug("Emulator interrupted by user")
 
     slogger.debug("Emulator finished")
 

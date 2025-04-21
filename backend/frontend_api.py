@@ -129,8 +129,6 @@ def main():
 
     try:
         asyncio.run(amain())
-    except KeyboardInterrupt:
-        slogger.info("Keyboard interrupt received")
     finally:
         slogger.info("Application exited")
 

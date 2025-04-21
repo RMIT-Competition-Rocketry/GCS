@@ -315,7 +315,7 @@ def main():
     cli.add_command(dev)
     cli.add_command(simulation)
 
-    # Register signal handlers
+    # Register custom signal handlers
     signal.signal(signal.SIGINT, signal_handler)   # Handle Ctrl+C
     signal.signal(signal.SIGTERM, signal_handler)  # Handle process termination
     signal.signal(signal.SIGHUP, signal_handler)   # Handle terminal close
@@ -341,12 +341,7 @@ def main():
             while True:
                 # Keep program alive, but it doesn't need to do anything
                 time.sleep(1)
-    except KeyboardInterrupt:
-        # I have a feeling this will never execute with the signal handlers?
-        cleanup_reason = "Keyboard Interrupt (Ctrl+C)"
-        print()  # Print a newline after the ^C
-        cleanup()
-        sys.exit(130)  # Standard exit code for Ctrl+C
+
     except Exception as e:
         cleanup_reason = f"Unhandled Exception: {e}"
         cleanup()

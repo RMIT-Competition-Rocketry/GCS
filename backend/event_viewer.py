@@ -21,17 +21,13 @@ import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 from typing import List, Dict, Optional, Union
 import backend.includes_python.process_logging as slogger  # slog deez nuts
 import backend.includes_python.ansci as ansci
-import config.config as config
 from backend.includes_python.mach import Mach
+import backend.includes_python.service_helper as service_helper
 
 # Just prints useful information from AV and saves it to csv file
 
 
 class Packet(ABC):
-
-    _LOCK_FILE_GSE_RESPONSE_PATH = \
-        config.load_config()["locks"]["lock_file_gse_response_path"]
-
     # Updated in _setup_logging
     _setup: bool = False
 
@@ -907,53 +903,53 @@ def main(SOCKET_PATH, CREATE_LOGS):
     GSE_TO_GCS_DATA_1_handler = GSE_TO_GCS_DATA_1()
     GSE_TO_GCS_DATA_2_handler = GSE_TO_GCS_DATA_2()
 
-    try:
-        # Create a mapping of packet IDs to their handlers and message types
-        packet_handlers = {
-            3: (AV_TO_GCS_DATA_1_handler, AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1),
-            4: (AV_TO_GCS_DATA_2_handler, AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2),
-            5: (AV_TO_GCS_DATA_3_handler, AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3),
-            6: (GSE_TO_GCS_DATA_1_handler, GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1),
-            7: (GSE_TO_GCS_DATA_2_handler, GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2),
-        }
+    # Create a mapping of packet IDs to their handlers and message types
+    packet_handlers = {
+        3: (AV_TO_GCS_DATA_1_handler, AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1),
+        4: (AV_TO_GCS_DATA_2_handler, AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2),
+        5: (AV_TO_GCS_DATA_3_handler, AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3),
+        6: (GSE_TO_GCS_DATA_1_handler, GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1),
+        7: (GSE_TO_GCS_DATA_2_handler, GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2),
+    }
 
-        while True:
-            # Blocking
-            message = sub_socket.recv()
-            if len(message) > 1:
-                # We've missed the ID publish message. Wait for next one
-                continue
+    while not service_helper.time_to_stop():
+        # Poll for incoming messages (timeout in ms)
+        if sub_socket.poll(500) == 0:
+            continue
 
-            packet_id = int.from_bytes(message, byteorder='big')
-            message = sub_socket.recv()
+        message = sub_socket.recv()
+        if len(message) > 1:
+            # We've missed the ID publish message. Wait for next one
+            continue
 
-            if len(message) == 1:
-                # Something failed and we've got a new ID instead of the last message.
-                new_erronous_packet_id = int.from_bytes(
-                    message, byteorder='big')
+        packet_id = int.from_bytes(message, byteorder='big')
+        if sub_socket.poll(500) == 0:
+            continue
+
+        message = sub_socket.recv()
+
+        if len(message) == 1:
+            # Something failed and we've got a new ID instead of the last message.
+            new_erronous_packet_id = int.from_bytes(
+                message, byteorder='big')
+            slogger.error(
+                f"Event viewer subscription did not find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
+            continue
+
+        if packet_id in packet_handlers:
+            handler, message_type = packet_handlers[packet_id]
+            try:
+                packet = message_type()
+                packet.ParseFromString(message)
+                handler.process(packet)
+            except Exception as e:
                 slogger.error(
-                    f"Event viewer subscription did not find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
-                continue
+                    f"Error processing packet ID {packet_id}: {e}")
+        else:
+            slogger.error(f"Unexpected packet ID: {packet_id}")
 
-            if packet_id in packet_handlers:
-                handler, message_type = packet_handlers[packet_id]
-                try:
-                    packet = message_type()
-                    packet.ParseFromString(message)
-                    handler.process(packet)
-                except Exception as e:
-                    slogger.error(
-                        f"Error processing packet ID {packet_id}: {e}")
-            else:
-                slogger.error(f"Unexpected packet ID: {packet_id}")
-
-    except KeyboardInterrupt:
-        # Graceful exit if KeyboardInterrupt occurs outside the loop
-        slogger.warning("Keyboard interrupt received. Stopping program.")
-    finally:
-        # Any final cleanup code
-        sub_socket.close()
-        slogger.info("Event viewer stopped.")
+    slogger.info("Stopping viewer.")
+    sub_socket.close()
 
 
 if __name__ == "__main__":

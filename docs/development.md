@@ -50,8 +50,43 @@ Would be the first release, as it's the first internal test. If the code changes
 
 Important requirements for each subproccess you spawn from the CLI:
 
-- All python subprocess have to have unbuffered output to be logged correctly. Please use the `-u` flag to do this. Note that some print functions to STDOUT may not respect this flag like when using `pprint` for example. 
-    - Also I've seen a python subprocces run with the `-u` flag and still run buffered. It required `sys.stdout.flush()`. In the future (https://github.com/RMIT-Competition-Rocketry/GCS/issues/5) the process printer should flush automatically
+- All python subprocess have to have unbuffered output to be logged correctly. 
+
+Please use the `-u` flag to do this. Note that some print functions to STDOUT may not respect this flag like when using `pprint` for example. 
+
+Also I've seen a python subprocces run with the `-u` flag and still run buffered. It required `sys.stdout.flush()`.
+
+If you're using `subprocess_logging.py`, this is already handled for you.
+
+- You must support signal handling at a minimum. Graceful shutdown prefferably
+
+Graceful shutdown in python can be done by including this line in any of your python modules in your process
+
+```python
+import backend.includes_python.service_helper as service_helper
+```
+
+Then you can see when a signal has been requested to shutdown with
+
+```python
+service_helper.time_to_stop()
+```
+
+If that returns true, break out of loops and perform cleanup.
+
+Example:
+
+```
+import time
+import backend.includes_python.service_helper as service_helper
+
+while True:
+    time.sleep(1) # Slow function
+    if service_helper.time_to_stop():
+        break
+code.close_connection() # This is sometimes just done in deconstructors 
+```
+
 
 ## Writing a Payload Reader
 
@@ -167,6 +202,7 @@ Then use `xxd` on unix systems (This may need to be installed). Use the `-b` fla
 
 ![xxdOutput1](./assets/xxdOutput1.png)
 ![xxdOutput1binary](./assets/xxdOutput1binary.png)
+
 
 ---
 

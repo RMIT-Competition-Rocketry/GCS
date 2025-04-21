@@ -11,7 +11,7 @@ import backend.includes_python.process_logging as slogger
 # Please use this for Git issue #120
 
 # This global variable will be set to False on SIGINT
-running = True
+_running = True
 
 SIGNAL_MAP = {
     signal.SIGINT: "Keyboard Interrupt (SIGINT)",
@@ -25,7 +25,7 @@ def time_to_stop():
     """
     Returns True if the service should stop running.
     """
-    return not running
+    return not _running
 
 
 def _handle_signal(signum, frame):
@@ -34,10 +34,11 @@ def _handle_signal(signum, frame):
     else:
         stop_reason = f"Recieved unhandled signal: {signum}"
 
-    global running
+    global _running
     slogger.info(f"{stop_reason} — shutting down service.")
-    running = False
+    _running = False
 
 
 # Register the handler when this module is imported
-signal.signal(signal.SIGINT, _handle_signal)
+for sig in SIGNAL_MAP:
+    signal.signal(sig, _handle_signal)
