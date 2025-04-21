@@ -7,3 +7,5 @@ Relevance to VCE algorithmics
 - Sequence diagram uses a finite state machine design pattern
 - This has a lot of OOP, relevant to algo modularity
 - Simulation software touches on the idea of a priority queue
+- Uses priority queues to trim simulation data into realistic data
+- Uses recursion to expand on sub defintions in the protobuf data logger
