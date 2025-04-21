@@ -1,10 +1,23 @@
 <!-- Radio module -->
-<div class="w-full h-full bg-cyan-800">
-	<p class="text-center">[ MODULE // RADIO ]</p>
-	<p>
-		AV RSSI, SNR, Packets and Comms state
-	</p>
-	<p>
-		GSE RSSI, SNR, Packets and Comms state
-	</p>
+<div class="p-2 border border-hive m-2 gap-2 font-mono flex flex-col ">
+	<div class="w-full flex gap-2 justify-start items-center">
+		<div class="indicator-boolean mx-0"></div>
+		<p class="font-bold text-hive">AV&nbsp;</p>
+		<p>RSSI:</p>
+		<input readonly autocomplete="off" class="radio-av-rssi">
+		<p>SNR:</p>
+		<input readonly autocomplete="off" class="radio-av-snr">
+		<p>Packets:</p>
+		<input readonly autocomplete="off" class="radio-av-packets">
+	</div>
+	<div class="w-full flex gap-2 justify-start items-center">
+		<div class="indicator-boolean mx-0"></div>
+		<p class="font-bold text-hive">GSE</p>
+		<p>RSSI:</p>
+		<input readonly autocomplete="off" class="radio-gse-rssi">
+		<p>SNR:</p>
+		<input readonly autocomplete="off" class="radio-gse-snr">
+		<p>Packets:</p>
+		<input readonly autocomplete="off" class="radio-gse-packets">
+	</div>
 </div>
