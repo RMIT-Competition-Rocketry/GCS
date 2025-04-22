@@ -68,8 +68,8 @@ function feetToMetres(feet) {
 
 
 // FUNCTIONS FOR UPDATING VALUES IN THE INTERFACE
-function interfaceSet(item, value) {
-    // Updates the value for a display item
+function interfaceSet(item, value, precision=2) {
+    // Updates a floating point value for a display item
     let elements = document.querySelectorAll(`.${item}`);
 
     // Use classes instead of IDs since IDs must be unique
@@ -77,7 +77,18 @@ function interfaceSet(item, value) {
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             // Update value
-            elem.value = value;
+            elem.value = parseFloat(value).toFixed(precision);
+        });
+    }
+}
+
+function interfaceSetString(item, string) {
+    // Updates a string for a display item
+    let elements = document.querySelectorAll(`.${item}`);
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            // Update string
+            elem.value = string;
         });
     }
 }
@@ -85,8 +96,6 @@ function interfaceSet(item, value) {
 function interfaceSetState(item, value) {
     // Updates the state of an indicator
     let elements = document.querySelectorAll(`.${item}`);
-
-    // 
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove("on", "off", "error")
