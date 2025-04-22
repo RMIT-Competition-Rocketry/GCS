@@ -99,6 +99,8 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
     } catch (const std::exception &e) {
       slogger::error(std::string(PacketType::PACKET_NAME) +
                      ": Error processing payload: " + e.what());
+    } catch (...) {
+      slogger::error("Caught unknown exception while processing payload");
     }
   } else {
     // This may be fixed 32 bytes every time. Not sure if can be different
@@ -123,7 +125,7 @@ void post_process_av(Sequence &sequence,
 void input_read_loop(std::shared_ptr<LoraInterface> interface,
                      zmq::socket_t &pub_socket, Sequence &sequence) {
   set_thread_name("input_read_loop");
-  std::vector<uint8_t> buffer(256);
+  std::vector<uint8_t> buffer(1024);
   auto last_read_time = std::chrono::steady_clock::now();
   auto last_timeout_warning_time = std::chrono::steady_clock::now();
 
@@ -428,10 +430,14 @@ int main(int argc, char *argv[]) {
 
     // Cleanup
     reader.join();
+  } catch (const zmq::error_t &e) {
+    slogger::error("ZeroMQ error: " + std::string(e.what()));
+  } catch (const std::runtime_error &e) {
+    slogger::error("Runtime error: " + std::string(e.what()));
   } catch (const std::exception &e) {
     slogger::error("Generic error on main: " + std::string(e.what()));
     return EXIT_FAILURE;
   }
-
+  google::protobuf::ShutdownProtobufLibrary();
   return EXIT_SUCCESS;
 }
