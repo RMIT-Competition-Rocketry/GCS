@@ -11,6 +11,25 @@ class InterfaceType(enum.Enum):
     TEST = "TEST"
 
 
+class MiddlewareSubprocess(process.LoggedSubProcess):
+    """Subclass of LoggedSubProcess with a stop condition for callbacks.
+    """
+
+    def _update_callback_condition(self) -> bool:
+        if self._callback_hits >= 1:
+            self._logger_adapter.debug(
+                "Stopping build callbacks for this process")
+            return True
+        return False
+
+
+def middleware_started_callback(line: str, stream_name: str):
+    """Check if middleware has started"""
+
+    if "Middleware server started successfully" in line:
+        return True
+
+
 def get_middleware_path(BINARY_NAME_PREFIX: str) -> Optional[str]:
     """Check if middleware is in build/ then check if it is in root folder.
     This helps when sharing releases, but still prioritises the build/ folder.
@@ -88,12 +107,16 @@ def start_middleware(logger: logging.Logger,
 
         logger.debug(f"Starting {SERVICE_NAME} with: {middleware_command}")
 
-        middleware_process = process.LoggedSubProcess(
+        middleware_process = MiddlewareSubprocess(
             middleware_command,
             name=SERVICE_NAME,
             parse_output=True
         )
+        middleware_process.register_callback(middleware_started_callback)
         middleware_process.start()
+        finished = False
+        while not finished:
+            finished = middleware_process.get_parsed_data()
 
     except Exception as e:
         logger.error(

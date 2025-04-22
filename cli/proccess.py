@@ -15,6 +15,8 @@ class LoggedSubProcess:
     _instances = []
     # Flag to control cleanup behavior. True means it will cleanup automatically
     _auto_cleanup = True
+    # How long to wait for the process to finish before killing it
+    CLEANUP_TIMEOUT_S = 3
 
     def __init__(self,
                  command: List[str],
@@ -60,6 +62,8 @@ class LoggedSubProcess:
         self._logger_adapter.debug(
             f"Registering callback: {callback.__name__}")
         self._callbacks.append(callback)
+        self._logger_adapter.debug(
+            f"Registered  callback: {callback.__name__}")
 
     def start(self):
         """Start the subprocess and monitor its output asynchronously"""
@@ -69,7 +73,8 @@ class LoggedSubProcess:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
-            env=self._env
+            env=self._env,
+            start_new_session=True  # For SIGINT handling with cleanup method
         )
         self._logger_adapter.info(
             f"Started subprocess: {self._name} (PID: {self._process.pid})")
@@ -90,7 +95,7 @@ class LoggedSubProcess:
         """Stop the subprocess"""
         if self._process and self._process.returncode is None:
             self._process.terminate()
-            self._process.wait()
+            self._process.wait(LoggedSubProcess.CLEANUP_TIMEOUT_S)
             self._logger_adapter.info(
                 f"Stopped subprocess: {self._name} (PID: {self._process.pid})"
             )
@@ -98,8 +103,13 @@ class LoggedSubProcess:
             self._stderr_thread.join()
         try:
             self.__class__._instances.remove(self)
+            # EXCEPTION TO A RULE OF THUMB HERE:
+            # if (x._process is not None) in this debug is only to avoid raising
+            # another error when cleaning up if a process object has been
+            # instantiated but never started. It should not be needed if
+            # everything starts fine
             INSTANCE_DEBUG_PID = [
-                f'({x._name}: {x._process.pid})' for x in self.__class__._instances]
+                f'({x._name}: {x._process.pid})' for x in self.__class__._instances if x._process is not None]
             self._logger_adapter.debug(
                 f"Remaining instances: {INSTANCE_DEBUG_PID}")
         except ValueError:
@@ -204,6 +214,9 @@ class LoggedSubProcess:
 
     def get_parsed_data(self):
         """Retrieve parsed data from the queue. This will empty the queue of course"""
+        if self._process is None:
+            raise RuntimeError(
+                "Cannot get data for a process that has not started or has already stopped")
         self._callback_data_available.wait()  # Wait for the thread to set event
         data = []
         while not self._parsed_data.empty():
@@ -218,8 +231,15 @@ class LoggedSubProcess:
 
         if not cls._auto_cleanup:
             return
-        for instance in list(cls._instances):
+        # Cleanup here must be done in the reverse order of creation.
+        # Which it is for now
+        # But race conditions can fuck this up. Like closing socat before the device emulator
+        SHUTDOWN_ORDER = list(reversed(cls._instances))
+        slogger.debug(
+            f"Attempting shutdown in this order: {[x._name for x in SHUTDOWN_ORDER]}")
+        for instance in SHUTDOWN_ORDER:
             instance.stop()
+            instance._process.wait(LoggedSubProcess.CLEANUP_TIMEOUT_S)
 
 
 class ERRLoggedSubProcess(LoggedSubProcess):

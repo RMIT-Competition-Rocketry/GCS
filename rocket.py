@@ -176,10 +176,6 @@ def start_services(COMMAND: Command,
             f"Failed to start middleware: {e}\nPropogating fatal error")
         raise
 
-    # TODO fix this with middleware callback blocking
-    # Sleep to make sure server and interface have started before starting emulator
-    time.sleep(0.5)
-
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical

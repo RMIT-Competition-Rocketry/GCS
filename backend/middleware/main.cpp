@@ -264,6 +264,8 @@ std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST) {
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+  slogger::info("Starting middleware server");
+
   // Pick interface based on the first argument
   if (argc < 4) {
     slogger::error("Not enough arugments provided.");
@@ -331,6 +333,7 @@ int main(int argc, char *argv[]) {
     auto last_timeout_warning_time = std::chrono::steady_clock::now();
     const bool SUPPRESS_PENDANT_WARNING = std::getenv("CONFIG_PATH") == nullptr;
     // Main command loop
+    slogger::info("Middleware server started successfully");
     while (running) {
       zmq::poll(items, 1, std::chrono::milliseconds(300));  // 300ms timeout
 
