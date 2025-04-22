@@ -3,10 +3,10 @@
 <div class="w-full h-full flex flex-col gap-2 font-mono">
 	<div class="grid grid-cols-2 grow gap-2">
 		<!-- Transducers -->
-		<div class="border border-hive/70 p-2 flex flex-col">
+		<section class="flex flex-col">
 			<h3>Transducers (Bar)</h3>
-			<div class="border border-hive bg-hive/20 flex-1">
-				<p class="text-hive text-center">[ transducers graph ]</p>
+			<div class="graph">
+				<p class="text-center text-hive/50">[ transducers graph ]</p>
 			</div>
 			<div class="grid grid-cols-3 gap-4">
 				<p class="flex gap-1 items-center">
@@ -22,13 +22,13 @@
 					<input readonly autocomplete="off" class="aux-transducer-3">
 				</p>
 			</div>
-		</div>
+		</section>
 
 		<!-- Thermocouples -->
-		<div class="border border-hive/70 p-2 flex flex-col">
+		<section class="flex flex-col">
 			<h3>Thermocouples (&deg;C)</h3>
-			<div class="border border-hive bg-hive/20 flex-1">
-				<p class="text-hive text-center">[ thermocouples graph ]</p>
+			<div class="graph">
+				<p class="text-center text-hive/50">[ thermocouples graph ]</p>
 			</div>
 			<div class="grid grid-cols-4 gap-2">
 				<p class="flex gap-1 items-center">
@@ -48,26 +48,26 @@
 					<input readonly autocomplete="off" class="aux-thermocouple-4">
 				</p>
 			</div>
-		</div>
+		</section>
 
 		<!-- Internal temperature -->
-		<div class="border border-hive/70 p-2 flex flex-col">
+		<section class="flex flex-col">
 			<h3>Internal Temperature (&deg;C)</h3>
-			<div class="border border-hive bg-hive/20 flex-1">
-				<p class="text-hive text-center">[ internal temperature graph ]</p>
+			<div class="graph">
+				<p class="text-center text-hive/50">[ internal temperature graph ]</p>
 			</div>
 			<p class="flex gap-1 items-center">
 				<span>Temperature:</span>
 				<input readonly autocomplete="off" class="aux-internaltemp">
 				<span>&deg;C</span>
 			</p>
-		</div>
+		</section>
 
 		<!-- Gas bottle weights -->
-		<div class="border border-hive/70 p-2 flex flex-col">
+		<section class="flex flex-col">
 			<h3>Gas Bottle Weights (kg)</h3>
-			<div class="border border-hive bg-hive/20 flex-1">
-				<p class="text-hive text-center">[ gas bottle weights graph ]</p>
+			<div class="graph">
+				<p class="text-center text-hive/50">[ gas bottle weights graph ]</p>
 			</div>
 			<div class="grid grid-cols-2 gap-4">
 				<p class="flex gap-1 items-center">
@@ -79,15 +79,15 @@
 					<input readonly autocomplete="off" class="aux-gasbottle-2">
 				</p>
 			</div>
-		</div>
+		</section>
 	</div>
 
 	<!-- Rocket load cell weight -->
-	<div class="border border-hive/70 p-2 flex flex-col">
+	<section class="flex flex-col">
 		<p class="flex gap-1 items-center">
 			<span>Rocket Load Cell Weight:</span>
 			<input readonly autocomplete="off" class="aux-loadcell">
 			<span>kg</span>
 		</p>
-	</div>
+	</section>
 </div>

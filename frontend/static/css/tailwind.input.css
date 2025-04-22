@@ -36,6 +36,10 @@ and only modify it if you know what you're doing :)
     .flex input {
         @apply flex-1 min-w-0;
     }
+    
+    section {
+        @apply border border-hive/20 p-2;
+    }
 }
 
 @layer components {
@@ -96,6 +100,10 @@ and only modify it if you know what you're doing :)
         mask-image: url('/img/icons/sitemap.svg');
     }
 
+    .graph {
+        @apply border-l-2 border-b-2 border-hive bg-black flex-1;
+    }
+
     .indicator-numeric {
         @apply bg-zinc-900 rounded-sm flex justify-between py-0.5 px-2 items-center;
 
@@ -110,6 +118,31 @@ and only modify it if you know what you're doing :)
 
     .indicator-boolean {
         @apply w-10 h-10 rounded-full border border-hive mx-auto;
+
+        &.on {
+            @apply bg-emerald-600;
+            filter: drop-shadow(0 0 5px var(--color-emerald-600)) drop-shadow(0 0 10px var(--color-emerald-600));
+        }
+        &.on::after {
+            @apply h-10 text-emerald-300 text-3xl;
+            content: 'on';
+        }
+
+        &.off {
+            @apply bg-hive/10;
+        }
+        &.off::after {
+            @apply h-10 text-hive/50 text-xl;
+            content: 'off';
+        }
+
+        &.error {
+            @apply bg-red-900;
+        }
+        &.error::after {
+            @apply text-red-500 font-bold text-3xl;
+            content: 'ERROR!';
+        }
     }
 
     .continuity-check-button {

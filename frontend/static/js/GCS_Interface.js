@@ -82,12 +82,45 @@ function interfaceSet(item, value) {
     }
 }
 
+function interfaceSetState(item, value) {
+    // Updates the state of an indicator
+    let elements = document.querySelectorAll(`.${item}`);
+
+    // 
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            elem.classList.remove("on", "off", "error")
+
+            switch (value) {
+                case "error":
+                    elem.classList.add('error');
+                    break;
+                case "true":
+                case "on":
+                case true:
+                    elem.classList.add("on");
+                    break;
+                case "false":
+                case "off":
+                case false:
+                    elem.classList.add("off");
+                    break;
+            }
+        });
+    }
+}
+
 function interfaceUpdateAvionics(data) {
     /// Update data in avionics module
-    // Velocity (m/s)
-    if (data.velocity) {
-        interfaceSet("av-velocity", data.velocity);
-    }
+    // Indicators
+    /*
+    interfaceSetState("av-state-gpsfix", "on");
+    interfaceSetState("av-state-dualboard", "on");
+    interfaceSetState("av-state-pyro-1", "on");
+    interfaceSetState("av-state-pyro-2", "on");
+    interfaceSetState("av-state-pyro-3", "on");
+    interfaceSetState("av-state-pyro-4", "on");
+    */
 
     // Acceleration (_g_)
     // accelLow has higher resolution, so we use that if the values are within [-16,16]
@@ -115,6 +148,13 @@ function interfaceUpdateAvionics(data) {
     if (data.gyroZ) {
         interfaceSet("av-gyro-z", data.gyroZ);
     }
+
+    // Velocity (m/s)
+    if (data.velocity) {
+        interfaceSet("av-velocity", data.velocity);
+    }
+
+    //interfaceSet("av-mach", );
 }
 
 function interfaceUpdatePosition(data) {
@@ -126,9 +166,9 @@ function interfaceUpdatePosition(data) {
     }
     
     /*
-    interfaceSet("pos-maxalt-m", api_latest.data.altitude);
-    interfaceSet("pos-maxalt-ft", api_latest.data.altitude);
-    interfaceSet("pos-gps-lat", api_latest.data.GPSLatitude);
-    interfaceSet("pos-gps-lon", api_latest.data.GPSLongitude);
+    interfaceSet("pos-maxalt-m", data.altitude);
+    interfaceSet("pos-maxalt-ft", data.altitude);
+    interfaceSet("pos-gps-lat", data.GPSLatitude);
+    interfaceSet("pos-gps-lon", data.GPSLongitude);
     */
 }

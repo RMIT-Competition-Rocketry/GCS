@@ -6,12 +6,13 @@
     --color-red-500: oklch(.637 .237 25.331);
     --color-red-600: oklch(.577 .245 27.325);
     --color-red-900: oklch(.396 .141 25.723);
-    --color-yellow-800: oklch(.476 .114 61.907);
     --color-yellow-900: oklch(.421 .095 57.708);
     --color-yellow-950: oklch(.286 .066 53.813);
     --color-lime-800: oklch(.453 .124 130.933);
     --color-green-900: oklch(.393 .095 152.535);
     --color-green-950: oklch(.266 .065 152.934);
+    --color-emerald-300: oklch(.845 .143 164.978);
+    --color-emerald-600: oklch(.596 .145 163.225);
     --color-emerald-800: oklch(.432 .095 166.913);
     --color-teal-800: oklch(.437 .078 188.216);
     --color-cyan-800: oklch(.45 .085 224.283);
@@ -27,8 +28,12 @@
     --spacing: .25rem;
     --text-lg: 1.125rem;
     --text-lg--line-height: calc(1.75 / 1.125);
+    --text-xl: 1.25rem;
+    --text-xl--line-height: calc(1.75 / 1.25);
     --text-2xl: 1.5rem;
     --text-2xl--line-height: calc(2 / 1.5);
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: calc(2.25 / 1.875);
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
@@ -303,6 +308,13 @@
     min-width: calc(var(--spacing) * 0);
     flex: 1;
   }
+
+  section {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+    border-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
+    padding: calc(var(--spacing) * 2);
+  }
 }
 
 @layer components {
@@ -373,6 +385,16 @@
     mask-image: url("/img/icons/sitemap.svg");
   }
 
+  .graph {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 2px;
+    border-left-style: var(--tw-border-style);
+    border-left-width: 2px;
+    border-color: var(--color-hive);
+    background-color: var(--color-black);
+    flex: 1;
+  }
+
   .indicator-numeric {
     border-radius: var(--radius-sm);
     background-color: var(--color-zinc-900);
@@ -401,6 +423,44 @@
     border-color: var(--color-hive);
     border-radius: 3.40282e38px;
     margin-inline: auto;
+  }
+
+  .indicator-boolean.on {
+    background-color: var(--color-emerald-600);
+    filter: drop-shadow(0 0 5px var(--color-emerald-600)) drop-shadow(0 0 10px var(--color-emerald-600));
+  }
+
+  .indicator-boolean.on:after {
+    height: calc(var(--spacing) * 10);
+    font-size: var(--text-3xl);
+    line-height: var(--tw-leading, var(--text-3xl--line-height));
+    color: var(--color-emerald-300);
+    content: "on";
+  }
+
+  .indicator-boolean.off {
+    background-color: color-mix(in oklab, var(--color-hive) 10%, transparent);
+  }
+
+  .indicator-boolean.off:after {
+    height: calc(var(--spacing) * 10);
+    font-size: var(--text-xl);
+    line-height: var(--tw-leading, var(--text-xl--line-height));
+    color: color-mix(in oklab, var(--color-hive) 50%, transparent);
+    content: "off";
+  }
+
+  .indicator-boolean.error {
+    background-color: var(--color-red-900);
+  }
+
+  .indicator-boolean.error:after {
+    font-size: var(--text-3xl);
+    line-height: var(--tw-leading, var(--text-3xl--line-height));
+    --tw-font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-red-500);
+    content: "ERROR!";
   }
 
   .continuity-check-button {
@@ -465,10 +525,6 @@
     grid-column: auto;
   }
 
-  .col-span-2 {
-    grid-column: span 2 / span 2;
-  }
-
   .col-span-4 {
     grid-column: span 4 / span 4;
   }
@@ -489,10 +545,6 @@
     grid-row: 1 / 10;
   }
 
-  .row-\[1\/11\] {
-    grid-row: 1 / 11;
-  }
-
   .row-\[1\/13\] {
     grid-row: 1 / 13;
   }
@@ -507,10 +559,6 @@
 
   .row-\[10\/13\] {
     grid-row: 10 / 13;
-  }
-
-  .row-\[11\/13\] {
-    grid-row: 11 / 13;
   }
 
   .row-span-2 {
@@ -853,12 +901,25 @@
     border-bottom-width: 2px;
   }
 
+  .border-none {
+    --tw-border-style: none;
+    border-style: none;
+  }
+
   .border-green-950 {
     border-color: var(--color-green-950);
   }
 
   .border-hive {
     border-color: var(--color-hive);
+  }
+
+  .border-hive\/20 {
+    border-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
+  }
+
+  .border-hive\/50 {
+    border-color: color-mix(in oklab, var(--color-hive) 50%, transparent);
   }
 
   .border-hive\/70 {
@@ -941,10 +1002,6 @@
     background-color: var(--color-white);
   }
 
-  .bg-yellow-800 {
-    background-color: var(--color-yellow-800);
-  }
-
   .bg-yellow-900 {
     background-color: var(--color-yellow-900);
   }
@@ -987,10 +1044,6 @@
 
   .py-3 {
     padding-block: calc(var(--spacing) * 3);
-  }
-
-  .py-4 {
-    padding-block: calc(var(--spacing) * 4);
   }
 
   .pt-2 {
@@ -1072,6 +1125,10 @@
 
   .text-hive {
     color: var(--color-hive);
+  }
+
+  .text-hive\/50 {
+    color: color-mix(in oklab, var(--color-hive) 50%, transparent);
   }
 
   .text-legacy-300 {
