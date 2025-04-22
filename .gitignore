@@ -1,6 +1,7 @@
 # Local notes that don't need to be shared
 notes/local.txt
 notes/visualParadigm/*
+notes/design/*
 
 # Device specific settings
 .vscode/c_cpp_properties.json

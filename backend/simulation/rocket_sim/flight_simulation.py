@@ -1,7 +1,8 @@
 from rocket_sim.flight import run_flight
 import pandas as pd
-import backend.process_logging as slogger
+import backend.includes_python.process_logging as slogger
 import os
+import shutil
 from rocket_sim.config import hash_ini_file
 import json
 
@@ -28,25 +29,33 @@ def get_simulated_flight_data() -> pd.DataFrame:
         Use this function to run the api, you will get all the necessary data for the backend in a pandas dataframe
     """
     CONFIG_HASH = hash_ini_file()
-    CACHE_DIR = os.path.join("backend", "simulation", "cache")
-    csv_export_name = os.path.join(
-        CACHE_DIR, CONFIG_HASH, "flightdataexport.csv")
+    CACHE_DIRS = os.path.join("backend", "simulation", "cache")
+    THIS_CACHE_DIR = os.path.join(CACHE_DIRS, CONFIG_HASH)
+    csv_export_name = os.path.join(THIS_CACHE_DIR, "flightdataexport.csv")
+    cache_building_lock_name = os.path.join(THIS_CACHE_DIR, "building.lock")
     extra_data_path = os.path.join(
         os.path.dirname(csv_export_name), "data.json")
-    os.makedirs(CACHE_DIR, exist_ok=True)
+    os.makedirs(CACHE_DIRS, exist_ok=True)
 
-    if CONFIG_HASH in os.listdir(CACHE_DIR):
-        # Cache exists, load it
-        slogger.info("Loading simulation flight data from cache...")
+    build_data = True
 
-    else:
+    if CONFIG_HASH in os.listdir(CACHE_DIRS):
+        if os.path.isfile(cache_building_lock_name):
+            slogger.info("Cache was incomplete, removing it...")
+            if os.path.exists(THIS_CACHE_DIR):
+                shutil.rmtree(THIS_CACHE_DIR)
+        else:
+            slogger.info("Loading simulation flight data from cache...")
+            build_data = False
+
+    if build_data:
         # Make new data
         # Create missing files and directories
         os.makedirs(os.path.dirname(csv_export_name), exist_ok=True)
-
+        # Add a lockfile to indicate that the cache is being built
+        open(cache_building_lock_name, "w").close()
         open(csv_export_name, "w").close()
         flight_object = run_flight()
-        flight_object.all_info()
         # w means the angular velocity
         # a is acceleration
         flight_object.export_data(
@@ -59,6 +68,7 @@ def get_simulated_flight_data() -> pd.DataFrame:
             json.dump({
                 "apogee_time": flight_object.apogee_time,
                 "max_speed_time": flight_object.max_speed_time}, f)
+        os.remove(cache_building_lock_name)
 
     if not os.path.isfile(csv_export_name):
         slogger.error("Could not fine flight data")

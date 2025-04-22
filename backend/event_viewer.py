@@ -19,19 +19,15 @@ import backend.proto.generated.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 from typing import List, Dict, Optional, Union
-import backend.process_logging as slogger  # slog deez nuts
-import backend.ansci as ansci
-import config.config as config
-from mach import Mach
+import backend.includes_python.process_logging as slogger  # slog deez nuts
+import backend.includes_python.ansci as ansci
+from backend.includes_python.mach import Mach
+import backend.includes_python.service_helper as service_helper
 
 # Just prints useful information from AV and saves it to csv file
 
 
 class Packet(ABC):
-
-    _LOCK_FILE_GSE_RESPONSE_PATH = \
-        config.load_config()["locks"]["lock_file_gse_response_path"]
-
     # Updated in _setup_logging
     _setup: bool = False
 
@@ -353,22 +349,23 @@ class AVPacket(Packet):
                         FlightState_pb.FlightState.DECENT | \
                         FlightState_pb.FlightState.LANDED:
                     slogger.info(
-                        f"Flight state changed to {flight_state_name}")
+                        f"🚀 Flight state changed to {flight_state_name}")
                 case FlightState_pb.FlightState.PRE_FLIGHT_NO_FLIGHT_READY:
                     slogger.warning(
-                        f"Flight state changed to {flight_state_name}")
+                        f"❌ Flight state changed to {flight_state_name}")
                 case FlightState_pb.FlightState.OH_NO:
                     slogger.critical(
-                        f"Flight state changed to {flight_state_name}")
+                        f"❌ Flight state changed to {flight_state_name}")
                 case _:
-                    slogger.error(f"Unknown flight state {flight_state_name}")
+                    slogger.error(
+                        f"❌ Unknown flight state {flight_state_name}")
 
             # Extra case for printing apogee estimation
             if PROTO_DATA.flightState == FlightState_pb.FlightState.APOGEE:
                 __ft_estimation = AV_TO_GCS_DATA_1._mt_to_ft(
                     PROTO_DATA.altitude)
                 slogger.info(
-                    f"Instantaneous Apogee estimation: {__ft_estimation} ft")
+                    f"🚀 Instantaneous Apogee estimation: {__ft_estimation} ft")
 
     def _process_state_flags(self, PROTO_DATA: AVStateFlags_pb.AVStateFlags) -> None:
         # Info level for 0 -> 1 and warning for 1 -> 0
@@ -379,14 +376,14 @@ class AVPacket(Packet):
                 # Something changed
                 if state_flag_value == 1:
                     slogger.info(
-                        f"{state_flag_name} changed to {state_flag_value}")
+                        f"ℹ️  {state_flag_name} changed to {state_flag_value}")
                 else:
                     slogger.warning(
-                        f"{state_flag_name} changed to {state_flag_value}")
+                        f"❌ {state_flag_name} changed to {state_flag_value}")
                 if state_flag_name == "GPS_fix_flag" and state_flag_value:
-                    slogger.success("GPS Fix aquired")
+                    slogger.success("🌏 GPS Fix aquired")
                 elif state_flag_name == "GPS_fix_flag" and not state_flag_value:
-                    slogger.warning("GPS Fix lost")
+                    slogger.warning("❌ GPS Fix lost")
             # Update historical value
             AVPacket._last_state_flags[state_flag_name] = state_flag_value
 
@@ -489,9 +486,9 @@ class AV_TO_GCS_DATA_1(AVPacket):
                 if AWAITING_TEST_RESULTS:
                     # Yes we were. Hopefully it's complete and show the results
                     if DATA_TEST_COMPLETE:
-                        slogger.success(f"{KEY_TEST_COMPLETE} complete")
+                        slogger.success(f"✅ {KEY_TEST_COMPLETE} complete")
                     else:
-                        slogger.error(f"{KEY_TEST_COMPLETE} not complete")
+                        slogger.error(f"❌ {KEY_TEST_COMPLETE} not complete")
                     # Now update the object. We aren't waiting anymore
                     caller_awaiting_results = False
                 elif DATA_TEST_COMPLETE:
@@ -508,9 +505,9 @@ class AV_TO_GCS_DATA_1(AVPacket):
                 else:
                     if DATA_TEST_RESULTS == 1:
                         # Continuity. hell yeah
-                        slogger.success(f"{KEY_TEST_RESULTS}: Continuity")
+                        slogger.success(f"✅ {KEY_TEST_RESULTS}: Continuity")
                     else:
-                        slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
+                        slogger.error(f"❌ {KEY_TEST_RESULTS}: No Continuity")
 
                 # Update history of changed complete condition
                 AVPacket._last_test_details[KEY_TEST_COMPLETE] = DATA_TEST_COMPLETE
@@ -594,7 +591,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
             MACH_SPEED = Mach.mach_from_alt_estimate(
                 PROTO_DATA.velocity, PROTO_DATA.altitude)
             slogger.info(
-                f"New max velocity: {MACH_SPEED:<3.3f} mach")
+                f"🥇 New max velocity: {MACH_SPEED:<3.3f} mach")
             self._max_velocity_updated = False
 
         self._last_information_display_time = time.monotonic()
@@ -609,7 +606,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
             PROTO_DATA.velocity, PROTO_DATA.altitude)
         if MACH_SPEED >= 1 and self._supersonic == False:
             # Coolest line of code I've ever written btw
-            slogger.info("Supersonic flight detected")
+            slogger.info("💨 Supersonic flight detected")
             self._supersonic = True
         elif self._supersonic and MACH_SPEED < 1:
             slogger.info("Supersonic flight ended")
@@ -629,7 +626,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
         # Notify if moving to broadcast
         if PROTO_DATA.broadcast_flag and self._last_broadcast_value == False:
             slogger.info(ansci.BG_MAGENTA + ansci.FG_BLACK +
-                         "@@@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@@@" + ansci.RESET)
+                         "📣📣📣 FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION 📣📣📣" + ansci.RESET)
         elif PROTO_DATA.broadcast_flag == False and self._last_broadcast_value == True:
             slogger.critical("FC HAS DECIDED TO STOP BROADCASTING")
 
@@ -660,7 +657,7 @@ class AV_TO_GCS_DATA_2(Packet):
                 GPS_longitude != self._GPS_longitude_old):
             # TODO Maybe you need to add GPS fix to this condition as well
             slogger.info(
-                f"GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
+                f"🌏 GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
             maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
             result: Optional[str] = None
             try:
@@ -756,10 +753,10 @@ class GSEPacket(Packet):
                 # Something changed
                 if state_flag_value == 1:
                     slogger.info(
-                        f"{state_flag_name} changed to {state_flag_value}")
+                        f"ℹ️  {state_flag_name} changed to {state_flag_value}")
                 else:
                     slogger.warning(
-                        f"{state_flag_name} changed to {state_flag_value}")
+                        f"🟢 {state_flag_name} changed to {state_flag_value}")
             # Update historical value
             cls._last_gse_state_flags[state_flag_name] = state_flag_value
 
@@ -772,10 +769,10 @@ class GSEPacket(Packet):
                 # Something changed
                 if error_flag_value:
                     slogger.error(
-                        f"{error_flag_name} changed to {error_flag_value}")
+                        f"❌ {error_flag_name} changed to {error_flag_value}")
                 else:
                     slogger.info(
-                        f"{error_flag_name} changed to {error_flag_value}")
+                        f"🟢 {error_flag_name} changed to {error_flag_value}")
             # Update historical value
             cls._last_gse_errors[error_flag_name] = error_flag_value
 
@@ -801,7 +798,7 @@ class GSE_TO_GCS_DATA_1(GSEPacket):
                 log_function = slogger.error
             else:
                 log_function = slogger.info
-            log_function(f"Transducer_{i+1} value: {trans_values[0]} bar")
+            log_function(f"💧 Transducer_{i+1} value: {trans_values[0]} bar")
 
         THERMOCOUPLE_VALUE_ERROR = [
             (PROTO_DATA.thermocouple_1, PROTO_DATA.error_flags.thermocouple_1_error),
@@ -815,7 +812,7 @@ class GSE_TO_GCS_DATA_1(GSEPacket):
             else:
                 log_function = slogger.info
             log_function(
-                f"Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
+                f"🌡️🌡️ Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
             self._last_information_display_time = time.monotonic()
 
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1) -> None:
@@ -852,14 +849,14 @@ class GSE_TO_GCS_DATA_2(GSEPacket):
             -0.00001 < PROTO_DATA.additional_current_input_2 < 0.00001) else slogger.error
 
         LOG_TEMP(
-            f"GSE internal temp: {round(PROTO_DATA.internal_temp, 2)} deg C")
+            f" 🌡 GSE internal temp: {round(PROTO_DATA.internal_temp, 2)} deg C")
         # TODO Uncomment when implimented
         # LOG_WIND(
-        #     f"GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
+        #     f"💨 GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
         # LOG_BOTTLE_1(
-        #     f"GSE gas bottle 1 weight: {PROTO_DATA.gas_bottle_weight_1} kg")
+        #     f"⚖️ GSE gas bottle 1 weight: {PROTO_DATA.gas_bottle_weight_1} kg")
         # LOG_BOTTLE_2(
-        #     f"GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
+        #     f"⚖️ GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
         # LOG_VAC_1(
         #     f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1, 2)} ?")
         # LOG_VAC_2(
@@ -907,49 +904,53 @@ def main(SOCKET_PATH, CREATE_LOGS):
     GSE_TO_GCS_DATA_1_handler = GSE_TO_GCS_DATA_1()
     GSE_TO_GCS_DATA_2_handler = GSE_TO_GCS_DATA_2()
 
-    try:
-        # Create a mapping of packet IDs to their handlers and message types
-        packet_handlers = {
-            3: (AV_TO_GCS_DATA_1_handler, AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1),
-            4: (AV_TO_GCS_DATA_2_handler, AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2),
-            5: (AV_TO_GCS_DATA_3_handler, AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3),
-            6: (GSE_TO_GCS_DATA_1_handler, GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1),
-            7: (GSE_TO_GCS_DATA_2_handler, GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2),
-        }
+    # Create a mapping of packet IDs to their handlers and message types
+    packet_handlers = {
+        3: (AV_TO_GCS_DATA_1_handler, AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1),
+        4: (AV_TO_GCS_DATA_2_handler, AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2),
+        5: (AV_TO_GCS_DATA_3_handler, AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3),
+        6: (GSE_TO_GCS_DATA_1_handler, GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1),
+        7: (GSE_TO_GCS_DATA_2_handler, GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2),
+    }
 
-        while True:
-            # Blocking
-            message = sub_socket.recv()
-            if len(message) > 1:
-                # We've missed the ID publish message. Wait for next one
-                continue
+    while not service_helper.time_to_stop():
+        # Poll for incoming messages (timeout in ms)
+        if sub_socket.poll(500) == 0:
+            continue
 
-            packet_id = int.from_bytes(message, byteorder='big')
-            message = sub_socket.recv()
+        message = sub_socket.recv()
+        if len(message) > 1:
+            # We've missed the ID publish message. Wait for next one
+            continue
 
-            if len(message) == 1:
-                # Something failed and we've got a new ID instead of the last message.
-                new_erronous_packet_id = int.from_bytes(
-                    message, byteorder='big')
-                slogger.error(
-                    f"Event viewer subscription did not find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
-                continue
+        packet_id = int.from_bytes(message, byteorder='big')
+        if sub_socket.poll(500) == 0:
+            continue
 
-            if packet_id in packet_handlers:
-                handler, message_type = packet_handlers[packet_id]
+        message = sub_socket.recv()
+
+        if len(message) == 1:
+            # Something failed and we've got a new ID instead of the last message.
+            new_erronous_packet_id = int.from_bytes(
+                message, byteorder='big')
+            slogger.error(
+                f"Event viewer subscription did not find last message with ID: {packet_id}. Instead got new ID: {new_erronous_packet_id}")
+            continue
+
+        if packet_id in packet_handlers:
+            handler, message_type = packet_handlers[packet_id]
+            try:
                 packet = message_type()
                 packet.ParseFromString(message)
                 handler.process(packet)
-            else:
-                slogger.error(f"Unexpected packet ID: {packet_id}")
+            except Exception as e:
+                slogger.error(
+                    f"Error processing packet ID {packet_id}: {e}")
+        else:
+            slogger.error(f"Unexpected packet ID: {packet_id}")
 
-    except KeyboardInterrupt:
-        # Graceful exit if KeyboardInterrupt occurs outside the loop
-        slogger.warning("Keyboard interrupt received. Stopping program.")
-    finally:
-        # Any final cleanup code
-        sub_socket.close()
-        slogger.info("Event viewer stopped.")
+    slogger.info("Stopping viewer.")
+    sub_socket.close()
 
 
 if __name__ == "__main__":

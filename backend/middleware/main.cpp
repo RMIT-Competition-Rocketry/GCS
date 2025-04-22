@@ -99,6 +99,8 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
     } catch (const std::exception &e) {
       slogger::error(std::string(PacketType::PACKET_NAME) +
                      ": Error processing payload: " + e.what());
+    } catch (...) {
+      slogger::error("Caught unknown exception while processing payload");
     }
   } else {
     // This may be fixed 32 bytes every time. Not sure if can be different
@@ -123,7 +125,7 @@ void post_process_av(Sequence &sequence,
 void input_read_loop(std::shared_ptr<LoraInterface> interface,
                      zmq::socket_t &pub_socket, Sequence &sequence) {
   set_thread_name("input_read_loop");
-  std::vector<uint8_t> buffer(256);
+  std::vector<uint8_t> buffer(1024);
   auto last_read_time = std::chrono::steady_clock::now();
   auto last_timeout_warning_time = std::chrono::steady_clock::now();
 
@@ -264,6 +266,8 @@ std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST) {
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+  slogger::info("Starting middleware server");
+
   // Pick interface based on the first argument
   if (argc < 4) {
     slogger::error("Not enough arugments provided.");
@@ -331,6 +335,7 @@ int main(int argc, char *argv[]) {
     auto last_timeout_warning_time = std::chrono::steady_clock::now();
     const bool SUPPRESS_PENDANT_WARNING = std::getenv("CONFIG_PATH") == nullptr;
     // Main command loop
+    slogger::info("Middleware server started successfully");
     while (running) {
       zmq::poll(items, 1, std::chrono::milliseconds(300));  // 300ms timeout
 
@@ -425,10 +430,14 @@ int main(int argc, char *argv[]) {
 
     // Cleanup
     reader.join();
+  } catch (const zmq::error_t &e) {
+    slogger::error("ZeroMQ error: " + std::string(e.what()));
+  } catch (const std::runtime_error &e) {
+    slogger::error("Runtime error: " + std::string(e.what()));
   } catch (const std::exception &e) {
     slogger::error("Generic error on main: " + std::string(e.what()));
     return EXIT_FAILURE;
   }
-
+  google::protobuf::ShutdownProtobufLibrary();
   return EXIT_SUCCESS;
 }
