@@ -6,17 +6,15 @@
     <img src="https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem">
 </p>
 
+![banner](docs/assets/banner.png)
+
 Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Control Station**) data ingestion and visulisation software.
 
-🇦🇺 🦘 
+Our GCS is named after **Soteria**, the Greek goddess of safety and deliverance from harm.
+
 
 <!-- TODO Make a monochrome png for logos. Consider https://simpleicons.org/ -->
 
-<p >
-    <img src="docs/assets/hive-logo.png" alt="HIVE Logo" height="50">
-    <img src="docs/assets/RMIT_University_Logo.png" alt="RMIT Logo" height="50" style="padding-left:10px">
-    <img src="docs/assets/IREC.jpg" alt="IREC Logo" height="50" style="padding-left:10px">
-</p>
 
 
 ## Contents
