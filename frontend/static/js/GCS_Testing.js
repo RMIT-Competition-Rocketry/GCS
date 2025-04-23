@@ -60,7 +60,7 @@ function testing_updateAllInterfaceValues() {
         interfaceSetState(item, "on");
     })
     TESTING_INTERFACE_ITEMS.forEach((item, i) => {
-        interfaceSet(item, i);
+        interfaceSetValue(item, i);
     });
 }
 

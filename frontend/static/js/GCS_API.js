@@ -22,12 +22,33 @@ function connectSocket() {
 			api_latest = api_data;
 
 			//console.log(Object.keys(api_latest.data));
-			//console.log(api_latest.data)
+			console.log(api_latest.data)
 
 			if (api_latest.id == 3) {
 				// Update interface modules
+				// Header
+				interfaceUpdateRadio(api_latest.data);
+
+				// Main interface
+				interfaceUpdateAuxData(api_latest.data);
 				interfaceUpdateAvionics(api_latest.data);
+				interfaceUpdateFlightState(api_latest.data);
+				interfaceUpdatePayload(api_latest.data);
 				interfaceUpdatePosition(api_latest.data);
+				interfaceUpdateRocket(api_latest.data);
+
+				// Single operator page
+				/*
+				interfaceUpdateContinuityCheck(api_latest.data);
+				interfaceUpdateFlags(api_latest.data);
+				interfaceUpdateOtherControls(api_latest.data);
+				interfaceUpdatePopTest(api_latest.data);
+				*/
+
+				// HMI
+				/*
+				interfaceUpdateHMI(api_latest.data);
+				*/
 			}
 		}
 		catch (error) {

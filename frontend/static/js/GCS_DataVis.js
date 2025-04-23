@@ -126,19 +126,19 @@ window.addEventListener("load", function () {
             //Updates the html value
             const current = data[index];
             if (current) {
-                //interfaceSet("av-alt-ft", current.Baro_Altitude_AGL);
+                //interfaceSetValue("av-alt-ft", current.Baro_Altitude_AGL);
                 if (current.Baro_Altitude_AGL > max_Baro_Altitude_AGL) {
                     max_Baro_Altitude_AGL = current.Baro_Altitude_AGL;
                 }
                 var alt_metres = current.Baro_Altitude_AGL *0.3048;
-                //interfaceSet("av-alt-m",alt_metres)
+                //interfaceSetValue("av-alt-m",alt_metres)
                 if (alt_metres > max_alt_m) {
                     max_alt_m = alt_metres;
                 }
                 var velocity_metres = current.Velocity_Up * 0.3048;
-                //interfaceSet("av-velocity",velocity_metres.toFixed(4))
-                //interfaceSet("av-maxalt-ft", max_Baro_Altitude_AGL);
-                //interfaceSet("av-maxalt-m", max_alt_m);
+                //interfaceSetValue("av-velocity",velocity_metres.toFixed(4))
+                //interfaceSetValue("av-maxalt-ft", max_Baro_Altitude_AGL);
+                //interfaceSetValue("av-maxalt-m", max_alt_m);
             }
 
             // Update the index to the next data point, and reset to 0 when it exceeds the data length

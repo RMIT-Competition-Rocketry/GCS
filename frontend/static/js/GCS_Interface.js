@@ -7,6 +7,11 @@
  * Functions and constants should be prefixed with "interface" 
 */
 
+// Global interface values
+// TODO: Find somewhere better to keep track of things
+var altitudeMax;
+
+
 // DYNAMIC MODULE SWITCHING CODE
 function interfaceSelectModule(selected) {
     document.querySelectorAll(".module").forEach((elem) => {
@@ -67,8 +72,8 @@ function feetToMetres(feet) {
 }
 
 
-// FUNCTIONS FOR UPDATING VALUES IN THE INTERFACE
-function interfaceSet(item, value, precision=2) {
+// FUNCTIONS FOR UPDATING INTERFACE ELEMENTS
+function interfaceSetValue(item, value, precision=2) {
     // Updates a floating point value for a display item
     let elements = document.querySelectorAll(`.${item}`);
 
@@ -119,65 +124,132 @@ function interfaceSetState(item, value) {
     }
 }
 
-function interfaceUpdateAvionics(data) {
-    /// Update data in avionics module
-    // Indicators
-    /*
-    interfaceSetState("av-state-gpsfix", "on");
-    interfaceSetState("av-state-dualboard", "on");
-    interfaceSetState("av-state-pyro-1", "on");
-    interfaceSetState("av-state-pyro-2", "on");
-    interfaceSetState("av-state-pyro-3", "on");
-    interfaceSetState("av-state-pyro-4", "on");
-    */
+// FUNCTIONS FOR UPDATING MODULES
+function interfaceUpdateAuxData(data) {
+    /// MODULE AUXDATA
+}
 
+function interfaceUpdateAvionics(data) {
+    /// MODULE AVIONICS
+    // Indicators
+    if (data.stateFlags != undefined) {
+        if (data.stateFlags.GPSFixFlag != undefined) {
+            interfaceSetState("av-state-gpsfix", data.stateFlags.GPSFixFlag);
+        }
+
+        if (data.stateFlags.dualBoardConnectivityStateFlag != undefined) {
+            interfaceSetState("av-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag);
+        }
+
+        /*
+        interfaceSetState("av-state-pyro-1", "on");
+        interfaceSetState("av-state-pyro-2", "on");
+        interfaceSetState("av-state-pyro-3", "on");
+        interfaceSetState("av-state-pyro-4", "on");
+        */
+    }
+    
     // Acceleration (_g_)
     // accelLow has higher resolution, so we use that if the values are within [-16,16]
-    if (data.accelLowX && data.accelHighX) {
-        interfaceSet("av-accel-x", Math.abs(data.accelHighX) < 17 ? data.accelLowX : data.accelHighX);
+    if (data.accelLowX != undefined && data.accelHighX != undefined) {
+        interfaceSetValue("av-accel-x", Math.abs(data.accelHighX) < 17 ? data.accelLowX : data.accelHighX);
     }
 
-    if (data.accelLowY && data.accelHighY) {
-        interfaceSet("av-accel-y", Math.abs(data.accelHighY) < 17 ? data.accelLowY : data.accelHighY);
+    if (data.accelLowY != undefined && data.accelHighY != undefined) {
+        interfaceSetValue("av-accel-y", Math.abs(data.accelHighY) < 17 ? data.accelLowY : data.accelHighY);
     }
 
-    if (data.accelLowZ && data.accelHighZ) {
-        interfaceSet("av-accel-z", Math.abs(data.accelHighZ) < 17 ? data.accelLowZ : data.accelHighZ);
+    if (data.accelLowZ != undefined && data.accelHighZ != undefined) {
+        interfaceSetValue("av-accel-z", Math.abs(data.accelHighZ) < 17 ? data.accelLowZ : data.accelHighZ);
     }
 
     // Gyro (deg/s)
-    if (data.gyroX) {
-        interfaceSet("av-gyro-x", data.gyroX);
+    if (data.gyroX != undefined) {
+        interfaceSetValue("av-gyro-x", data.gyroX);
     }
 
-    if (data.gyroY) {
-        interfaceSet("av-gyro-y", data.gyroY);
+    if (data.gyroY != undefined) {
+        interfaceSetValue("av-gyro-y", data.gyroY);
     }
 
-    if (data.gyroZ) {
-        interfaceSet("av-gyro-z", data.gyroZ);
+    if (data.gyroZ != undefined) {
+        interfaceSetValue("av-gyro-z", data.gyroZ);
     }
 
     // Velocity (m/s)
-    if (data.velocity) {
-        interfaceSet("av-velocity", data.velocity);
+    if (data.velocity != undefined) {
+        interfaceSetValue("av-velocity", data.velocity);
     }
 
-    //interfaceSet("av-mach", );
+    // Mach speed
+    if (data.mach_speed != undefined) {
+        interfaceSetValue("av-mach", data.mach_speed);
+    }
+}
+
+function interfaceUpdateContinuityCheck(data) {
+    /// MODULE CONTINUITYCHECK
+}
+
+function interfaceUpdateFlags(data) {
+    /// MODULE FLAGS
+}
+
+function interfaceUpdateFlightState(data) {
+    /// MODULE FLIGHTSTATE
+    if (data.flightState != undefined) {
+        interfaceSetString("fs-flightstate", data.flightState)
+    }
+}
+
+function interfaceUpdateHMI(data) {
+    /// MODULE HMI
+}
+
+function interfaceUpdateOtherControls(data) {
+    /// MODULE OTHERCONTROLS
+}
+
+function interfaceUpdatePayload(data) {
+    /// MODULE PAYLOAD
+}
+
+function interfaceUpdatePopTest(data) {
+    /// MODULE POPTEST
 }
 
 function interfaceUpdatePosition(data) {
-    /// Update data in position module
+    /// MODULE POSITION
     // Altitude
-    if (data.altitude) {
-        interfaceSet("pos-alt-m", data.altitude);
-        interfaceSet("pos-alt-ft", Math.round(metresToFeet(data.altitude)));
+    if (data.altitude != undefined) {
+        // Regular altitude
+        interfaceSetValue("pos-alt-m", data.altitude);
+        interfaceSetValue("pos-alt-ft", metresToFeet(data.altitude), 0);
+    
+        // Max altitude
+        if (altitudeMax == undefined || data.altitude > altitudeMax) {
+            altitudeMax = data.altitude;
+        }
+
+        if (altitudeMax != undefined) {
+            interfaceSetValue("pos-maxalt-m", altitudeMax);
+            interfaceSetValue("pos-maxalt-ft", metresToFeet(altitudeMax), 0);
+        }
     }
     
     /*
-    interfaceSet("pos-maxalt-m", data.altitude);
-    interfaceSet("pos-maxalt-ft", data.altitude);
-    interfaceSet("pos-gps-lat", data.GPSLatitude);
-    interfaceSet("pos-gps-lon", data.GPSLongitude);
+    interfaceSetValue("pos-maxalt-m", data.altitude);
+    interfaceSetValue("pos-maxalt-ft", data.altitude);
+    interfaceSetValue("pos-gps-lat", data.GPSLatitude);
+    interfaceSetValue("pos-gps-lon", data.GPSLongitude);
     */
+}
+
+function interfaceUpdateRadio(data) {
+    /// MODULE RADIO
+}
+
+function interfaceUpdateRocket(data) {
+    /// MODULE ROCKET
+    // Probably call a function in GCS_Three.js
 }
