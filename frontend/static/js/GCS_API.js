@@ -38,17 +38,13 @@ function connectSocket() {
 				interfaceUpdateRocket(api_latest.data);
 
 				// Single operator page
-				/*
 				interfaceUpdateContinuityCheck(api_latest.data);
 				interfaceUpdateFlags(api_latest.data);
 				interfaceUpdateOtherControls(api_latest.data);
 				interfaceUpdatePopTest(api_latest.data);
-				*/
 
 				// HMI
-				/*
 				interfaceUpdateHMI(api_latest.data);
-				*/
 			}
 		}
 		catch (error) {
