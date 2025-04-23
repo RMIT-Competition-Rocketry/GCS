@@ -1,8 +1,9 @@
 <!-- Avionics module -->
 <!-- Includes acceleration, gyro, velocity -->
-<div class="w-full h-full flex flex-col gap-2 font-mono">
+<div class="w-full h-full flex flex-col gap-2 font-mono border-t-2 border-hive/50">
+	<h2>Avionics</h2>
 	<!-- Avionics indicators -->
-	<section class="grid grid-cols-6 text-center gap-2">
+	<section class="col-span-2 border-2 border-hive/50 bg-hive/20 mx-2 p-1 pb-0 grid grid-cols-6 text-center gap-2">
 		<div>
 			<div class="indicator-boolean av-state-gpsfix"></div>
 			<p>GPS Fix</p>
@@ -30,68 +31,70 @@
 	</section>
 
 	<!-- Accel and gyro -->
-	<div class="grid grid-cols-2 grow gap-2">
+	<div class="grid grid-cols-2 grow gap-2 gap-x-4">
 		<!-- Acceleration -->
-		<section class="flex flex-col">
+		<section class="flex flex-col pb-0">
 			<h3>Acceleration (<i>g</i>)</h3>
 			<div class="graph">
-				<p class="text-center text-hive/50">[ accel graph ]</p>
+				<!-- Acceleration graph -->
 			</div>
 			<div class="grid grid-cols-3 gap-4">
 				<p class="flex gap-1 items-center">
 					<span>X:</span>
-					<input readonly autocomplete="off" class="av-accel-x">
+					<input readonly autocomplete="off" class="av-accel-x border-red-500">
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Y:</span>
-					<input readonly autocomplete="off" class="av-accel-y">
+					<input readonly autocomplete="off" class="av-accel-y border-green-500">
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Z:</span>
-					<input readonly autocomplete="off" class="av-accel-z">
+					<input readonly autocomplete="off" class="av-accel-z border-blue-500">
 				</p>
 			</div>
 		</section>
 
 		<!-- Gyro -->
-		<section class="flex flex-col">
+		<section class="flex flex-col pb-0">
 			<h3>Gyro (deg/s)</h3>
 			<div class="graph">
-				<p class="text-center text-hive/50">[ gyro graph ]</p>
+				<!-- Gyro graph -->
 			</div>
 			<div class="grid grid-cols-3 gap-4">
 				<p class="flex gap-1 items-center">
 					<span>X:</span>
-					<input readonly autocomplete="off" class="av-gyro-x">
+					<input readonly autocomplete="off" class="av-gyro-x border-red-500">
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Y:</span>
-					<input readonly autocomplete="off" class="av-gyro-y">
+					<input readonly autocomplete="off" class="av-gyro-y border-green-500">
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Z:</span>
-					<input readonly autocomplete="off" class="av-gyro-z">
+					<input readonly autocomplete="off" class="av-gyro-z border-blue-500">
+				</p>
+			</div>
+		</section>
+
+		<!-- Velocity -->
+		<section class="col-span-2 flex flex-col grow  pb-0">
+			<h3>Velocity (m/s)</h3>
+			<div class="graph">
+				<!-- Velocity graph -->
+			</div>
+			<div class="grid grid-cols-2 gap-4">
+				<p class="flex gap-1 items-center">
+					<span>Velocity:</span> 
+					<input readonly autocomplete="off" class="av-velocity">
+					<span>m/s</span>
+				</p>
+				<p class="flex gap-1 items-center">
+					<span>Mach:</span>
+					<input readonly autocomplete="off" class="av-mach">
 				</p>
 			</div>
 		</section>
 	</div>
 	
-	<!-- Velocity -->
-	<section class="flex flex-col grow">
-		<h3>Velocity (m/s)</h3>
-		<div class="graph">
-			<p class="text-center text-hive/50">[ velocity graph ]</p>
-		</div>
-		<div class="grid grid-cols-2 gap-4">
-			<p class="flex gap-1 items-center">
-				<span>Velocity:</span> 
-				<input readonly autocomplete="off" class="av-velocity">
-				<span>m/s</span>
-			</p>
-			<p class="flex gap-1 items-center">
-				<span>Mach:</span>
-				<input readonly autocomplete="off" class="av-mach">
-			</p>
-		</div>
-	</section>
+	
 </div>

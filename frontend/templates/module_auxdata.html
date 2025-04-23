@@ -1,12 +1,13 @@
 <!-- Auxilliary data module (GSE) -->
 <!-- Includes transducers, thermocouples, internal temperature, gas bottle weights -->
-<div class="w-full h-full flex flex-col gap-2 font-mono">
+<div class="w-full h-full flex flex-col font-mono border-t-2 border-hive/50">
+	<h2>Auxilliary (GSE)</h2>
 	<div class="grid grid-cols-2 grow gap-2">
 		<!-- Transducers -->
 		<section class="flex flex-col">
 			<h3>Transducers (Bar)</h3>
 			<div class="graph">
-				<p class="text-center text-hive/50">[ transducers graph ]</p>
+				<!-- Transducers graph -->
 			</div>
 			<div class="grid grid-cols-3 gap-4">
 				<p class="flex gap-1 items-center">
@@ -28,7 +29,7 @@
 		<section class="flex flex-col">
 			<h3>Thermocouples (&deg;C)</h3>
 			<div class="graph">
-				<p class="text-center text-hive/50">[ thermocouples graph ]</p>
+				<!-- Thermocouples graph -->
 			</div>
 			<div class="grid grid-cols-4 gap-2">
 				<p class="flex gap-1 items-center">
@@ -54,10 +55,10 @@
 		<section class="flex flex-col">
 			<h3>Internal Temperature (&deg;C)</h3>
 			<div class="graph">
-				<p class="text-center text-hive/50">[ internal temperature graph ]</p>
+				<!-- Internal temperature graph -->
 			</div>
 			<p class="flex gap-1 items-center">
-				<span>Temperature:</span>
+				<span>Temp:</span>
 				<input readonly autocomplete="off" class="aux-internaltemp">
 				<span>&deg;C</span>
 			</p>
@@ -67,7 +68,7 @@
 		<section class="flex flex-col">
 			<h3>Gas Bottle Weights (kg)</h3>
 			<div class="graph">
-				<p class="text-center text-hive/50">[ gas bottle weights graph ]</p>
+				<!-- Gas bottle weights graph -->
 			</div>
 			<div class="grid grid-cols-2 gap-4">
 				<p class="flex gap-1 items-center">
