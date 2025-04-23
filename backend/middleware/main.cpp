@@ -430,6 +430,7 @@ int main(int argc, char *argv[]) {
 
     // Cleanup
     reader.join();
+    pub_socket.close();
   } catch (const zmq::error_t &e) {
     slogger::error("ZeroMQ error: " + std::string(e.what()));
   } catch (const std::runtime_error &e) {

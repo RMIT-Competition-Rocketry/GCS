@@ -486,7 +486,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
                 if AWAITING_TEST_RESULTS:
                     # Yes we were. Hopefully it's complete and show the results
                     if DATA_TEST_COMPLETE:
-                        slogger.success(f"✅ {KEY_TEST_COMPLETE} complete")
+                        slogger.success(f"🧪 {KEY_TEST_COMPLETE} complete")
                     else:
                         slogger.error(f"❌ {KEY_TEST_COMPLETE} not complete")
                     # Now update the object. We aren't waiting anymore
@@ -505,7 +505,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
                 else:
                     if DATA_TEST_RESULTS == 1:
                         # Continuity. hell yeah
-                        slogger.success(f"✅ {KEY_TEST_RESULTS}: Continuity")
+                        slogger.success(f"🧪 {KEY_TEST_RESULTS}: Continuity")
                     else:
                         slogger.error(f"❌ {KEY_TEST_RESULTS}: No Continuity")
 
@@ -626,7 +626,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
         # Notify if moving to broadcast
         if PROTO_DATA.broadcast_flag and self._last_broadcast_value == False:
             slogger.info(ansci.BG_MAGENTA + ansci.FG_BLACK +
-                         "📣📣📣 FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION 📣📣📣" + ansci.RESET)
+                         "🚨🚨🚨 FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION 🚨🚨🚨" + ansci.RESET)
         elif PROTO_DATA.broadcast_flag == False and self._last_broadcast_value == True:
             slogger.critical("FC HAS DECIDED TO STOP BROADCASTING")
 

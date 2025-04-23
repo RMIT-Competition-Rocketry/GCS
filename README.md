@@ -12,11 +12,6 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
 
-
-<!-- TODO Make a monochrome png for logos. Consider https://simpleicons.org/ -->
-
-
-
 ## Contents
 
 ### Documentation
