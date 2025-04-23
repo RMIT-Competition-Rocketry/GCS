@@ -328,6 +328,8 @@
     text-align: right;
     max-width: 100%;
     font-family: var(--font-mono);
+    font-size: var(--text-lg);
+    line-height: var(--tw-leading, var(--text-lg--line-height));
   }
 
   .flex input {
@@ -666,6 +668,14 @@
     margin-block: calc(var(--spacing) * 2);
   }
 
+  .mt-2 {
+    margin-top: calc(var(--spacing) * 2);
+  }
+
+  .mr-2 {
+    margin-right: calc(var(--spacing) * 2);
+  }
+
   .mr-4 {
     margin-right: calc(var(--spacing) * 4);
   }
@@ -700,10 +710,6 @@
 
   .inline-block {
     display: inline-block;
-  }
-
-  .table {
-    display: table;
   }
 
   .aspect-square {
@@ -746,10 +752,6 @@
     height: 100vh;
   }
 
-  .w-1 {
-    width: calc(var(--spacing) * 1);
-  }
-
   .w-1\/5 {
     width: 20%;
   }
@@ -782,12 +784,8 @@
     flex: 1;
   }
 
-  .flex-grow, .grow {
+  .grow {
     flex-grow: 1;
-  }
-
-  .border-collapse {
-    border-collapse: collapse;
   }
 
   .transform {
@@ -844,10 +842,6 @@
 
   .flex-nowrap {
     flex-wrap: nowrap;
-  }
-
-  .flex-wrap {
-    flex-wrap: wrap;
   }
 
   .items-center {
@@ -965,10 +959,6 @@
     border-color: var(--color-legacy-400);
   }
 
-  .border-legacy-500 {
-    border-color: var(--color-legacy-500);
-  }
-
   .border-legacy-500\/50 {
     border-color: color-mix(in oklab, var(--color-legacy-500) 50%, transparent);
   }
@@ -1017,16 +1007,8 @@
     background-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
   }
 
-  .bg-legacy-400 {
-    background-color: var(--color-legacy-400);
-  }
-
   .bg-legacy-400\/10 {
     background-color: color-mix(in oklab, var(--color-legacy-400) 10%, transparent);
-  }
-
-  .bg-legacy-500 {
-    background-color: var(--color-legacy-500);
   }
 
   .bg-legacy-500\/10 {
@@ -1061,10 +1043,6 @@
     background-color: var(--color-yellow-900);
   }
 
-  .p-0 {
-    padding: calc(var(--spacing) * 0);
-  }
-
   .p-1 {
     padding: calc(var(--spacing) * 1);
   }
@@ -1075,10 +1053,6 @@
 
   .p-4 {
     padding: calc(var(--spacing) * 4);
-  }
-
-  .p-9 {
-    padding: calc(var(--spacing) * 9);
   }
 
   .px-0 {
@@ -1103,10 +1077,6 @@
 
   .px-\[4\%\] {
     padding-inline: 4%;
-  }
-
-  .py-0 {
-    padding-block: calc(var(--spacing) * 0);
   }
 
   .py-2 {
@@ -1198,10 +1168,6 @@
     color: var(--color-hive);
   }
 
-  .text-hive\/50 {
-    color: color-mix(in oklab, var(--color-hive) 50%, transparent);
-  }
-
   .text-legacy-300 {
     color: var(--color-legacy-300);
   }
@@ -1216,10 +1182,6 @@
 
   .text-white {
     color: var(--color-white);
-  }
-
-  .underline {
-    text-decoration-line: underline;
   }
 
   .shadow {
