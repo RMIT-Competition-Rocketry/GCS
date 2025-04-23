@@ -110,7 +110,7 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
     slogger::debug("Buffer contents: " +
                    vectorToHexString(buffer, BUFFER_BYTE_COUNT));
   }
-#TODO You gotta figure out what to do with this
+  // TODO You gotta figure out what to do with this
   return nullptr;
 }
 
