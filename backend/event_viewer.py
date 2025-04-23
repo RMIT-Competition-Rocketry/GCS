@@ -588,10 +588,10 @@ class AV_TO_GCS_DATA_1(AVPacket):
             f"{vel_color}Velocity: {VELOCITY_M:<8,.0f}m/s{ansci.RESET}")
 
         if self._max_velocity_updated:
-            MACH_SPEED = Mach.mach_from_alt_estimate(
+            MACH_NUMBER = Mach.mach_from_alt_estimate(
                 PROTO_DATA.velocity, PROTO_DATA.altitude)
             slogger.info(
-                f"🥇 New max velocity: {MACH_SPEED:<3.3f} mach")
+                f"🥇 New max velocity: {MACH_NUMBER:<3.3f} mach")
             self._max_velocity_updated = False
 
         self._last_information_display_time = time.monotonic()
@@ -602,13 +602,13 @@ class AV_TO_GCS_DATA_1(AVPacket):
 
         # Supersonic alert
         # NOTE Legacy (IREC) is not extimated to go supersonic
-        MACH_SPEED = Mach.mach_from_alt_estimate(
+        MACH_NUMBER = Mach.mach_from_alt_estimate(
             PROTO_DATA.velocity, PROTO_DATA.altitude)
-        if MACH_SPEED >= 1 and self._supersonic == False:
+        if MACH_NUMBER >= 1 and self._supersonic == False:
             # Coolest line of code I've ever written btw
             slogger.info("💨 Supersonic flight detected")
             self._supersonic = True
-        elif self._supersonic and MACH_SPEED < 1:
+        elif self._supersonic and MACH_NUMBER < 1:
             slogger.info("Supersonic flight ended")
             self._supersonic = False
 

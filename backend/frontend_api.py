@@ -33,7 +33,7 @@ def append_data(data: dict, PACKET_ID: int) -> dict:
     """
     match PACKET_ID:
         case 3:
-            data["mach_speed"] = Mach.mach_from_alt_estimate(
+            data["mach_number"] = Mach.mach_from_alt_estimate(
                 VELOCITY_M=data["velocity"],
                 ALTITUDE_M=data["altitude"])
     return data

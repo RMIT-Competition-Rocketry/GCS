@@ -86,14 +86,13 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
       // Run sequence related updates
       std::string serialized;
       if (proto_msg.SerializeToString(&serialized)) {
-        // Has to be At LEAST bigger than the input size with proto
-        // slogger::debug("NAME: " + std::string(PacketType::PACKET_NAME));
-        // slogger::debug("ID  : " + std::to_string(PacketType::ID));
         zmq::message_t msg(serialized.data(), serialized.size());
         pub_socket.send(msg, zmq::send_flags::none);
       } else {
-        slogger::error(std::string(PacketType::PACKET_NAME) +
-                       ": Failed to serialize to string for protobuf");
+        slogger::error(
+            std::string(PacketType::PACKET_NAME) +
+            ": Failed to serialize and send to string with protobuf");
+        return nullptr;
       }
       return payload;
     } catch (const std::exception &e) {
@@ -111,6 +110,7 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
     slogger::debug("Buffer contents: " +
                    vectorToHexString(buffer, BUFFER_BYTE_COUNT));
   }
+#TODO You gotta figure out what to do with this
   return nullptr;
 }
 
