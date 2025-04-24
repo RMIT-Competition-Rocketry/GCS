@@ -88,12 +88,19 @@ and only modify it if you know what you're doing :)
         }
     }
 
-    hexagonal_background {
-        background-image: url('/img/hexagonal_background#svgView(preserveAspectRatio(none))');
+    body {
+        background-image: url('/img/hexagonal_background.svg#svgView(preserveAspectRatio(none))');
         background-size: cover;
         background-position: center;
         height: 100vh;
         width: 100vw;
+    }
+
+    .rocket_frame {
+        background-image: url('/img/rocket_frame.svg#svgView(preserveAspectRatio(none))');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
     }
 
     .icon {

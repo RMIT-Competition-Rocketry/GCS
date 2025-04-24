@@ -378,6 +378,21 @@
     text-decoration-line: underline;
   }
 
+  body {
+    background-image: url("/img/hexagonal_background.svg#svgView(preserveAspectRatio(none))");
+    background-position: center;
+    background-size: cover;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .rocket_frame {
+    background-image: url("/img/rocket_frame.svg#svgView(preserveAspectRatio(none))");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
   .icon {
     aspect-ratio: 1;
     height: calc(var(--spacing) * 16);
@@ -959,10 +974,6 @@
     border-color: var(--color-legacy-400);
   }
 
-  .border-legacy-500\/50 {
-    border-color: color-mix(in oklab, var(--color-legacy-500) 50%, transparent);
-  }
-
   .border-red-500 {
     border-color: var(--color-red-500);
   }
@@ -1009,10 +1020,6 @@
 
   .bg-legacy-400\/10 {
     background-color: color-mix(in oklab, var(--color-legacy-400) 10%, transparent);
-  }
-
-  .bg-legacy-500\/10 {
-    background-color: color-mix(in oklab, var(--color-legacy-500) 10%, transparent);
   }
 
   .bg-lime-800 {
