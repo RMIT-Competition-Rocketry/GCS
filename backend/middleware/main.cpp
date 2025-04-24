@@ -148,6 +148,13 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
           case AV_TO_GCS_DATA_1::ID: {  // 3
             std::unique_ptr<AV_TO_GCS_DATA_1> proto_msg =
                 process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
+            if (proto_msg == nullptr) {
+              // Yeah we got it, so you can just continue talking to other
+              // devices. But we assume it was garbage and the information in it
+              // is fucked
+              sequence.received_av();
+              break;
+            }
             post_process_av(sequence, proto_msg->flight_state());
             if (proto_msg->broadcast_flag()) {
               sequence.current_state = Sequence::LOOP_AV_DATA_TRANSMISSION_BURN;
@@ -157,11 +164,19 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
           case AV_TO_GCS_DATA_2::ID: {  // 4
             std::unique_ptr<AV_TO_GCS_DATA_2> proto_msg =
                 process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
+            if (proto_msg == nullptr) {
+              sequence.received_av();
+              break;
+            }
             post_process_av(sequence, proto_msg->flight_state());
           } break;
           case AV_TO_GCS_DATA_3::ID: {  // 5
             std::unique_ptr<AV_TO_GCS_DATA_3> proto_msg =
                 process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
+            if (proto_msg == nullptr) {
+              sequence.received_av();
+              break;
+            }
             post_process_av(sequence, proto_msg->flight_state());
             break;
           }
@@ -172,7 +187,8 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
             break;
           }
           case GCS_TO_GSE_STATE_CMD::ID: {  // 2
-            // process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer, pub_socket);
+            // process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer,
+            // pub_socket);
             slogger::error("Somehow received GCS_TO_GSE_STATE_CMD");
             break;
           }
@@ -333,6 +349,7 @@ int main(int argc, char *argv[]) {
     const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
     auto last_pendant_receival = std::chrono::steady_clock::now();
     auto last_timeout_warning_time = std::chrono::steady_clock::now();
+    // TODO I think this is redundant now?
     const bool SUPPRESS_PENDANT_WARNING = std::getenv("CONFIG_PATH") == nullptr;
     // Main command loop
     slogger::info("Middleware server started successfully");
@@ -369,7 +386,8 @@ int main(int argc, char *argv[]) {
             seconds_waited_timeout >= 3) {
           if (!SUPPRESS_PENDANT_WARNING) {
             slogger::warning(
-                "Failed to get any new pendant data from pendant service for " +
+                "Failed to get any new pendant data from pendant service "
+                "for " +
                 std::to_string(seconds_waited) + " seconds");
           }
           pendant_data = FALLBACK_PENDANT_DATA;
