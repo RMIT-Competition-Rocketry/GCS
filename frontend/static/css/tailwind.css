@@ -393,8 +393,8 @@
     background-size: 100% 100%;
   }
 
-  .continuity-a {
-    background-image: url("/img/buttons/continuity_a.svg#svgView(preserveAspectRatio(none))");
+  .continuity-button {
+    background-image: url("/img/buttons/continuity_button.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -579,6 +579,10 @@
     grid-column: span 8 / span 8;
   }
 
+  .col-start-1 {
+    grid-column-start: 1;
+  }
+
   .row-\[1\/6\] {
     grid-row: 1 / 6;
   }
@@ -621,6 +625,22 @@
 
   .row-span-4 {
     grid-row: span 4 / span 4;
+  }
+
+  .row-start-2 {
+    grid-row-start: 2;
+  }
+
+  .row-start-3 {
+    grid-row-start: 3;
+  }
+
+  .row-start-4 {
+    grid-row-start: 4;
+  }
+
+  .row-start-5 {
+    grid-row-start: 5;
   }
 
   .container {
@@ -729,6 +749,10 @@
     display: inline-block;
   }
 
+  .table {
+    display: table;
+  }
+
   .aspect-square {
     aspect-ratio: 1;
   }
@@ -741,6 +765,14 @@
     height: calc(var(--spacing) * 6);
   }
 
+  .h-10 {
+    height: calc(var(--spacing) * 10);
+  }
+
+  .h-15 {
+    height: calc(var(--spacing) * 15);
+  }
+
   .h-20 {
     height: calc(var(--spacing) * 20);
   }
@@ -749,8 +781,16 @@
     height: calc(var(--spacing) * 22);
   }
 
+  .h-30 {
+    height: calc(var(--spacing) * 30);
+  }
+
   .h-48 {
     height: calc(var(--spacing) * 48);
+  }
+
+  .h-100 {
+    height: calc(var(--spacing) * 100);
   }
 
   .h-\[400px\] {
@@ -773,6 +813,10 @@
     height: 100vh;
   }
 
+  .w-1 {
+    width: calc(var(--spacing) * 1);
+  }
+
   .w-1\/5 {
     width: 20%;
   }
@@ -785,8 +829,24 @@
     width: calc(var(--spacing) * 6);
   }
 
+  .w-30 {
+    width: calc(var(--spacing) * 30);
+  }
+
+  .w-35 {
+    width: calc(var(--spacing) * 35);
+  }
+
+  .w-50 {
+    width: calc(var(--spacing) * 50);
+  }
+
   .w-100 {
     width: calc(var(--spacing) * 100);
+  }
+
+  .w-120 {
+    width: calc(var(--spacing) * 120);
   }
 
   .w-\[186px\] {
@@ -809,8 +869,12 @@
     flex: 1;
   }
 
-  .grow {
+  .flex-grow, .grow {
     flex-grow: 1;
+  }
+
+  .border-collapse {
+    border-collapse: collapse;
   }
 
   .transform {
@@ -871,6 +935,10 @@
 
   .flex-nowrap {
     flex-wrap: nowrap;
+  }
+
+  .flex-wrap {
+    flex-wrap: wrap;
   }
 
   .items-center {
@@ -1026,6 +1094,10 @@
 
   .bg-hive\/20 {
     background-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
+  }
+
+  .bg-legacy-400 {
+    background-color: var(--color-legacy-400);
   }
 
   .bg-legacy-400\/10 {
@@ -1195,6 +1267,10 @@
 
   .text-white {
     color: var(--color-white);
+  }
+
+  .underline {
+    text-decoration-line: underline;
   }
 
   .shadow {

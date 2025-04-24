@@ -102,8 +102,8 @@ and only modify it if you know what you're doing :)
         background-repeat: no-repeat;
     }
 
-    .continuity-a {
-        background-image: url('/img/buttons/continuity_a.svg#svgView(preserveAspectRatio(none))');
+    .continuity-button {
+        background-image: url('/img/buttons/continuity_button.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
     }
