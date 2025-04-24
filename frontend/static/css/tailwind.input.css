@@ -25,6 +25,16 @@ and only modify it if you know what you're doing :)
 }
 
 @layer base {
+    body {
+        background-color: black;
+        background-image: url('/img/hexagonal_background.svg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: repeat;
+        height: 100%;
+        width: 100%;
+    }
+
     h2 {
         @apply font-mono font-bold text-hive m-0 -mt-1 -mb-3 uppercase;
     }
@@ -42,7 +52,7 @@ and only modify it if you know what you're doing :)
         content: " >";
         @apply text-hive;
     }
-    
+
     input {
         @apply border border-zinc-700 my-0.5 rounded-sm max-w-full font-mono text-right text-lg;
     }
@@ -50,7 +60,7 @@ and only modify it if you know what you're doing :)
     .flex input {
         @apply flex-1 min-w-0;
     }
-    
+
     section {
         @apply p-2;
     }
@@ -60,8 +70,6 @@ and only modify it if you know what you're doing :)
     .module {
         @apply flex justify-center items-center;
     }
-
-   
 
     nav {
         background-image: url("/img/navbar.svg#svgView(preserveAspectRatio(none))");
@@ -88,19 +96,10 @@ and only modify it if you know what you're doing :)
         }
     }
 
-    body {
-        background-image: url('/img/hexagonal_background.svg#svgView(preserveAspectRatio(none))');
-        background-size: cover;
-        background-position: center;
-        height: 100vh;
-        width: 100vw;
-    }
-
     .rocket_frame {
         background-image: url('/img/rocket_frame.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
-        
     }
 
     .continuity-a {
@@ -109,7 +108,6 @@ and only modify it if you know what you're doing :)
         background-repeat: no-repeat;
     }
 
-    
     .icon {
         @apply w-16 h-16 bg-white mx-auto aspect-square;
         -webkit-mask-repeat: no-repeat;
@@ -161,6 +159,7 @@ and only modify it if you know what you're doing :)
             @apply bg-emerald-600;
             filter: drop-shadow(0 0 5px var(--color-emerald-600)) drop-shadow(0 0 10px var(--color-emerald-600));
         }
+
         &.on::after {
             @apply h-10 text-emerald-300 text-3xl;
             content: 'on';
@@ -169,6 +168,7 @@ and only modify it if you know what you're doing :)
         &.off {
             @apply bg-hive/10;
         }
+
         &.off::after {
             @apply h-10 text-hive/50 text-xl;
             content: 'off';
@@ -177,6 +177,7 @@ and only modify it if you know what you're doing :)
         &.error {
             @apply bg-red-900;
         }
+
         &.error::after {
             @apply text-red-500 font-bold text-3xl;
             content: 'ERROR!';

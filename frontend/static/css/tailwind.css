@@ -289,6 +289,16 @@
     display: none !important;
   }
 
+  body {
+    background-color: #000;
+    background-image: url("/img/hexagonal_background.svg");
+    background-position: center;
+    background-repeat: repeat;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+  }
+
   h2 {
     margin: calc(var(--spacing) * 0);
     margin-top: calc(var(--spacing) * -1);
@@ -375,14 +385,6 @@
 
   nav a:hover span {
     text-decoration-line: underline;
-  }
-
-  body {
-    background-image: url("/img/hexagonal_background.svg#svgView(preserveAspectRatio(none))");
-    background-position: center;
-    background-size: cover;
-    width: 100vw;
-    height: 100vh;
   }
 
   .rocket_frame {
@@ -727,10 +729,6 @@
     display: inline-block;
   }
 
-  .table {
-    display: table;
-  }
-
   .aspect-square {
     aspect-ratio: 1;
   }
@@ -743,10 +741,6 @@
     height: calc(var(--spacing) * 6);
   }
 
-  .h-10 {
-    height: calc(var(--spacing) * 10);
-  }
-
   .h-20 {
     height: calc(var(--spacing) * 20);
   }
@@ -757,6 +751,10 @@
 
   .h-48 {
     height: calc(var(--spacing) * 48);
+  }
+
+  .h-\[400px\] {
+    height: 400px;
   }
 
   .h-auto {
@@ -775,10 +773,6 @@
     height: 100vh;
   }
 
-  .w-1 {
-    width: calc(var(--spacing) * 1);
-  }
-
   .w-1\/5 {
     width: 20%;
   }
@@ -791,12 +785,12 @@
     width: calc(var(--spacing) * 6);
   }
 
-  .w-16 {
-    width: calc(var(--spacing) * 16);
-  }
-
   .w-100 {
     width: calc(var(--spacing) * 100);
+  }
+
+  .w-\[186px\] {
+    width: 186px;
   }
 
   .w-auto {
@@ -815,12 +809,8 @@
     flex: 1;
   }
 
-  .flex-grow, .grow {
+  .grow {
     flex-grow: 1;
-  }
-
-  .border-collapse {
-    border-collapse: collapse;
   }
 
   .transform {
@@ -881,10 +871,6 @@
 
   .flex-nowrap {
     flex-wrap: nowrap;
-  }
-
-  .flex-wrap {
-    flex-wrap: wrap;
   }
 
   .items-center {
@@ -1040,10 +1026,6 @@
 
   .bg-hive\/20 {
     background-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
-  }
-
-  .bg-legacy-400 {
-    background-color: var(--color-legacy-400);
   }
 
   .bg-legacy-400\/10 {
@@ -1213,10 +1195,6 @@
 
   .text-white {
     color: var(--color-white);
-  }
-
-  .underline {
-    text-decoration-line: underline;
   }
 
   .shadow {
