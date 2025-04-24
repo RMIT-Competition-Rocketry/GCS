@@ -7,7 +7,7 @@
 		<link rel="stylesheet" type="text/css" href="css/tailwind.css" media="screen" />
 	</head>
 
-	<body class="w-screen h-screen bg-black text-white border-hive border-2 flex flex-col">
+	<body class="w-screen h-screen bg-hexagonal_background text-white border-hive border-2 flex flex-col">
 		<!-- Header, consistent on all pages -->
 		<header class="w-full flex flex-row gap-2">
 			<div class="w-1/6 grow">{% include 'module_info.html' %}</div>
@@ -52,10 +52,11 @@
 			<div class="module m-main col-[9/13] row-[6/13]">{% include 'module_auxdata.html' %}</div>
 
 			<!-- Operations modules -->
-			<div class="module m-ops col-[1/9] row-[1/7]">{% include 'module_continuitycheck.html' %}</div>
+			<div class="module m-ops col-[1/5] row-[1/7]">{% include 'module_continuitycheck.html' %}</div>
 			<div class="module m-ops col-[1/5] row-[7/13]">{% include 'module_poptest.html' %}</div>
 			<div class="module m-ops col-[5/9] row-[7/13]">{% include 'module_othercontrols.html' %}</div>
 			<div class="module m-ops col-[9/13] row-[1/13]">{% include 'module_flags.html' %}</div>
+			<div class="module m-ops col-[5/9] row-[1/7]">{% include 'module_futurecontrols.html' %}</div>
 
 			<!-- Video 1 modules -->
 			<div class="module m-lf1 col-[1/13] row-[1/13] items-center justify-center">

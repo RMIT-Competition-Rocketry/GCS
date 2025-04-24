@@ -98,11 +98,18 @@ and only modify it if you know what you're doing :)
 
     .rocket_frame {
         background-image: url('/img/rocket_frame.svg#svgView(preserveAspectRatio(none))');
-        background-size: cover;
+        background-size: 100% 100%;
         background-repeat: no-repeat;
-        background-position: center;
+        
     }
 
+    .continuity-a {
+        background-image: url('/img/buttons/continuity_a.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+    }
+
+    
     .icon {
         @apply w-16 h-16 bg-white mx-auto aspect-square;
         -webkit-mask-repeat: no-repeat;
