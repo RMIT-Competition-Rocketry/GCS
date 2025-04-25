@@ -2,7 +2,8 @@
 
 #include <gtest/gtest.h>
 
-// Note that all GCS calls so far are in BIG_ENDIAN byte order
+// Note that all GCS calls in 0.1.0 are big-endian.
+// Little-endian will be used in futture packet revisions.
 
 // --------- TEST: .extract_unsigned_bits ---------
 // ----------------------------------------
@@ -197,4 +198,25 @@ TEST(ByteParserExtractStringTest, ExtractStringOutOfRange) {
   ByteParser parser(data, sizeof(data), ByteOrder::BIG_ENDIAN_ORDER);
 
   EXPECT_THROW(parser.extract_string(6), std::out_of_range);
+}
+
+// --------- TEST: .extract_unsigned_bits (LITTLE ENDIAN) ---------
+// ----------------------------------------------------------------
+
+TEST(ByteParserExtractUBitsTest, ExtractBitsLittle1) {
+  uint8_t data[] = {0b11001100};
+  ByteParser parser(data, sizeof(data), ByteOrder::LITTLE_ENDIAN_ORDER);
+  EXPECT_EQ(parser.extract_unsigned_bits(8), 204U);
+}
+
+TEST(ByteParserExtractUBitsTest, ExtractBitsLittle2) {
+  uint8_t data[] = {0b11111111};
+  ByteParser parser(data, sizeof(data), ByteOrder::LITTLE_ENDIAN_ORDER);
+  EXPECT_EQ(parser.extract_unsigned_bits(8), 255U);
+}
+
+TEST(ByteParserExtractUBitsTest, ExtractBitsLittleShort) {
+  uint8_t data[] = {0b11001100, 0b10101010};
+  ByteParser parser(data, sizeof(data), ByteOrder::LITTLE_ENDIAN_ORDER);
+  EXPECT_EQ(parser.extract_unsigned_bits(16), 43724U);  // 0b1010101011001100
 }
