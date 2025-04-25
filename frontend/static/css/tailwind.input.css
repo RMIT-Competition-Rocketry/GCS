@@ -7,11 +7,18 @@ Please don't link to it from the site,
 and only modify it if you know what you're doing :)
 */
 
-@theme {
-    --color-hive: #f79322;
+@font-face {
+    src: url("../font/fauna-thin.ttf");
+    font-family: "Fauna";
+    font-style: normal;
+    font-display: swap;
+}
 
-    /* Tailwind emerald */
-    --color-legacy-50: oklch(0.979 0.021 166.113);
+@theme {
+    --font-fauna: Fauna;
+
+    --color-hive: #f79322;
+    --color-legacy-50: oklch(0.979 0.021 166.113); /* Tailwind emerald */
     --color-legacy-100: oklch(0.95 0.052 163.051);
     --color-legacy-200: oklch(0.905 0.093 164.15);
     --color-legacy-300: oklch(0.845 0.143 164.978);
