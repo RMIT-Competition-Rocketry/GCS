@@ -6,7 +6,7 @@
         <div id="container"></div>
 
         <style>
-            body {
+            svg {
                 background-color: black;
             }
             .tick {
@@ -18,12 +18,33 @@
         <title>testing 1 2 3</title>
     </head>
     <body>
-        <h1>static graphs</h1>
-        <svg id="altitude-static" width="600" height="150"></svg>
+        <h1>graphs (static and live)</h1>
+        <table>
+            <tr>
+                <td>altitude</td>
+            </tr>
+            <tr>
+                <td>
+                    <svg id="altitude-static" width="600" height="200"></svg>
+                </td>
+                <td>
+                    <svg id="altitude" width="600" height="200"></svg>
+                </td>
+            </tr>
 
-        <h1>running live data</h1>
-        <svg id="altitude" width="600" height="400"></svg>
-
+            <tr>
+                <td>velocity</td>
+            </tr>
+            <tr>
+                <td>
+                    <svg id="velocity-static" width="600" height="200"></svg>
+                </td>
+                <td>
+                    <svg id="velocity" width="600" height="200"></svg>
+                </td>
+            </tr>
+        </table>
+        
         <script src="js/d3.min.js"></script>
         <script src="testingd3/linegraph.js"></script>
     </body>
