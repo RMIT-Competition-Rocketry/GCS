@@ -1,16 +1,12 @@
 # Auto installation and error validation is handled by parent CMake
 find_package(GTest REQUIRED)
 
+set(CPP_TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cpp_tests")
+
 add_executable(runTests
     main.cpp
-    dummy.cpp
-    byteparser.cpp
-
-    # test_sequence.cpp
-    # test_sequence_lock.cpp
-    # test_sequence.cpp
-    # test_uart_interface.cpp
-    # test_blackbox.cpp
+    ${CPP_TEST_DIR}/dummy.cpp
+    ${CPP_TEST_DIR}/byteparser.cpp
 )
 
 # Link against the middleware library and GTest
