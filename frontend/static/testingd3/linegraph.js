@@ -8,14 +8,14 @@ const CHART_ALT = {
 
 const CHART_ALT_STATIC = {
     selector: "#altitude-static",
-    margin: { top: 20, right: 20, bottom: 30, left: 50 },
+    margin: { top: 10, right: 10, bottom: 20, left: 40 },
     width: 600,
     height: 150,
     xlabel: "Altitude",
 };
 
 function dataLineGraph(chart) {
-    /// Create and initialise a graph
+    // Create and initialise a graph
     chart.svg = d3.select(chart.selector);
 
     // Update graph margins and axes
@@ -31,10 +31,28 @@ function dataLineGraph(chart) {
             "transform",
             `translate(${chart.margin.left},${chart.margin.top})`
         );
+
+    // Create and style the x and y axis
     chart.g
         .append("g")
         .attr("transform", `translate(0,${chart.graphHeight})`)
-        .call(d3.axisBottom(chart.x));
+        .call(d3.axisBottom(chart.x))
+        .selectAll(".domain")
+        .attr("stroke", "#f79322")
+        .attr("stroke-width", 2);
+    chart.g
+        .selectAll(".tick line")
+        .attr("stroke", "#f79322");
+
+    chart.yAxis = chart.g.append("g").attr("class", "y-axis");
+    chart.yAxis
+        .call(d3.axisLeft(chart.y))
+        .selectAll(".domain")
+        .attr("stroke", "#f79322")
+        .attr("stroke-width", 2);
+    chart.yAxis
+        .selectAll(".tick line") 
+        .attr("stroke", "#f79322");
 
     // Line
     chart.line = d3
@@ -46,10 +64,8 @@ function dataLineGraph(chart) {
         .datum(d3.range(50).map(() => 0)) // initial data
         .attr("fill", "none")
         .attr("stroke", "red")
-        .attr("stroke-width", 2)
+        .attr("stroke-width", 1.5)
         .attr("d", chart.line);
-
-    chart.yAxis = chart.g.append("g").attr("class", "y-axis");
 }
 
 // Load all data at once
@@ -57,8 +73,15 @@ function renderCSV(csvData) {
     CHART_ALT_STATIC.x.domain([0, csvData.length - 1]);
     CHART_ALT_STATIC.y.domain([d3.min(csvData) - 5, d3.max(csvData) + 5]);
 
-    CHART_ALT_STATIC.g.select("g").transition().duration(0).call(d3.axisBottom(CHART_ALT_STATIC.x));
-    CHART_ALT_STATIC.yAxis.transition().duration(0).call(d3.axisLeft(CHART_ALT_STATIC.y));
+    CHART_ALT_STATIC.g
+        .select("g")
+        .transition()
+        .duration(0)
+        .call(d3.axisBottom(CHART_ALT_STATIC.x));
+    CHART_ALT_STATIC.yAxis
+        .transition()
+        .duration(0)
+        .call(d3.axisLeft(CHART_ALT_STATIC.y));
 
     CHART_ALT_STATIC.path.datum(csvData).attr(
         "d",
