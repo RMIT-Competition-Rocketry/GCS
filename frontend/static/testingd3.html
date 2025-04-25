@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <div id="container"></div>
+
+        <style>
+            .bar {
+                fill: steelblue;
+            }
+            .bar:hover {
+                fill: orange;
+            }
+            .bar2:hover {
+                fill: orange;
+            }
+            .axis-label {
+                font-size: 14px;
+            }
+            .axis path,
+            .axis line {
+                fill: none;
+                shape-rendering: crispEdges;
+            }
+        </style>
+
+        <title>testing 1 2 3</title>
+    </head>
+    <body>
+        <h1>running live data</h1>
+        <svg id="altitude" width="600" height="400"></svg>
+        <svg id="velocity-graph" width="800" height="400"></svg>
+
+        <script src="js/d3.min.js"></script>
+        <script src="testingd3/linegraph.js"></script>
+    </body>
+</html>
