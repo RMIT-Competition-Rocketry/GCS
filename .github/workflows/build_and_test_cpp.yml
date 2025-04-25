@@ -267,6 +267,7 @@ jobs:
         cpp_compiler: [g++, clang++]
 
     steps:
+    - uses: actions/checkout@v4  # Needed for scripts
     - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
