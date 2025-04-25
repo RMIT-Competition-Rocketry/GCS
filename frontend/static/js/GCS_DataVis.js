@@ -53,7 +53,7 @@ function data_graphCreate(chart) {
             "transform",
             `translate(${chart.margin.left},${chart.margin.top})`
         );
-    chart.graph.append("g").attr("class", "y-axis").call(d3.axisLeft(chart.y));
+    chart.graph.append("g").attr("class", "y-axis").call(d3.axisLeft(chart.y)).selectAll("path, line").style("stroke", "white");
 }
 
 function data_graphCreate_Bar(chart) {

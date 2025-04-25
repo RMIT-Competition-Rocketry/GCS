@@ -6,31 +6,23 @@
         <div id="container"></div>
 
         <style>
-            .bar {
-                fill: steelblue;
+            body {
+                background-color: black;
             }
-            .bar:hover {
-                fill: orange;
-            }
-            .bar2:hover {
-                fill: orange;
-            }
-            .axis-label {
-                font-size: 14px;
-            }
-            .axis path,
-            .axis line {
-                fill: none;
-                shape-rendering: crispEdges;
+            .tick {
+                color: white;
+                border-color: white;
             }
         </style>
 
         <title>testing 1 2 3</title>
     </head>
     <body>
+        <h1>static graphs</h1>
+        <svg id="altitude-static" width="600" height="150"></svg>
+
         <h1>running live data</h1>
         <svg id="altitude" width="600" height="400"></svg>
-        <svg id="velocity-graph" width="800" height="400"></svg>
 
         <script src="js/d3.min.js"></script>
         <script src="testingd3/linegraph.js"></script>
