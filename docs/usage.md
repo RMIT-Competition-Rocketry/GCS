@@ -23,7 +23,7 @@ Commands:
 > [!NOTE] 
 > The current *suggested* frontend dev command is as follows
 > ```
-> $ rocket simulation --interface test --nopendant    
+> $ rocket simulation
 > ```
 
 ## Using release binaries
@@ -46,15 +46,16 @@ Usage: rocket dev [OPTIONS]
   Start software in development mode
 
 Options:
-  --nopendant                     Do not run the pendant emulator
-  --logpkt                        Log packet data to csv
-  --nobuild                       Do not build binaries. Search for pre-built
-                                  binaries
-  -i, --interface [UART|TEST]     Hardware interface type. Overrides config
-                                  parameter
-  --docker                        Run in Docker
   -l, --log-level [DEBUG|INFO|SUCCESS|WARNING|ERROR|CRITICAL]
                                   Overide the config log level
+  --docker                        Run in Docker
+  --nobuild                       Do not build binaries. Search for pre-built
+                                  binaries
+  --logpkt                        Log packet data to csv
+  --gse-only                      Run the system in GSE only mode
+  -i, --interface [UART|TEST]     Hardware interface type. Overrides config
+                                  parameter
+  --nopendant                     Do not run the pendant emulator
   --help                          Show this message and exit.
 ```
 

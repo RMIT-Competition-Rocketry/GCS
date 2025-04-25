@@ -77,9 +77,6 @@
             "subProcess": true,
             "args": [
                 "simulation",
-                "--interface",
-                "test",
-                "--nopendant",
                 "--logpkt"
             ]
         },
