@@ -8,4 +8,7 @@ if [ ! -f "cli/ascii_art_logo.txt" ]; then
   exit 1
 fi
 
+export PYTHONPATH="${PWD}:$PYTHONPATH"
+
+echo "Running Python tests..."
 pytest backend/tests/python_tests;

@@ -279,10 +279,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake tree
 
-    - name: Install pytest
+    - name: Install python testing dependencies
       run: |
         python3 -m pip install --upgrade pip
-        python3 -m pip install -U pytest
+        python3 -m pip install -r backend/tests/requirements.txt
 
     - name: Tree debug
       run: tree
