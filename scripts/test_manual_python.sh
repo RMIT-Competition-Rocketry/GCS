@@ -11,4 +11,4 @@ fi
 export PYTHONPATH="${PWD}:$PYTHONPATH"
 
 echo "Running Python tests..."
-pytest backend/tests/python_tests;
+pytest backend/tests/python_tests -v;
