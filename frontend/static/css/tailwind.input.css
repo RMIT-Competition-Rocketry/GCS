@@ -133,12 +133,7 @@ and only modify it if you know what you're doing :)
         background-repeat: no-repeat;
     }
 
-    .continuity-button {
-        background-image: url('/img/buttons/continuity_button.svg#svgView(preserveAspectRatio(none))');
-        background-size: 100% 100%;
-        background-repeat: no-repeat;
-        @apply cursor-pointer;
-    }
+    
 
     /* Old unused styles */
     .indicator-numeric {
@@ -189,7 +184,26 @@ and only modify it if you know what you're doing :)
         @apply font-mono text-hive border-r-1 border-hive flex flex-row items-center text-center justify-center;
     }
 
-    .continuity-check-button {
-        @apply bg-zinc-700 border-1 border-zinc-500 rounded-md px-4 py-2 bg-zinc-600 cursor-pointer;
+    .continuity-button {
+        background-image: url('/img/buttons/continuity_button.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        @apply cursor-pointer;
+    }
+
+    .continuity-variables-middle {
+        @apply flex flex-row items-center justify-center border-r-1 border-hive p-2
+    }
+
+    .continuity-variables-right {
+        @apply flex flex-row items-center justify-center p-2
+    }
+
+    .pop_selector_inactive {
+        background-image: url('/img/buttons/selector_inactive.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 60%;
+        @apply cursor-pointer;
     }
 }

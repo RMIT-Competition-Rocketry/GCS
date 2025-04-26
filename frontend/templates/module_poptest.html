@@ -1,11 +1,41 @@
 <!-- Pop test module -->
-<div class="w-full h-full bg-emerald-800">
-	<p class="text-center">[ MODULE // POP TEST ]</p>
-	<p>Pop test button</p>
-	<p>Pop test CMD received - boolean</p>
-	<p>Pop test result - boolean</p>
+<div class="w-full h-full border-2 border-hive">
+	<p class="text-center text-hive font-mono">Pop test</p>
+  
+	<!-- Wrapper ensures flow remains correct -->
+	<div class="relative w-full min-h-[190px]">
 
-	<button>
-		<img src="img/Pop_Button.svg" w=auto h=auto/>
-	</button>
-</div>
+	  <div class="w-28 h-5 left-[440px] top-[70px] absolute items-center">
+		<button class="pop_selector_inactive items-center w-22 h-8">Main</button>
+	  </div>
+  
+	  <div class="w-28 h-5 left-[440px] top-[130px] absolute items-center">
+		<button class="pop_selector_inactive items-center w-22 h-8">Agogee</button>
+	  </div>
+  
+	  <div class="w-16 h-16 left-[371px] top-[83px] absolute">
+		<img src="img/pop_selector.svg" class="w-full h-full" />
+	  </div>
+  
+	  <div class="relative w-full h-full">
+		<button class="w-24 h-24 left-[272.14px] top-[69.14px] absolute">
+		  <img src="img/buttons/pop_button_inactive.svg" class="w-full h-full" />
+		</button>
+	  </div>
+  
+	  <div class="left-[83px] top-[106px] absolute justify-center text-red-600 text-base font-normal font-mono">
+		Select an option
+	  </div>
+	</div>
+  
+
+	<div class= "flex items-center mb-4">
+		<p class="text-center font-mono ml-2">Pop Test CMD Received</p>
+		<div class="indicator-boolean"></div>
+	</div>
+	<div class= "flex items-center">
+		<p class="text-center font-mono ml-2">Pop Test Result</p>
+		<div class="indicator-boolean ml-51"></div>
+	</div>
+
+  </div>
