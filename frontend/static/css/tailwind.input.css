@@ -141,6 +141,7 @@ and only modify it if you know what you're doing :)
         background-image: url('/img/buttons/continuity_button.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
+        @apply cursor-pointer;
     }
 
     /* Old unused styles */
@@ -187,9 +188,8 @@ and only modify it if you know what you're doing :)
             content: 'ERROR!';
         }
     }
-
     .continuity-header {
-        @apply  font-mono text-hive border-r-1 border-hive;
+        @apply font-mono text-hive border-r-1 border-hive flex flex-row items-center text-center justify-center;
     }
 
     .continuity-check-button {
