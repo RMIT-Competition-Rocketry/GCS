@@ -97,7 +97,8 @@
         "regex": "cpp",
         "scoped_allocator": "cpp",
         "valarray": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "__config": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
 }
