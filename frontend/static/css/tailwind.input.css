@@ -214,7 +214,7 @@ and only modify it if you know what you're doing :)
     
     /* Continuity module */
     .continuity-header {
-        @apply font-mono text-hive border-r-1 border-hive flex flex-row items-center text-center justify-center;
+        @apply font-mono text-hive border-r-1 border-hive/50 flex flex-row items-center text-center justify-center;
     }
 
     .continuity-button {
@@ -225,7 +225,7 @@ and only modify it if you know what you're doing :)
     }
 
     .continuity-variables-middle {
-        @apply flex flex-row items-center justify-center border-r-1 border-hive p-2
+        @apply flex flex-row items-center justify-center border-r-1 border-hive/50 p-2
     }
 
     .continuity-variables-right {
