@@ -1,4 +1,4 @@
-# GCS
+<img height=200px src="docs/assets/graphical-banner.png">
 
 <p>
     <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">
@@ -58,7 +58,12 @@ This project was built using the following tools, languages and systems.
     - Written in Python
     - Includes a device emulator for internal unit tests that attaches from the hardware layer to create a fake unix device file at `/dev/`
 
+## Screenshots
+
+![GUI interface](docs/assets/frontend-example.png)
+
+> Web interface (main view)
 
 ![CLI interface](docs/assets/cli.png)
 
-Example CLI interface using [retro term](https://github.com/Swordfish90/cool-retro-term) because it's cool. Front end interface will be added before competing
+> CLI (nobody but me looks at this)
