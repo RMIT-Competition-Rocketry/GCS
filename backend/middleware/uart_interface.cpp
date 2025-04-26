@@ -33,6 +33,9 @@ bool UartInterface::initialize() {
   uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
   if (uart_fd_ < 0) {
     slogger::error("Failed to open UART device: " + device_path_);
+    slogger::warning(
+        "The UART interface requires a radio to be connected. Perhaps you mean "
+        "to use the TEST interface? (`--interface TEST`)");
     throw std::system_error(errno, std::system_category(),
                             "Failed to open UART device");
   }
