@@ -179,6 +179,38 @@ and only modify it if you know what you're doing :)
             content: 'ERROR!';
         }
     }
+
+    .indicator-boolean-small {
+        @apply w-6 h-6 rounded-full border border-hive mx-auto;
+
+        &.on {
+            @apply bg-emerald-600;
+            filter: drop-shadow(0 0 5px var(--color-emerald-600)) drop-shadow(0 0 10px var(--color-emerald-600));
+        }
+
+        &.on::after {
+            @apply h-10 text-emerald-300 text-3xl;
+            content: 'on';
+        }
+
+        &.off {
+            @apply bg-hive/10;
+        }
+
+        &.off::after {
+            @apply h-10 text-hive/50 text-xl;
+            content: 'off';
+        }
+
+        &.error {
+            @apply bg-red-900;
+        }
+
+        &.error::after {
+            @apply text-red-500 font-bold text-3xl;
+            content: 'ERROR!';
+        }
+    }
     
     /* Continuity module */
     .continuity-header {
