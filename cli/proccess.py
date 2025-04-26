@@ -235,8 +235,6 @@ class LoggedSubProcess:
         # Which it is for now
         # But race conditions can fuck this up. Like closing socat before the device emulator
         SHUTDOWN_ORDER = list(reversed(cls._instances))
-        slogger.debug(
-            f"Attempting shutdown in this order: {[x._name for x in SHUTDOWN_ORDER]}")
         for instance in SHUTDOWN_ORDER:
             instance.stop()
             instance._process.wait(LoggedSubProcess.CLEANUP_TIMEOUT_S)

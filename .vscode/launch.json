@@ -8,7 +8,7 @@
             "name": "(lldb) Attach PID",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${workspaceFolder}/build/middleware",
+            "program": "${workspaceFolder}/build/middleware_debug_arm64_0.1.0-dev.1+serpentine+15db722",
             "MIMode": "lldb"
         },
         {
@@ -77,9 +77,6 @@
             "subProcess": true,
             "args": [
                 "simulation",
-                "--interface",
-                "test",
-                "--nopendant",
                 "--logpkt"
             ]
         },
