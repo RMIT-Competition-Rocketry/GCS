@@ -180,6 +180,7 @@ and only modify it if you know what you're doing :)
         }
     }
     
+    /* Continuity module */
     .continuity-header {
         @apply font-mono text-hive border-r-1 border-hive flex flex-row items-center text-center justify-center;
     }
@@ -199,8 +200,17 @@ and only modify it if you know what you're doing :)
         @apply flex flex-row items-center justify-center p-2
     }
 
+    /* Pop test module */
     .pop_selector_inactive {
         background-image: url('/img/buttons/selector_inactive.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 60%;
+    }
+
+    /* Aux System module */
+    .solenoid_button_inactive {
+        background-image: url('/img/buttons/solenoid_button_inactive.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 60%;
