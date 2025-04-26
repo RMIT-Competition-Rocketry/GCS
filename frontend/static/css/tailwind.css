@@ -1027,6 +1027,12 @@
     border-bottom-width: 2px;
   }
 
+  .border-r-1 {
+    border-right-style: var(--tw-border-style);
+    border-right-width: 1px;
+  }
+
+
   .border-blue-500 {
     border-color: var(--color-blue-500);
   }

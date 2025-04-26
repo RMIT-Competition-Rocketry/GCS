@@ -188,6 +188,10 @@ and only modify it if you know what you're doing :)
         }
     }
 
+    .continuity-header {
+        @apply  font-mono text-hive border-r-1 border-hive;
+    }
+
     .continuity-check-button {
         @apply bg-zinc-700 border-1 border-zinc-500 rounded-md px-4 py-2 bg-zinc-600 cursor-pointer;
     }
