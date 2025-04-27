@@ -10,7 +10,7 @@ notes/design/*
 backend/proto/generated/*
 
 # Test binary
-backend/tests/runTests
+backend/tests/runC++Tests
 
 backend/simulation/cache/
 

@@ -22,12 +22,13 @@ void SequenceLock::lock() {
   last_lock_time_ = std::chrono::steady_clock::now();
 #ifdef DEBUG
   // Create a lock file for device emulator to use
-  std::ofstream lock_file("/tmp/gcs_await_gse.lock");
+  const std::string LOCK_PATH = "/tmp/gcs_await_" + LOCK_NAME + ".lock";
+  std::ofstream lock_file(LOCK_PATH);
   if (lock_file.is_open()) {
-    lock_file << "server_lock";
+    lock_file << "server_seqeunce_lock";
     lock_file.close();
   } else {
-    slogger::error("Unable to create lock file /tmp/gcs_await_gse.lock");
+    slogger::error("Unable to create lock file: " + LOCK_PATH);
   }
 #endif
 }

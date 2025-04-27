@@ -22,6 +22,7 @@ The GCS software is run by using a Python based CLI with a C++ server component.
 | Abseil libraries | `20250127.x` | ❌? | 🐳 | 🟨 |
 | Protobuf* (inc. `proto` compiler & `libprotodev`) | `30.x` | ✅ (_needed for gencode_) | 🐳 | ✅ |
 | qrencode | Latest? | ✅ | 🐳 | ✅ |
+| pytest | Latest? | _for testing_ | 🐳 | _for testing_ |
 
 > [!WARNING]
 > Please let me know if this is wrong. I may have missed some things

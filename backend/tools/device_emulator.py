@@ -8,15 +8,23 @@ import os
 import time
 import backend.includes_python.process_logging as slogger  # slog deez nuts
 import backend.includes_python.service_helper as service_helper
+import enum
 
-
-# TODO convert this crap into kwargs or something
+# This file can be imported or rain as an emulation service if __main__
+# This file is for lower level emulation. Hence some things are passed bitwise
+# If you want higher level emulation, please talk to @mcloughlan and I will
+# make a higher level emulation library so it's not repeated for each person
 
 
 class MockPacket(ABC):
     # Name of the fake device socat has made
     _FAKE_DEVICE_NAME: Optional[str] = None
     _INITIALISED: bool = False  # Flag to check if the settings have been initialized
+
+    class _SourceDevice(enum.Enum):
+        AV = enum.auto()
+        GSE = enum.auto()
+        GCS = enum.auto()
 
     @classmethod
     def initialize_settings(cls,
@@ -45,6 +53,7 @@ class MockPacket(ABC):
         self.ID: Optional[int] = None  # Packet ID
         # High level payload builder
         self.payload_after_id: Optional[List[bytes]] = None
+        self.ORIGIN_DEVICE: Optional[MockPacket._SourceDevice] = None
 
     def write_payload(self):
         """Writes payload of bytes to device"""
@@ -70,6 +79,7 @@ class MockPacket(ABC):
 
 
 class GCStoGSEStateCMD(MockPacket):
+
     def __init__(
         self,
         MANUAL_PURGE: bool = False,
@@ -83,6 +93,7 @@ class GCStoGSEStateCMD(MockPacket):
     ):
         super().__init__()
         self.ID = 0x02
+        self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
         self.payload_after_id = [
             metric.Metric.StateSetFlags2p1(MANUAL_PURGE,
                                            O2_FILL_ACTIVATE,
@@ -115,6 +126,7 @@ class GCStoAVStateCMD(MockPacket):
     ):
         super().__init__()
         self.ID = 0x01
+        self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
         self.payload_after_id = [
             metric.Metric.continuityCheckCMDFlags(
                 MAIN_SECONDARY_TEST,
@@ -166,6 +178,7 @@ class AVtoGCSData1(MockPacket):
     ):
         super().    __init__()
         self.ID = 0x03
+        self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id = [
             metric.Metric.StateFlags3p0(
                 FLIGHT_STATE_MSB,
@@ -222,6 +235,7 @@ class AVtoGCSData2(MockPacket):
     ):
         super().__init__()
         self.ID = 0x04
+        self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id = [
             metric.Metric.StateFlags3p0(
                 FLIGHT_STATE_MSB,
@@ -251,6 +265,7 @@ class AVtoGCSData3(MockPacket):
     ):
         super().__init__()
         self.ID = 0x05
+        self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id = [
             metric.Metric.StateFlags3p0(
                 FLIGHT_STATE_MSB,
@@ -303,6 +318,7 @@ class GSEtoGCSData1(MockPacket):
     ):
         super().__init__()
         self.ID = 0x06
+        self.ORIGIN_DEVICE = MockPacket._SourceDevice.GSE
         self.payload_after_id = [
             metric.Metric.StateSetFlags2p1(
                 MANUAL_PURGED,
@@ -380,6 +396,7 @@ class GSEtoGCSData2(MockPacket):
     ):
         super().__init__()
         self.ID = 0x07
+        self.ORIGIN_DEVICE = MockPacket._SourceDevice.GSE
         self.payload_after_id = [
             metric.Metric.StateSetFlags2p1(
                 MANUAL_PURGED,
@@ -434,31 +451,55 @@ def main():
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
     )
 
-    # Also, this is the ROCKET emulator.
-    # Packets written to the device should be packets that are sent from AV
-    # test_packet = AVtoGCSData2()
-    test_packets = [AVtoGCSData1(), AVtoGCSData2(), AVtoGCSData3(),
-                    GSEtoGCSData1(), GSEtoGCSData2()]
+    # Consider the implications of writing GCSto* packets as well.
+    # They are not recieved by the GCS
+    test_packets_and_source = [AVtoGCSData1(),
+                               AVtoGCSData2(),
+                               AVtoGCSData3(),
+                               GSEtoGCSData1(),
+                               GSEtoGCSData2()]
 
-    # # [3, 4, 5, 1, 2, 6, 7]
-    # slogger.debug(f"ID Orders: {[x.ID for x in test_packets]}")
+    # Used for the sequence lock class GSE debugging
+    GSE_LOCK_PATH = config.load_config(
+    )['locks']['lock_file_gse_response_path']
+    AV_LOCK_PATH = config.load_config(
+    )['locks']['lock_file_av_response_path']
 
-    LOCK_PATH = config.load_config()['locks']['lock_file_gse_response_path']
+    START_TIME = time.monotonic()
+    last_time_gse_written = START_TIME
+    last_time_av_written = START_TIME
+    LOCK_WARNING_TIME = 5
+
     while not service_helper.time_to_stop():
-        # [GSEtoGCSData1(), GSEtoGCSData2()]:
-        for packet in test_packets:
-            # As a cheeky emulation, only write when the lock file is PRESENT
-            if os.path.exists(LOCK_PATH):
-                packet.write_payload()
-                # Not sure if this needs to be longer?
-                time.sleep(0.190)  # Real timing is about 200-250ms.
+        for packet in test_packets_and_source:
+            device = packet.ORIGIN_DEVICE
+            # As a cheeky sequence emulation, only write when the lock file is PRESENT
+            match device:
+                case MockPacket._SourceDevice.AV:
+                    if os.path.exists(AV_LOCK_PATH):
+                        packet.write_payload()
+                        last_time_av_written = time.monotonic()
+                        time.sleep(0.190)
+                case MockPacket._SourceDevice.GSE:
+                    if os.path.exists(GSE_LOCK_PATH):
+                        packet.write_payload()
+                        last_time_gse_written = time.monotonic()
+                        time.sleep(0.190)
+                case MockPacket._SourceDevice.GCS:
+                    packet.write_payload()
+                    time.sleep(0.190)
+        # Warn if locks are present for too long. Possible deadlock while in dev
 
-        # slogger.debug("Looped through all packets")
-        # time.sleep(0)
-        # As soon as the CLI gets the interrupt, a race condition starts and child cleanup is not guaranteed
+        if last_time_av_written - START_TIME > LOCK_WARNING_TIME:
+            slogger.warning(
+                f"AV lock file present for {last_time_av_written - START_TIME} seconds")
+        if last_time_gse_written - START_TIME > LOCK_WARNING_TIME:
+            slogger.warning(
+                f"GSE lock file present for {last_time_gse_written - START_TIME} seconds")
 
     slogger.debug("Emulator finished")
 
 
 if __name__ == '__main__':
+    # This only runs if you start this as a service directly. Not for imports
     main()
