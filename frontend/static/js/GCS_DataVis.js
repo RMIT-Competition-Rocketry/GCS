@@ -7,142 +7,152 @@
  */
 
 // Define chart parameters
-const DATA_CHART_ALT = {
+const CHART_ALT = {
     selector: "#altitude",
-    margin: { top: 20, right: 20, bottom: 40, left: 50 },
-    width: 100,
+    margin: { top: 10, right: 10, bottom: 20, left: 40 },
+    width: 475,
+    height: 150,
+};
+
+// const CHART_ALT_STATIC = {
+//     selector: "#altitude-static",
+//     margin: { top: 10, right: 10, bottom: 20, left: 40 },
+//     width: 600,
+//     height: 200,
+// };
+
+const CHART_VEL = {
+    selector: "#velocity",
+    margin: { top: 10, right: 10, bottom: 20, left: 40 },
+    width: 475,
     height: 200,
-    xlabel: "Altitude (feet)",
 };
 
-const DATA_CHART_VEL = {
-    selector: "#velocity-graph",
-    margin: { top: 20, right: 20, bottom: 40, left: 50 },
-    width: 800,
-    height: 400,
-    xlabel: "Velocity (ft/s)",
-};
+// const CHART_VEL_STATIC = {
+//     selector: "#velocity-static",
+//     margin: { top: 10, right: 10, bottom: 20, left: 40 },
+//     width: 600,
+//     height: 200,
+// };
 
-function data_graphCreate(chart) {
-    /// Create and initialise a graph
-    // Update graph margins
+function dataLineGraph(chart) {
+    // Create and initialise a graph
+    chart.svg = d3.select(chart.selector);
+
+    // Update graph margins and axes
     chart.graphWidth = chart.width - chart.margin.left - chart.margin.right;
     chart.graphHeight = chart.height - chart.margin.top - chart.margin.bottom;
-
-    // Create SVG
-    chart.svg = d3
-        .select(chart.selector)
-        .attr("width", chart.width)
-        .attr("height", chart.height);
-    chart.svg
-        .append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "end")
-        .attr("x", chart.width)
-        .attr("y", chart.height - 6)
-        .text(chart.xlabel);
-
-    // Axes
-    chart.x = d3.scaleBand().range([0, chart.graphWidth]).padding(0.1);
+    chart.x = d3.scaleLinear().range([0, chart.graphWidth]);
     chart.y = d3.scaleLinear().range([chart.graphHeight, 0]);
 
     // Build graph
-    chart.graph = chart.svg
+    chart.g = chart.svg
         .append("g")
         .attr(
             "transform",
             `translate(${chart.margin.left},${chart.margin.top})`
         );
-    chart.graph.append("g").attr("class", "y-axis").call(d3.axisLeft(chart.y)).selectAll("path, line").style("stroke", "white");
+
+    // Create and style the x and y axis
+    chart.g
+        .append("g")
+        .attr("transform", `translate(0,${chart.graphHeight})`)
+        .call(d3.axisBottom(chart.x))
+        .selectAll(".domain")
+        .attr("stroke", "#f79322")
+        .attr("stroke-width", 2);
+    chart.g.selectAll(".tick line").attr("stroke", "#f79322");
+
+    chart.yAxis = chart.g.append("g").attr("class", "y-axis");
+    chart.yAxis
+        .call(d3.axisLeft(chart.y))
+        .selectAll(".domain")
+        .attr("stroke", "#f79322")
+        .attr("stroke-width", 2);
+    chart.yAxis.selectAll(".tick line").attr("stroke", "#f79322");
+
+    // Line
+    chart.line = d3
+        .line()
+        .x((d, i) => chart.x(i))
+        .y((d) => chart.y(d));
+    chart.path = chart.g
+        .append("path")
+        .datum(d3.range(1).map(() => 0)) // initial data
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 1.5)
+        .attr("d", chart.line);
 }
 
-function data_graphCreate_Bar(chart) {
-    // Create generic graph
-    data_graphCreate(chart);
+// Load all data at once
+function renderCSV(csvData, chart, n) {
+    chart.x.domain([0, csvData.length - 1]);
+    chart.y.domain([d3.min(csvData) - 5, d3.max(csvData) + 5]);
 
-    // Make graph into a bar chart, initially with zero height
-    chart.bar = chart.graph
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", chart.x(0)) // The bar will be placed at the x position 0
-        .attr("y", chart.graphHeight) // Start at the bottom (height = 0)
-        .attr("width", chart.x.bandwidth()) // Width based on the x scale
-        .attr("height", 0); // Initially, height = 0
+    chart.g.select("g").transition().duration(0).call(d3.axisBottom(chart.x));
+    chart.yAxis.transition().duration(0).call(d3.axisLeft(chart.y));
+
+    chart.path.datum(csvData).attr(
+        "d",
+        chart.line.x((d, i) => chart.x(i))
+    );
+}
+
+// Progressively load CSV data (like simulation)
+function simulateCSV(csvData, chart, n) {
+    // Initialise loop
+    let index = 0;
+    let data = [];
+
+    d3.interval(() => {
+        if (index < csvData.length) {
+            // Add new value to data
+            data.push(csvData[index]);
+            // console.log(csvData[index]);
+
+            // Update X domain dynamically
+            chart.x.domain([0, data.length - 1]);
+            chart.g
+                .select("g")
+                .transition()
+                .duration(0)
+                .call(d3.axisBottom(chart.x));
+
+            // Update Y domain dynamically
+            let yMin = d3.min(data),
+                yMax = d3.max(data);
+            chart.y.domain([yMin - 5, yMax + 5]); // add padding
+            chart.yAxis.transition().duration(0).call(d3.axisLeft(chart.y));
+
+            chart.path.datum(data).attr(
+                "d",
+                chart.line.x((d, i) => chart.x(i))
+            );
+
+            // Increment index
+            index++;
+        }
+    }, 20);
 }
 
 window.addEventListener("load", function () {
-    // Initialise graphs on page
-    data_graphCreate_Bar(DATA_CHART_ALT);
-    data_graphCreate_Bar(DATA_CHART_VEL);
+    // Build D3 chart
+    dataLineGraph(CHART_ALT);
+    // dataLineGraph(CHART_ALT_STATIC);
+    dataLineGraph(CHART_VEL);
+    // dataLineGraph(CHART_VEL_STATIC);
 
-    // Load the CSV data
-    d3.csv("data/testData.csv", d3.autoType).then(function (data) {
-        // Set initial domain for x and y scales
-        DATA_CHART_ALT.x.domain([0]); //0 for animation purposes/one bar graph
-        DATA_CHART_ALT.y.domain([0, d3.max(data, (d) => d.Baro_Altitude_AGL)]);
-        //DATA_CHART_ALT.graph.attr("class", "y-axis").call(d3.axisLeft(DATA_CHART_ALT.y)); // Update y axis
+    // Load data from CSV
+    d3.csv("data/testData2.csv", (d) => [+d.Altitude, +d.velocity]).then(
+        (csvData) => {
+            let altitudeData = csvData.map(item => item[0]);
+            // renderCSV(altitudeData, CHART_ALT_STATIC);
+            simulateCSV(altitudeData, CHART_ALT);
 
-        DATA_CHART_VEL.x.domain([0]);
-        DATA_CHART_VEL.y.domain([
-            d3.min(data, (d) => d.Velocity_Up),
-            d3.max(data, (d) => d.Velocity_Up),
-        ]);
-
-        // Function to animate the bar with different data values
-        function animateBar(index) {
-            const currentData = data[index];
-            // Update the bar's y position and height
-            DATA_CHART_ALT.bar
-                .transition()
-                .duration(1) // Transition duration
-                .ease(d3.easeCubicInOut) // Smooth easing function
-                .attr("y", DATA_CHART_ALT.y(currentData.Baro_Altitude_AGL)) // Set the new y position based on the value
-                .attr(
-                    "height",
-                    DATA_CHART_ALT.graphHeight -
-                        DATA_CHART_ALT.y(currentData.Baro_Altitude_AGL)
-                ); // Set the new height based on the value
-
-            DATA_CHART_VEL.bar
-                .transition()
-                .duration(1) // Transition duration
-                .ease(d3.easeCubicInOut) // Smooth easing function
-                .attr("y", DATA_CHART_VEL.y(currentData.Velocity_Up))
-                .attr(
-                    "height",
-                    DATA_CHART_VEL.graphHeight -
-                        DATA_CHART_VEL.y(currentData.Velocity_Up)
-                );
+            let velocityData = csvData.map(item => item[1]);
+            // renderCSV(velocityData, CHART_VEL_STATIC);
+            simulateCSV(velocityData, CHART_VEL);
         }
-
-        let index = 0;
-        max_Baro_Altitude_AGL = 0;
-        max_alt_m = 0;
-        // Set an interval to cycle through the data every 0.02 seconds
-        setInterval(function () {
-            // Animate graphs
-            animateBar(index);
-
-            //Updates the html value
-            const current = data[index];
-            if (current) {
-                //interfaceSetValue("av-alt-ft", current.Baro_Altitude_AGL);
-                if (current.Baro_Altitude_AGL > max_Baro_Altitude_AGL) {
-                    max_Baro_Altitude_AGL = current.Baro_Altitude_AGL;
-                }
-                var alt_metres = current.Baro_Altitude_AGL *0.3048;
-                //interfaceSetValue("av-alt-m",alt_metres)
-                if (alt_metres > max_alt_m) {
-                    max_alt_m = alt_metres;
-                }
-                var velocity_metres = current.Velocity_Up * 0.3048;
-                //interfaceSetValue("av-velocity",velocity_metres.toFixed(4))
-                //interfaceSetValue("av-maxalt-ft", max_Baro_Altitude_AGL);
-                //interfaceSetValue("av-maxalt-m", max_alt_m);
-            }
-
-            // Update the index to the next data point, and reset to 0 when it exceeds the data length
-            index = (index + 1) % data.length;
-        }, 19); // Cycle every .02 seconds
-    });
+    );
 });
