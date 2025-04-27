@@ -25,7 +25,7 @@ const CHART_VEL = {
     selector: "#velocity",
     margin: { top: 10, right: 10, bottom: 20, left: 40 },
     width: 475,
-    height: 200,
+    height: 175,
 };
 
 // const CHART_VEL_STATIC = {
