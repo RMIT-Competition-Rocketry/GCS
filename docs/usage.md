@@ -23,7 +23,7 @@ Commands:
 > [!NOTE] 
 > The current *suggested* frontend dev command is as follows
 > ```
-> $ rocket simulation --interface test --nopendant    
+> $ rocket simulation
 > ```
 
 ## Using release binaries
@@ -46,15 +46,16 @@ Usage: rocket dev [OPTIONS]
   Start software in development mode
 
 Options:
-  --nopendant                     Do not run the pendant emulator
-  --logpkt                        Log packet data to csv
-  --nobuild                       Do not build binaries. Search for pre-built
-                                  binaries
-  -i, --interface [UART|TEST]     Hardware interface type. Overrides config
-                                  parameter
-  --docker                        Run in Docker
   -l, --log-level [DEBUG|INFO|SUCCESS|WARNING|ERROR|CRITICAL]
                                   Overide the config log level
+  --docker                        Run in Docker
+  --nobuild                       Do not build binaries. Search for pre-built
+                                  binaries
+  --logpkt                        Log packet data to csv
+  --gse-only                      Run the system in GSE only mode
+  -i, --interface [UART|TEST]     Hardware interface type. Overrides config
+                                  parameter
+  --nopendant                     Do not run the pendant emulator
   --help                          Show this message and exit.
 ```
 
@@ -70,16 +71,24 @@ By default for `dev` mode:
   - You can stop this by using the `--nopendant` flag
 - Console log level will be grabbed from `config/config.ini`
   - Unless `-l x` or `--log-level x` is passed which will override this
+- Both GSE and AV comms will be online
+  - Unless `--gse-only` is passed
 
 ### Simulation Mode
 
 Simulation mode can be run with 
 
 ```terminal
-$ rocket simulation --interface test <options>
+$ rocket simulation
 ```
 
 This operates the same as dev mode, but will use simulation based data 
+
+By default for `simulation` mode: 
+- Behaviour is inherited from dev mode
+- The pendant service is disabled
+- The interface is the test interface (this make no difference to anything external to the middleware)
+
 
 > [!WARNING]
 > Currently, this mode only **simulates** AVtoGCSData1 packets from ignition to landing.

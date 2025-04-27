@@ -32,10 +32,7 @@ std::atomic<bool> running{true};
 volatile bool debugger_attached = false;
 
 // Thread safe signal handler
-void signal_handler(int) {
-  slogger::info("Signal received, stopping server");
-  running = false;
-}
+void signal_handler(int) { running = false; }
 
 inline void set_thread_name([[maybe_unused]] const char *name) {
 #ifdef __APPLE__
@@ -299,59 +296,58 @@ int main(int argc, char *argv[]) {
   signal(SIGINT, signal_handler);
   signal(SIGTERM, signal_handler);
 
+  // Create an interface
+  const std::string DEVICE_PATH = std::string(argv[2]);
+  const std::string SOCKET_PATH = std::string(argv[3]);
+  // One per device object. If you're using 2 devices, best to have 2
+  // interfaces
+  std::shared_ptr<LoraInterface> interface =
+      create_interface(std::string(argv[1]), DEVICE_PATH);
+
+  interface->initialize();
+  slogger::info("Interface initialised for type: " + std::string(argv[1]));
+
+  // Create sequence handler singleton
+  Sequence sequence;
+
+  if (argc == 5) {
+    std::string mode = std::string(argv[4]);
+    sequence.set_gse_only_mode(mode == "--GSE_ONLY");
+  }
+
+  // ZeroMQ setup
+  zmq::context_t context(1);
+
+  // PUB socket for broadcasting incoming data
+  zmq::socket_t pub_socket(context, ZMQ_PUB);
+  pub_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pub.sock");
+
+  // PULL socket for fowarding commands to LoRa
+  zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
+  constexpr int PENDANT_HWM = 1;  // Only keep 1 message in buffer
+  pendant_pull_socket.set(zmq::sockopt::rcvhwm, PENDANT_HWM);
+  pendant_pull_socket.set(zmq::sockopt::conflate,
+                          1);  // Only keep last message
+  pendant_pull_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pendant_pull.sock");
+
+  // Start interface reading thread
+  std::thread reader(input_read_loop, interface, std::ref(pub_socket),
+                     std::ref(sequence));
+
+  // http://api.zeromq.org/3-0:zmq-poll
+  // Can add multiple push pull sockets here. Useful for when front end is
+  // integrated
+  zmq::pollitem_t items[] = {{pendant_pull_socket, 0, ZMQ_POLLIN, 0}};
+  std::vector<uint8_t> pendant_data;
+
+  const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
+  auto last_pendant_receival = std::chrono::steady_clock::now();
+  auto last_timeout_warning_time = std::chrono::steady_clock::now();
+  // TODO I think this is redundant now?
+  const bool SUPPRESS_PENDANT_WARNING = std::getenv("CONFIG_PATH") == nullptr;
+  // Main command loop
+  slogger::info("Middleware server started successfully");
   try {
-    // Create an interface
-    const std::string DEVICE_PATH = std::string(argv[2]);
-    const std::string SOCKET_PATH = std::string(argv[3]);
-    // One per device object. If you're using 2 devices, best to have 2
-    // interfaces
-    std::shared_ptr<LoraInterface> interface =
-        create_interface(std::string(argv[1]), DEVICE_PATH);
-
-    interface->initialize();
-    slogger::info("Interface initialised for type: " + std::string(argv[1]));
-
-    // Create sequence handler singleton
-    Sequence sequence;
-
-    if (argc == 5) {
-      std::string mode = std::string(argv[4]);
-      sequence.set_gse_only_mode(mode == "--GSE_ONLY");
-    }
-
-    // ZeroMQ setup
-    zmq::context_t context(1);
-
-    // PUB socket for broadcasting incoming data
-    zmq::socket_t pub_socket(context, ZMQ_PUB);
-    pub_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pub.sock");
-
-    // PULL socket for fowarding commands to LoRa
-    zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
-    constexpr int PENDANT_HWM = 1;  // Only keep 1 message in buffer
-    pendant_pull_socket.set(zmq::sockopt::rcvhwm, PENDANT_HWM);
-    pendant_pull_socket.set(zmq::sockopt::conflate,
-                            1);  // Only keep last message
-    pendant_pull_socket.bind("ipc:///tmp/" + SOCKET_PATH +
-                             "_pendant_pull.sock");
-
-    // Start interface reading thread
-    std::thread reader(input_read_loop, interface, std::ref(pub_socket),
-                       std::ref(sequence));
-
-    // http://api.zeromq.org/3-0:zmq-poll
-    // Can add multiple push pull sockets here. Useful for when front end is
-    // integrated
-    zmq::pollitem_t items[] = {{pendant_pull_socket, 0, ZMQ_POLLIN, 0}};
-    std::vector<uint8_t> pendant_data;
-
-    const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
-    auto last_pendant_receival = std::chrono::steady_clock::now();
-    auto last_timeout_warning_time = std::chrono::steady_clock::now();
-    // TODO I think this is redundant now?
-    const bool SUPPRESS_PENDANT_WARNING = std::getenv("CONFIG_PATH") == nullptr;
-    // Main command loop
-    slogger::info("Middleware server started successfully");
     while (running) {
       zmq::poll(items, 1, std::chrono::milliseconds(300));  // 300ms timeout
 
@@ -444,18 +440,32 @@ int main(int argc, char *argv[]) {
           break;
       }
     }
-
+    slogger::info("Middleware shutdown starting");
+  } catch (const zmq::error_t &e) {
+    // EINTR (signal interrupt) is expected on shutdown
+    if (e.num() != EINTR) {
+      slogger::error("ZeroMQ.1 error (" + std::to_string(e.num()) +
+                     "): " + std::string(e.what()));
+      throw;
+    }
+  } catch (const std::runtime_error &e) {
+    slogger::error("Runtime error: " + std::string(e.what()));
+    throw;
+  } catch (const std::exception &e) {
+    slogger::error("Generic error on main: " + std::string(e.what()));
+    throw;
+  }
+  try {
     // Cleanup
     reader.join();
     pub_socket.close();
-  } catch (const zmq::error_t &e) {
-    slogger::error("ZeroMQ error: " + std::string(e.what()));
-  } catch (const std::runtime_error &e) {
-    slogger::error("Runtime error: " + std::string(e.what()));
+    pendant_pull_socket.close();
+    context.close();
+    google::protobuf::ShutdownProtobufLibrary();
   } catch (const std::exception &e) {
-    slogger::error("Generic error on main: " + std::string(e.what()));
-    return EXIT_FAILURE;
+    slogger::error("Error during cleanup");
+    slogger::error(std::string(e.what()));
   }
-  google::protobuf::ShutdownProtobufLibrary();
+  slogger::info("Middleware shutdown complete");
   return EXIT_SUCCESS;
 }

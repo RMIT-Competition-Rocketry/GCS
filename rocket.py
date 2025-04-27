@@ -11,7 +11,7 @@ import time
 import os
 import signal
 import enum
-from typing import Optional
+from typing import Optional, Callable
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
@@ -25,6 +25,20 @@ from cli.start_simulation import start_simulator
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
 running_services: bool = False  # To help close the cli automatically
+
+
+class Command(enum.Enum):
+    """Command enums to help start services"""
+    RUN = enum.auto()
+    DEV = enum.auto()
+    SIMULATION = enum.auto()
+
+
+class DecoratorSelector(enum.Enum):
+    """Selection options to build a decorator"""
+    ALL_DEV = enum.auto()  # Give me all the dev options
+    SIM = enum.auto()  # Give me the options for simulation
+    GSE_ONLY = enum.auto()  # Give me just the GSE only option
 
 
 def get_interface_type(interface: Optional[str]) -> InterfaceType:
@@ -51,32 +65,54 @@ def get_interface_type(interface: Optional[str]) -> InterfaceType:
         raise ValueError(f"Invalid interface type: {interface}")
 
 
-def shared_dev_options(func):
-    """Decorator to add all dev command options to simulation."""
-    # Reuse dev's options
+def cli_decorator_factory(SELECTOR: DecoratorSelector):
+    """Factory function to create decorators based on the selector"""
     def _set_level(ctx, param, value):
         if value:
             CLEAN_VALUE = value.upper().strip()
             rocket_logging.set_console_log_level(CLEAN_VALUE)
         return value
-    LOG_LEVEL_OPTIONS = click.Choice(list(rocket_logging.LOG_MAPPING.keys()),
-                                     case_sensitive=False
-                                     )
-    func = click.option('-l', '--log-level', is_flag=False, type=LOG_LEVEL_OPTIONS,
-                        help="Overide the config log level",
-                        callback=_set_level, expose_value=False)(func)
-    func = click.option('--docker', is_flag=True, help="Run in Docker")(func)
-    INTERFACE_OPTIONS = click.Choice(
+    _LOG_LEVEL_CHOICES = click.Choice(list(rocket_logging.LOG_MAPPING.keys()),
+                                      case_sensitive=False)
+    _INTERFACE_CHOICES = click.Choice(
         [e.value for e in InterfaceType], case_sensitive=False)
-    func = click.option('-i', '--interface', type=INTERFACE_OPTIONS,
-                        help="Hardware interface type. Overrides config parameter")(func)
-    func = click.option('--nobuild', is_flag=True,
-                        help="Do not build binaries. Search for pre-built binaries")(func)
-    func = click.option('--logpkt', is_flag=True,
-                        help="Log packet data to csv")(func)
-    func = click.option('--nopendant', is_flag=True,
-                        help="Do not run the pendant emulator")(func)
-    return func
+
+    OPTIONS_GSE_ONLY = [click.option('--gse-only', is_flag=True,
+                                     help="Run the system in GSE only mode")]
+
+    OPTIONS_SIM = [
+        click.option('-l', '--log-level', is_flag=False, type=_LOG_LEVEL_CHOICES,
+                     help="Overide the config log level",
+                     callback=_set_level, expose_value=False),
+        click.option('--docker', is_flag=True,
+                     help="Run in Docker"),
+        click.option('--nobuild', is_flag=True,
+                     help="Do not build binaries. Search for pre-built binaries"),
+        click.option('--logpkt', is_flag=True,
+                     help="Log packet data to csv")
+    ]
+
+    OPTIONS_ALL_DEV = OPTIONS_SIM + OPTIONS_GSE_ONLY + [
+        click.option('-i', '--interface', type=_INTERFACE_CHOICES,
+                     help="Hardware interface type. Overrides config parameter"),
+        click.option('--nopendant', is_flag=True,
+                     help="Do not run the pendant emulator")
+    ]
+
+    if SELECTOR == DecoratorSelector.ALL_DEV:
+        OPTIONS = OPTIONS_ALL_DEV
+    elif SELECTOR == DecoratorSelector.SIM:
+        OPTIONS = OPTIONS_SIM
+    elif SELECTOR == DecoratorSelector.GSE_ONLY:
+        OPTIONS = OPTIONS_GSE_ONLY
+
+    def decorator(func: Callable) -> Callable:
+        # Apply in reverse so the first in the list appears first in --help
+        for option in reversed(OPTIONS):
+            func = option(func)
+        return func
+
+    return decorator
 
 
 def start_docker_container(logger):
@@ -96,20 +132,13 @@ def start_docker_container(logger):
         raise
 
 
-class Command(enum.Enum):
-    """Command enums to help start services"""
-    RUN = enum.auto()
-    DEV = enum.auto()
-    GSE = enum.auto()
-    SIMULATION = enum.auto()
-
-
 def start_services(COMMAND: Command,
                    DOCKER: bool = False,
                    INTERFACE_ARG: Optional[InterfaceType] = None,
                    nobuild: bool = False,
                    logpkt: bool = False,
-                   nopendant: bool = False):
+                   nopendant: bool = False,
+                   gse_only: bool = False):
     """Starts all services required for the given command.
 
     Args:
@@ -127,6 +156,8 @@ def start_services(COMMAND: Command,
         logger.info("Starting development mode")
     else:
         logger.info("Starting development container in Docker")
+        raise NotImplementedError(
+            "Internal Docker implimentation is out of date. Do not use")
         start_docker_container(logger)
 
     # 0.1 Build C++ middleware
@@ -163,7 +194,7 @@ def start_services(COMMAND: Command,
     # Note that `devices` are paired pseudo-ttys
     try:
         optional_arg = None
-        if COMMAND == Command.GSE:
+        if gse_only:
             optional_arg = "--GSE_ONLY"
         start_middleware(logger=logger,
                          release=COMMAND == Command.RUN,
@@ -206,7 +237,8 @@ def cli():
 
 
 @click.command()
-def run():
+@cli_decorator_factory(DecoratorSelector.GSE_ONLY)
+def run(gse_only):
     """Start software for launch day usage"""
     rocket_logging.set_console_log_level("INFO")
     start_services(Command.RUN,
@@ -214,46 +246,36 @@ def run():
                    INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
                    nobuild=True,  # Do NOT auto build in production mode.
                    logpkt=True,  # Log packets by default in production mode
-                   nopendant=False  # Pendant emulator is required in production mode
+                   nopendant=False,  # Pendant emulator is required in production mode
+                   gse_only=gse_only
                    )
 
 
 @click.command()
-def gse():
-    """Start software for launch day gse setup"""
-    rocket_logging.set_console_log_level("INFO")
-    start_services(Command.GSE,
-                   DOCKER=False,
-                   INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
-                   nobuild=True,  # Do NOT auto build in production mode.
-                   logpkt=True,  # Log packets by default in production mode
-                   nopendant=False  # Pendant emulator is required in production mode
-                   )
-
-
-@click.command()
-@shared_dev_options
-def dev(docker, interface, nobuild, logpkt, nopendant):
+@cli_decorator_factory(DecoratorSelector.ALL_DEV)
+def dev(docker, interface, nobuild, logpkt, nopendant, gse_only):
     """Start software in development mode"""
     start_services(Command.DEV,
                    DOCKER=docker,
                    INTERFACE_ARG=interface,
                    nobuild=nobuild,
                    logpkt=logpkt,
-                   nopendant=nopendant
+                   nopendant=nopendant,
+                   gse_only=gse_only
                    )
 
 
 @click.command()
-@shared_dev_options
-def simulation(docker, interface, nobuild, logpkt, nopendant):
+@cli_decorator_factory(DecoratorSelector.SIM)
+def simulation(docker, nobuild, logpkt):
     """Start software in simulation mode"""
     start_services(Command.SIMULATION,
                    DOCKER=docker,
-                   INTERFACE_ARG=interface,
+                   INTERFACE_ARG="TEST",
                    nobuild=nobuild,
                    logpkt=logpkt,
-                   nopendant=nopendant
+                   nopendant=True,
+                   gse_only=False
                    )
 
 
@@ -307,7 +329,6 @@ def main():
 
     # Use groups for nested positional arugments `rocket run dev/prod`
     cli.add_command(run)
-    cli.add_command(gse)
     cli.add_command(dev)
     cli.add_command(simulation)
 

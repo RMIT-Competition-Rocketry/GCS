@@ -11,3 +11,4 @@ Relevance to VCE algorithmics
 - Uses Queues to order incoming STDOUT data for callback parsing
 - Uses priority queues to close proccess in the order they sa
 - Uses recursion to expand on sub defintions in the protobuf data logger
+- Av process tests: Psuedocode, decision trees

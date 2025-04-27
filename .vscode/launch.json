@@ -8,14 +8,13 @@
             "name": "(lldb) Attach PID",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${workspaceFolder}/build/middleware_debug_arm64_0.1.0-dev.1+serpentine+15db722",
-            "MIMode": "lldb"
+            "program": "${workspaceFolder}/build/middleware_debug_arm64_0.1.0-dev.1+serpentine+f00522a"
         },
         {
             "name": "(lldb) Launch middleware",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/middleware",
+            "program": "${workspaceFolder}/build/middleware_debug_arm64_0.1.0-dev.1+serpentine+f00522a",
             "args": [
                 // 3 args please
                 "TEST",
@@ -77,9 +76,6 @@
             "subProcess": true,
             "args": [
                 "simulation",
-                "--interface",
-                "test",
-                "--nopendant",
                 "--logpkt"
             ]
         },
