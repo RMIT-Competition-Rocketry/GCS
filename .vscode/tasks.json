@@ -39,9 +39,9 @@
             ]
         },
         {
-            "label": "middleware build and test",
+            "label": "middleware build and test all",
             "type": "shell",
-            "command": "bash scripts/test_manual_cpp.sh",
+            "command": "bash scripts/test_manual_all.sh",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -52,6 +52,22 @@
             },
             "problemMatcher": [
                 "$gcc"
+            ]
+        },
+        {
+            "label": "python test",
+            "type": "shell",
+            "command": "bash scripts/test_manual_python.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "id": "check",
+                "color": "terminal.ansiCyan"
+            },
+            "problemMatcher": [
+                "$pytest"
             ]
         },
         {

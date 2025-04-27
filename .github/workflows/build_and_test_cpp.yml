@@ -1,4 +1,4 @@
-name: Build and Test C++
+name: Build and Test
 
 on:
   push:
@@ -267,6 +267,7 @@ jobs:
         cpp_compiler: [g++, clang++]
 
     steps:
+    - uses: actions/checkout@v4  # Needed for scripts
     - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
@@ -278,12 +279,17 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake tree
 
+    - name: Install python testing dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install -r backend/tests/requirements.txt
+
     - name: Tree debug
       run: tree
 
     # Set executable permissions for tests
     - name: Set executable permissions
-      run: chmod +x build/backend/tests/runTests
+      run: chmod +x build/backend/tests/runC++Tests
 
     - name: Run Tests
       working-directory: ${{ github.workspace }}/build
