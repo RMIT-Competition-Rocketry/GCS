@@ -1,13 +1,15 @@
 syntax = "proto3";
 import "FlightState.proto";
 import "AVStateFlags.proto";
+import "PacketMeta.proto";
 
 package payload;
 
 // NOTE: Unused. Future expansion
 message AV_TO_GCS_DATA_3 {
-    optional common.FlightState flightState = 1;
-    optional common.AVStateFlags state_flags = 2;
+    optional common.PacketMeta meta = 1;
+    optional common.FlightState flightState = 2;
+    optional common.AVStateFlags state_flags = 3;
 
     // UNUSED FOR NOW
     // TBC*30 or something

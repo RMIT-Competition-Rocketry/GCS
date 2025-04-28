@@ -1,13 +1,15 @@
 syntax = "proto3";
 import "FlightState.proto";
 import "AVStateFlags.proto";
+import "PacketMeta.proto";
 
 package payload;
 
 message AV_TO_GCS_DATA_2 {
-    optional common.FlightState flightState = 1;
-    optional common.AVStateFlags state_flags = 2;
+    optional common.PacketMeta meta = 1;
+    optional common.FlightState flightState = 2;
+    optional common.AVStateFlags state_flags = 3;
 
-    optional string GPS_latitude = 3;
-    optional string GPS_longitude = 4;
+    optional string GPS_latitude = 4;
+    optional string GPS_longitude = 5;
 }

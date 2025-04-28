@@ -3,6 +3,7 @@ import time
 import zmq
 import os
 import csv
+import traceback
 from abc import ABC, abstractmethod
 import sys
 import subprocess
@@ -12,10 +13,9 @@ import backend.proto.generated.FlightState_pb2 as FlightState_pb
 import backend.proto.generated.AVStateFlags_pb2 as AVStateFlags_pb
 import backend.proto.generated.GSEErrors_pb2 as GSEErrors_pb
 import backend.proto.generated.GSEStateFlags_pb2 as GSEStateFlags_pb
+import backend.proto.generated.PacketMeta_pb2 as PacketMeta_pb
 import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
-import backend.proto.generated.GCS_TO_AV_STATE_CMD_pb2 as GCS_TO_AV_STATE_CMD_pb
-import backend.proto.generated.GCS_TO_GSE_STATE_CMD_pb2 as GCS_TO_GSE_STATE_CMD_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 from typing import List, Dict, Optional, Union
@@ -946,6 +946,7 @@ def main(SOCKET_PATH, CREATE_LOGS):
             except Exception as e:
                 slogger.error(
                     f"Error processing packet ID {packet_id}: {e}")
+                # slogger.error(traceback.format_exc())
         else:
             slogger.error(f"Unexpected packet ID: {packet_id}")
 
