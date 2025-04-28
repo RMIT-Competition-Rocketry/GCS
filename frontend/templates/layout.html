@@ -43,10 +43,12 @@
 		<!-- Main grid (12x12), each module is a separate child div, using col/row positions instead of awkward nesting -->
 		<!-- Modules are loaded from files in the templates/ directory -->
 		<!-- and can be dynamically shown/hidden based on the m-name classes and nav links -->
-		<main class="w-full grow grid grid-cols-12 grid-rows-12 grid-flow-col gap-2 p-2">
+		<main class="w-full h-full max-h-screen max-w-full grid grid-cols-12 grid-rows-12 grid-flow-col gap-2 p-2">
 			<!-- Main interface modules -->
-			<div class="module m-main m-lf1 col-[1/5] row-[1/9]">{% include 'module_avionics.html' %}</div>
-			<div class="module m-main m-lf1 col-[1/5] row-[9/13]">{% include 'module_position.html' %}</div>
+			<div class="module m-main m-lf1 col-[1/5] row-[1/13] flex flex-col h-full gap-2">
+				<div class="module m-main m-lf1 grow basis-1/2">{% include 'module_avionics.html' %}</div>
+				<div class="module m-main m-lf1 grow basis-1/4">{% include 'module_position.html' %}</div>
+			</div>
 			<div class="module m-main col-[5/9] row-[1/10]">{% include 'module_rocket.html' %}</div>
 			<div class="module m-main col-[5/9] row-[10/13]">{% include 'module_flightstate.html' %}</div>
 			<div class="module m-main col-[9/13] row-[1/6]">{% include 'module_payload.html' %}</div>
@@ -78,12 +80,9 @@
 		<script src="js/GCS_API.js"></script>
 
 		<!-- Data visualisation module -->
-		
 		<script src="js/d3.min.js"></script>
-        <script src="js/GCS_DataVis.js"></script>
+        <script src="js/GCS_Graphs.js"></script>
 		
-        
-
 		<!-- 3D animation module
         <script src="js/three.module.js" type="module"></script>
         <script src="js/GLTFLoader.js" type="module"></script>

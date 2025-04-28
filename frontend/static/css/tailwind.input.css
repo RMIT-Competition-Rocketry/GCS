@@ -21,6 +21,10 @@ and only modify it if you know what you're doing :)
 }
 
 @layer base {
+    * {
+        box-sizing: border-box;
+    }    
+
     body {
         background-color: black;
         background-image: url('/img/hexagonal_background.svg');

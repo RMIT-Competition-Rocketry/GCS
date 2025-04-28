@@ -31,12 +31,13 @@
 	</section>
 
 	<!-- Accel and gyro -->
-	<div class="grid grid-cols-2 grow gap-2 gap-x-4">
+	<div class="grid grid-cols-2 flex-1 gap-2 gap-x-4">
 		<!-- Acceleration -->
-		<section class="flex flex-col pb-0">
+		<section class="flex flex-col pb-0 ">
 			<h3>Acceleration (<i>g</i>)</h3>
-			<!--<img src="img/placeholders/graph-accel.png" width="300" height="200" style="height:180px;">-->
-			<div class="graph"></div>
+			<div class="grow w-full h-full">
+				<svg id="graph-av-accel" class="w-full h-full" width="0" height="0"></svg>
+			</div>
 			<div class="grid grid-cols-3 gap-4">
 				<p class="flex gap-1 items-center">
 					<span>X:</span>
@@ -56,8 +57,9 @@
 		<!-- Gyro -->
 		<section class="flex flex-col pb-0">
 			<h3>Gyro (deg/s)</h3>
-			<!--<img src="img/placeholders/graph-gyro.png" width="300" height="200" style="height:180px;">-->
-			<div class="graph"></div>
+			<div class="grow w-full h-full">
+				<svg id="graph-av-gyro" class="w-full h-full" width="0" height="0"></svg>
+			</div>
 			<div class="grid grid-cols-3 gap-4">
 				<p class="flex gap-1 items-center">
 					<span>X:</span>
@@ -73,25 +75,24 @@
 				</p>
 			</div>
 		</section>
-
-		<!-- Velocity -->
-		<section class="col-span-2 flex flex-col pb-0">
-			<h3>Velocity (m/s)</h3>
-			<!--<img src="img/placeholders/graph-velocity.png" width="600" height="200" style="height:180px;">-->
-			<svg id ="velocity" width ="600" height ="175"></svg>
-			<div class="grid grid-cols-2 gap-4">
-				<p class="flex gap-1 items-center">
-					<span>Velocity:</span> 
-					<input readonly autocomplete="off" class="av-velocity">
-					<span>m/s</span>
-				</p>
-				<p class="flex gap-1 items-center">
-					<span>Mach:</span>
-					<input readonly autocomplete="off" class="av-mach">
-				</p>
-			</div>
-		</section>
 	</div>
 	
-	
+	<!-- Velocity -->
+	<section class="grow flex flex-col flex-1 pb-0">
+		<h3>Velocity (m/s)</h3>
+		<div class="grow w-full h-full">
+			<svg id="graph-av-velocity" class="w-full h-full" width="0" height="0"></svg>
+		</div>
+		<div class="grid grid-cols-2 gap-4">
+			<p class="flex gap-1 items-center">
+				<span>Velocity:</span> 
+				<input readonly autocomplete="off" class="av-velocity">
+				<span>m/s</span>
+			</p>
+			<p class="flex gap-1 items-center">
+				<span>Mach:</span>
+				<input readonly autocomplete="off" class="av-mach">
+			</p>
+		</div>
+	</section>
 </div>
