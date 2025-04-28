@@ -2,6 +2,7 @@
 
 // Abstract class that defines methods for interfacing with the LoRa module.
 
+#include <arpa/inet.h>
 #include <unistd.h>  // For ssize_t
 
 #include <cstdint>
