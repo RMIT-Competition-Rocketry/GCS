@@ -1,37 +1,40 @@
 syntax = "proto3";
 import "FlightState.proto";
 import "AVStateFlags.proto";
+import "PacketMeta.proto";
 
 package payload;
 
 message AV_TO_GCS_DATA_1 {
+    optional common.PacketMeta meta = 1;
+
     // Note 3
-    optional common.FlightState flightState = 1;
+    optional common.FlightState flightState = 2;
 
     // Rest of states. 
-    optional common.AVStateFlags state_flags = 2;
+    optional common.AVStateFlags state_flags = 3;
 
-    optional float accel_low_x = 3;
-    optional float accel_low_y = 4;
-    optional float accel_low_z = 5;
-    optional float accel_high_x = 6;
-    optional float accel_high_y = 7;
-    optional float accel_high_z = 8;
-    optional float gyro_x = 9;
-    optional float gyro_y = 10;
-    optional float gyro_z = 11;
-    optional float altitude = 12;
-    optional float velocity = 13;
+    optional float accel_low_x = 4;
+    optional float accel_low_y = 5;
+    optional float accel_low_z = 6;
+    optional float accel_high_x = 7;
+    optional float accel_high_y = 8;
+    optional float accel_high_z = 9;
+    optional float gyro_x = 10;
+    optional float gyro_y = 11;
+    optional float gyro_z = 12;
+    optional float altitude = 13;
+    optional float velocity = 14;
 
-    optional bool apogee_primary_test_complete = 14; // Note 4
-    optional bool apogee_secondary_test_complete = 15; // Note 4
-    optional bool apogee_primary_test_results = 16; // True means continuity. (Note 4)
-    optional bool apogee_secondary_test_results = 17; // True means continuity. (Note 4)
+    optional bool apogee_primary_test_complete = 15; // Note 4
+    optional bool apogee_secondary_test_complete = 16; // Note 4
+    optional bool apogee_primary_test_results = 17; // True means continuity. (Note 4)
+    optional bool apogee_secondary_test_results = 18; // True means continuity. (Note 4)
 
-    optional bool main_primary_test_complete = 18; // Note 5
-    optional bool main_secondary_test_complete = 19; // Note 5
-    optional bool main_primary_test_results = 20; // Note 5
-    optional bool main_secondary_test_results = 21; // Note 5
+    optional bool main_primary_test_complete = 19; // Note 5
+    optional bool main_secondary_test_complete = 20; // Note 5
+    optional bool main_primary_test_results = 21; // Note 5
+    optional bool main_secondary_test_results = 22; // Note 5
 
-    optional bool broadcast_flag = 22; // Note 6
+    optional bool broadcast_flag = 23; // Note 6
 }

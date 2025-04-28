@@ -1,8 +1,10 @@
 syntax = "proto3";
 import "GSEStateFlags.proto";
+import "PacketMeta.proto";
 
 package payload;
 // NOTE: Unused. Future expansion
 message GSE_TO_GCS_DATA_3 {
-    optional common.GSEStateFlags state_flags = 1;
+    optional common.PacketMeta meta = 1;
+    optional common.GSEStateFlags state_flags = 2;
 }
