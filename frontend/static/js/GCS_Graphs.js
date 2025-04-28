@@ -8,16 +8,15 @@
 
 // DEFINE CHARTS
 const DEFAULT_MARGINS = { top: 8, right: 8, bottom: 20, left: 40 };
-const GRAPH_POS_ALT = { selector: "#graph-pos-alt" };
-const GRAPH_AV_ACCEL = { selector: "#graph-av-accel" };
-const GRAPH_AV_GYRO = { selector: "#graph-av-gyro" };
-const GRAPH_AV_VELOCITY = { selector: "#graph-av-velocity" };
+const GRAPH_POS_ALT = { selector: "#graph-pos-alt", data:[] };
+const GRAPH_AV_ACCEL = { selector: "#graph-av-accel", data:[] };
+const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data:[] };
+const GRAPH_AV_VELOCITY = { selector: "#graph-av-velocity", data:[] };
 
 // Create and initialise line graphs
 function graphCreateLine(chart) {
     // Select SVG
     chart.svg = d3.select(chart.selector);
-    chart.data = [];
 
     // Dynamic graph size initialisation
     const boundingRect = chart.svg.node().parentElement.getBoundingClientRect();
@@ -136,7 +135,6 @@ function graphResize(chart) {
     graphRender(chart);
 }
 
-
 // Render graph
 function graphRender(chart) {
     // Update X domain
@@ -144,7 +142,7 @@ function graphRender(chart) {
     chart.g.select("g").transition().duration(0).call(d3.axisBottom(chart.x));
 
     // Update Y domain
-    chart.y.domain([d3.min(chart.data) - 5, d3.max(chart.data) + 5]);
+    chart.y.domain([d3.min(chart.data) - 1, d3.max(chart.data) + 1]);
     chart.yAxis.transition().duration(0).call(d3.axisLeft(chart.y));
 
     // Draw line on graph
@@ -162,6 +160,7 @@ window.addEventListener("load", function () {
     graphCreateLine(GRAPH_AV_VELOCITY);
 
     // Load data from CSV
+    /*
     d3.csv("data/testData2.csv", (d) => [+d.Altitude, +d.velocity, +d.TiltAngle, +d.FutureAngle, +d.RollAngle]).then(
         (csvData) => {
             graphFromCSVSimulated(csvData.map((item) => item[0]), GRAPH_POS_ALT);
@@ -169,5 +168,37 @@ window.addEventListener("load", function () {
             graphFromCSVSimulated(csvData.map((item) => item[2]), GRAPH_AV_GYRO);
             graphFromCSVSimulated(csvData.map((item) => item[3]), GRAPH_AV_ACCEL);
         }
-    );
+    );*/
+
 });
+
+
+
+// Update modules
+function graphUpdateAvionics(data) {
+    if (data.accelX != undefined || data.accelY != undefined || data.accelZ != undefined) {
+        if (data.accelX != undefined) {
+            GRAPH_AV_ACCEL.data.push(data.accelX);
+        }
+        graphRender(GRAPH_AV_ACCEL);
+    }
+
+    if (data.gyroX != undefined || data.gyroY != undefined || data.gyroZ != undefined) {
+        if (data.gyroX != undefined) {
+            GRAPH_AV_GYRO.data.push(data.gyroX);
+        }
+        graphRender(GRAPH_AV_GYRO);
+    }
+
+    if (data.velocity != undefined) {
+        GRAPH_AV_VELOCITY.data.push(data.velocity);
+        graphRender(GRAPH_AV_VELOCITY);
+    }
+}
+
+function graphUpdatePosition(data) {
+    if (data.altitude != undefined) {
+        GRAPH_POS_ALT.data.push(data.altitude);
+        graphRender(GRAPH_POS_ALT);
+    }
+}

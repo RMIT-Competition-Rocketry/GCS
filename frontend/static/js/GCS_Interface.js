@@ -7,11 +7,6 @@
  * Functions and constants should be prefixed with "interface" 
 */
 
-// Global interface values
-// TODO: Find somewhere better to keep track of things
-var altitudeMax;
-
-
 // DYNAMIC MODULE SWITCHING CODE
 function interfaceSelectModule(selected) {
     document.querySelectorAll(".module").forEach((elem) => {
@@ -60,16 +55,6 @@ window.addEventListener("load", function () {
         });
     });
 });
-
-
-// UNIT CONVERSION FUNCTIONS
-function metresToFeet(metres) {
-    return metres * 3.28084;
-}
-
-function feetToMetres(feet) {
-    return feet / 3.28084;
-}
 
 
 // FUNCTIONS FOR UPDATING INTERFACE ELEMENTS
@@ -151,17 +136,20 @@ function interfaceUpdateAvionics(data) {
     
     // Acceleration (_g_)
     // accelLow has higher resolution, so we use that if the values are within [-16,16]
-    if (data.accelLowX != undefined && data.accelHighX != undefined) {
-        interfaceSetValue("av-accel-x", Math.abs(data.accelHighX) < 17 ? data.accelLowX : data.accelHighX);
+    if (data.accelX != undefined) {
+        interfaceSetValue("av-accel-x", data.accelX);
+        //GRAPH_AV_ACCEL.data.push(accelX);
+        //graphRender(GRAPH_AV_ACCEL);
     }
 
-    if (data.accelLowY != undefined && data.accelHighY != undefined) {
-        interfaceSetValue("av-accel-y", Math.abs(data.accelHighY) < 17 ? data.accelLowY : data.accelHighY);
+    if (data.accelY != undefined) {
+        interfaceSetValue("av-accel-y", data.accelY);
     }
 
-    if (data.accelLowZ != undefined && data.accelHighZ != undefined) {
-        interfaceSetValue("av-accel-z", Math.abs(data.accelHighZ) < 17 ? data.accelLowZ : data.accelHighZ);
+    if (data.accelZ != undefined) {
+        interfaceSetValue("av-accel-z", data.accelZ);
     }
+    
 
     // Gyro (deg/s)
     if (data.gyroX != undefined) {
@@ -222,19 +210,14 @@ function interfaceUpdatePosition(data) {
     /// MODULE POSITION
     // Altitude
     if (data.altitude != undefined) {
-        // Regular altitude
         interfaceSetValue("pos-alt-m", data.altitude);
         interfaceSetValue("pos-alt-ft", metresToFeet(data.altitude), 0);
-    
-        // Max altitude
-        if (altitudeMax == undefined || data.altitude > altitudeMax) {
-            altitudeMax = data.altitude;
-        }
+    }
 
-        if (altitudeMax != undefined) {
-            interfaceSetValue("pos-maxalt-m", altitudeMax);
-            interfaceSetValue("pos-maxalt-ft", metresToFeet(altitudeMax), 0);
-        }
+    // Max altitude
+    if (data.altitudeMax != undefined) {
+        interfaceSetValue("pos-maxalt-m", data.altitudeMax);
+        interfaceSetValue("pos-maxalt-ft", metresToFeet(data.altitudeMax), 0);
     }
     
     /*
