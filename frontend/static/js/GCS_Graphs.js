@@ -162,15 +162,12 @@ window.addEventListener("load", function () {
     graphCreateLine(GRAPH_AV_VELOCITY);
 
     // Load data from CSV
-    d3.csv("data/testData2.csv", (d) => [+d.Altitude, +d.velocity]).then(
+    d3.csv("data/testData2.csv", (d) => [+d.Altitude, +d.velocity, +d.TiltAngle, +d.FutureAngle, +d.RollAngle]).then(
         (csvData) => {
-            let altitudeData = csvData.map((item) => item[0]);
-            graphFromCSVSimulated(altitudeData, GRAPH_POS_ALT);
-
-            let velocityData = csvData.map((item) => item[1]);
-            graphFromCSVSimulated(velocityData, GRAPH_AV_VELOCITY);
-            graphFromCSVSimulated(velocityData, GRAPH_AV_ACCEL);
-            graphFromCSVSimulated(velocityData, GRAPH_AV_GYRO);
+            graphFromCSVSimulated(csvData.map((item) => item[0]), GRAPH_POS_ALT);
+            graphFromCSVSimulated(csvData.map((item) => item[1]), GRAPH_AV_VELOCITY);
+            graphFromCSVSimulated(csvData.map((item) => item[2]), GRAPH_AV_GYRO);
+            graphFromCSVSimulated(csvData.map((item) => item[3]), GRAPH_AV_ACCEL);
         }
     );
 });
