@@ -20,23 +20,37 @@ function feetToMetres(feet) {
 
 // API
 let api_socket;
+let reconnectInterval = 1000;
+let maxReconnectInterval = 10000;
+let reconnectTimeout;
 let api_latest = {};
+
+function scheduleReconnect() {
+    reconnectTimeout = setTimeout(() => {
+        reconnectInterval = Math.min(reconnectInterval * 2, maxReconnectInterval);
+        connectSocket();
+    }, reconnectInterval);
+}
 
 function API_socketConnect() {
     api_socket = new WebSocket("ws://localhost:1887");
 
-    api_socket.onopen = () => {
-        console.log("connection gaming");
-    };
+	api_socket.onopen = () => {
+		console.log("connection gaming");
+        clearTimeout(reconnectTimeout);
+        reconnectInterval = 1000;
+	};
 
     api_socket.onmessage = API_OnMessage;
 
     api_socket.onerror = (error) => {
-        console.error("websocket error");
+        console.error("websocket error: ", error);
+        api_socket.close();
     };
 
-    api_socket.onclose = (event) => {
-        console.log("socket closed");
+    api_socket.onclose = () => {
+        console.log("socket closed: attempting to reconnect");
+        scheduleReconnect();
     };
 }
 
