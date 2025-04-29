@@ -52,7 +52,7 @@ class MockPacket(ABC):
                 "Cannot create instances of MockPacket or its subclasses before initializing class settings.")
         self.ID: Optional[int] = None  # Packet ID
         # High level payload builder
-        self.payload_after_id: Optional[List[bytes]] = None
+        self.payload_after_id_and_meta: Optional[List[bytes]] = None
         self.ORIGIN_DEVICE: Optional[MockPacket._SourceDevice] = None
 
     def write_payload(self):
@@ -62,7 +62,9 @@ class MockPacket(ABC):
         try:
             with open(self._FAKE_DEVICE_NAME, 'wb') as device:
                 device.write(metric.Metric._int_to_byte_unsigned(self.ID))
-                for byte in self.payload_after_id:
+                device.write(metric.Metric._float32_to_bytes(self.RSSI))
+                device.write(metric.Metric._float32_to_bytes(self.SNR))
+                for byte in self.payload_after_id_and_meta:
                     device.write(byte)
         except Exception as e:
             slogger.error(
@@ -73,7 +75,7 @@ class MockPacket(ABC):
         """Concatenates the ID and payload fragments into a single bytes object."""
         payload_bytes = bytearray()
         payload_bytes.extend(metric.Metric._int_to_byte_unsigned(self.ID))
-        for fragment in self.payload_after_id:
+        for fragment in self.payload_after_id_and_meta:
             payload_bytes.extend(fragment)
         return bytes(payload_bytes)
 
@@ -82,6 +84,8 @@ class GCStoGSEStateCMD(MockPacket):
 
     def __init__(
         self,
+        RSSI: float = 0.0,
+        SNR: float = 69,
         MANUAL_PURGE: bool = False,
         O2_FILL_ACTIVATE: bool = True,
         SELECTOR_SWITCH_NEUTRAL_POSITION: bool = False,
@@ -93,8 +97,10 @@ class GCStoGSEStateCMD(MockPacket):
     ):
         super().__init__()
         self.ID = 0x02
+        self.RSSI = RSSI
+        self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
-        self.payload_after_id = [
+        self.payload_after_id_and_meta = [
             metric.Metric.StateSetFlags2p1(MANUAL_PURGE,
                                            O2_FILL_ACTIVATE,
                                            SELECTOR_SWITCH_NEUTRAL_POSITION,
@@ -118,6 +124,8 @@ class GCStoGSEStateCMD(MockPacket):
 class GCStoAVStateCMD(MockPacket):
     def __init__(
         self,
+        RSSI: float = 0.0,
+        SNR: float = 69,
         MAIN_SECONDARY_TEST: bool = False,
         MAIN_PRIMARY_TEST: bool = True,
         APOGEE_SECONDARY_TEST: bool = False,
@@ -126,8 +134,10 @@ class GCStoAVStateCMD(MockPacket):
     ):
         super().__init__()
         self.ID = 0x01
+        self.RSSI = RSSI
+        self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
-        self.payload_after_id = [
+        self.payload_after_id_and_meta = [
             metric.Metric.continuityCheckCMDFlags(
                 MAIN_SECONDARY_TEST,
                 MAIN_PRIMARY_TEST,
@@ -147,6 +157,8 @@ class GCStoAVStateCMD(MockPacket):
 class AVtoGCSData1(MockPacket):
     def __init__(
         self,
+        RSSI: float = 0.0,
+        SNR: float = 69,
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
@@ -178,8 +190,10 @@ class AVtoGCSData1(MockPacket):
     ):
         super().    __init__()
         self.ID = 0x03
+        self.RSSI = RSSI
+        self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
-        self.payload_after_id = [
+        self.payload_after_id_and_meta = [
             metric.Metric.StateFlags3p0(
                 FLIGHT_STATE_MSB,
                 FLIGHT_STATE_1,
@@ -222,6 +236,8 @@ class AVtoGCSData1(MockPacket):
 class AVtoGCSData2(MockPacket):
     def __init__(
         self,
+        RSSI: float = 0.0,
+        SNR: float = 69,
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
@@ -235,8 +251,10 @@ class AVtoGCSData2(MockPacket):
     ):
         super().__init__()
         self.ID = 0x04
+        self.RSSI = RSSI
+        self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
-        self.payload_after_id = [
+        self.payload_after_id_and_meta = [
             metric.Metric.StateFlags3p0(
                 FLIGHT_STATE_MSB,
                 FLIGHT_STATE_1,
@@ -254,6 +272,8 @@ class AVtoGCSData2(MockPacket):
 class AVtoGCSData3(MockPacket):
     def __init__(
         self,
+        RSSI: float = 0.0,
+        SNR: float = 69,
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
@@ -265,8 +285,10 @@ class AVtoGCSData3(MockPacket):
     ):
         super().__init__()
         self.ID = 0x05
+        self.RSSI = RSSI
+        self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
-        self.payload_after_id = [
+        self.payload_after_id_and_meta = [
             metric.Metric.StateFlags3p0(
                 FLIGHT_STATE_MSB,
                 FLIGHT_STATE_1,
@@ -284,6 +306,8 @@ class AVtoGCSData3(MockPacket):
 class GSEtoGCSData1(MockPacket):
     def __init__(
         self,
+        RSSI: float = 0.0,
+        SNR: float = 69,
         MANUAL_PURGED: bool = False,
         O2_FILL_ACTIVATED: bool = False,
         SELECTOR_SWITCH_NEUTRAL_POSITION: bool = False,
@@ -318,8 +342,10 @@ class GSEtoGCSData1(MockPacket):
     ):
         super().__init__()
         self.ID = 0x06
+        self.RSSI = RSSI
+        self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GSE
-        self.payload_after_id = [
+        self.payload_after_id_and_meta = [
             metric.Metric.StateSetFlags2p1(
                 MANUAL_PURGED,
                 O2_FILL_ACTIVATED,
@@ -361,6 +387,8 @@ class GSEtoGCSData1(MockPacket):
 class GSEtoGCSData2(MockPacket):
     def __init__(
         self,
+        RSSI: float = 0.0,
+        SNR: float = 69,
         MANUAL_PURGED: bool = False,
         O2_FILL_ACTIVATED: bool = False,
         SELECTOR_SWITCH_NEUTRAL_POSITION: bool = False,
@@ -396,8 +424,10 @@ class GSEtoGCSData2(MockPacket):
     ):
         super().__init__()
         self.ID = 0x07
+        self.RSSI = RSSI
+        self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GSE
-        self.payload_after_id = [
+        self.payload_after_id_and_meta = [
             metric.Metric.StateSetFlags2p1(
                 MANUAL_PURGED,
                 O2_FILL_ACTIVATED,
@@ -490,12 +520,15 @@ def main():
                     time.sleep(0.190)
         # Warn if locks are present for too long. Possible deadlock while in dev
 
-        if last_time_av_written - START_TIME > LOCK_WARNING_TIME:
+        check_time = time.monotonic()
+        AV_AWAIT_TIME = check_time - last_time_av_written
+        GSE_AWAIT_TIME = check_time - last_time_gse_written
+        if (AV_AWAIT_TIME) > LOCK_WARNING_TIME:
             slogger.warning(
-                f"AV lock file present for {last_time_av_written - START_TIME} seconds")
-        if last_time_gse_written - START_TIME > LOCK_WARNING_TIME:
+                f"AV emulation awaiting server sequence timing for {round(AV_AWAIT_TIME)} seconds")
+        if (GSE_AWAIT_TIME) > LOCK_WARNING_TIME:
             slogger.warning(
-                f"GSE lock file present for {last_time_gse_written - START_TIME} seconds")
+                f"GSE emulation awaiting server sequence timing for {round(GSE_AWAIT_TIME)} seconds")
 
     slogger.debug("Emulator finished")
 

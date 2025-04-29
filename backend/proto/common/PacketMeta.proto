@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package common;
+// Define some internal / GCS centric messages here.
+message PacketMeta {
+    // These 2 are from radios 
+    optional float rssi = 1;
+    optional float snr = 2;
+}
+

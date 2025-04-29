@@ -17,8 +17,6 @@
 #include "AV_TO_GCS_DATA_3.hpp"
 #include "AV_TO_GCS_DATA_3.pb.h"
 #include "FlightState.pb.h"
-#include "GCS_TO_AV_STATE_CMD.hpp"
-#include "GCS_TO_GSE_STATE_CMD.hpp"
 #include "GSE_TO_GCS_DATA_1.hpp"
 #include "GSE_TO_GCS_DATA_2.hpp"
 #include "sequence.hpp"
@@ -174,18 +172,6 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
               break;
             }
             post_process_av(sequence, proto_msg->flight_state());
-            break;
-          }
-          // Electronically impossible to recieve own packet
-          case GCS_TO_AV_STATE_CMD::ID: {  // 1
-            // process_packet<GCS_TO_AV_STATE_CMD>(count, buffer, pub_socket);
-            slogger::error("Somehow received GCS_TO_AV_STATE_CMD");
-            break;
-          }
-          case GCS_TO_GSE_STATE_CMD::ID: {  // 2
-            // process_packet<GCS_TO_GSE_STATE_CMD>(count, buffer,
-            // pub_socket);
-            slogger::error("Somehow received GCS_TO_GSE_STATE_CMD");
             break;
           }
           case GSE_TO_GCS_DATA_1::ID: {  // 6

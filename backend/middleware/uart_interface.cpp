@@ -346,6 +346,25 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
           std::string hex_str =
               message.substr(payload_start, payload_end - payload_start);
           payload = hex_string_to_bytes(hex_str);
+
+          float rssi_float = static_cast<float>(rssi);
+          float snr_float = static_cast<float>(snr);
+
+          // Convert to big-endian bytes
+          auto rssi_bytes = float_to_be_bytes(rssi_float);
+          auto snr_bytes = float_to_be_bytes(snr_float);
+
+          // Insert at index 1 (after 1st byte)
+          if (!payload.empty()) {
+            // Ensure we have at least 1 byte for the ID
+            payload.insert(payload.begin() + 1, rssi_bytes.begin(),
+                           rssi_bytes.end());
+            payload.insert(payload.begin() + 5,  // 1 + 4 bytes
+                           snr_bytes.begin(), snr_bytes.end());
+          } else {
+            slogger::warning("Empty payload, skipping metrics insertion");
+          }
+
           payload_size = payload.size();
         } catch (const std::exception &e) {
           slogger::error("Payload conversion failed: " + std::string(e.what()));
