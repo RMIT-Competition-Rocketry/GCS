@@ -69,35 +69,14 @@ class Packet(ABC):
         # TODO: After the proto files are finalised, update these
         cls._CSV_FILES_WITH_HEADERS = {
             "GCS_TO_AV_STATE_CMD": [
-                "main_secondary_test",
-                "main_primary_test",
-                "apogee_secondary_test",
-                "apogee_primary_test",
-                "main_secondary_test_inverted",
-                "main_primary_test_inverted",
-                "apogee_secondary_test_inverted",
-                "apogee_primary_test_inverted",
-                "broadcast_begin",
+                "not used"
             ],
             "GCS_TO_GSE_STATE_CMD": [
-                "manual_purge_activate",
-                "o2_fill_activate",
-                "selector_switch_neutral_position",
-                "n20_fill_activate",
-                "ignition_fire",
-                "ignition_selected",
-                "gas_fill_selected",
-                "system_activate",
-                "manual_purge_activate_inverted",
-                "o2_fill_activate_inverted",
-                "selector_switch_neutral_position_inverted",
-                "n20_fill_activate_inverted",
-                "ignition_fire_inverted",
-                "ignition_selected_inverted",
-                "gas_fill_selected_inverted",
-                "system_activate_inverted",
+                "not used"
             ],
             "AV_TO_GCS_DATA_1": [
+                "rssi",
+                "snr",
                 "FlightState",
                 "dual_board_connectivity_state_flag",
                 "recovery_checks_complete_and_flight_ready",
@@ -126,6 +105,8 @@ class Packet(ABC):
                 "broadcast_flag"
             ],
             "AV_TO_GCS_DATA_2": [
+                "rssi",
+                "snr",
                 "FlightState",
                 "dual_board_connectivity_state_flag",
                 "recovery_checks_complete_and_flight_ready",
@@ -136,6 +117,8 @@ class Packet(ABC):
                 "GPS_longitude",
             ],
             "AV_TO_GCS_DATA_3": [
+                "rssi",
+                "snr",
                 "FlightState",
                 "dual_board_connectivity_state_flag",
                 "recovery_checks_complete_and_flight_ready",
@@ -145,6 +128,8 @@ class Packet(ABC):
                 # ALL TBD
             ],
             "GSE_TO_GCS_DATA_1": [
+                "rssi",
+                "snr",
                 "manual_purge_activated",
                 "o2_fill_activated",
                 "selector_switch_neutral_position",
@@ -178,6 +163,8 @@ class Packet(ABC):
                 "transducer_1_error",
             ],
             "GSE_TO_GCS_DATA_2": [
+                "rssi",
+                "snr",
                 "manual_purge_activated",
                 "o2_fill_activated",
                 "selector_switch_neutral_position",
@@ -349,23 +336,23 @@ class AVPacket(Packet):
                         FlightState_pb.FlightState.DECENT | \
                         FlightState_pb.FlightState.LANDED:
                     slogger.info(
-                        f"🚀 Flight state changed to {flight_state_name}")
+                        f"Flight state changed to {flight_state_name}")
                 case FlightState_pb.FlightState.PRE_FLIGHT_NO_FLIGHT_READY:
                     slogger.warning(
-                        f"❌ Flight state changed to {flight_state_name}")
+                        f"Flight state changed to {flight_state_name}")
                 case FlightState_pb.FlightState.OH_NO:
                     slogger.critical(
-                        f"❌ Flight state changed to {flight_state_name}")
+                        f"Flight state changed to {flight_state_name}")
                 case _:
                     slogger.error(
-                        f"❌ Unknown flight state {flight_state_name}")
+                        f"Unknown flight state {flight_state_name}")
 
             # Extra case for printing apogee estimation
             if PROTO_DATA.flightState == FlightState_pb.FlightState.APOGEE:
                 __ft_estimation = AV_TO_GCS_DATA_1._mt_to_ft(
                     PROTO_DATA.altitude)
                 slogger.info(
-                    f"🚀 Instantaneous Apogee estimation: {__ft_estimation} ft")
+                    f"Instantaneous Apogee estimation: {__ft_estimation} ft")
 
     def _process_state_flags(self, PROTO_DATA: AVStateFlags_pb.AVStateFlags) -> None:
         # Info level for 0 -> 1 and warning for 1 -> 0
@@ -376,14 +363,14 @@ class AVPacket(Packet):
                 # Something changed
                 if state_flag_value == 1:
                     slogger.info(
-                        f"ℹ️  {state_flag_name} changed to {state_flag_value}")
+                        f"{state_flag_name} changed to {state_flag_value}")
                 else:
                     slogger.warning(
-                        f"❌ {state_flag_name} changed to {state_flag_value}")
+                        f"{state_flag_name} changed to {state_flag_value}")
                 if state_flag_name == "GPS_fix_flag" and state_flag_value:
-                    slogger.success("🌏 GPS Fix aquired")
+                    slogger.success("GPS Fix aquired")
                 elif state_flag_name == "GPS_fix_flag" and not state_flag_value:
-                    slogger.warning("❌ GPS Fix lost")
+                    slogger.warning("GPS Fix lost")
             # Update historical value
             AVPacket._last_state_flags[state_flag_name] = state_flag_value
 
@@ -486,9 +473,9 @@ class AV_TO_GCS_DATA_1(AVPacket):
                 if AWAITING_TEST_RESULTS:
                     # Yes we were. Hopefully it's complete and show the results
                     if DATA_TEST_COMPLETE:
-                        slogger.success(f"🧪 {KEY_TEST_COMPLETE} complete")
+                        slogger.success(f"{KEY_TEST_COMPLETE} complete")
                     else:
-                        slogger.error(f"❌ {KEY_TEST_COMPLETE} not complete")
+                        slogger.error(f"{KEY_TEST_COMPLETE} not complete")
                     # Now update the object. We aren't waiting anymore
                     caller_awaiting_results = False
                 elif DATA_TEST_COMPLETE:
@@ -505,9 +492,9 @@ class AV_TO_GCS_DATA_1(AVPacket):
                 else:
                     if DATA_TEST_RESULTS == 1:
                         # Continuity. hell yeah
-                        slogger.success(f"🧪 {KEY_TEST_RESULTS}: Continuity")
+                        slogger.success(f"{KEY_TEST_RESULTS}: Continuity")
                     else:
-                        slogger.error(f"❌ {KEY_TEST_RESULTS}: No Continuity")
+                        slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
 
                 # Update history of changed complete condition
                 AVPacket._last_test_details[KEY_TEST_COMPLETE] = DATA_TEST_COMPLETE
@@ -591,7 +578,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
             MACH_NUMBER = Mach.mach_from_alt_estimate(
                 PROTO_DATA.velocity, PROTO_DATA.altitude)
             slogger.info(
-                f"🥇 New max velocity: {MACH_NUMBER:<3.3f} mach")
+                f"New max velocity: {MACH_NUMBER:<3.3f} mach")
             self._max_velocity_updated = False
 
         self._last_information_display_time = time.monotonic()
@@ -606,7 +593,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
             PROTO_DATA.velocity, PROTO_DATA.altitude)
         if MACH_NUMBER >= 1 and self._supersonic == False:
             # Coolest line of code I've ever written btw
-            slogger.info("💨 Supersonic flight detected")
+            slogger.info("Supersonic flight detected")
             self._supersonic = True
         elif self._supersonic and MACH_NUMBER < 1:
             slogger.info("Supersonic flight ended")
@@ -626,7 +613,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
         # Notify if moving to broadcast
         if PROTO_DATA.broadcast_flag and self._last_broadcast_value == False:
             slogger.info(ansci.BG_MAGENTA + ansci.FG_BLACK +
-                         "🚨🚨🚨 FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION 🚨🚨🚨" + ansci.RESET)
+                         "@@@@ FC MOVING TO BROADCAST MODE, GCS STOPPING TRANSMISSION @@@@" + ansci.RESET)
         elif PROTO_DATA.broadcast_flag == False and self._last_broadcast_value == True:
             slogger.critical("FC HAS DECIDED TO STOP BROADCASTING")
 
@@ -657,7 +644,7 @@ class AV_TO_GCS_DATA_2(Packet):
                 GPS_longitude != self._GPS_longitude_old):
             # TODO Maybe you need to add GPS fix to this condition as well
             slogger.info(
-                f"🌏 GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
+                f"GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
             maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
             result: Optional[str] = None
             try:
@@ -753,10 +740,10 @@ class GSEPacket(Packet):
                 # Something changed
                 if state_flag_value == 1:
                     slogger.info(
-                        f"ℹ️  {state_flag_name} changed to {state_flag_value}")
+                        f"{state_flag_name} changed to {state_flag_value}")
                 else:
                     slogger.warning(
-                        f"🟢 {state_flag_name} changed to {state_flag_value}")
+                        f"{state_flag_name} changed to {state_flag_value}")
             # Update historical value
             cls._last_gse_state_flags[state_flag_name] = state_flag_value
 
@@ -769,10 +756,10 @@ class GSEPacket(Packet):
                 # Something changed
                 if error_flag_value:
                     slogger.error(
-                        f"❌ {error_flag_name} changed to {error_flag_value}")
+                        f"{error_flag_name} changed to {error_flag_value}")
                 else:
                     slogger.info(
-                        f"🟢 {error_flag_name} changed to {error_flag_value}")
+                        f"{error_flag_name} changed to {error_flag_value}")
             # Update historical value
             cls._last_gse_errors[error_flag_name] = error_flag_value
 
@@ -798,7 +785,8 @@ class GSE_TO_GCS_DATA_1(GSEPacket):
                 log_function = slogger.error
             else:
                 log_function = slogger.info
-            log_function(f"💧 Transducer_{i+1} value: {trans_values[0]} bar")
+            log_function(
+                f"Transducer_{i+1} value: {round(trans_values[0],2)} bar")
 
         THERMOCOUPLE_VALUE_ERROR = [
             (PROTO_DATA.thermocouple_1, PROTO_DATA.error_flags.thermocouple_1_error),
@@ -812,7 +800,7 @@ class GSE_TO_GCS_DATA_1(GSEPacket):
             else:
                 log_function = slogger.info
             log_function(
-                f"🌡️🌡️ Thermocouple_{i+1} value: {thermocouple_values[0]} deg C")
+                f"Thermocouple_{i+1} value: {round(thermocouple_values[0],1)} deg C")
             self._last_information_display_time = time.monotonic()
 
     def process(self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1) -> None:
@@ -832,15 +820,15 @@ class GSE_TO_GCS_DATA_2(GSEPacket):
 
     def _process_readings(self, PROTO_DATA: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2):
         LOG_TEMP = slogger.info if (
-            0 < PROTO_DATA.internal_temp < 60) else slogger.error
+            1 < PROTO_DATA.internal_temp < 60) else slogger.error
         LOG_WIND = slogger.info if (
             -0.00001 < PROTO_DATA.wind_speed < 0.00001) else slogger.error
         LOG_BOTTLE_1 = slogger.info if (
-            -0.00001 < PROTO_DATA.gas_bottle_weight_1 < 0.00001) else slogger.error
+            15.1 < PROTO_DATA.gas_bottle_weight_1 < 19) else slogger.error
         LOG_BOTTLE_2 = slogger.info if (
-            -0.00001 < PROTO_DATA.gas_bottle_weight_2 < 0.00001) else slogger.error
+            15.1 < PROTO_DATA.gas_bottle_weight_2 < 19) else slogger.error
         LOG_VAC_1 = slogger.info if (
-            -0.00001 < PROTO_DATA.analog_voltage_input_1 < 0.00001) else slogger.error
+            2 < PROTO_DATA.analog_voltage_input_1 < 50) else slogger.error
         LOG_VAC_2 = slogger.info if (
             -0.00001 < PROTO_DATA.analog_voltage_input_2 < 0.00001) else slogger.error
         LOG_CURR_1 = slogger.info if (
@@ -849,16 +837,16 @@ class GSE_TO_GCS_DATA_2(GSEPacket):
             -0.00001 < PROTO_DATA.additional_current_input_2 < 0.00001) else slogger.error
 
         LOG_TEMP(
-            f" 🌡 GSE internal temp: {round(PROTO_DATA.internal_temp, 2)} deg C")
+            f"GSE internal temp: {round(PROTO_DATA.internal_temp, 3)} deg C")
         # TODO Uncomment when implimented
         # LOG_WIND(
-        #     f"💨 GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
-        # LOG_BOTTLE_1(
-        #     f"⚖️ GSE gas bottle 1 weight: {PROTO_DATA.gas_bottle_weight_1} kg")
-        # LOG_BOTTLE_2(
-        #     f"⚖️ GSE gas bottle 2 weight: {PROTO_DATA.gas_bottle_weight_2} kg")
-        # LOG_VAC_1(
-        #     f"VAC input 1: {round(PROTO_DATA.analog_voltage_input_1, 2)} ?")
+        #     f"GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
+        LOG_BOTTLE_1(
+            f"GSE gas bottle 1 weight: {round(PROTO_DATA.gas_bottle_weight_1, 3)} kg")
+        LOG_BOTTLE_2(
+            f"GSE gas bottle 2 weight: {round(PROTO_DATA.gas_bottle_weight_2, 3)} kg")
+        LOG_VAC_1(
+            f"Rocket Weight: {round(PROTO_DATA.analog_voltage_input_1, 3)} kg")
         # LOG_VAC_2(
         #     f"VAC input 2: {round(PROTO_DATA.analog_voltage_input_2, 2)} ?")
         # LOG_CURR_1(
