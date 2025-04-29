@@ -114,6 +114,10 @@ function API_OnMessage(event) {
 			// Update graphs
 			graphUpdateAvionics(api_data);
 			graphUpdatePosition(api_data);
+
+            // Update rocket 
+            if (typeof rocketUpdate === 'function') rocketUpdate(api_data);
+
         }
     } catch (error) {
         console.error("data error");

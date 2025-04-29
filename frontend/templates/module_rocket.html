@@ -1,7 +1,25 @@
 <!-- 3D rocket module -->
 <div class="rocket_frame w-full h-full flex flex-col">
-	<p class="font-mono font-bold text-center mt-2 uppercase text-emerald-300">6DOF Rocket Visualisation</p>
-	<!--<div class="grow flex items-center">
-		<img src="/img/legacy_render.png" width="371" height="800" class="mx-auto h-[550px] w-[270px] max-h-full">
-	</div>-->
-</div>
+	<div class="relative text-center mt-2">
+	  <p class="font-mono font-bold uppercase text-emerald-300">
+		6DOF Rocket Visualisation
+	  </p>
+  
+	  <div
+		class="text-center top-full transform -translate-x-1/2 mt-1 text-[11px] text-emerald-300 font-mono leading-tight z-10"
+		style="text-shadow: 0 0 4px #000"
+	  >
+		<span id="pitchDisplay">Pitch: 0°</span> | 
+		<span id="yawDisplay">Yaw: 0°</span> | 
+		<span id="rollDisplay">Roll: 0°</span>
+	  </div>
+	</div>
+  
+	<!-- Viewer -->
+	<div class="grow flex items-center justify-center">
+	  <div id="rocketViewerContainer" class="relative w-full h-full group">
+		<canvas id="rocketCanvas" class="w-full h-full block"></canvas>
+		<script type="module" src="/static/js/rocket_viewer.js"></script>
+	  </div>
+	</div>
+  </div>
