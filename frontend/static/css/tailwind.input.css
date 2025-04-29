@@ -228,6 +228,16 @@ and only modify it if you know what you're doing :)
         @apply cursor-pointer;
     }
 
+    /* Hover state */
+    .continuity-button:hover {
+        background-image: url('/img/buttons/continuity_button_hover.svg#svgView(preserveAspectRatio(none))');
+    }
+    
+    /* Clicked/pressed */
+    .continuity-button:active {
+        background-image: url('/img/buttons/continuity_button_pressed.svg#svgView(preserveAspectRatio(none))');
+    }
+
     .continuity-variables-middle {
         @apply flex flex-row items-center justify-center border-r-1 border-hive/50 p-2
     }
