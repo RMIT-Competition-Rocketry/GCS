@@ -633,6 +633,14 @@
     background-size: 100% 100%;
   }
 
+  .pop_button_active:hover {
+    background-image: url("/img/buttons/pop_button_hover.svg#svgView(preserveAspectRatio(none))");
+  }
+
+  .pop_button_active:active {
+    background-image: url("/img/buttons/pop_button_pressed.svg#svgView(preserveAspectRatio(none))");
+  }
+
   .solenoid_button_inactive {
     opacity: .6;
     cursor: pointer;

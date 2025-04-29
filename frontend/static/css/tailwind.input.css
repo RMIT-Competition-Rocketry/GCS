@@ -276,6 +276,17 @@ and only modify it if you know what you're doing :)
         @apply cursor-pointer;
     }
 
+    /* Hover */
+    .pop_button_active:hover {
+        background-image: url('/img/buttons/pop_button_hover.svg#svgView(preserveAspectRatio(none))');
+    }
+
+    /* Pressed */
+    .pop_button_active:active {
+        background-image: url('/img/buttons/pop_button_pressed.svg#svgView(preserveAspectRatio(none))');
+    }
+
+
     /* Aux System module */
     .solenoid_button_inactive {
         background-image: url('/img/buttons/solenoid_button_inactive.svg#svgView(preserveAspectRatio(none))');
