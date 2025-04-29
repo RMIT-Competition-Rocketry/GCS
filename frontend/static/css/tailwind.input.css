@@ -228,7 +228,7 @@ and only modify it if you know what you're doing :)
         @apply cursor-pointer;
     }
 
-    /* Hover state */
+    /* Hover*/
     .continuity-button:hover {
         background-image: url('/img/buttons/continuity_button_hover.svg#svgView(preserveAspectRatio(none))');
     }
@@ -295,4 +295,45 @@ and only modify it if you know what you're doing :)
         opacity: 60%;
         @apply cursor-pointer;
     }
+
+    .solenoid_button_active {
+        background-image: url('/img/buttons/solenoid_button_active.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 100%;
+        @apply cursor-pointer;
+    }
+
+    .solenoid_button_active:hover {
+        background-image: url('/img/buttons/solenoid_button_hover.svg#svgView(preserveAspectRatio(none))');
+    }
+
+    .solenoid_button_active:active {
+        background-image: url('/img/buttons/solenoid_button_pressed.svg#svgView(preserveAspectRatio(none))');
+    }
+
+    .switch_inactive {
+        background-image: url('/img/buttons/switch_off.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 60%;
+    }
+
+    .switch_active {
+        background-image: url('/img/buttons/switch_off.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 100%;
+    }
+
+    
+
+
+    .aux_modal {
+        background-image: url('/img/modal.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+    }
+
+
 }

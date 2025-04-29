@@ -278,3 +278,52 @@ function validateSelection() {
 popButton.addEventListener('click', function () {
     //some sort of action
 });
+
+
+const solenoid = document.getElementById('solenoidButton');
+const modal = document.getElementById('confirmationModal');
+const confirmYes = document.getElementById('confirmYes');
+const confirmNo = document.getElementById('confirmNo');
+const confirmText = document.getElementById('confirmText');
+
+let isSolenoidActive = false;
+
+// Modal popup
+solenoid.addEventListener('click', () => {
+  // If manual activation is active, show a different confirmation text
+  if (isSolenoidActive) {
+    confirmText.textContent = "Are you sure you want to leave Manual Solenoid Activation?";
+  } else {
+    confirmText.textContent = "Are you sure you want to continue?";
+  }
+  
+  modal.classList.remove('hidden');
+});
+
+// Modal disappear when No, keep state
+confirmNo.addEventListener('click', () => {
+  modal.classList.add('hidden');
+});
+
+// Modal disappear when Yes, handle active/inactive states
+confirmYes.addEventListener('click', () => {
+  modal.classList.add('hidden');
+  
+  // If solenoid is active, deactivate it and reset switches
+  if (isSolenoidActive) {
+    solenoid.classList.remove('solenoid_button_active');
+    document.querySelectorAll('.switch_active').forEach((el) => {
+      el.classList.remove("switch_active");
+      el.classList.add("switch_inactive");
+    });
+    isSolenoidActive = false;
+  } else {
+    // If solenoid is inactive, activate it and switch other items
+    solenoid.classList.add('solenoid_button_active');
+    document.querySelectorAll('.switch_inactive').forEach((el) => {
+      el.classList.remove("switch_inactive");
+      el.classList.add("switch_active");
+    });
+    isSolenoidActive = true;
+  }
+});

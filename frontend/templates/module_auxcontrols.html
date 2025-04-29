@@ -1,12 +1,23 @@
 <!-- Other controls module -->
-<div class="w-full h-full border-2 border-hive/50">
+<div class="w-full h-full border-2 border-hive/50 relative">
+
+	<div id="confirmationModal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-50">
+		<div class="aux_modal p-6 rounded shadow-lg w-[300px] text-center">
+		  <p id = "confirmText" class="text-lg font-bold mb-4 font-mono">Are you sure you want to continue?</p>
+		  <div class="flex justify-center gap-4">
+			<button id="confirmYes" class="bg-green-500 text-white px-4 py-1 rounded font-mono">Yes</button>
+			<button id="confirmNo" class="bg-red-500 text-white px-4 py-1 rounded font-mono">No</button>
+		  </div>
+		</div>
+	  </div>
+
 	<h2 class="text-center p-2">Aux System Controls</h2>
 	
 	<div class = "grid grid-rows-2 items-center w-full h-full">
 		<div class = "grid grid-rows-2 items-center w-full h-full">
 
 			<div class = "flex justify-center items-center">
-				<button class = "solenoid_button_inactive w-55 h-10">
+				<button id = "solenoidButton" class = "solenoid_button_inactive w-55 h-10">
 					<span class = "text-sm font-mono">Manual Solenoid Activation</span>
 				</button>
 			</div>
@@ -15,43 +26,37 @@
 				
 				<div class = "flex flex-col justify-center items-center">
 					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 1</p>
-					<button class = "opacity-60 p-2"> 
-						<img src = "img/buttons/switch_off.svg" class="w-full h-full">
+					<button class = "p-2 w-19 h-9 switch_inactive"> 
 					</button>
 				</div>
 
 				<div class = "flex flex-col justify-center items-center">
 					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 2</p>
-					<button class = "opacity-60 p-2"> 
-						<img src = "img/buttons/switch_off.svg" class="w-full h-full">
+					<button class = "p-2 w-19 h-9 switch_inactive"> 
 					</button>
 				</div>
 
 				<div class = "flex flex-col justify-center items-center">
 					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 3</p>
-					<button class = "opacity-60 p-2"> 
-						<img src = "img/buttons/switch_off.svg" class="w-full h-full">
+					<button class = "p-2 w-19 h-9 switch_inactive"> 
 					</button>
 				</div>
 
 				<div class = "flex flex-col justify-center items-center">
 					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 4</p>
-					<button class = "opacity-60 p-2"> 
-						<img src = "img/buttons/switch_off.svg" class="w-full h-full">
+					<button class = "p-2 w-19 h-9 switch_inactive"> 
 					</button>
 				</div>
 
 				<div class = "flex flex-col justify-center items-center">
 					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 5</p>
-					<button class = "opacity-60 p-2"> 
-						<img src = "img/buttons/switch_off.svg" class="w-full h-full">
+					<button class = "p-2 w-19 h-9 switch_inactive"> 
 					</button>
 				</div>
 
 				<div class = "flex flex-col justify-center items-center">
 					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 6</p>
-					<button class = "opacity-60 p-2"> 
-						<img src = "img/buttons/switch_off.svg" class="w-full h-full">
+					<button class = "p-2 w-19 h-9 switch_inactive"> 
 					</button>
 				</div>
 
