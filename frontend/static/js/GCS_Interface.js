@@ -236,3 +236,23 @@ function interfaceUpdateRocket(data) {
     /// MODULE ROCKET
     // Probably call a function in GCS_Three.js
 }
+
+const mainCheckbox = document.getElementById('optionMain');
+const apogeeCheckbox= document.getElementById('optionApogee');
+const popButton = document.getElementById('popButton')
+
+mainCheckbox.addEventListener('change', validateSelection);
+apogeeCheckbox.addEventListener('change', validateSelection);
+
+function validateSelection() {
+
+    if ((mainCheckbox.checked || apogeeCheckbox.checked) && (!(mainCheckbox.checked && apogeeCheckbox.checked))) {
+        popButton.disabled = false;
+    } else {
+        popButton.disabled = true;
+    }
+}
+
+popButton.addEventListener('click', function () {
+    //some sort of action
+});
