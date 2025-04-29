@@ -237,11 +237,33 @@ and only modify it if you know what you're doing :)
     }
 
     /* Pop test module */
-    .pop_selector_inactive {
-        background-image: url('/img/buttons/selector_inactive.svg#svgView(preserveAspectRatio(none))');
+    .pop_selector {
+        background-image: url('/img/buttons/selector_active.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 60%;
+        @apply cursor-pointer;
+    }
+
+    input:checked + label.pop_selector {
+        opacity: 100%;
+      }
+
+
+
+    .pop_button_inactive {
+        background-image: url('/img/buttons/pop_button.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 60%;
+    }
+
+    .pop_button_active {
+        background-image: url('/img/buttons/pop_button.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 100%;
+        @apply cursor-pointer;
     }
 
     /* Aux System module */

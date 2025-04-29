@@ -240,17 +240,39 @@ function interfaceUpdateRocket(data) {
 const mainCheckbox = document.getElementById('optionMain');
 const apogeeCheckbox= document.getElementById('optionApogee');
 const popButton = document.getElementById('popButton')
+const prompt = document.getElementById('prompt');
 
 mainCheckbox.addEventListener('change', validateSelection);
 apogeeCheckbox.addEventListener('change', validateSelection);
+
+mainCheckbox.addEventListener("change", () => {
+    if (mainCheckbox.checked) {
+        apogeeCheckbox.checked = false;
+    }
+    validateSelection();
+});
+
+apogeeCheckbox.addEventListener("change", () => {
+    if (apogeeCheckbox.checked) {
+        mainCheckbox.checked = false;
+    }
+    validateSelection();
+});
 
 function validateSelection() {
 
     if ((mainCheckbox.checked || apogeeCheckbox.checked) && (!(mainCheckbox.checked && apogeeCheckbox.checked))) {
         popButton.disabled = false;
+        popButton.classList.remove("pop_button_inactive");
+        popButton.classList.add("pop_button_active");
+        prompt.hidden = true;
     } else {
         popButton.disabled = true;
+        popButton.classList.remove("pop_button_active");
+        popButton.classList.add("pop_button_inactive");
+        prompt.hidden = false;
     }
+    
 }
 
 popButton.addEventListener('click', function () {
