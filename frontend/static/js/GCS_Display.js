@@ -4,10 +4,11 @@
  * Responsible for switching tabs/pages, button logic, etc.
  * Updates stats on the webpage based on the API and handles the password screen.
  *
- * Functions and constants should be prefixed with "display" 
-*/
+ * Functions and constants should be prefixed with "display"
+ */
 
 // DYNAMIC MODULE SWITCHING CODE
+
 function displaySelectModule(selected) {
     document.querySelectorAll(".module").forEach((elem) => {
         if (elem.classList.contains(selected)) {
@@ -18,47 +19,48 @@ function displaySelectModule(selected) {
     });
 }
 
-window.addEventListener("load", function () {
-    const selectedClasses = ["selected"];
+const selectedClasses = ["selected"];
 
-    // Get selected page
-    var selected = window.location.hash
-        ? this.window.location.hash.substring(1)
-        : document.querySelector("nav a").href.split("#")[1];
+// Get selected page
+var selected = window.location.hash
+    ? this.window.location.hash.substring(1)
+    : document.querySelector("nav a").href.split("#")[1];
 
-    // Determine which modules are "selected"
-    displaySelectModule(selected);
+// Determine which modules are "selected"
+displaySelectModule(selected);
 
-    // Highlight selected tab link
-    document.querySelector(`a[href='#${selected}']`).classList.add(...selectedClasses);
+// Highlight selected tab link
+document
+    .querySelector(`a[href='#${selected}']`)
+    .classList.add(...selectedClasses);
 
-    // Switch tabs when links are pressed
-    document.querySelectorAll("nav a").forEach((elem) => {
-        elem.addEventListener("click", (event) => {
-            event.preventDefault();
+// Switch tabs when links are pressed
+document.querySelectorAll("nav a").forEach((elem) => {
+    elem.addEventListener("click", (event) => {
+        event.preventDefault();
 
-            // Switch tabs
-            selected = elem.href.split("#")[1];
-            displaySelectModule(selected);
+        // Switch tabs
+        selected = elem.href.split("#")[1];
+        displaySelectModule(selected);
 
-            // Highlight new selected tab link
-			document.querySelectorAll("nav a").forEach((elem) => {
-				elem.classList.remove(...selectedClasses);
-			});
-			document.querySelector(`a[href='#${selected}']`).classList.add(...selectedClasses);
-
-            // Update URL
-            history.replaceState(null, "", `#${selected}`);
-
-            // Dispatch page resize event (since elements are moving around)
-            window.dispatchEvent(new Event("resize"));
+        // Highlight new selected tab link
+        document.querySelectorAll("nav a").forEach((elem) => {
+            elem.classList.remove(...selectedClasses);
         });
+        document
+            .querySelector(`a[href='#${selected}']`)
+            .classList.add(...selectedClasses);
+
+        // Update URL
+        history.replaceState(null, "", `#${selected}`);
+
+        // Dispatch page resize event (since elements are moving around)
+        window.dispatchEvent(new Event("resize"));
     });
 });
 
-
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
-function displaySetValue(item, value, precision=2) {
+function displaySetValue(item, value, precision = 2) {
     // Updates a floating point value for a display item
     let elements = document.querySelectorAll(`.${item}`);
 
@@ -88,11 +90,11 @@ function displaySetState(item, value) {
     let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
-            elem.classList.remove("on", "off", "error")
+            elem.classList.remove("on", "off", "error");
 
             switch (value) {
                 case "error":
-                    elem.classList.add('error');
+                    elem.classList.add("error");
                     break;
                 case "true":
                 case "on":
@@ -123,7 +125,10 @@ function displayUpdateAvionics(data) {
         }
 
         if (data.stateFlags.dualBoardConnectivityStateFlag != undefined) {
-            displaySetState("av-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag);
+            displaySetState(
+                "av-state-dualboard",
+                data.stateFlags.dualBoardConnectivityStateFlag
+            );
         }
 
         /*
@@ -133,7 +138,7 @@ function displayUpdateAvionics(data) {
         displaySetState("av-state-pyro-4", "on");
         */
     }
-    
+
     // Acceleration (_g_)
     // accelLow has higher resolution, so we use that if the values are within [-16,16]
     if (data.accelX != undefined) {
@@ -149,7 +154,6 @@ function displayUpdateAvionics(data) {
     if (data.accelZ != undefined) {
         displaySetValue("av-accel-z", data.accelZ);
     }
-    
 
     // Gyro (deg/s)
     if (data.gyroX != undefined) {
@@ -186,7 +190,7 @@ function displayUpdateFlags(data) {
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data.flightState != undefined) {
-        displaySetString("fs-flightstate", data.flightState)
+        displaySetString("fs-flightstate", data.flightState);
     }
 }
 
@@ -219,7 +223,7 @@ function displayUpdatePosition(data) {
         displaySetValue("pos-maxalt-m", data.altitudeMax);
         displaySetValue("pos-maxalt-ft", metresToFeet(data.altitudeMax), 0);
     }
-    
+
     /*
     displaySetValue("pos-maxalt-m", data.altitude);
     displaySetValue("pos-maxalt-ft", data.altitude);
@@ -232,15 +236,14 @@ function displayUpdateRadio(data) {
     /// MODULE RADIO
 }
 
-
 // Buttons
-const mainCheckbox = document.getElementById('optionMain');
-const apogeeCheckbox= document.getElementById('optionApogee');
-const popButton = document.getElementById('popButton')
-const prompt = document.getElementById('prompt');
+const mainCheckbox = document.getElementById("optionMain");
+const apogeeCheckbox = document.getElementById("optionApogee");
+const popButton = document.getElementById("popButton");
+const prompt = document.getElementById("prompt");
 
-mainCheckbox.addEventListener('change', validateSelection);
-apogeeCheckbox.addEventListener('change', validateSelection);
+mainCheckbox.addEventListener("change", validateSelection);
+apogeeCheckbox.addEventListener("change", validateSelection);
 
 mainCheckbox.addEventListener("change", () => {
     if (mainCheckbox.checked) {
@@ -257,8 +260,10 @@ apogeeCheckbox.addEventListener("change", () => {
 });
 
 function validateSelection() {
-
-    if ((mainCheckbox.checked || apogeeCheckbox.checked) && (!(mainCheckbox.checked && apogeeCheckbox.checked))) {
+    if (
+        (mainCheckbox.checked || apogeeCheckbox.checked) &&
+        !(mainCheckbox.checked && apogeeCheckbox.checked)
+    ) {
         popButton.disabled = false;
         popButton.classList.remove("pop_button_inactive");
         popButton.classList.add("pop_button_active");
@@ -269,58 +274,57 @@ function validateSelection() {
         popButton.classList.add("pop_button_inactive");
         prompt.hidden = false;
     }
-    
 }
 
-popButton.addEventListener('click', function () {
+popButton.addEventListener("click", function () {
     //some sort of action
 });
 
-
-const solenoid = document.getElementById('solenoidButton');
-const modal = document.getElementById('confirmationModal');
-const confirmYes = document.getElementById('confirmYes');
-const confirmNo = document.getElementById('confirmNo');
-const confirmText = document.getElementById('confirmText');
+const solenoid = document.getElementById("solenoidButton");
+const modal = document.getElementById("confirmationModal");
+const confirmYes = document.getElementById("confirmYes");
+const confirmNo = document.getElementById("confirmNo");
+const confirmText = document.getElementById("confirmText");
 
 let isSolenoidActive = false;
 
 // Modal popup
-solenoid.addEventListener('click', () => {
-  // If manual activation is active, show a different confirmation text
-  if (isSolenoidActive) {
-    confirmText.textContent = "Are you sure you want to leave Manual Solenoid Activation?";
-  } else {
-    confirmText.textContent = "Are you sure you want to continue?";
-  }
-  
-  modal.classList.remove('hidden');
+solenoid.addEventListener("click", () => {
+    // If manual activation is active, show a different confirmation text
+    if (isSolenoidActive) {
+        confirmText.textContent =
+            "Are you sure you want to leave Manual Solenoid Activation?";
+    } else {
+        confirmText.textContent = "Are you sure you want to continue?";
+    }
+
+    modal.classList.remove("hidden");
 });
 
 // Modal disappear when No, keep state
-confirmNo.addEventListener('click', () => {
-  modal.classList.add('hidden');
+confirmNo.addEventListener("click", () => {
+    modal.classList.add("hidden");
 });
 
 // Modal disappear when Yes, handle active/inactive states
-confirmYes.addEventListener('click', () => {
-  modal.classList.add('hidden');
-  
-  // If solenoid is active, deactivate it and reset switches
-  if (isSolenoidActive) {
-    solenoid.classList.remove('solenoid_button_active');
-    document.querySelectorAll('.switch_active').forEach((el) => {
-      el.classList.remove("switch_active");
-      el.classList.add("switch_inactive");
-    });
-    isSolenoidActive = false;
-  } else {
-    // If solenoid is inactive, activate it and switch other items
-    solenoid.classList.add('solenoid_button_active');
-    document.querySelectorAll('.switch_inactive').forEach((el) => {
-      el.classList.remove("switch_inactive");
-      el.classList.add("switch_active");
-    });
-    isSolenoidActive = true;
-  }
+confirmYes.addEventListener("click", () => {
+    modal.classList.add("hidden");
+
+    // If solenoid is active, deactivate it and reset switches
+    if (isSolenoidActive) {
+        solenoid.classList.remove("solenoid_button_active");
+        document.querySelectorAll(".switch_active").forEach((el) => {
+            el.classList.remove("switch_active");
+            el.classList.add("switch_inactive");
+        });
+        isSolenoidActive = false;
+    } else {
+        // If solenoid is inactive, activate it and switch other items
+        solenoid.classList.add("solenoid_button_active");
+        document.querySelectorAll(".switch_inactive").forEach((el) => {
+            el.classList.remove("switch_inactive");
+            el.classList.add("switch_active");
+        });
+        isSolenoidActive = true;
+    }
 });
