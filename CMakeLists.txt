@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25) # 3.31 for github runner
+cmake_minimum_required(VERSION 3.25) # 3.31 is github runner
 project(middleware_server LANGUAGES CXX)
 
 option(BUILD_TESTS "Build the test suite" OFF)
@@ -44,6 +44,7 @@ function(fetch_git_dependency NAME FIND_NAME URL VERSION)
             GIT_TAG ${VERSION}
         )
         FetchContent_MakeAvailable(${NAME})
+        find_package(${FIND_NAME} CONFIG)
         message(STATUS "${NAME} has been fetched and made available")
     else()
         message(STATUS "${FIND_NAME} found at: ${${FIND_NAME}_DIR}")
@@ -53,6 +54,13 @@ endfunction()
 # Abseil libraries for protobuf
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
+
+# Prevent Protobuf from exporting abseil-linked targets
+set(protobuf_BUILD_EXPORT OFF CACHE BOOL "Disable protobuf target exports" FORCE)
+set(protobuf_INSTALL OFF CACHE BOOL "Disable protobuf installation" FORCE)
+
+# Force Protobuf to use our abseil
+set(protobuf_ABSL_PROVIDER "package" CACHE STRING "Use existing abseil" FORCE)
 fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v30.1")
 
 # Force static ZMQ build before fetching
