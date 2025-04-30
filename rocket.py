@@ -20,6 +20,7 @@ from cli.start_event_viewer import start_event_viewer
 from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
+from cli.start_frontend_webserver import start_frontend_webserver
 
 
 logger: logging.Logger = None
@@ -96,7 +97,9 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         click.option('-i', '--interface', type=_INTERFACE_CHOICES,
                      help="Hardware interface type. Overrides config parameter"),
         click.option('--nopendant', is_flag=True,
-                     help="Do not run the pendant emulator")
+                     help="Do not run the pendant emulator"),
+        click.option('--gsc', is_flag=True,
+                     help="Run GSC web server")
     ]
 
     if SELECTOR == DecoratorSelector.ALL_DEV:
@@ -138,7 +141,8 @@ def start_services(COMMAND: Command,
                    nobuild: bool = False,
                    logpkt: bool = False,
                    nopendant: bool = False,
-                   gse_only: bool = False):
+                   gse_only: bool = False,
+                   gsc: bool = False):
     """Starts all services required for the given command.
 
     Args:
@@ -225,6 +229,10 @@ def start_services(COMMAND: Command,
     # 7. Start the webcocket / frontend API
     start_frontend_api(logger, "gcs_rocket")
 
+    # 8. Start the frontend web server
+    if gsc:
+        start_frontend_webserver(logger)
+
 
 @click.group()
 def cli():
@@ -247,13 +255,14 @@ def run(gse_only):
                    nobuild=True,  # Do NOT auto build in production mode.
                    logpkt=True,  # Log packets by default in production mode
                    nopendant=False,  # Pendant emulator is required in production mode
-                   gse_only=gse_only
+                   gse_only=gse_only,
+                   gsc=True  # Run frontend web server in production mode
                    )
 
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
-def dev(docker, interface, nobuild, logpkt, nopendant, gse_only):
+def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, gsc):
     """Start software in development mode"""
     start_services(Command.DEV,
                    DOCKER=docker,
@@ -261,7 +270,8 @@ def dev(docker, interface, nobuild, logpkt, nopendant, gse_only):
                    nobuild=nobuild,
                    logpkt=logpkt,
                    nopendant=nopendant,
-                   gse_only=gse_only
+                   gse_only=gse_only,
+                   gsc=gsc
                    )
 
 
@@ -275,7 +285,8 @@ def simulation(docker, nobuild, logpkt):
                    nobuild=nobuild,
                    logpkt=logpkt,
                    nopendant=True,
-                   gse_only=False
+                   gse_only=False,
+                   gsc=True
                    )
 
 

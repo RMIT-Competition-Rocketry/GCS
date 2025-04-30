@@ -1,39 +1,72 @@
 #!/usr/bin/env python3
-
 from flask import Flask, send_from_directory, abort, render_template
+# import logging
+# import backend.includes_python.process_logging as slogger
 import os
 
+"""
+class SubprocessLogHandler(logging.Handler):
+    def emit(self, record):
+        msg = self.format(record)
+        level = record.levelname.upper()
+        if hasattr(slogger, level.lower()):
+            getattr(slogger, level.lower())(msg)
+        else:
+            slogger.info(msg)  # fallback
+"""
 
-# Initialise flask
-APP = Flask(__name__)
-STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')  # TODO: Load from config.ini?
-VALID_FILE_EXTENSIONS = ('.html', '.css', '.js', '.png', '.jpg', '.ico', '.svg', '.csv', 'json', 'ttf')  # TODO: Determine other filetypes (fonts?)
+def create_app(logger=None):
+    # Initialise flask
+    app = Flask(__name__)
+    static_dir = os.path.join(os.path.dirname(__file__), 'static')  # TODO: Load from config.ini?
+    file_extensions = ('.html', '.css', '.js', '.png', '.ico', '.svg', '.csv', 'json', 'ttf')
 
 
-# Serve main interface
-@APP.route('/')
-def index():
-    return render_template("layout.html")
+    """
+    # Custom logging
+    if logger != None:
+        handler = SubprocessLogHandler()
+        formatter = logging.Formatter('%(message)s')  # Keep raw message for slogger
+        handler.setFormatter(formatter)
+
+        app.logger.handlers.clear()
+        app.logger.propagate = False
+        app.logger.addHandler(handler)
+        app.logger.setLevel(logging.DEBUG)
+    """
 
 
-# Serve static files
-@APP.route('/<path:filename>')
-def serve_html(filename):
-    # Absolute filepath of request
-    filepath = os.path.join(STATIC_DIR, filename)
+    # Serve main interface
+    @app.route('/')
+    def index():
+        return render_template("layout.html")
 
-    # Load files with valid extensions
-    if filename.endswith(VALID_FILE_EXTENSIONS) and os.path.isfile(filepath):
-        return send_from_directory(STATIC_DIR, filename)
-    
-    # Attempt to load filename as .html (so suffix isn't always required)
-    elif os.path.isfile(filepath + ".html"):
-        return send_from_directory(STATIC_DIR, filename + ".html")
-    
-    # 404 page not found
-    else:
-        abort(404)
+
+    # Serve static files
+    @app.route('/<path:filename>')
+    def serve_html(filename):
+        # Absolute filepath of request
+        filepath = os.path.join(static_dir, filename)
+
+        # Load files with valid extensions
+        if filename.endswith(file_extensions) and os.path.isfile(filepath):
+            #app.logger.debug(f"Serving static file: {filename}")
+            return send_from_directory(static_dir, filename)
+        
+        # Attempt to load filename as .html (so suffix isn't always required)
+        elif os.path.isfile(filepath + ".html"):
+            #app.logger.debug(f"Serving static file: {filename}.html")
+            return send_from_directory(static_dir, filename + ".html")
+        
+        # 404 page not found
+        else:
+            #app.logger.warning(f"404 not found: {filename}")
+            abort(404)
+
+    return app
 
 
 if __name__ == "__main__":
-    APP.run(debug=True)
+    app = create_app()
+    app.run(debug=True)
+

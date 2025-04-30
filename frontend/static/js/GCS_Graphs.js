@@ -137,19 +137,21 @@ function graphResize(chart) {
 
 // Render graph
 function graphRender(chart) {
-    // Update X domain
-    chart.x.domain([0, chart.data.length - 1]);
-    chart.g.select("g").transition().duration(0).call(d3.axisBottom(chart.x));
+    if (chart != undefined && chart.x != undefined) {
+        // Update X domain
+        chart.x.domain([0, chart.data.length - 1]);
+        chart.g.select("g").transition().duration(0).call(d3.axisBottom(chart.x));
 
-    // Update Y domain
-    chart.y.domain([d3.min(chart.data) - 1, d3.max(chart.data) + 1]);
-    chart.yAxis.transition().duration(0).call(d3.axisLeft(chart.y));
+        // Update Y domain
+        chart.y.domain([d3.min(chart.data) - 1, d3.max(chart.data) + 1]);
+        chart.yAxis.transition().duration(0).call(d3.axisLeft(chart.y));
 
-    // Draw line on graph
-    chart.path.datum(chart.data).attr(
-        "d",
-        chart.line.x((d, i) => chart.x(i))
-    );
+        // Draw line on graph
+        chart.path.datum(chart.data).attr(
+            "d",
+            chart.line.x((d, i) => chart.x(i))
+        );
+    }
 }
 
 window.addEventListener("load", function () {
