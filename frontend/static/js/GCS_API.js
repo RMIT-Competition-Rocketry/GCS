@@ -6,7 +6,7 @@
  * Functions and constants should be prefixed with "api_"
  */
 
-// Global interface values
+// Global display values
 var altitudeMax;
 
 // UNIT CONVERSION FUNCTIONS
@@ -19,27 +19,29 @@ function feetToMetres(feet) {
 }
 
 // API
-let api_socket;
-let reconnectInterval = 1000;
-let maxReconnectInterval = 10000;
-let reconnectTimeout;
-let api_latest = {};
+var api_socket;
+var reconnectInterval = 1000;
+var maxReconnectInterval = 10000;
+var reconnectTimeout;
 
 function scheduleReconnect() {
     reconnectTimeout = setTimeout(() => {
-        reconnectInterval = Math.min(reconnectInterval * 2, maxReconnectInterval);
-        connectSocket();
+        reconnectInterval = Math.min(
+            reconnectInterval * 2,
+            maxReconnectInterval
+        );
+        API_socketConnect();
     }, reconnectInterval);
 }
 
 function API_socketConnect() {
     api_socket = new WebSocket("ws://localhost:1887");
 
-	api_socket.onopen = () => {
-		console.log("connection gaming");
+    api_socket.onopen = () => {
+        console.log("connection gaming");
         clearTimeout(reconnectTimeout);
         reconnectInterval = 1000;
-	};
+    };
 
     api_socket.onmessage = API_OnMessage;
 
@@ -57,72 +59,81 @@ function API_socketConnect() {
 function API_OnMessage(event) {
     try {
         const api_latest = JSON.parse(event.data);
-		const api_data = api_latest.data;
+        const api_data = api_latest.data;
 
         //console.log(Object.keys(api_latest.data));
         //console.log(api_latest.data)
 
-		// Process data from the API for display
-		// Acceleration
-		if (api_data.accelLowX != undefined && api_data.accelHighX != undefined) {
-			api_data.accelX =
-				Math.abs(api_data.accelHighX) < 17
-					? api_data.accelLowX
-					: api_data.accelHighX;
-		}
-		if (api_data.accelLowY != undefined && api_data.accelHighY != undefined) {
-			api_data.accelY =
-				Math.abs(api_data.accelHighY) < 17
-					? api_data.accelLowY
-					: api_data.accelHighY;
-		}
-		if (
-			api_data.accelLowZ != undefined &&
-			api_data.accelHighZ != undefined
-		) {
-			api_data.accelZ =
-				Math.abs(api_data.accelHighZ) < 17
-					? api_data.accelLowZ
-					: api_data.accelHighZ;
-		}
+        // Additional processing of API data for display
+        processDataForDisplay(api_data);
 
-		// Altitude
-		if (altitudeMax == undefined || api_data.altitude > altitudeMax) {
-			altitudeMax = api_data.altitude;
-		}
-		api_data.altitudeMax = altitudeMax;
-
-        // Send data to site
+        // Send data to display
         if (api_latest.id == 3) {
-            // Update interface modules
-            interfaceUpdateRadio(api_data); // Header
+            // Header
+            displayUpdateRadio?.(api_data);
 
-            interfaceUpdateAuxData(api_data); // Main interface
-            interfaceUpdateAvionics(api_data);
-            interfaceUpdateFlightState(api_data);
-            interfaceUpdatePayload(api_data);
-            interfaceUpdatePosition(api_data);
-            interfaceUpdateRocket(api_data);
+            // Main display
+            displayUpdateAuxData?.(api_data);
+            displayUpdateAvionics?.(api_data);
+            displayUpdateFlightState?.(api_data);
+            displayUpdatePayload?.(api_data);
+            displayUpdatePosition?.(api_data);
 
-            interfaceUpdateContinuityCheck(api_data); // Single operator page
-            interfaceUpdateFlags(api_data);
-            interfaceUpdateOtherControls(api_data);
-            interfaceUpdatePopTest(api_data);
+             // Single operator page
+            displayUpdateContinuityCheck?.(api_data);
+            displayUpdateFlags?.(api_data);
+            displayUpdateOtherControls?.(api_data);
+            displayUpdatePopTest?.(api_data);
 
-            interfaceUpdateHMI(api_data); // HMI
+            // HMI
+            displayUpdateHMI?.(api_data);
 
-			// Update graphs
-			graphUpdateAvionics(api_data);
-			graphUpdatePosition(api_data);
+            // Update graphs
+            graphUpdateAvionics?.(api_data);
+            graphUpdatePosition?.(api_data);
 
-            // Update rocket 
-            if (typeof rocketUpdate === 'function') rocketUpdate(api_data);
-
+            // Update rocket
+            rocketUpdate?.(api_data);
         }
     } catch (error) {
         console.error("data error");
-		console.error(error);
+        console.error(error);
     }
 }
 
-API_socketConnect();
+function processDataForDisplay(api_data) {
+    // Process data from the API for display
+
+    // Acceleration
+    // Determine whether to use low or high precision values
+    if (api_data.accelLowX != undefined && api_data.accelHighX != undefined) {
+        api_data.accelX =
+            Math.abs(api_data.accelHighX) < 17
+                ? api_data.accelLowX
+                : api_data.accelHighX;
+    }
+    if (api_data.accelLowY != undefined && api_data.accelHighY != undefined) {
+        api_data.accelY =
+            Math.abs(api_data.accelHighY) < 17
+                ? api_data.accelLowY
+                : api_data.accelHighY;
+    }
+    if (api_data.accelLowZ != undefined && api_data.accelHighZ != undefined) {
+        api_data.accelZ =
+            Math.abs(api_data.accelHighZ) < 17
+                ? api_data.accelLowZ
+                : api_data.accelHighZ;
+    }
+
+    // Altitude
+    // Track maximum altitude
+    if (altitudeMax == undefined || api_data.altitude > altitudeMax) {
+        altitudeMax = api_data.altitude;
+    }
+    api_data.altitudeMax = altitudeMax;
+    return api_data;
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    API_socketConnect();
+});

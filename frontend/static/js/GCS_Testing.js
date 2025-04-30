@@ -7,8 +7,8 @@
 */
 
 
-/// INTERFACE
-const TESTING_INTERFACE_STATES = [
+/// DISPLAY
+const TESTING_DISPLAY_STATES = [
     "av-state-gpsfix",
     "av-state-dualboard",
     "av-state-pyro-1",
@@ -19,7 +19,7 @@ const TESTING_INTERFACE_STATES = [
     "radio-gse-state",
 ]
 
-const TESTING_INTERFACE_ITEMS = [
+const TESTING_DISPLAY_ITEMS = [
     "av-accel-x",
     "av-accel-y",
     "av-accel-z",
@@ -55,12 +55,12 @@ const TESTING_INTERFACE_ITEMS = [
     "radio-gse-packets",
 ];
 
-function testing_updateAllInterfaceValues() {
-    TESTING_INTERFACE_STATES.forEach((item) => {
-        interfaceSetState(item, "on");
+function testing_updateAllDisplayValues() {
+    TESTING_DISPLAY_STATES.forEach((item) => {
+        displaySetState(item, "on");
     })
-    TESTING_INTERFACE_ITEMS.forEach((item, i) => {
-        interfaceSetValue(item, i);
+    TESTING_DISPLAY_ITEMS.forEach((item, i) => {
+        displaySetValue(item, i);
     });
 }
 

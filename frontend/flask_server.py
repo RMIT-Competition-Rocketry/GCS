@@ -36,7 +36,7 @@ def create_app(logger=None):
     """
 
 
-    # Serve main interface
+    # Serve main layout
     @app.route('/')
     def index():
         return render_template("layout.html")

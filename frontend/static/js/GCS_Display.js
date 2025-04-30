@@ -1,14 +1,14 @@
 /**
- * GCS Interface
+ * GCS Display
  *
  * Responsible for switching tabs/pages, button logic, etc.
  * Updates stats on the webpage based on the API and handles the password screen.
  *
- * Functions and constants should be prefixed with "interface" 
+ * Functions and constants should be prefixed with "display" 
 */
 
 // DYNAMIC MODULE SWITCHING CODE
-function interfaceSelectModule(selected) {
+function displaySelectModule(selected) {
     document.querySelectorAll(".module").forEach((elem) => {
         if (elem.classList.contains(selected)) {
             elem.classList.remove("hidden");
@@ -27,7 +27,7 @@ window.addEventListener("load", function () {
         : document.querySelector("nav a").href.split("#")[1];
 
     // Determine which modules are "selected"
-    interfaceSelectModule(selected);
+    displaySelectModule(selected);
 
     // Highlight selected tab link
     document.querySelector(`a[href='#${selected}']`).classList.add(...selectedClasses);
@@ -39,7 +39,7 @@ window.addEventListener("load", function () {
 
             // Switch tabs
             selected = elem.href.split("#")[1];
-            interfaceSelectModule(selected);
+            displaySelectModule(selected);
 
             // Highlight new selected tab link
 			document.querySelectorAll("nav a").forEach((elem) => {
@@ -57,8 +57,8 @@ window.addEventListener("load", function () {
 });
 
 
-// FUNCTIONS FOR UPDATING INTERFACE ELEMENTS
-function interfaceSetValue(item, value, precision=2) {
+// FUNCTIONS FOR UPDATING DISPLAY ITEMS
+function displaySetValue(item, value, precision=2) {
     // Updates a floating point value for a display item
     let elements = document.querySelectorAll(`.${item}`);
 
@@ -72,7 +72,7 @@ function interfaceSetValue(item, value, precision=2) {
     }
 }
 
-function interfaceSetString(item, string) {
+function displaySetString(item, string) {
     // Updates a string for a display item
     let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
@@ -83,7 +83,7 @@ function interfaceSetString(item, string) {
     }
 }
 
-function interfaceSetState(item, value) {
+function displaySetState(item, value) {
     // Updates the state of an indicator
     let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
@@ -110,133 +110,130 @@ function interfaceSetState(item, value) {
 }
 
 // FUNCTIONS FOR UPDATING MODULES
-function interfaceUpdateAuxData(data) {
+function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
 }
 
-function interfaceUpdateAvionics(data) {
+function displayUpdateAvionics(data) {
     /// MODULE AVIONICS
     // Indicators
     if (data.stateFlags != undefined) {
         if (data.stateFlags.GPSFixFlag != undefined) {
-            interfaceSetState("av-state-gpsfix", data.stateFlags.GPSFixFlag);
+            displaySetState("av-state-gpsfix", data.stateFlags.GPSFixFlag);
         }
 
         if (data.stateFlags.dualBoardConnectivityStateFlag != undefined) {
-            interfaceSetState("av-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag);
+            displaySetState("av-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag);
         }
 
         /*
-        interfaceSetState("av-state-pyro-1", "on");
-        interfaceSetState("av-state-pyro-2", "on");
-        interfaceSetState("av-state-pyro-3", "on");
-        interfaceSetState("av-state-pyro-4", "on");
+        displaySetState("av-state-pyro-1", "on");
+        displaySetState("av-state-pyro-2", "on");
+        displaySetState("av-state-pyro-3", "on");
+        displaySetState("av-state-pyro-4", "on");
         */
     }
     
     // Acceleration (_g_)
     // accelLow has higher resolution, so we use that if the values are within [-16,16]
     if (data.accelX != undefined) {
-        interfaceSetValue("av-accel-x", data.accelX);
+        displaySetValue("av-accel-x", data.accelX);
         //GRAPH_AV_ACCEL.data.push(accelX);
         //graphRender(GRAPH_AV_ACCEL);
     }
 
     if (data.accelY != undefined) {
-        interfaceSetValue("av-accel-y", data.accelY);
+        displaySetValue("av-accel-y", data.accelY);
     }
 
     if (data.accelZ != undefined) {
-        interfaceSetValue("av-accel-z", data.accelZ);
+        displaySetValue("av-accel-z", data.accelZ);
     }
     
 
     // Gyro (deg/s)
     if (data.gyroX != undefined) {
-        interfaceSetValue("av-gyro-x", data.gyroX);
+        displaySetValue("av-gyro-x", data.gyroX);
     }
 
     if (data.gyroY != undefined) {
-        interfaceSetValue("av-gyro-y", data.gyroY);
+        displaySetValue("av-gyro-y", data.gyroY);
     }
 
     if (data.gyroZ != undefined) {
-        interfaceSetValue("av-gyro-z", data.gyroZ);
+        displaySetValue("av-gyro-z", data.gyroZ);
     }
 
     // Velocity (m/s)
     if (data.velocity != undefined) {
-        interfaceSetValue("av-velocity", data.velocity);
+        displaySetValue("av-velocity", data.velocity);
     }
 
     // Mach speed
     if (data.mach_speed != undefined) {
-        interfaceSetValue("av-mach", data.mach_speed);
+        displaySetValue("av-mach", data.mach_speed);
     }
 }
 
-function interfaceUpdateContinuityCheck(data) {
+function displayUpdateContinuityCheck(data) {
     /// MODULE CONTINUITYCHECK
 }
 
-function interfaceUpdateFlags(data) {
+function displayUpdateFlags(data) {
     /// MODULE FLAGS
 }
 
-function interfaceUpdateFlightState(data) {
+function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data.flightState != undefined) {
-        interfaceSetString("fs-flightstate", data.flightState)
+        displaySetString("fs-flightstate", data.flightState)
     }
 }
 
-function interfaceUpdateHMI(data) {
+function displayUpdateHMI(data) {
     /// MODULE HMI
 }
 
-function interfaceUpdateOtherControls(data) {
+function displayUpdateOtherControls(data) {
     /// MODULE OTHERCONTROLS
 }
 
-function interfaceUpdatePayload(data) {
+function displayUpdatePayload(data) {
     /// MODULE PAYLOAD
 }
 
-function interfaceUpdatePopTest(data) {
+function displayUpdatePopTest(data) {
     /// MODULE POPTEST
 }
 
-function interfaceUpdatePosition(data) {
+function displayUpdatePosition(data) {
     /// MODULE POSITION
     // Altitude
     if (data.altitude != undefined) {
-        interfaceSetValue("pos-alt-m", data.altitude);
-        interfaceSetValue("pos-alt-ft", metresToFeet(data.altitude), 0);
+        displaySetValue("pos-alt-m", data.altitude);
+        displaySetValue("pos-alt-ft", metresToFeet(data.altitude), 0);
     }
 
     // Max altitude
     if (data.altitudeMax != undefined) {
-        interfaceSetValue("pos-maxalt-m", data.altitudeMax);
-        interfaceSetValue("pos-maxalt-ft", metresToFeet(data.altitudeMax), 0);
+        displaySetValue("pos-maxalt-m", data.altitudeMax);
+        displaySetValue("pos-maxalt-ft", metresToFeet(data.altitudeMax), 0);
     }
     
     /*
-    interfaceSetValue("pos-maxalt-m", data.altitude);
-    interfaceSetValue("pos-maxalt-ft", data.altitude);
-    interfaceSetValue("pos-gps-lat", data.GPSLatitude);
-    interfaceSetValue("pos-gps-lon", data.GPSLongitude);
+    displaySetValue("pos-maxalt-m", data.altitude);
+    displaySetValue("pos-maxalt-ft", data.altitude);
+    displaySetValue("pos-gps-lat", data.GPSLatitude);
+    displaySetValue("pos-gps-lon", data.GPSLongitude);
     */
 }
 
-function interfaceUpdateRadio(data) {
+function displayUpdateRadio(data) {
     /// MODULE RADIO
 }
 
-function interfaceUpdateRocket(data) {
-    /// MODULE ROCKET
-    // Probably call a function in GCS_Three.js
-}
 
+// Buttons
 const mainCheckbox = document.getElementById('optionMain');
 const apogeeCheckbox= document.getElementById('optionApogee');
 const popButton = document.getElementById('popButton')

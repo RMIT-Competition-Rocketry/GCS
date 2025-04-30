@@ -1,5 +1,5 @@
 
-# Interface items
+# Display items
 These are the item IDs for updating values with JavaScript.
 
 ## Aux Data (aux)

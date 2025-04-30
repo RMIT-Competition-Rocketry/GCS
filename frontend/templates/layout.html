@@ -75,20 +75,14 @@
 			<div class="module m-hmi col-[1/13] row-[1/13]">{% include 'module_hmi.html' %}</div>
 		</main>
 
-		<!-- Javascript must go below, not in individual modules -->
-		<script src="js/GCS_Interface.js"></script>
+		<!-- Javascript should generally go below, not in individual modules -->
+		<script src="js/GCS_Display.js"></script>
 		<script src="js/GCS_API.js"></script>
 
 		<!-- Data visualisation module -->
 		<script src="js/d3.min.js"></script>
         <script src="js/GCS_Graphs.js"></script>
 		
-		<!-- 3D animation module
-        <script src="js/three.module.js" type="module"></script>
-        <script src="js/GLTFLoader.js" type="module"></script>
-        <script src="js/GCS_3DAnimation.js"></script>
-        -->
-
 		<!-- Debug/testing module -->
 		<script src="js/GCS_Testing.js"></script>
 	</body>
