@@ -7,7 +7,7 @@ The GCS software is run by using a Python based CLI with a C++ server component.
 
 > [!NOTE]
 > Items denoted with 🐳 are installed in the Docker container. They do not require manual installation.
-> Items denoted with 🟨 are not required if you use release binaries. Install these if you want to build yourself
+> Items denoted with 🟨 are not required if you use release binaries. Install these if you want to build yourself with debug binaries
 
 
 | Software | Version | Release Mode Only | Docker Dev | Native Dev |
@@ -15,7 +15,7 @@ The GCS software is run by using a Python based CLI with a C++ server component.
 | Python | `3.11.x` | ✅ | ✅ | ✅ |
 | Docker | | ❌ | ✅ | ✅ |
 | Socat | Latest? | ❌ | 🐳 | ✅ |
-| Cmake | >=`3.31` | ❌ | 🐳 | 🟨 |
+| Cmake | >=`3.25` | ❌ | 🐳 | 🟨 |
 | g++ or clang++ | Untested | ❌ | 🐳 | 🟨 |
 | [ZeroMQ](https://zeromq.org/download/) | `4.3.x` | ❌? | 🐳 | 🟨 |
 | cppzmq | `4.10.x` | ❌? | 🐳 | 🟨 |
@@ -30,7 +30,7 @@ The GCS software is run by using a Python based CLI with a C++ server component.
 > [!NOTE]
 > *Protobuf gencode without building can be done by running the proto script in `scripts/`.
 > 
-> Some C++ libraries have untested `FetchContent` support for cmake. This means you may be able to build after installing just CMake. Provided you are connected to internet to download those packages
+> Some C++ libraries have untested `FetchContent` support for cmake. This means you may be able to build after installing just CMake. Provided you are connected to internet to download those packages. Currently they do not work. Protobuf is a pain in the ass to work with.
 
 Building all from source can be found the `build.yml` action.
 
