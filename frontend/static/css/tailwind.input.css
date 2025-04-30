@@ -23,7 +23,7 @@ and only modify it if you know what you're doing :)
 @layer base {
     * {
         box-sizing: border-box;
-    }    
+    }
 
     body {
         background-color: black;
@@ -67,6 +67,7 @@ and only modify it if you know what you're doing :)
 }
 
 @layer components {
+
     /* Main layout components */
     .module {
         @apply flex justify-center items-center;
@@ -125,11 +126,6 @@ and only modify it if you know what you're doing :)
         mask-image: url('/img/icons/sitemap.svg');
     }
 
-    /* Placeholder graphs */
-    .graph {
-        @apply border-l-2 border-b-2 border-hive bg-black flex-1;
-    }
-
     /* Specific module styles */
     .rocket_frame {
         background-image: url('/img/rocket_frame.svg#svgView(preserveAspectRatio(none))');
@@ -137,7 +133,13 @@ and only modify it if you know what you're doing :)
         background-repeat: no-repeat;
     }
 
-    
+    #rocketCanvas {
+        --current-color: var(--color-emerald-600);
+        filter: drop-shadow(1px 1px 0 var(--current-color)) 
+            drop-shadow(-1px 1px 0 var(--current-color)) 
+            drop-shadow(-1px -1px 0 var(--current-color)) 
+            drop-shadow(1px -1px 0 var(--current-color));
+    }
 
     /* Old unused styles */
     .indicator-numeric {
@@ -215,7 +217,7 @@ and only modify it if you know what you're doing :)
             content: 'ERROR!';
         }
     }
-    
+
     /* Continuity module */
     .continuity-header {
         @apply font-mono text-hive border-r-1 border-hive/50 flex flex-row items-center text-center justify-center;
@@ -232,7 +234,7 @@ and only modify it if you know what you're doing :)
     .continuity-button:hover {
         background-image: url('/img/buttons/continuity_button_hover.svg#svgView(preserveAspectRatio(none))');
     }
-    
+
     /* Clicked/pressed */
     .continuity-button:active {
         background-image: url('/img/buttons/continuity_button_pressed.svg#svgView(preserveAspectRatio(none))');
@@ -255,11 +257,9 @@ and only modify it if you know what you're doing :)
         @apply cursor-pointer;
     }
 
-    input:checked + label.pop_selector {
+    input:checked+label.pop_selector {
         opacity: 100%;
-      }
-
-
+    }
 
     .pop_button_inactive {
         background-image: url('/img/buttons/pop_button.svg#svgView(preserveAspectRatio(none))');
@@ -285,7 +285,6 @@ and only modify it if you know what you're doing :)
     .pop_button_active:active {
         background-image: url('/img/buttons/pop_button_pressed.svg#svgView(preserveAspectRatio(none))');
     }
-
 
     /* Aux System module */
     .solenoid_button_inactive {
@@ -326,14 +325,14 @@ and only modify it if you know what you're doing :)
         opacity: 100%;
     }
 
-    
-
-
     .aux_modal {
         background-image: url('/img/modal.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
     }
 
-
+    /* Placeholders */
+    .placeholder-graph {
+        @apply border-l-2 border-b-2 border-hive bg-black flex-1;
+    }
 }

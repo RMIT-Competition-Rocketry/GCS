@@ -134,6 +134,6 @@ function processDataForDisplay(api_data) {
     return api_data;
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
     API_socketConnect();
 });
