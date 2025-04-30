@@ -8,7 +8,7 @@ We're using the following libraries for frontend:
 - D3.js v7.9.0
 - Three.js v0.175.0
 
-All of these libraries have been included as standalone JS so we don't have to rely on NPM or a CDN. 
+These libraries have been included as standalone JS so we don't have to rely on NPM or a CDN. 
 
 Unless updating them is absolutely necessary, we will be using these specific versions throughout the capstone project. Updating in the middle of development can add a lot of work and cause weird glitches.
 
@@ -39,13 +39,3 @@ It lets us make pretty graphs
 **Three.js v0.175.0 is used to render the 3D model of the rocket.**
 
 Included with this is the **GLTFLoader.js** loader, which lets us load .gltf and .glb model files.
-
-## Old GUI
-
-The old interface has been included as developer reference, including the CSS. These files shouldn't be used for our frontend, but they're a good starting point for understanding what might be expected in our interface.
-
-The following files are part of the old GUI:
-- /oldgui.html
-- /css/bootstrap.css
-- /css/oldgui.css
-
