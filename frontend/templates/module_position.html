@@ -1,10 +1,10 @@
 <!-- Position module -->
 <!-- Includes altitude, gps -->
-<div class="w-full h-full flex flex-col font-mono border-t-2 border-hive/50">
+<div class="w-full h-full flex flex-col font-mono border-t-2 border-hive/50 gap-2">
 	<h2>Position</h2>
 	
 	<!-- GPS -->
-	<section class="grid grid-cols-2 gap-4 pb-0">
+	<section class="grid grid-cols-2 gap-4 p-0 px-2">
 		<p class="flex gap-1 items-center">
 			<span>GPS Latitude:</span>
 			<input readonly autocomplete="off" class="pos-gps-lat">
@@ -16,19 +16,19 @@
 	</section>
 
 	<!-- Altitude -->
-	<section class="flex flex-col grow pb-0">
+	<section class="flex flex-col grow p-0">
 		<h3>Altitude (m)</h3>
 		<div class="grow w-full h-full">
 			<svg id="graph-pos-alt" class="w-full h-full" width="0" height="0"></svg>
 		</div>
-		<div class="flex gap-1 items-center">
+		<div class="flex gap-1 items-center px-2">
 			<p class="text-right">&nbsp;&nbsp;&nbsp;&nbsp;Altitude:</p>
 			<input readonly autocomplete="off" class="pos-alt-m border-red-500">
 			<p class="mr-4">m</p>
 			<input readonly autocomplete="off" class="pos-alt-ft">
 			<p>ft</p>
 		</div>
-		<div class="flex gap-1 items-center">
+		<div class="flex gap-1 items-center px-2">
 			<p class="text-right">Max&nbsp;Altitude:</p>
 			<input readonly autocomplete="off" class="pos-maxalt-m border-blue-500">
 			<p class="mr-4">m</p>

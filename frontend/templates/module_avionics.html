@@ -33,12 +33,12 @@
 	<!-- Accel and gyro -->
 	<div class="grid grid-cols-2 flex-1 gap-2 gap-x-4">
 		<!-- Acceleration -->
-		<section class="flex flex-col pb-0 ">
+		<section class="flex flex-col p-0">
 			<h3>Acceleration (<i>g</i>)</h3>
 			<div class="grow w-full h-full">
 				<svg id="graph-av-accel" class="w-full h-full" width="0" height="0"></svg>
 			</div>
-			<div class="grid grid-cols-3 gap-4">
+			<div class="grid grid-cols-3 gap-4 px-2">
 				<p class="flex gap-1 items-center">
 					<span>X:</span>
 					<input readonly autocomplete="off" class="av-accel-x border-red-500">
@@ -55,12 +55,12 @@
 		</section>
 
 		<!-- Gyro -->
-		<section class="flex flex-col pb-0">
+		<section class="flex flex-col p-0">
 			<h3>Gyro (deg/s)</h3>
 			<div class="grow w-full h-full">
 				<svg id="graph-av-gyro" class="w-full h-full" width="0" height="0"></svg>
 			</div>
-			<div class="grid grid-cols-3 gap-4">
+			<div class="grid grid-cols-3 gap-4 px-2">
 				<p class="flex gap-1 items-center">
 					<span>X:</span>
 					<input readonly autocomplete="off" class="av-gyro-x border-red-500">
@@ -78,12 +78,12 @@
 	</div>
 	
 	<!-- Velocity -->
-	<section class="grow flex flex-col flex-1 pb-0">
+	<section class="grow flex flex-col flex-1 p-0">
 		<h3>Velocity (m/s)</h3>
 		<div class="grow w-full h-full">
 			<svg id="graph-av-velocity" class="w-full h-full" width="0" height="0"></svg>
 		</div>
-		<div class="grid grid-cols-2 gap-4">
+		<div class="grid grid-cols-2 gap-4 px-2">
 			<p class="flex gap-1 items-center">
 				<span>Velocity:</span> 
 				<input readonly autocomplete="off" class="av-velocity">

@@ -8,10 +8,14 @@
 
 // DEFINE CHARTS
 const DEFAULT_MARGINS = { top: 8, right: 8, bottom: 20, left: 40 };
-const GRAPH_POS_ALT = { selector: "#graph-pos-alt", data:[] };
-const GRAPH_AV_ACCEL = { selector: "#graph-av-accel", data:[] };
-const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data:[] };
-const GRAPH_AV_VELOCITY = { selector: "#graph-av-velocity", data:[] };
+const GRAPH_AV_ACCEL = { selector: "#graph-av-accel", data: [] };
+const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data: [] };
+const GRAPH_AV_VELOCITY = { selector: "#graph-av-velocity", data: [] };
+const GRAPH_POS_ALT = {
+    selector: "#graph-pos-alt",
+    data: [],
+    margin: { top: 8, right: 8, bottom: 20, left: 50 },
+};
 
 // Create and initialise line graphs
 function graphCreateLine(chart) {
@@ -124,7 +128,8 @@ function graphResize(chart) {
 
     // Update axes
     chart.x.range([0, chart.graphWidth]);
-    chart.g.select("g")
+    chart.g
+        .select("g")
         .attr("transform", `translate(0,${chart.graphHeight})`)
         .call(d3.axisBottom(chart.x));
 
@@ -140,7 +145,11 @@ function graphRender(chart) {
     if (chart != undefined && chart.x != undefined) {
         // Update X domain
         chart.x.domain([0, chart.data.length - 1]);
-        chart.g.select("g").transition().duration(0).call(d3.axisBottom(chart.x));
+        chart.g
+            .select("g")
+            .transition()
+            .duration(0)
+            .call(d3.axisBottom(chart.x));
 
         // Update Y domain
         chart.y.domain([d3.min(chart.data) - 1, d3.max(chart.data) + 1]);
@@ -171,21 +180,26 @@ window.addEventListener("load", function () {
             graphFromCSVSimulated(csvData.map((item) => item[3]), GRAPH_AV_ACCEL);
         }
     );*/
-
 });
-
-
 
 // Update modules
 function graphUpdateAvionics(data) {
-    if (data.accelX != undefined || data.accelY != undefined || data.accelZ != undefined) {
+    if (
+        data.accelX != undefined ||
+        data.accelY != undefined ||
+        data.accelZ != undefined
+    ) {
         if (data.accelX != undefined) {
             GRAPH_AV_ACCEL.data.push(data.accelX);
         }
         graphRender(GRAPH_AV_ACCEL);
     }
 
-    if (data.gyroX != undefined || data.gyroY != undefined || data.gyroZ != undefined) {
+    if (
+        data.gyroX != undefined ||
+        data.gyroY != undefined ||
+        data.gyroZ != undefined
+    ) {
         if (data.gyroX != undefined) {
             GRAPH_AV_GYRO.data.push(data.gyroX);
         }

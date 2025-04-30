@@ -11,7 +11,7 @@ def start_frontend_webserver(logger: logging.Logger):
         # - Proper logging
 
         FRONTEND_COMMAND = [
-            "flask", "--app", "frontend.flask_server", "run",
+            "flask", "--app", "frontend.flask_server", "--debug", "run",
         ]
 
         logger.debug(
