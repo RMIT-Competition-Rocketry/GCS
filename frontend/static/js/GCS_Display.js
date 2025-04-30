@@ -313,17 +313,15 @@ confirmYes.addEventListener("click", () => {
     // If solenoid is active, deactivate it and reset switches
     if (isSolenoidActive) {
         solenoid.classList.remove("solenoid_button_active");
-        document.querySelectorAll(".switch_active").forEach((el) => {
-            el.classList.remove("switch_active");
-            el.classList.add("switch_inactive");
+        document.querySelectorAll(".solSwitch").forEach((el) => {
+            el.disabled = true;
         });
         isSolenoidActive = false;
     } else {
         // If solenoid is inactive, activate it and switch other items
         solenoid.classList.add("solenoid_button_active");
-        document.querySelectorAll(".switch_inactive").forEach((el) => {
-            el.classList.remove("switch_inactive");
-            el.classList.add("switch_active");
+        document.querySelectorAll(".solSwitch").forEach((el) => {
+            el.disabled = false;
         });
         isSolenoidActive = true;
     }
