@@ -6,7 +6,7 @@ from config.config import load_config
 # TODO: Implement logging
 
 
-def start_frontend_webserver(logger: logging.Logger, debug:bool = False):
+def start_frontend_webserver(logger: logging.Logger, debug:bool = True):
     SERVICE_NAME = "frontend_webserver"
     try:
         FRONTEND_COMMAND = [

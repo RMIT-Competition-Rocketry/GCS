@@ -8,6 +8,8 @@
 
 // Global display values
 var altitudeMax;
+var packetsAV1 = 0;
+var packetsGSE = 0;
 
 // UNIT CONVERSION FUNCTIONS
 function metresToFeet(metres) {
@@ -59,20 +61,36 @@ function API_socketConnect() {
 
 function API_OnMessage(event) {
     try {
+        //console.log(JSON.parse(event.data));
+
         const api_latest = JSON.parse(event.data);
         const api_data = api_latest.data;
-
-        //console.log(Object.keys(api_latest.data));
-        //console.log(api_latest.data)
+        api_data.id = api_latest.id;
 
         // Additional processing of API data for display
         processDataForDisplay(api_data);
 
         // Send data to display
-        if (api_latest.id == 3) {
-            // Header
-            displayUpdateRadio?.(api_data);
+        if (api_latest.id == 3 || api_latest.id == 4 || api_latest.id == 5) {
+            // AVIONICS PACKETS
+            api_data._radio = "av1";
+            api_data.meta.packets = ++packetsAV1;
 
+            console.log("av1");
+
+            // Radio module
+            if (typeof displayUpdateRadio === "function") {
+                console.log("radio");
+                displayUpdateRadio(api_data);
+            }
+
+            // Rocket
+            if (typeof rocketUpdate === "function") {
+                rocketUpdate(api_data);
+            }
+            
+
+            /*
             // Main display
             displayUpdateAuxData?.(api_data);
             displayUpdateAvionics?.(api_data);
@@ -80,21 +98,19 @@ function API_OnMessage(event) {
             displayUpdatePayload?.(api_data);
             displayUpdatePosition?.(api_data);
 
-             // Single operator page
-            displayUpdateContinuityCheck?.(api_data);
-            displayUpdateFlags?.(api_data);
-            displayUpdateOtherControls?.(api_data);
-            displayUpdatePopTest?.(api_data);
-
-            // HMI
-            displayUpdateHMI?.(api_data);
-
             // Update graphs
             graphUpdateAvionics?.(api_data);
             graphUpdatePosition?.(api_data);
+            */
+        } else if (api_latest.id == 6 || api_latest.id == 7) {
+            // GSE PACKETS
+            api_data._radio = "gse";
+            api_data.meta.packets = ++packetsGSE;
 
-            // Update rocket
-            rocketUpdate?.(api_data);
+            // Radio module
+            if (displayUpdateRadio != undefined && typeof displayUpdateRadio === 'function') {
+                displayUpdateRadio?.(api_data);
+            }
         }
     } catch (error) {
         console.error("data error");

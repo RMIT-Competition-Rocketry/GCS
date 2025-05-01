@@ -1,79 +1,178 @@
-
-# Display items
+# Display item keys and IDs
+## Per module
 These are the item IDs for updating values with JavaScript.
 
-## Aux Data (aux)
+### Aux Data (aux)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
-| Transducer 1 | Bar | GSE to GCS Data 1 - ID 6 |  | `aux-transducer-1` |
-| Transducer 2 | Bar | GSE to GCS Data 1 - ID 6 |  | `aux-transducer-2` |
-| Transducer 3 | Bar | GSE to GCS Data 1 - ID 6 |  | `aux-transducer-3` |
-| Thermocouple 1 | degC | GSE to GCS Data 1 - ID 6 |  | `aux-thermocouple-1` |
-| Thermocouple 2 | degC | GSE to GCS Data 1 - ID 6 |  | `aux-thermocouple-2` |
-| Thermocouple 3 | degC | GSE to GCS Data 1 - ID 6 |  | `aux-thermocouple-3` |
-| Thermocouple 4 | degC | GSE to GCS Data 1 - ID 6 |  | `aux-thermocouple-4` |
-| Internal temperature | degC | GSE to GCS Data 2 - ID 7 |  | `aux-internaltemp` |
-| Gas bottle 1 | kg | GSE to GCS Data 2 - ID 7 |  | `aux-gasbottle-1` |
-| Gas bottle 2 | kg | GSE to GCS Data 2 - ID 7 |  | `aux-gasbottle-2` |
+| Transducer 1 | Bar | 6 |  | `aux-transducer-1` |
+| Transducer 2 | Bar | 6 |  | `aux-transducer-2` |
+| Transducer 3 | Bar | 6 |  | `aux-transducer-3` |
+| Thermocouple 1 | degC | 6 |  | `aux-thermocouple-1` |
+| Thermocouple 2 | degC | 6 |  | `aux-thermocouple-2` |
+| Thermocouple 3 | degC | 6 |  | `aux-thermocouple-3` |
+| Thermocouple 4 | degC | 6 |  | `aux-thermocouple-4` |
+| Internal temperature | degC | 7 |  | `aux-internaltemp` |
+| Gas bottle 1 | kg | 7 |  | `aux-gasbottle-1` |
+| Gas bottle 2 | kg | 7 |  | `aux-gasbottle-2` |
 | Rocket load cell | kg |  |  | `aux-loadcell` |
 
-## Avionics (av)
+### Avionics (av)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
-| GPS fix | bool | AV to GCS Data 1/2 - IDs 3/4 | `data.stateFlags.GPSFixFlag` | `av-state-gpsfix` |
-| Dual board state | bool | AV to GCS Data 1/2 - IDs 3/4 | `data.stateFlags.dualBoardConnectivityStateFlag` | `av-state-dualboard` |
+| GPS fix | bool | 3, 4 | `data.stateFlags.GPSFixFlag` | `av-state-gpsfix` |
+| Dual board state | bool | 3, 4 | `data.stateFlags.dualBoardConnectivityStateFlag` | `av-state-dualboard` |
 | Pyro 1 | bool |  |  |`av-state-pyro-1` |
 | Pyro 2 | bool |  |  |`av-state-pyro-2` |
 | Pyro 3 | bool |  |  |`av-state-pyro-3` |
 | Pyro 4 | bool |  |  |`av-state-pyro-4` |
-| Velocity | m/s | AV to GCS Data 1 - ID 3 | `data.velocity` | `av-velocity` |
-| Mach |  | AV to GCS Data 1 - ID 3 | `data.mach_speed` | `av-mach` |
-| Accel X | *g* | AV to GCS Data 1 - ID 3 | `data.accelLowX`, `data.accelHighX` | `av-accel-x` |
-| Accel Y | *g* | AV to GCS Data 1 - ID 3 | `data.accelLowY`, `data.accelHighY` | `av-accel-y` |
-| Accel Z | *g* | AV to GCS Data 1 - ID 3 | `data.accelLowZ`, `data.accelHighZ` | `av-accel-z` |
-| Gyro X | deg/s | AV to GCS Data 1 - ID 3 | `data.gyroX` | `av-gyro-x` |
-| Gyro Y | deg/s | AV to GCS Data 1 - ID 3 | `data.gyroY` | `av-gyro-y` |
-| Gyro Z | deg/s | AV to GCS Data 1 - ID 3 | `data.gyroZ` | `av-gyro-z` |
+| Velocity | m/s | 3 | `data.velocity` | `av-velocity` |
+| Mach |  | 3 | `data.mach_speed` | `av-mach` |
+| Accel X | *g* | 3 | `data.accelLowX`, `data.accelHighX` | `av-accel-x` |
+| Accel Y | *g* | 3 | `data.accelLowY`, `data.accelHighY` | `av-accel-y` |
+| Accel Z | *g* | 3 | `data.accelLowZ`, `data.accelHighZ` | `av-accel-z` |
+| Gyro X | deg/s | 3 | `data.gyroX` | `av-gyro-x` |
+| Gyro Y | deg/s | 3 | `data.gyroY` | `av-gyro-y` |
+| Gyro Z | deg/s | 3 | `data.gyroZ` | `av-gyro-z` |
 
-## Flight State (fs)
+### Flight State (fs)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
-| Flight state |  | AV to GCS Data 1/2 - IDs 3/4 | `data.flightState` | `fs-flightstate` |
+| Flight state |  | 3, 4 | `data.flightState` | `fs-flightstate` |
 | Time |  |  |  | `fs-time` |
 
-## Position (pos)
+### Position (pos)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
-| Altitude | m | AV to GCS Data 1 - ID 3 | `data.altitude` | `pos-alt-m` |
+| Altitude | m | 3 | `data.altitude` | `pos-alt-m` |
 | Altitude | ft |  |  | `pos-alt-ft` |
 | Max altitude | m |  |  | `pos-maxalt-m` |
 | Max altitude | ft |  |  | `pos-maxalt-f` |
-| GPS latitude |  | AV to GCS Data 2 - ID 4 |  | `pos-gps-lat` |
-| GPS longitude |  | AV to GCS Data 2 - ID 4 |  | `pos-gps-lon` |
+| GPS latitude |  | 4 |  | `pos-gps-lat` |
+| GPS longitude |  | 4 |  | `pos-gps-lon` |
 
-## Radio (radio)
-| Name | Unit | API key | ID |
-| --- | --- | --- | --- |
-| AV comms state | bool |  | `radio-av-state` |
-| AV RSSI |  |  | `radio-av-rssi` |
-| AV SNR |  |  | `radio-av-snr` |
-| AV Packets |  |  | `radio-av-packets` |
-| GSE comms state | bool |  | `radio-gse-state` |
-| GSE RSSI |  |  | `radio-gse-rssi` |
-| GSE SNR |  |  | `radio-gse-snr` |
-| GSE Packets |  |  | `radio-gse-packets` |
+### Radio (radio)
+| Name | Unit | API ID | API key | ID |
+| --- | --- | --- | --- | --- |
+| AV comms state | *bool* |  |  | `radio-av-state` |
+| AV RSSI | dBm [0,255] | 3,4,5 | meta.rssi | `radio-av-rssi` |
+| AV SNR | dB | 3,4,5 | meta.snr | `radio-av-snr` |
+| AV Packets | *int* | 3,4,5 | meta.packets | `radio-av-packets` |
+| GSE comms state | *bool* |  |  | `radio-gse-state` |
+| GSE RSSI | dBm [0,255] | 6,7 | meta.rssi | `radio-gse-rssi` |
+| GSE SNR | dB | 6,7 | meta.snr | `radio-gse-snr` |
+| GSE Packets | *int* | 6,7 | meta.packets | `radio-gse-packets` |
 
 
-## Unimplemented
-- `data.apogeePrimaryTestComplete`
-- `data.apogeePrimaryTestResults`
-- `data.apogeeSecondaryTestComplete`
-- `data.apogeeSecondaryTestResults`
-- `data.broadcastFlag`
-- `data.mainPrimaryTestComplete`
-- `data.mainPrimaryTestResults`
-- `data.mainSecondaryTestComplete`
-- `data.mainSecondaryTestResults`
-- `data.stateFlags.cameraControllerConnectionFlag`
-- `data.stateFlags.payloadConnectionFlag`
-- `data.stateFlags.recoveryChecksCompleteAndFlightReady`
+## API values
+### ID 3 (AV Data 1)
+- meta.rssi
+- meta.snr
+- flightState
+- stateFlags.GPSFixFlag
+- stateFlags.cameraControllerConnectionFlag
+- stateFlags.dualBoardConnectivityStateFlag
+- stateFlags.payloadConnectionFlag
+- stateFlags.recoveryChecksCompleteAndFlightReady
+- accelLowX
+- accelLowY
+- accelLowZ
+- accelHighX
+- accelHighY
+- accelHighZ
+- gyroX
+- gyroY
+- gyroZ
+- altitude
+- velocity
+- apogeePrimaryTestComplete
+- apogeeSecondaryTestComplete
+- apogeePrimaryTestResults
+- apogeeSecondaryTestResults
+- mainPrimaryTestComplete
+- mainSecondaryTestComplete
+- mainPrimaryTestResults
+- mainSecondaryTestResults
+- broadcastFlag
+- mach_number
+​​
+### ID 4 (AV Data 2)
+​​
+- meta.rssi
+- meta.snr
+- flightState
+- stateFlags.GPSFixFlag
+- stateFlags.cameraControllerConnectionFlag
+- stateFlags.dualBoardConnectivityStateFlag
+- stateFlags.payloadConnectionFlag
+- stateFlags.recoveryChecksCompleteAndFlightReady
+- GPSLatitude
+- GPSLongitude
+​​
+### ID 5 (AV Data 3)
+​​
+- meta.rssi
+- meta.snr
+- flightState
+- stateFlags.GPSFixFlag
+- stateFlags.cameraControllerConnectionFlag
+- stateFlags.dualBoardConnectivityStateFlag
+- stateFlags.payloadConnectionFlag
+- stateFlags.recoveryChecksCompleteAndFlightReady
+​​
+### ID 6 (GSE Data 1)
+​​
+- meta.rssi
+- meta.snr
+- stateFlags.gasFillSelected
+- stateFlags.ignitionFired
+- stateFlags.ingitionSelected
+- stateFlags.manualPurgeActivated
+- stateFlags.n20FillActiated
+- stateFlags.o2FillActivated
+- stateFlags.selectorSwitchNeutralPosition
+- stateFlags.systemActivated
+- transducer1
+- transducer2
+- transducer3
+- thermocouple1
+- thermocouple2
+- thermocouple3
+- thermocouple4
+- errorFlags.ignitionError
+- errorFlags.loadCell1Error
+- errorFlags.loadCell2Error
+- errorFlags.loadCell3Error
+- errorFlags.loadCell4Error
+- errorFlags.relay1Error
+- errorFlags.relay2Error
+- errorFlags.relay3Error
+- errorFlags.thermocouple1Error
+- errorFlags.thermocouple2Error
+- errorFlags.thermocouple3Error
+- errorFlags.thermocouple4Error
+- errorFlags.transducer1Error
+- errorFlags.transducer2Error
+- errorFlags.transducer3Error
+- errorFlags.transducer4Error
+​​
+### ID 7 (GSE Data 2)
+- meta.rssi
+- meta.snr
+- stateFlags.gasFillSelected
+- stateFlags.ignitionFired
+- stateFlags.ignitionSelected
+- stateFlags.manualPurgeActivated
+- stateFlags.n20FillActivated
+- stateFlags.o2FillActivated
+- stateFlags.selectorSwitchNeutralPosition
+- stateFlags.systemActivated
+- internalTemp
+- windSpeed
+- gasBottleWeight1
+- gasBottleWeight2
+- analogVoltageInput1
+- analogVoltageInput2
+- additionalCurrentInput1
+- additionalCurrentInput2
+- errorFlags

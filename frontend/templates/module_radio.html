@@ -1,27 +1,66 @@
 <!-- Radio module -->
- <div class="mt-2 mr-2 border-t-2 border-hive/50">
-	<h2>Radio</h2>
-	<section class="m-2 my-0 gap-1 font-mono flex flex-col pb-0">
-		<div class="w-full flex gap-2 justify-start items-center">
-			<div class="indicator-boolean mx-0 radio-av-state"></div>
-			<p class="font-bold text-hive">AV&nbsp;</p>
-			<p>RSSI:</p>
-			<input readonly autocomplete="off" class="radio-av-rssi">
-			<p>SNR:</p>
-			<input readonly autocomplete="off" class="radio-av-snr">
-			<p>Packets:</p>
-			<input readonly autocomplete="off" class="radio-av-packets">
-		</div>
-		<div class="w-full flex gap-2 justify-start items-center">
-			<div class="indicator-boolean mx-0 radio-gse-state"></div>
-			<p class="font-bold text-hive">GSE</p>
-			<p>RSSI:</p>
-			<input readonly autocomplete="off" class="radio-gse-rssi">
-			<p>SNR:</p>
-			<input readonly autocomplete="off" class="radio-gse-snr">
-			<p>Packets:</p>
-			<input readonly autocomplete="off" class="radio-gse-packets">
-		</div>
-	</section>
-	
- </div>
+<div class="mt-2 mr-2 border-t-2 border-hive/50">
+    <h2>Radio</h2>
+    <section class="m-2 my-0 gap-1 font-mono flex flex-col pb-0">
+        <div class="w-full flex gap-4 justify-start items-center">
+            <div class="indicator-boolean mx-0 radio-av-state"></div>
+            <p class="font-bold text-hive">AV&nbsp;</p>
+            <div class="flex flex-row gap-4 grow justify-between">
+                <p class=>
+                    RSSI:<input
+                        readonly
+                        autocomplete="off"
+                        class="radio-av-rssi text-center"
+                        size="4"
+                    />dBm
+                </p>
+                <p>
+                    SNR:<input
+                        readonly
+                        autocomplete="off"
+                        class="radio-av-snr text-center"
+                        size="5"
+                    />dB
+                </p>
+                <p>
+                    Packets:<input
+                        readonly
+                        autocomplete="off"
+                        class="radio-av-packets text-center"
+                        size="4"
+                    />
+                </p>
+            </div>
+        </div>
+        <div class="w-full flex gap-4 justify-start items-center">
+            <div class="indicator-boolean mx-0 radio-gse-state"></div>
+            <p class="font-bold text-hive">GSE</p>
+            <div class="flex flex-row gap-4 grow justify-between">
+                <p class=>
+                    RSSI:<input
+                        readonly
+                        autocomplete="off"
+                        class="radio-gse-rssi text-center"
+                        size="4"
+                    />dBm
+                </p>
+                <p>
+                    SNR:<input
+                        readonly
+                        autocomplete="off"
+                        class="radio-gse-snr text-center"
+                        size="5"
+                    />dB
+                </p>
+                <p>
+                    Packets:<input
+                        readonly
+                        autocomplete="off"
+                        class="radio-gse-packets text-center"
+                        size="4"
+                    />
+                </p>
+            </div>
+        </div>
+    </section>
+</div>

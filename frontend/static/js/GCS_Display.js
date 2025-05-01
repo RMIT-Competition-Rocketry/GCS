@@ -234,6 +234,40 @@ function displayUpdatePosition(data) {
 
 function displayUpdateRadio(data) {
     /// MODULE RADIO
+    // TODO - Connection indicators
+
+    if (data.meta != undefined) {
+        if (data._radio == "av1") {
+            console.log(data);
+
+            // AVIONICS DATA
+            if (data.meta.rssi != undefined) {
+                displaySetValue("radio-av-rssi", data.meta.rssi, 0);
+            }
+
+            if (data.meta.snr != undefined) {
+                displaySetValue("radio-av-snr", data.meta.snr, 1);
+            }
+
+            if (data.meta.packets != undefined) {
+                displaySetValue("radio-av-packets", data.meta.packets, 0);
+            }
+            
+        } else if (data._radio == "gse") {
+            // GSE DATA
+            if (data.meta.rssi != undefined) {
+                displaySetValue("radio-gse-rssi", data.meta.rssi, 0);
+            }
+
+            if (data.meta.snr != undefined) {
+                displaySetValue("radio-gse-snr", data.meta.snr, 1);
+            }
+
+            if (data.meta.packets != undefined) {
+                displaySetValue("radio-gse-packets", data.meta.packets, 0);
+            }
+        }
+    }
 }
 
 // Buttons
