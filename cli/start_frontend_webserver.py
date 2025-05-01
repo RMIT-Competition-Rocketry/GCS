@@ -15,6 +15,7 @@ def start_frontend_webserver(logger: logging.Logger, debug:bool = False):
             "frontend.flask_server", 
             *(["--debug"] if debug else []), 
             "run",
+            "--host=0.0.0.0",
             f"--port={load_config()['frontend']['http_port'].strip()}"
         ]
 
