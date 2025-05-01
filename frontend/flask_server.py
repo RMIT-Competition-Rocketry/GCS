@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, abort, render_template
+from flask import Flask, send_from_directory, abort, render_template, jsonify
 # import logging
 # import backend.includes_python.process_logging as slogger
 import os
+import socket
 
 """
 class SubprocessLogHandler(logging.Handler):
@@ -62,6 +63,14 @@ def create_app(logger=None):
         else:
             #app.logger.warning(f"404 not found: {filename}")
             abort(404)
+
+    # Get server IP (for websocket)
+    @app.route('/websocket')
+    def get_websocket():
+        # Get the local IP address of the server
+        # @s3899921 please test this, i really hope it works, otherwise i'll take a look tonight
+        server_ip = socket.gethostbyname(socket.gethostname())
+        return jsonify({'websocket': f"ws://{server_ip}:1887"})
 
     return app
 
