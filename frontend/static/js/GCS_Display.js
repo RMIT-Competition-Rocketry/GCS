@@ -306,33 +306,67 @@ function displayUpdateRadio(data) {
 }
 
 // Buttons
-const mainCheckbox = document.getElementById("optionMain");
-const apogeeCheckbox = document.getElementById("optionApogee");
+
+
+// Pop test buttons
+const mainPCheckbox = document.getElementById("optionMainP");
+const mainSCheckbox = document.getElementById("optionMainS");
+const apogeePCheckbox = document.getElementById("optionApogeeP");
+const apogeeSCheckbox = document.getElementById("optionApogeeS");
 const popButton = document.getElementById("popButton");
 const prompt = document.getElementById("prompt");
 
-mainCheckbox.addEventListener("change", validateSelection);
-apogeeCheckbox.addEventListener("change", validateSelection);
 
-mainCheckbox.addEventListener("change", () => {
-    if (mainCheckbox.checked) {
-        apogeeCheckbox.checked = false;
+mainPCheckbox.addEventListener("change", validateSelection);
+mainSCheckbox.addEventListener("change", validateSelection);
+apogeePCheckbox.addEventListener("change", validateSelection);
+apogeeSCheckbox.addEventListener("change", validateSelection);
+
+mainPCheckbox.addEventListener("change", () => {
+    if (mainPCheckbox.checked) {
+        mainSCheckbox.checked = false;
+        apogeePCheckbox.checked = false;
+        apogeeSCheckbox.checked = false;
     }
     validateSelection();
 });
 
-apogeeCheckbox.addEventListener("change", () => {
-    if (apogeeCheckbox.checked) {
-        mainCheckbox.checked = false;
+mainSCheckbox.addEventListener("change", () => {
+    if (mainSCheckbox.checked) {
+        mainPCheckbox.checked = false;
+        apogeePCheckbox.checked = false;
+        apogeeSCheckbox.checked = false;
+    }
+    validateSelection();
+});
+
+apogeePCheckbox.addEventListener("change", () => {
+    if (apogeePCheckbox.checked) {
+        mainPCheckbox.checked = false;
+        mainSCheckbox.checked = false;
+        apogeeSCheckbox.checked = false;
+    }
+    validateSelection();
+});
+
+apogeeSCheckbox.addEventListener("change", () => {
+    if (apogeeSCheckbox.checked) {
+        mainPCheckbox.checked = false;
+        mainSCheckbox.checked = false;
+        apogeePCheckbox.checked = false;
     }
     validateSelection();
 });
 
 function validateSelection() {
-    if (
-        (mainCheckbox.checked || apogeeCheckbox.checked) &&
-        !(mainCheckbox.checked && apogeeCheckbox.checked)
-    ) {
+
+    const checkedCount = 
+        (mainPCheckbox.checked ? 1 : 0) +
+        (mainSCheckbox.checked ? 1 : 0) +
+        (apogeePCheckbox.checked ? 1 : 0) +
+        (apogeeSCheckbox.checked ? 1 : 0);
+
+    if (checkedCount === 1) {
         popButton.disabled = false;
         popButton.classList.remove("pop_button_inactive");
         popButton.classList.add("pop_button_active");
@@ -345,10 +379,13 @@ function validateSelection() {
     }
 }
 
+
 popButton.addEventListener("click", function () {
     //some sort of action
 });
 
+
+// Aux system buttons
 const solenoid = document.getElementById("solenoidButton");
 const modal = document.getElementById("confirmationModal");
 const confirmYes = document.getElementById("confirmYes");
