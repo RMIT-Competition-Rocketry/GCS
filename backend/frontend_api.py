@@ -117,7 +117,7 @@ async def amain():
 def main():
     global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS
 
-    WEBSOCKET_HOST = "localhost"
+    WEBSOCKET_HOST = "0.0.0.0"
     WEBSOCKET_PORT = 1887
 
     if '--socket-path' in sys.argv:
