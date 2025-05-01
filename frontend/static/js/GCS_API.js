@@ -35,10 +35,11 @@ function scheduleReconnect() {
 }
 
 function API_socketConnect() {
-    api_socket = new WebSocket("ws://localhost:1887");
+    api_url = window.location.host.split(":")[0];
+    api_socket = new WebSocket(`ws://${api_url}:1887`);
 
     api_socket.onopen = () => {
-        console.log("connection gaming");
+        console.log(`connection gaming - ${api_url}`);
         clearTimeout(reconnectTimeout);
         reconnectInterval = 1000;
     };

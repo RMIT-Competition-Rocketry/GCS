@@ -64,14 +64,6 @@ def create_app(logger=None):
             #app.logger.warning(f"404 not found: {filename}")
             abort(404)
 
-    # Get server IP (for websocket)
-    @app.route('/websocket')
-    def get_websocket():
-        # Get the local IP address of the server
-        # @s3899921 please test this, i really hope it works, otherwise i'll take a look tonight
-        server_ip = socket.gethostbyname(socket.gethostname())
-        return jsonify({'websocket': f"ws://{server_ip}:1887"})
-
     return app
 
 
