@@ -1,17 +1,21 @@
 import logging
 import cli.proccess as process
+from config.config import load_config
 
 
-def start_frontend_webserver(logger: logging.Logger):
+# TODO: Implement logging
+
+
+def start_frontend_webserver(logger: logging.Logger, debug:bool = False):
     SERVICE_NAME = "frontend_webserver"
     try:
-
-        # TODO:
-        # - Add port and debug configuration
-        # - Proper logging
-
         FRONTEND_COMMAND = [
-            "flask", "--app", "frontend.flask_server", "--debug", "run",
+            "flask", 
+            "--app", 
+            "frontend.flask_server", 
+            *(["--debug"] if debug else []), 
+            "run",
+            f"--port={load_config()['frontend']['http_port'].strip()}"
         ]
 
         logger.debug(

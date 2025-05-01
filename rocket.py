@@ -98,8 +98,8 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                      help="Hardware interface type. Overrides config parameter"),
         click.option('--nopendant', is_flag=True,
                      help="Do not run the pendant emulator"),
-        click.option('--gsc', is_flag=True,
-                     help="Run GSC web server")
+        click.option('--frontend', is_flag=True,
+                     help="Run GSC front end server")
     ]
 
     if SELECTOR == DecoratorSelector.ALL_DEV:
@@ -142,7 +142,7 @@ def start_services(COMMAND: Command,
                    logpkt: bool = False,
                    nopendant: bool = False,
                    gse_only: bool = False,
-                   gsc: bool = False):
+                   frontend: bool = False):
     """Starts all services required for the given command.
 
     Args:
@@ -230,7 +230,7 @@ def start_services(COMMAND: Command,
     start_frontend_api(logger, "gcs_rocket")
 
     # 8. Start the frontend web server
-    if gsc:
+    if frontend:
         start_frontend_webserver(logger)
 
 
@@ -256,13 +256,13 @@ def run(gse_only):
                    logpkt=True,  # Log packets by default in production mode
                    nopendant=False,  # Pendant emulator is required in production mode
                    gse_only=gse_only,
-                   gsc=True  # Run frontend web server in production mode
+                   frontend=True  # Run frontend web server in production mode
                    )
 
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
-def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, gsc):
+def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend):
     """Start software in development mode"""
     start_services(Command.DEV,
                    DOCKER=docker,
@@ -271,7 +271,7 @@ def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, gsc):
                    logpkt=logpkt,
                    nopendant=nopendant,
                    gse_only=gse_only,
-                   gsc=gsc
+                   frontend=frontend
                    )
 
 
@@ -286,7 +286,7 @@ def simulation(docker, nobuild, logpkt):
                    logpkt=logpkt,
                    nopendant=True,
                    gse_only=False,
-                   gsc=True
+                   frontend=True
                    )
 
 

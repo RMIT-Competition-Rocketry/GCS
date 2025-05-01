@@ -134,7 +134,8 @@ class AV_TO_GCS_DATA_1 {
 
 For debug, so far we've only opened temporary `/tmp/gcs_rocket_pub.sock` and `/tmp/gcs_rocket_sub.sock` sockets. They should be formalised with the config.ini file at some point perhaps? or maybe just best to document it here and hard code it into the file. 
 
-- Frontend API  websocket: `ws://localhost:1887`
+- Frontend API websocket: `ws://localhost:1887`
+- Frontend HTTP server: `http://localhost:8008` (in config.ini)
 
 ## Device emulation / packet mocking
 
