@@ -8,7 +8,7 @@
 		<link rel="preload" href="/font/fauna-thin.ttf" as="font" type="font/ttf" crossorigin="anonymous" />
 	</head>
 
-	<body class="w-screen h-screen bg-hexagonal_background text-white border-hive border-2 flex flex-col">
+	<body class="w-screen h-screen bg-hexagonal_background text-zinc-100 border-hive border-2 flex flex-col">
 		<!-- Header, consistent on all pages -->
 		<header class="w-full flex flex-row gap-2">
 			<div class="w-1/6 grow">{% include 'module_info.html' %}</div>
@@ -46,8 +46,8 @@
 		<main class="w-full h-full max-h-screen max-w-full grid grid-cols-12 grid-rows-12 grid-flow-col gap-2 p-2">
 			<!-- Main interface modules -->
 			<div class="module m-main m-lf1 col-[1/5] row-[1/13] flex flex-col h-full gap-2">
-				<div class="module m-main m-lf1 grow basis-1/2">{% include 'module_avionics.html' %}</div>
-				<div class="module m-main m-lf1 grow basis-1/4">{% include 'module_position.html' %}</div>
+				<div class="module m-main m-lf1 grow basis-1/2 w-full">{% include 'module_avionics.html' %}</div>
+				<div class="module m-main m-lf1 grow basis-1/4 w-full">{% include 'module_position.html' %}</div>
 			</div>
 			<div class="module m-main col-[5/9] row-[1/10]">{% include 'module_rocket.html' %}</div>
 			<div class="module m-main col-[5/9] row-[10/13]">{% include 'module_flightstate.html' %}</div>

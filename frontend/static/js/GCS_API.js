@@ -76,32 +76,42 @@ function API_OnMessage(event) {
             api_data._radio = "av1";
             api_data.meta.packets = ++packetsAV1;
 
-            console.log("av1");
-
+            /// AV DISPLAY VALUES
             // Radio module
             if (typeof displayUpdateRadio === "function") {
-                console.log("radio");
                 displayUpdateRadio(api_data);
             }
 
-            // Rocket
+            // Avionics module
+            if (typeof displayUpdateAvionics === "function") {
+                displayUpdateAvionics(api_data);
+            }
+
+            // Position module
+            if (typeof displayUpdatePosition === "function") {
+                displayUpdatePosition(api_data);
+            }
+
+            // Flight state module
+            if (typeof displayUpdateFlightState === "function") {
+                displayUpdateFlightState(api_data);
+            }
+
+            /// AV GRAPHS
+            if (typeof graphUpdateAvionics === "function") {
+                graphUpdateAvionics(api_data);
+            }
+
+            if (typeof graphUpdatePosition === "function") {
+                graphUpdatePosition(api_data);
+            }
+
+            /// AV ROCKET
+            // Rocket module
             if (typeof rocketUpdate === "function") {
                 rocketUpdate(api_data);
             }
             
-
-            /*
-            // Main display
-            displayUpdateAuxData?.(api_data);
-            displayUpdateAvionics?.(api_data);
-            displayUpdateFlightState?.(api_data);
-            displayUpdatePayload?.(api_data);
-            displayUpdatePosition?.(api_data);
-
-            // Update graphs
-            graphUpdateAvionics?.(api_data);
-            graphUpdatePosition?.(api_data);
-            */
         } else if (api_latest.id == 6 || api_latest.id == 7) {
             // GSE PACKETS
             api_data._radio = "gse";
@@ -111,6 +121,11 @@ function API_OnMessage(event) {
             if (displayUpdateRadio != undefined && typeof displayUpdateRadio === 'function') {
                 displayUpdateRadio?.(api_data);
             }
+
+            /*
+            displayUpdateAuxData?.(api_data);
+            displayUpdatePayload?.(api_data);
+            */
         }
     } catch (error) {
         console.error("data error");

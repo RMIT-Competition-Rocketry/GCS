@@ -20,71 +20,71 @@ These are the item IDs for updating values with JavaScript.
 ### Avionics (av)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
-| GPS fix | bool | 3, 4 | `data.stateFlags.GPSFixFlag` | `av-state-gpsfix` |
-| Dual board state | bool | 3, 4 | `data.stateFlags.dualBoardConnectivityStateFlag` | `av-state-dualboard` |
-| Pyro 1 | bool |  |  |`av-state-pyro-1` |
-| Pyro 2 | bool |  |  |`av-state-pyro-2` |
-| Pyro 3 | bool |  |  |`av-state-pyro-3` |
-| Pyro 4 | bool |  |  |`av-state-pyro-4` |
-| Velocity | m/s | 3 | `data.velocity` | `av-velocity` |
-| Mach |  | 3 | `data.mach_speed` | `av-mach` |
-| Accel X | *g* | 3 | `data.accelLowX`, `data.accelHighX` | `av-accel-x` |
-| Accel Y | *g* | 3 | `data.accelLowY`, `data.accelHighY` | `av-accel-y` |
-| Accel Z | *g* | 3 | `data.accelLowZ`, `data.accelHighZ` | `av-accel-z` |
-| Gyro X | deg/s | 3 | `data.gyroX` | `av-gyro-x` |
-| Gyro Y | deg/s | 3 | `data.gyroY` | `av-gyro-y` |
-| Gyro Z | deg/s | 3 | `data.gyroZ` | `av-gyro-z` |
+| GPS fix | bool | 3,4,5 | `stateFlags.GPSFixFlag` | `av-state-gpsfix` |
+| Dual board state | bool | 3,4,5 | `stateFlags.dualBoardConnectivityStateFlag` | `av-state-dualboard` |
+| Pyro 1 |  |  |  |`av-state-pyro-1` |
+| Pyro 2 |  |  |  |`av-state-pyro-2` |
+| Pyro 3 |  |  |  |`av-state-pyro-3` |
+| Pyro 4 |  |  |  |`av-state-pyro-4` |
+| Velocity | m/s | 3 | `velocity` | `av-velocity` |
+| Mach |  | 3 | `mach_number` | `av-mach` |
+| Accel X | *g* | 3 | `accelLowX, accelHighX` | `av-accel-x` |
+| Accel Y | *g* | 3 | `accelLowY, accelHighY` | `av-accel-y` |
+| Accel Z | *g* | 3 | `accelLowZ, accelHighZ` | `av-accel-z` |
+| Gyro X | deg/s | 3 | `gyroX` | `av-gyro-x` |
+| Gyro Y | deg/s | 3 | `gyroY` | `av-gyro-y` |
+| Gyro Z | deg/s | 3 | `gyroZ` | `av-gyro-z` |
 
 ### Flight State (fs)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
-| Flight state |  | 3, 4 | `data.flightState` | `fs-flightstate` |
+| Flight state |  | 3,4,5 | `flightState` | `fs-flightstate` |
 | Time |  |  |  | `fs-time` |
 
 ### Position (pos)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
-| Altitude | m | 3 | `data.altitude` | `pos-alt-m` |
+| Altitude | m | 3 | `altitude` | `pos-alt-m` |
 | Altitude | ft |  |  | `pos-alt-ft` |
 | Max altitude | m |  |  | `pos-maxalt-m` |
 | Max altitude | ft |  |  | `pos-maxalt-f` |
-| GPS latitude |  | 4 |  | `pos-gps-lat` |
-| GPS longitude |  | 4 |  | `pos-gps-lon` |
+| GPS latitude |  | 4 | `GPSLatitude` | `pos-gps-lat` |
+| GPS longitude |  | 4 | `GPSLongitude` | `pos-gps-lon` |
 
 ### Radio (radio)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
 | AV comms state | *bool* |  |  | `radio-av-state` |
-| AV RSSI | dBm [0,255] | 3,4,5 | meta.rssi | `radio-av-rssi` |
-| AV SNR | dB | 3,4,5 | meta.snr | `radio-av-snr` |
-| AV Packets | *int* | 3,4,5 | meta.packets | `radio-av-packets` |
+| AV RSSI | dBm [0,255] | 3,4,5 | `meta.rssi` | `radio-av-rssi` |
+| AV SNR | dB | 3,4,5 | `meta.snr` | `radio-av-snr` |
+| AV Packets | *int* | 3,4,5 | `meta.packets` | `radio-av-packets` |
 | GSE comms state | *bool* |  |  | `radio-gse-state` |
-| GSE RSSI | dBm [0,255] | 6,7 | meta.rssi | `radio-gse-rssi` |
-| GSE SNR | dB | 6,7 | meta.snr | `radio-gse-snr` |
-| GSE Packets | *int* | 6,7 | meta.packets | `radio-gse-packets` |
+| GSE RSSI | dBm [0,255] | 6,7 | `meta.rssi` | `radio-gse-rssi` |
+| GSE SNR | dB | 6,7 | `meta.snr` | `radio-gse-snr` |
+| GSE Packets | *int* | 6,7 | `meta.packets` | `radio-gse-packets` |
 
 
 ## API values
 ### ID 3 (AV Data 1)
-- meta.rssi
-- meta.snr
-- flightState
-- stateFlags.GPSFixFlag
+- meta.rssi ✅
+- meta.snr ✅
+- flightState ✅
+- stateFlags.GPSFixFlag ✅
 - stateFlags.cameraControllerConnectionFlag
-- stateFlags.dualBoardConnectivityStateFlag
+- stateFlags.dualBoardConnectivityStateFlag ✅
 - stateFlags.payloadConnectionFlag
 - stateFlags.recoveryChecksCompleteAndFlightReady
-- accelLowX
-- accelLowY
-- accelLowZ
-- accelHighX
-- accelHighY
-- accelHighZ
-- gyroX
-- gyroY
-- gyroZ
-- altitude
-- velocity
+- accelLowX ✅
+- accelLowY ✅
+- accelLowZ ✅
+- accelHighX ✅
+- accelHighY ✅
+- accelHighZ ✅
+- gyroX ✅
+- gyroY ✅
+- gyroZ ✅
+- altitude ✅
+- velocity ✅
 - apogeePrimaryTestComplete
 - apogeeSecondaryTestComplete
 - apogeePrimaryTestResults
@@ -94,36 +94,36 @@ These are the item IDs for updating values with JavaScript.
 - mainPrimaryTestResults
 - mainSecondaryTestResults
 - broadcastFlag
-- mach_number
+- mach_number ✅
 ​​
 ### ID 4 (AV Data 2)
 ​​
-- meta.rssi
-- meta.snr
-- flightState
-- stateFlags.GPSFixFlag
+- meta.rssi ✅
+- meta.snr ✅
+- flightState ✅
+- stateFlags.GPSFixFlag ✅
 - stateFlags.cameraControllerConnectionFlag
-- stateFlags.dualBoardConnectivityStateFlag
+- stateFlags.dualBoardConnectivityStateFlag ✅
 - stateFlags.payloadConnectionFlag
 - stateFlags.recoveryChecksCompleteAndFlightReady
-- GPSLatitude
-- GPSLongitude
+- GPSLatitude ✅
+- GPSLongitude ✅
 ​​
 ### ID 5 (AV Data 3)
 ​​
-- meta.rssi
-- meta.snr
-- flightState
-- stateFlags.GPSFixFlag
+- meta.rssi ✅
+- meta.snr ✅
+- flightState ✅
+- stateFlags.GPSFixFlag ✅
 - stateFlags.cameraControllerConnectionFlag
-- stateFlags.dualBoardConnectivityStateFlag
+- stateFlags.dualBoardConnectivityStateFlag ✅
 - stateFlags.payloadConnectionFlag
 - stateFlags.recoveryChecksCompleteAndFlightReady
 ​​
 ### ID 6 (GSE Data 1)
 ​​
-- meta.rssi
-- meta.snr
+- meta.rssi ✅
+- meta.snr ✅
 - stateFlags.gasFillSelected
 - stateFlags.ignitionFired
 - stateFlags.ingitionSelected
@@ -157,8 +157,8 @@ These are the item IDs for updating values with JavaScript.
 - errorFlags.transducer4Error
 ​​
 ### ID 7 (GSE Data 2)
-- meta.rssi
-- meta.snr
+- meta.rssi ✅
+- meta.snr ✅
 - stateFlags.gasFillSelected
 - stateFlags.ignitionFired
 - stateFlags.ignitionSelected
@@ -175,4 +175,19 @@ These are the item IDs for updating values with JavaScript.
 - analogVoltageInput2
 - additionalCurrentInput1
 - additionalCurrentInput2
-- errorFlags
+- errorFlags.ignitionError
+- errorFlags.loadCell1Error
+- errorFlags.loadCell2Error
+- errorFlags.loadCell3Error
+- errorFlags.loadCell4Error
+- errorFlags.relay1Error
+- errorFlags.relay2Error
+- errorFlags.relay3Error
+- errorFlags.thermocouple1Error
+- errorFlags.thermocouple2Error
+- errorFlags.thermocouple3Error
+- errorFlags.thermocouple4Error
+- errorFlags.transducer1Error
+- errorFlags.transducer2Error
+- errorFlags.transducer3Error
+- errorFlags.transducer4Error

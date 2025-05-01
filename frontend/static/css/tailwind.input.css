@@ -40,7 +40,7 @@ and only modify it if you know what you're doing :)
     }
 
     h3 {
-        @apply font-mono font-bold text-center text-white;
+        @apply font-mono font-bold text-center text-hive-200;
     }
 
     h3::before {
@@ -54,7 +54,7 @@ and only modify it if you know what you're doing :)
     }
 
     input {
-        @apply border border-zinc-700 my-0.5 rounded-sm max-w-full font-mono text-right text-lg;
+        @apply border border-zinc-700 my-0.5 rounded-sm max-w-full font-mono text-white text-right;
     }
 
     .flex input {

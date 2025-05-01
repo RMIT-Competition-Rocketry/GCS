@@ -41,15 +41,15 @@
 			<div class="grid grid-cols-3 gap-4 px-2">
 				<p class="flex gap-1 items-center">
 					<span>X:</span>
-					<input readonly autocomplete="off" class="av-accel-x border-red-500">
+					<input readonly autocomplete="off" class="av-accel-x border-red-500 text-center">
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Y:</span>
-					<input readonly autocomplete="off" class="av-accel-y border-green-500">
+					<input readonly autocomplete="off" class="av-accel-y border-green-500 text-center">
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Z:</span>
-					<input readonly autocomplete="off" class="av-accel-z border-blue-500">
+					<input readonly autocomplete="off" class="av-accel-z border-blue-500 text-center">
 				</p>
 			</div>
 		</section>
@@ -63,35 +63,33 @@
 			<div class="grid grid-cols-3 gap-4 px-2">
 				<p class="flex gap-1 items-center">
 					<span>X:</span>
-					<input readonly autocomplete="off" class="av-gyro-x border-red-500">
+					<input readonly autocomplete="off" class="av-gyro-x border-red-500 text-center">
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Y:</span>
-					<input readonly autocomplete="off" class="av-gyro-y border-green-500">
+					<input readonly autocomplete="off" class="av-gyro-y border-green-500 text-center">
 				</p>
 				<p class="flex gap-1 items-center">
 					<span>Z:</span>
-					<input readonly autocomplete="off" class="av-gyro-z border-blue-500">
+					<input readonly autocomplete="off" class="av-gyro-z border-blue-500 text-center">
 				</p>
 			</div>
 		</section>
 	</div>
 	
 	<!-- Velocity -->
-	<section class="grow flex flex-col flex-1 p-0">
+	<section class="grow flex flex-col flex-1 py-0">
 		<h3>Velocity (m/s)</h3>
 		<div class="grow w-full h-full">
 			<svg id="graph-av-velocity" class="w-full h-full" width="0" height="0"></svg>
 		</div>
-		<div class="grid grid-cols-2 gap-4 px-2">
-			<p class="flex gap-1 items-center">
-				<span>Velocity:</span> 
-				<input readonly autocomplete="off" class="av-velocity">
-				<span>m/s</span>
+		<div class="flex flex-row gap-4 grow justify-evenly px-2">
+            <p>
+				Velocity:<input readonly size="12" autocomplete="off" class="border-red-500 text-center av-velocity">m/s
 			</p>
-			<p class="flex gap-1 items-center">
-				<span>Mach:</span>
-				<input readonly autocomplete="off" class="av-mach">
+			<p>
+				Mach:
+				<input readonly size="12"  autocomplete="off" class="text-center av-mach">
 			</p>
 		</div>
 	</section>

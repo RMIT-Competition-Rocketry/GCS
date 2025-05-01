@@ -131,20 +131,13 @@ function displayUpdateAvionics(data) {
             );
         }
 
-        /*
-        displaySetState("av-state-pyro-1", "on");
-        displaySetState("av-state-pyro-2", "on");
-        displaySetState("av-state-pyro-3", "on");
-        displaySetState("av-state-pyro-4", "on");
-        */
+        // TODO: Pyro 1,2,3,4
     }
 
     // Acceleration (_g_)
     // accelLow has higher resolution, so we use that if the values are within [-16,16]
     if (data.accelX != undefined) {
         displaySetValue("av-accel-x", data.accelX);
-        //GRAPH_AV_ACCEL.data.push(accelX);
-        //graphRender(GRAPH_AV_ACCEL);
     }
 
     if (data.accelY != undefined) {
@@ -174,8 +167,8 @@ function displayUpdateAvionics(data) {
     }
 
     // Mach speed
-    if (data.mach_speed != undefined) {
-        displaySetValue("av-mach", data.mach_speed);
+    if (data.mach_number != undefined) {
+        displaySetValue("av-mach", data.mach_number);
     }
 }
 
@@ -189,6 +182,11 @@ function displayUpdateFlags(data) {
 
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
+
+    // TODO:
+    // - Flight timer
+    // - Human readable flight state values
+
     if (data.flightState != undefined) {
         displaySetString("fs-flightstate", data.flightState);
     }
@@ -224,12 +222,14 @@ function displayUpdatePosition(data) {
         displaySetValue("pos-maxalt-ft", metresToFeet(data.altitudeMax), 0);
     }
 
-    /*
-    displaySetValue("pos-maxalt-m", data.altitude);
-    displaySetValue("pos-maxalt-ft", data.altitude);
-    displaySetValue("pos-gps-lat", data.GPSLatitude);
-    displaySetValue("pos-gps-lon", data.GPSLongitude);
-    */
+    // GPS
+    if (data.GPSLatitude != undefined) {
+        displaySetString("pos-gps-lat", data.GPSLatitude);
+    }
+
+    if (data.GPSLongitude != undefined) {
+        displaySetString("pos-gps-lon", data.GPSLongitude);
+    }
 }
 
 function displayUpdateRadio(data) {
@@ -238,8 +238,6 @@ function displayUpdateRadio(data) {
 
     if (data.meta != undefined) {
         if (data._radio == "av1") {
-            console.log(data);
-
             // AVIONICS DATA
             if (data.meta.rssi != undefined) {
                 displaySetValue("radio-av-rssi", data.meta.rssi, 0);
