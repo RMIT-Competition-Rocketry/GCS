@@ -5,16 +5,16 @@ These are the item IDs for updating values with JavaScript.
 ### Aux Data (aux)
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
-| Transducer 1 | Bar | 6 |  | `aux-transducer-1` |
-| Transducer 2 | Bar | 6 |  | `aux-transducer-2` |
-| Transducer 3 | Bar | 6 |  | `aux-transducer-3` |
-| Thermocouple 1 | degC | 6 |  | `aux-thermocouple-1` |
-| Thermocouple 2 | degC | 6 |  | `aux-thermocouple-2` |
-| Thermocouple 3 | degC | 6 |  | `aux-thermocouple-3` |
-| Thermocouple 4 | degC | 6 |  | `aux-thermocouple-4` |
-| Internal temperature | degC | 7 |  | `aux-internaltemp` |
-| Gas bottle 1 | kg | 7 |  | `aux-gasbottle-1` |
-| Gas bottle 2 | kg | 7 |  | `aux-gasbottle-2` |
+| Transducer 1 | Bar | 6 | `transducer1` | `aux-transducer-1` |
+| Transducer 2 | Bar | 6 | `transducer2` | `aux-transducer-2` |
+| Transducer 3 | Bar | 6 | `transducer3` | `aux-transducer-3` |
+| Thermocouple 1 | degC | 6 | `thermocouple1` | `aux-thermocouple-1` |
+| Thermocouple 2 | degC | 6 | `thermocouple2` | `aux-thermocouple-2` |
+| Thermocouple 3 | degC | 6 | `thermocouple3` | `aux-thermocouple-3` |
+| Thermocouple 4 | degC | 6 | `thermocouple4` | `aux-thermocouple-4` |
+| Internal temperature | degC | 7 | `internalTemp` | `aux-internaltemp` |
+| Gas bottle 1 | kg | 7 | `gasBottleWeight1` | `aux-gasbottle-1` |
+| Gas bottle 2 | kg | 7 | `gasBottleWeight2` | `aux-gasbottle-2` |
 | Rocket load cell | kg |  |  | `aux-loadcell` |
 
 ### Avionics (av)
@@ -132,13 +132,13 @@ These are the item IDs for updating values with JavaScript.
 - stateFlags.o2FillActivated
 - stateFlags.selectorSwitchNeutralPosition
 - stateFlags.systemActivated
-- transducer1
-- transducer2
-- transducer3
-- thermocouple1
-- thermocouple2
-- thermocouple3
-- thermocouple4
+- transducer1 ✅
+- transducer2 ✅
+- transducer3 ✅
+- thermocouple1 ✅
+- thermocouple2 ✅
+- thermocouple3 ✅
+- thermocouple4 ✅
 - errorFlags.ignitionError
 - errorFlags.loadCell1Error
 - errorFlags.loadCell2Error
@@ -167,10 +167,10 @@ These are the item IDs for updating values with JavaScript.
 - stateFlags.o2FillActivated
 - stateFlags.selectorSwitchNeutralPosition
 - stateFlags.systemActivated
-- internalTemp
+- internalTemp ✅
 - windSpeed
-- gasBottleWeight1
-- gasBottleWeight2
+- gasBottleWeight1 ✅
+- gasBottleWeight2 ✅
 - analogVoltageInput1
 - analogVoltageInput2
 - additionalCurrentInput1

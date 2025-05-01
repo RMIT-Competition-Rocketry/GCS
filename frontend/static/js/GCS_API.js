@@ -117,14 +117,23 @@ function API_OnMessage(event) {
             api_data._radio = "gse";
             api_data.meta.packets = ++packetsGSE;
 
+            /// GSE DISPLAY VALUES
             // Radio module
-            if (displayUpdateRadio != undefined && typeof displayUpdateRadio === 'function') {
-                displayUpdateRadio?.(api_data);
+            if (typeof displayUpdateRadio === 'function') {
+                displayUpdateRadio(api_data);
             }
 
+            // Auxilliary data module
+            if (typeof displayUpdateAuxData === 'function') {
+                displayUpdateAuxData(api_data);
+            }
+
+            /// GSE GRAPHS
+            if (typeof graphUpdateAuxData === "function") {
+                graphUpdateAuxData(api_data);
+            }
             /*
-            displayUpdateAuxData?.(api_data);
-            displayUpdatePayload?.(api_data);
+            displayUpdatePayload(api_data);
             */
         }
     } catch (error) {

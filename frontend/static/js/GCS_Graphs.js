@@ -8,14 +8,23 @@
 
 // DEFINE CHARTS
 const DEFAULT_MARGINS = { top: 8, right: 8, bottom: 20, left: 40 };
+
 const GRAPH_AV_ACCEL = { selector: "#graph-av-accel", data: [] };
 const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data: [] };
-const GRAPH_AV_VELOCITY = { selector: "#graph-av-velocity", data: [] };
+const GRAPH_AV_VELOCITY = {
+    selector: "#graph-av-velocity",
+    data: [],
+    margin: { top: 8, right: 8, bottom: 20, left: 50 },
+};
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
     data: [],
     margin: { top: 8, right: 8, bottom: 20, left: 50 },
 };
+const GRAPH_AUX_TRANSDUCERS = { selector: "#graph-aux-transducers", data: [] };
+const GRAPH_AUX_THERMOCOUPLES = { selector: "#graph-aux-thermocouples", data: [] };
+const GRAPH_AUX_INTERNALTEMP = { selector: "#graph-aux-internaltemp", data: [] };
+const GRAPH_AUX_GASBOTTLES = { selector: "#graph-aux-gasbottles", data: [] };
 
 // Create and initialise line graphs
 function graphCreateLine(chart) {
@@ -163,12 +172,17 @@ function graphRender(chart) {
     }
 }
 
-window.addEventListener("load", function () {
+window.addEventListener("DOMContentLoaded", function () {
     // Build D3 chart
     graphCreateLine(GRAPH_POS_ALT);
     graphCreateLine(GRAPH_AV_ACCEL);
     graphCreateLine(GRAPH_AV_GYRO);
     graphCreateLine(GRAPH_AV_VELOCITY);
+
+    graphCreateLine(GRAPH_AUX_TRANSDUCERS);
+    graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
+    graphCreateLine(GRAPH_AUX_INTERNALTEMP);
+    graphCreateLine(GRAPH_AUX_GASBOTTLES);
 
     // Load data from CSV
     /*
@@ -184,6 +198,8 @@ window.addEventListener("load", function () {
 
 // Update modules
 function graphUpdateAvionics(data) {
+    // AVIONICS MODULE GRAPHS
+    // Acceleration
     if (
         data.accelX != undefined ||
         data.accelY != undefined ||
@@ -195,6 +211,7 @@ function graphUpdateAvionics(data) {
         graphRender(GRAPH_AV_ACCEL);
     }
 
+    // Gyroscope
     if (
         data.gyroX != undefined ||
         data.gyroY != undefined ||
@@ -206,6 +223,7 @@ function graphUpdateAvionics(data) {
         graphRender(GRAPH_AV_GYRO);
     }
 
+    // Velocity
     if (data.velocity != undefined) {
         GRAPH_AV_VELOCITY.data.push(data.velocity);
         graphRender(GRAPH_AV_VELOCITY);
@@ -213,8 +231,43 @@ function graphUpdateAvionics(data) {
 }
 
 function graphUpdatePosition(data) {
+    // POSITION MODULE GRAPHS
+    // Altitude
     if (data.altitude != undefined) {
         GRAPH_POS_ALT.data.push(data.altitude);
         graphRender(GRAPH_POS_ALT);
+    }
+}
+
+function graphUpdateAuxData(data) {
+    // AUXILLIARY DATA MODULE GRAPHS
+    // Transducers
+    if (data.transducer1 != undefined || data.transducer2 != undefined || data.transducer3 != undefined) {
+        if (data.transducer1 != undefined) {
+            GRAPH_AUX_TRANSDUCERS.data.push(data.transducer1);
+        }
+        graphRender(GRAPH_AUX_TRANSDUCERS);
+    }
+
+    // Thermocouples
+    if (data.thermocouple1 != undefined || data.thermocouple2 != undefined || data.thermocouple3 != undefined || data.thermocouple4 != undefined) {
+        if (data.thermocouple1 != undefined) {
+            GRAPH_AUX_THERMOCOUPLES.data.push(data.thermocouple1);
+        }
+        graphRender(GRAPH_AUX_THERMOCOUPLES);
+    }
+
+    // Internal temperature
+    if (data.internalTemp != undefined) {
+        GRAPH_AUX_INTERNALTEMP.data.push(data.internalTemp);
+        graphRender(GRAPH_AUX_INTERNALTEMP);
+    }
+
+    // Gas bottle weights
+    if (data.gasBottleWeight1 != undefined || data.gasBottleWeight2 != undefined) {
+        if (data.gasBottleWeight1 != undefined) {
+            GRAPH_AUX_GASBOTTLES.data.push(data.gasBottleWeight1);
+        }
+        graphRender(GRAPH_AUX_GASBOTTLES);
     }
 }

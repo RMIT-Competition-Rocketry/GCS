@@ -114,6 +114,44 @@ function displaySetState(item, value) {
 // FUNCTIONS FOR UPDATING MODULES
 function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
+    // Transducers
+    if (data.transducer1 != undefined) {
+        displaySetValue("aux-transducer-1", data.transducer1, 1);
+    }
+    if (data.transducer2 != undefined) {
+        displaySetValue("aux-transducer-2", data.transducer2, 1);
+    }
+    if (data.transducer3 != undefined) {
+        displaySetValue("aux-transducer-3", data.transducer3, 1);
+    }
+
+    // Thermocouples
+    if (data.thermocouple1 != undefined) {
+        displaySetValue("aux-thermocouple-1", data.thermocouple1, 1);
+    }
+    if (data.thermocouple2 != undefined) {
+        displaySetValue("aux-thermocouple-2", data.thermocouple2, 1);
+    }
+    if (data.thermocouple3 != undefined) {
+        displaySetValue("aux-thermocouple-3", data.thermocouple3, 1);
+    }
+    if (data.thermocouple4 != undefined) {
+        displaySetValue("aux-thermocouple-4", data.thermocouple4, 1);
+    }
+
+    // Internal temperature
+    if (data.internalTemp != undefined) {
+        displaySetValue("aux-internaltemp", data.internalTemp, 2);
+    }
+
+    // Gas bottle weights
+    if (data.gasBottleWeight1 != undefined) {
+        displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 2)
+    }
+    if (data.gasBottleWeight2 != undefined) {
+        displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 2)
+    }
+    
 }
 
 function displayUpdateAvionics(data) {
@@ -250,7 +288,6 @@ function displayUpdateRadio(data) {
             if (data.meta.packets != undefined) {
                 displaySetValue("radio-av-packets", data.meta.packets, 0);
             }
-            
         } else if (data._radio == "gse") {
             // GSE DATA
             if (data.meta.rssi != undefined) {
