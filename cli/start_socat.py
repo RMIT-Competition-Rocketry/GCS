@@ -1,7 +1,8 @@
 import logging
 import re
 import cli.proccess as process
-from typing import Tuple, Optional
+from typing import Optional, Tuple
+import cli.start_middleware as start_middleware
 
 
 class IgnoreWriteMessagesFilter(logging.Filter):
@@ -74,6 +75,7 @@ def start_fake_serial_device(logger: logging.Logger) -> Tuple[Optional[str], Opt
         socat_proccess.start()
 
         devices = []
+        # Block until both pseudo-terminals are found
         while len(devices) < 2:
             devices += socat_proccess.get_parsed_data()
 
