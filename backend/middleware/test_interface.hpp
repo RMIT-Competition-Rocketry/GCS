@@ -2,6 +2,7 @@
 
 #include <termios.h>
 
+#include <mutex>
 #include <string>
 
 #include "lora_interface.hpp"
