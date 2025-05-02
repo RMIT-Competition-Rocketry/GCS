@@ -7,6 +7,12 @@
  */
 
 // DEFINE CHARTS
+const LINE_COLOURS = [
+    "var(--color-red-500)",
+    "var(--color-green-500)",
+    "var(--color-blue-500)",
+    "white",
+];
 const DEFAULT_MARGINS = { top: 8, right: 8, bottom: 20, left: 40 };
 
 const GRAPH_AV_ACCEL = { selector: "#graph-av-accel", data: [] };
@@ -22,12 +28,18 @@ const GRAPH_POS_ALT = {
     margin: { top: 8, right: 8, bottom: 20, left: 50 },
 };
 const GRAPH_AUX_TRANSDUCERS = { selector: "#graph-aux-transducers", data: [] };
-const GRAPH_AUX_THERMOCOUPLES = { selector: "#graph-aux-thermocouples", data: [] };
-const GRAPH_AUX_INTERNALTEMP = { selector: "#graph-aux-internaltemp", data: [] };
+const GRAPH_AUX_THERMOCOUPLES = {
+    selector: "#graph-aux-thermocouples",
+    data: [],
+};
+const GRAPH_AUX_INTERNALTEMP = {
+    selector: "#graph-aux-internaltemp",
+    data: [],
+};
 const GRAPH_AUX_GASBOTTLES = { selector: "#graph-aux-gasbottles", data: [] };
 
 // Create and initialise line graphs
-function graphCreateLine(chart) {
+function graphCreateLine(chart, numLines) {
     // Select SVG
     chart.svg = d3.select(chart.selector);
 
@@ -75,6 +87,7 @@ function graphCreateLine(chart) {
     chart.yAxis.selectAll(".tick line").attr("stroke", "#f79322");
 
     // Line
+    /*
     chart.line = d3
         .line()
         .x((d, i) => chart.x(i))
@@ -86,6 +99,13 @@ function graphCreateLine(chart) {
         .attr("stroke", "red")
         .attr("stroke-width", 1.5)
         .attr("d", chart.line);
+        */
+
+    // Lines array to hold multiple line data sets
+    chart.lines = [];
+    for (let i = 0; i < numLines; i++) {
+        chart.lines.push({ data: [], color: LINE_COLOURS[i] });
+    }
 
     // ResizeObserver (for dynamic graph resizing)
     const resizeObserver = new ResizeObserver((entries) => {
@@ -153,36 +173,56 @@ function graphResize(chart) {
 function graphRender(chart) {
     if (chart != undefined && chart.x != undefined) {
         // Update X domain
-        chart.x.domain([0, chart.data.length - 1]);
+        chart.x.domain([
+            0,
+            Math.max(...chart.lines.map((line) => line.data.length)) - 1,
+        ]);
         chart.g
             .select("g")
             .transition()
             .duration(0)
             .call(d3.axisBottom(chart.x));
 
-        // Update Y domain
-        chart.y.domain([d3.min(chart.data) - 1, d3.max(chart.data) + 1]);
+        // Update Y domain (with padding for multiple lines)
+        const allData = chart.lines.flatMap((line) => line.data);
+        chart.y.domain([d3.min(allData) - 1, d3.max(allData) + 1]);
         chart.yAxis.transition().duration(0).call(d3.axisLeft(chart.y));
 
-        // Draw line on graph
-        chart.path.datum(chart.data).attr(
-            "d",
-            chart.line.x((d, i) => chart.x(i))
-        );
+        // Remove old lines before rendering new ones
+        chart.g.selectAll(".line-path").remove();
+
+        // Render each line with a different color
+        chart.lines.forEach((lineData, index) => {
+            const line = d3
+                .line()
+                .x((d, i) => chart.x(i))
+                .y((d) => chart.y(d));
+
+            // Add path for each line
+            chart.g
+                .append("path")
+                .datum(lineData.data)
+                .attr("class", "line-path")
+                .attr("fill", "none")
+                .attr("stroke", lineData.color || LINE_COLOURS[index]) // Cycle through colors
+                .attr("stroke-width", 1.5)
+                .attr("d", line);
+        });
     }
 }
 
 window.addEventListener("DOMContentLoaded", function () {
     // Build D3 chart
-    graphCreateLine(GRAPH_POS_ALT);
-    graphCreateLine(GRAPH_AV_ACCEL);
-    graphCreateLine(GRAPH_AV_GYRO);
-    graphCreateLine(GRAPH_AV_VELOCITY);
+    graphCreateLine(GRAPH_AV_ACCEL, 3);
+    graphCreateLine(GRAPH_AV_GYRO, 3);
+    graphCreateLine(GRAPH_AV_VELOCITY, 1);
 
-    graphCreateLine(GRAPH_AUX_TRANSDUCERS);
-    graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
-    graphCreateLine(GRAPH_AUX_INTERNALTEMP);
-    graphCreateLine(GRAPH_AUX_GASBOTTLES);
+    graphCreateLine(GRAPH_POS_ALT, 1);
+
+    graphCreateLine(GRAPH_AUX_TRANSDUCERS, 3);
+    graphCreateLine(GRAPH_AUX_THERMOCOUPLES, 4);
+    graphCreateLine(GRAPH_AUX_INTERNALTEMP, 1);
+    graphCreateLine(GRAPH_AUX_GASBOTTLES, 2);
 
     // Load data from CSV
     /*
@@ -199,33 +239,35 @@ window.addEventListener("DOMContentLoaded", function () {
 // Update modules
 function graphUpdateAvionics(data) {
     // AVIONICS MODULE GRAPHS
-    // Acceleration
-    if (
-        data.accelX != undefined ||
-        data.accelY != undefined ||
-        data.accelZ != undefined
-    ) {
-        if (data.accelX != undefined) {
-            GRAPH_AV_ACCEL.data.push(data.accelX);
+    if (data.id == 3) {
+        // Acceleration
+        if (
+            data.accelX != undefined &&
+            data.accelY != undefined &&
+            data.accelZ != undefined
+        ) {
+            GRAPH_AV_ACCEL.lines[0].data.push(data.accelX);
+            GRAPH_AV_ACCEL.lines[1].data.push(data.accelY);
+            GRAPH_AV_ACCEL.lines[2].data.push(data.accelZ);
+            graphRender(GRAPH_AV_ACCEL);
         }
-        graphRender(GRAPH_AV_ACCEL);
-    }
 
-    // Gyroscope
-    if (
-        data.gyroX != undefined ||
-        data.gyroY != undefined ||
-        data.gyroZ != undefined
-    ) {
-        if (data.gyroX != undefined) {
-            GRAPH_AV_GYRO.data.push(data.gyroX);
+        // Gyroscope
+        if (
+            data.gyroX != undefined &&
+            data.gyroY != undefined &&
+            data.gyroZ != undefined
+        ) {
+            GRAPH_AV_GYRO.lines[0].data.push(data.gyroX);
+            GRAPH_AV_GYRO.lines[1].data.push(data.gyroY);
+            GRAPH_AV_GYRO.lines[2].data.push(data.gyroZ);
+            graphRender(GRAPH_AV_GYRO);
         }
-        graphRender(GRAPH_AV_GYRO);
     }
 
     // Velocity
     if (data.velocity != undefined) {
-        GRAPH_AV_VELOCITY.data.push(data.velocity);
+        GRAPH_AV_VELOCITY.lines[0].data.push(data.velocity);
         graphRender(GRAPH_AV_VELOCITY);
     }
 }
@@ -234,40 +276,56 @@ function graphUpdatePosition(data) {
     // POSITION MODULE GRAPHS
     // Altitude
     if (data.altitude != undefined) {
-        GRAPH_POS_ALT.data.push(data.altitude);
+        GRAPH_POS_ALT.lines[0].data.push(data.altitude);
         graphRender(GRAPH_POS_ALT);
     }
 }
 
 function graphUpdateAuxData(data) {
     // AUXILLIARY DATA MODULE GRAPHS
-    // Transducers
-    if (data.transducer1 != undefined || data.transducer2 != undefined || data.transducer3 != undefined) {
-        if (data.transducer1 != undefined) {
-            GRAPH_AUX_TRANSDUCERS.data.push(data.transducer1);
+    if (data.id == 6) {
+        // Transducers
+        if (
+            data.transducer1 != undefined &&
+            data.transducer2 != undefined &&
+            data.transducer3 != undefined
+        ) {
+            GRAPH_AUX_TRANSDUCERS.lines[0].data.push(data.transducer1);
+            GRAPH_AUX_TRANSDUCERS.lines[1].data.push(data.transducer2);
+            GRAPH_AUX_TRANSDUCERS.lines[2].data.push(data.transducer3);
+            graphRender(GRAPH_AUX_TRANSDUCERS);
         }
-        graphRender(GRAPH_AUX_TRANSDUCERS);
+
+        // Thermocouples
+        if (
+            data.thermocouple1 != undefined &&
+            data.thermocouple2 != undefined &&
+            data.thermocouple3 != undefined &&
+            data.thermocouple4 != undefined
+        ) {
+            GRAPH_AUX_THERMOCOUPLES.lines[0].data.push(data.thermocouple1);
+            GRAPH_AUX_THERMOCOUPLES.lines[1].data.push(data.thermocouple2);
+            GRAPH_AUX_THERMOCOUPLES.lines[2].data.push(data.thermocouple3);
+            GRAPH_AUX_THERMOCOUPLES.lines[3].data.push(data.thermocouple4);
+            graphRender(GRAPH_AUX_THERMOCOUPLES);
+        }
     }
 
-    // Thermocouples
-    if (data.thermocouple1 != undefined || data.thermocouple2 != undefined || data.thermocouple3 != undefined || data.thermocouple4 != undefined) {
-        if (data.thermocouple1 != undefined) {
-            GRAPH_AUX_THERMOCOUPLES.data.push(data.thermocouple1);
+    if (data.id == 7) {
+        // Internal temperature
+        if (data.internalTemp != undefined) {
+            GRAPH_AUX_INTERNALTEMP.lines[0].data.push(data.internalTemp);
+            graphRender(GRAPH_AUX_INTERNALTEMP);
         }
-        graphRender(GRAPH_AUX_THERMOCOUPLES);
-    }
 
-    // Internal temperature
-    if (data.internalTemp != undefined) {
-        GRAPH_AUX_INTERNALTEMP.data.push(data.internalTemp);
-        graphRender(GRAPH_AUX_INTERNALTEMP);
-    }
-
-    // Gas bottle weights
-    if (data.gasBottleWeight1 != undefined || data.gasBottleWeight2 != undefined) {
-        if (data.gasBottleWeight1 != undefined) {
-            GRAPH_AUX_GASBOTTLES.data.push(data.gasBottleWeight1);
+        // Gas bottle weights
+        if (
+            data.gasBottleWeight1 != undefined &&
+            data.gasBottleWeight2 != undefined
+        ) {
+            GRAPH_AUX_GASBOTTLES.lines[0].data.push(data.gasBottleWeight1);
+            GRAPH_AUX_GASBOTTLES.lines[1].data.push(data.gasBottleWeight2);
+            graphRender(GRAPH_AUX_GASBOTTLES);
         }
-        graphRender(GRAPH_AUX_GASBOTTLES);
     }
 }
