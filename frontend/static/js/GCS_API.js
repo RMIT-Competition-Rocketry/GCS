@@ -39,6 +39,29 @@ function scheduleReconnect() {
         API_socketConnect();
     }, reconnectInterval);
 }
+/*
+function logError(message) {
+    const logArea = document.getElementById('errorLogBox');
+    if (logArea) {
+        const timestamp = new Date().toLocaleTimeString();
+        logArea.textContent += `[${timestamp}] Error: ${message}\n`;
+        logArea.scrollTop = logArea.scrollHeight; // Auto scroll to bottom
+    } else {
+        console.error('Log area not found.');
+    }
+}
+*/
+function logMessage(message, type = "notification") {
+    const logArea = document.getElementById('errorLogBox');
+    if (!logArea) {
+        console.error('Log area not found.');
+        return;
+    }
+
+    const timestamp = new Date().toLocaleTimeString();
+    logArea.textContent += `[${timestamp}] ${type === "error" ? "Error" : "Notice"}: ${message}\n`;
+    logArea.scrollTop = logArea.scrollHeight;
+}
 
 document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
@@ -58,7 +81,8 @@ function API_socketConnect() {
 
     api_socket.onopen = () => {
         connected = true;
-        console.log(`connection gaming - ${api_url}`);
+        console.log(`Successfully connected to server at: - ${api_url}`);
+        logMessage("Connected successfully", "notification");
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
     };
@@ -73,6 +97,7 @@ function API_socketConnect() {
     api_socket.onclose = () => {
         connected = false;
         console.log("Socket closed: attempting to reconnect automatically");
+        logMessage("Connection Lost: Attempting to reconnect", "error");
         scheduleReconnect();
     };
 }
@@ -133,6 +158,9 @@ function API_OnMessage(event) {
             apiData._radio = "gse";
             apiData.meta.packets = ++packetsGSE;
 
+            console.log(apiData);
+            checkErrorConditions(apiData);
+
             /// GSE DISPLAY VALUES
             // Radio module
             if (typeof displayUpdateRadio === 'function') {
@@ -155,6 +183,25 @@ function API_OnMessage(event) {
     } catch (error) {
         console.error("Data processing error:", error);
     }
+}
+
+function checkErrorConditions(apiData) {
+    Object.entries(apiData.errorFlags).forEach(([key, value]) => {
+        if (value === true) {
+            logMessage(`${key} flag raised`, "error");
+        }
+    });
+/*
+    if (api_data.id === 6) {
+        if (api_data.thermocouple1 > 34.5) {
+            logMessage("Thermocouple1 too high", "error");
+            
+        }
+    }
+    if (api_data.id === 7) {
+        if (api_data.gasBottleWeight1 > )
+    }
+*/
 }
 
 function processDataForDisplay(apiData, apiId) {
