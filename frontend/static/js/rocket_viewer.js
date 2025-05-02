@@ -2,14 +2,16 @@ import * as THREE from "./three.module.js";
 import { GLTFLoader } from "./GLTFLoader.js";
 
 let rocket = null;
-let rocketPitch = 0;
-let rocketRoll = 0;
-let rocketYaw = 0;
-const deltaTime = 0.2; // 5 packets per second
+let quat = new THREE.Quaternion();
+let lastQuaternion = new THREE.Quaternion(); // backup for packet loss
+let euler = new THREE.Euler();
 
-// === MAIN VIEWER INITIALISATION ===
+let hasReceivedQuaternion = false;
+
+const deltaTime = 0.2;
+
 window.addEventListener("DOMContentLoaded", () => {
-    console.log("Loaded rocket_viewer.js");
+    console.log(" Loaded rocket_viewer.js");
 
     const container = document.getElementById("rocketViewerContainer");
     const canvas = document.getElementById("rocketCanvas");
@@ -26,25 +28,15 @@ window.addEventListener("DOMContentLoaded", () => {
     const scene = new THREE.Scene();
     scene.background = null;
 
-    const camera = new THREE.PerspectiveCamera(
-        50,
-        container.clientWidth / container.clientHeight,
-        0.1,
-        1000
-    );
+    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 2, 8);
 
-    // Lighting
     const lightMultiplier = 3;
     const lights = [
         new THREE.DirectionalLight(0xffffff, 12 * lightMultiplier),
         new THREE.DirectionalLight(0xffffff, 8 * lightMultiplier),
         new THREE.SpotLight(0xffffff, 12 * lightMultiplier),
-        new THREE.HemisphereLight(
-            0xffffff,
-            0x333333,
-            2.5 * lightMultiplier
-        ),
+        new THREE.HemisphereLight(0xffffff, 0x333333, 2.5 * lightMultiplier)
     ];
     lights[0].position.set(15, 30, 20);
     lights[1].position.set(-15, 20, -10);
@@ -54,9 +46,8 @@ window.addEventListener("DOMContentLoaded", () => {
     lights[2].decay = 1;
     lights[2].distance = 200;
     lights[3].position.set(0, 50, 0);
-    lights.forEach((light) => scene.add(light));
+    lights.forEach(light => scene.add(light));
 
-    // reflection environment
     const envTextureLoader = new THREE.CubeTextureLoader();
     scene.environment = envTextureLoader.load([
         "/img/textures/posx.jpg",
@@ -67,10 +58,9 @@ window.addEventListener("DOMContentLoaded", () => {
         "/img/textures/negz.jpg",
     ]);
 
-    // Load rocket model
     new GLTFLoader().load(
         "/static/models/rocket_model.glb",
-        (gltf) => {
+        gltf => {
             rocket = gltf.scene;
             rocket.rotation.y = Math.PI / 2;
             rocket.scale.set(2, 2, 2);
@@ -87,11 +77,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
             renderScene();
         },
-        (xhr) =>
-            console.log(
-                `🔄 Loading: ${((xhr.loaded / xhr.total) * 100).toFixed(1)}%`
-            ),
-        (err) => console.error(" Error loading model:", err)
+        xhr => console.log(` Loading: ${((xhr.loaded / xhr.total) * 100).toFixed(1)}%`),
+        err => console.error(" Error loading model:", err)
     );
 
     function renderScene() {
@@ -102,42 +89,57 @@ window.addEventListener("DOMContentLoaded", () => {
         renderer.setSize(container.clientWidth, container.clientHeight);
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
-        renderScene()
+        renderScene();
     }
-    
-    window.addEventListener("resize", onResize);
 
+    window.addEventListener("resize", onResize);
 
     // === LIVE ORIENTATION UPDATER ===
     function rocketUpdate(data) {
         if (!rocket || !data) return;
 
-        const gx = data.gyroX || 0;
-        const gy = data.gyroY || 0;
-        const gz = data.gyroZ || 0;
-
-        // DEAD RECKONING:
-        rocketPitch += gx * deltaTime;
-        rocketRoll += gy * deltaTime;
-        rocketYaw += gz * deltaTime;
-
-        // Apply to rocket rotation
-        rocket.rotation.x = THREE.MathUtils.degToRad(rocketPitch); // pitch
-        rocket.rotation.z = THREE.MathUtils.degToRad(rocketRoll); // roll
-        rocket.rotation.y = THREE.MathUtils.degToRad(rocketYaw) + Math.PI / 2; // yaw + correction
-
-        // Live HUD update
         const pitchEl = document.getElementById("pitchDisplay");
         const yawEl = document.getElementById("yawDisplay");
         const rollEl = document.getElementById("rollDisplay");
 
-        if (pitchEl && yawEl && rollEl) {
-            pitchEl.textContent = `Pitch: ${rocketPitch.toFixed(1)}°`;
-            yawEl.textContent = `Yaw:   ${rocketYaw.toFixed(1)}°`;
-            rollEl.textContent = `Roll:  ${rocketRoll.toFixed(1)}°`;
+        if (
+            data.qx !== undefined &&
+            data.qy !== undefined &&
+            data.qz !== undefined &&
+            data.qw !== undefined
+        ) {
+            //  Valid quaternion received
+            quat.set(data.qx, data.qy, data.qz, data.qw).normalize();
+            lastQuaternion.copy(quat);
+            hasReceivedQuaternion = true;
+        } else if (hasReceivedQuaternion) {
+            console.warn(" Quaternion packet missing. Reusing last known orientation.");
+            quat.copy(lastQuaternion);
+        } else {
+            console.error(" No quaternion data has ever been received.");
+            if (pitchEl && yawEl && rollEl) {
+                pitchEl.textContent = "Pitch: — (no data)";
+                yawEl.textContent = "Yaw:   — (no data)";
+                rollEl.textContent = "Roll:  — (no data)";
+            }
+            return;
         }
 
-        // Only render the scene when data is updated
+        //  Apply rotation
+        rocket.setRotationFromQuaternion(quat);
+
+        //  Convert to Euler angles for HUD
+        euler.setFromQuaternion(quat, 'XYZ');
+        const pitch = THREE.MathUtils.radToDeg(euler.x);
+        const yaw = THREE.MathUtils.radToDeg(euler.y);
+        const roll = THREE.MathUtils.radToDeg(euler.z);
+
+        if (pitchEl && yawEl && rollEl) {
+            pitchEl.textContent = `Pitch: ${pitch.toFixed(1)}°`;
+            yawEl.textContent   = `Yaw:   ${yaw.toFixed(1)}°`;
+            rollEl.textContent  = `Roll:  ${roll.toFixed(1)}°`;
+        }
+
         renderScene();
     }
 
