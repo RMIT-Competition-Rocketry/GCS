@@ -20,7 +20,7 @@ def create_app(logger=None):
     # Initialise flask
     app = Flask(__name__)
     static_dir = os.path.join(os.path.dirname(__file__), 'static')  # TODO: Load from config.ini?
-    file_extensions = ('.html', '.css', '.js', '.png', '.ico', '.svg', '.csv', 'json', 'ttf')
+    file_extensions = ('.html', '.css', '.js', '.png', '.jpg', '.ico', '.svg', '.csv', 'json', 'ttf')
 
 
     """

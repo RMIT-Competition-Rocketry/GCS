@@ -91,12 +91,12 @@ window.addEventListener("DOMContentLoaded", () => {
     // reflection environment
     const envTextureLoader = new THREE.CubeTextureLoader();
     scene.environment = envTextureLoader.load([
-        "https://threejs.org/examples/textures/cube/Bridge2/posx.jpg",
-        "https://threejs.org/examples/textures/cube/Bridge2/negx.jpg",
-        "https://threejs.org/examples/textures/cube/Bridge2/posy.jpg",
-        "https://threejs.org/examples/textures/cube/Bridge2/negy.jpg",
-        "https://threejs.org/examples/textures/cube/Bridge2/posz.jpg",
-        "https://threejs.org/examples/textures/cube/Bridge2/negz.jpg",
+        "/img/textures/posx.jpg",
+        "/img/textures/negx.jpg",
+        "/img/textures/posy.jpg",
+        "/img/textures/negy.jpg",
+        "/img/textures/posz.jpg",
+        "/img/textures/negz.jpg",
     ]);
 
     // Load rocket model
