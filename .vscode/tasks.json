@@ -195,6 +195,41 @@
             }
         },
         {
+            "label": "(frontend) dev tailwind [windows]",
+            "type": "shell",
+            "command": ".\\third_party\\tailwindcss.exe",
+            "args": [
+                "--cwd",
+                ".\\frontend\\static",
+                "-i",
+                ".\\css\\tailwind.input.css",
+                "-o",
+                ".\\css\\tailwind.css",
+                "--watch",
+                "--optimize"
+            ],
+            "icon": {
+                "id": "paintcan"
+            }
+        },
+        {
+            "label": "(frontend) build tailwind [windows]",
+            "type": "shell",
+            "command": ".\\third_party\\tailwindcss.exe",
+            "args": [
+                "--cwd",
+                ".\\frontend\\static",
+                "-i",
+                ".\\css\\tailwind.input.css",
+                "-o",
+                ".\\css\\tailwind.css",
+                "--minify",
+            ],
+            "icon": {
+                "id": "paintcan"
+            }
+        },
+        {
             "label": "Run Simulation",
             "type": "shell",
             "command": "./.venv/bin/python",

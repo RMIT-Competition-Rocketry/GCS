@@ -1,0 +1,64 @@
+<!-- Radio module -->
+<section class="m-2 gap-1 font-mono flex flex-col h-full justify-evenly p-0 pr-2 pb-2">
+    <div class="w-full flex gap-4 justify-start items-center">
+        <p class="font-bold text-hive">&nbsp;AV</p>
+        <div class="indicator-boolean mx-0 radio-av-state"></div>
+        <div class="flex flex-row gap-4 grow justify-between">
+            <p class=>
+                RSSI:<input
+                    readonly
+                    autocomplete="off"
+                    class="radio-av-rssi text-center"
+                    size="5"
+                />dBm
+            </p>
+            <p>
+                SNR:<input
+                    readonly
+                    autocomplete="off"
+                    class="radio-av-snr text-center"
+                    size="5"
+                />dB
+            </p>
+            <p>
+                Packets:<input
+                    readonly
+                    autocomplete="off"
+                    class="radio-av-packets text-center"
+                    size="5"
+                />
+            </p>
+        </div>
+    </div>
+    <div class="w-full flex gap-4 justify-between items-center">
+        <p class="font-bold text-hive">GSE</p>
+        <div class="indicator-boolean mx-0 radio-gse-state"></div>
+        
+        <div class="flex flex-row gap-4 grow justify-between">
+            <p>
+                RSSI:<input
+                    readonly
+                    autocomplete="off"
+                    class="radio-gse-rssi text-center"
+                    size="5"
+                />dBm
+            </p>
+            <p>
+                SNR:<input
+                    readonly
+                    autocomplete="off"
+                    class="radio-gse-snr text-center"
+                    size="5"
+                />dB
+            </p>
+            <p>
+                Packets:<input
+                    readonly
+                    autocomplete="off"
+                    class="radio-gse-packets text-center"
+                    size="5"
+                />
+            </p>
+        </div>
+    </div>
+</section>

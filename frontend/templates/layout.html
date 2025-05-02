@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>RMIT HIVE-IREC</title>
+		<link rel="stylesheet" type="text/css" href="css/tailwind.css" media="screen" />
+		<link rel="preload" href="/font/fauna-thin.ttf" as="font" type="font/ttf" crossorigin="anonymous" />
+	</head>
+
+	<body class="w-screen h-screen bg-hexagonal_background text-white border-hive border-2 flex flex-col">
+		<!-- Header, consistent on all pages -->
+		<header class="w-full flex flex-row gap-2">
+			<div class="w-1/6 grow">{% include 'module_info.html' %}</div>
+
+			<nav
+				class="w-auto grow h-full self-start bg-navbar flex px-[3%] py-2 font-medium text-center items-center">
+				<a href="#m-main" class="w-1/5">
+					<div class="icon icon-rocket"></div>
+					<span>Main Interface</span>
+				</a>
+				<a href="#m-ops" class="w-1/5">
+					<div class="icon icon-gamepad"></div>
+					<span>Single Operator</span>
+				</a>
+				<a href="#m-lf1" class="w-1/5">
+					<div class="icon icon-video-camera"></div>
+					<span>Live Feeds 1</span>
+				</a>
+				<a href="#m-lf2" class="w-1/5">
+					<div class="icon icon-video-camera"></div>
+					<span>Live Feeds 2</span>
+				</a>
+				<a href="#m-hmi" class="w-1/5">
+					<div class="icon icon-sitemap"></div>
+					<span>HMI</span>
+				</a>
+			</nav>
+
+			<div class="w-1/6 grow">{% include 'module_radio.html' %}</div>
+		</header>
+
+		<!-- Main grid (12x12), each module is a separate child div, using col/row positions instead of awkward nesting -->
+		<!-- Modules are loaded from files in the templates/ directory -->
+		<!-- and can be dynamically shown/hidden based on the m-name classes and nav links -->
+		<main class="w-full h-full max-h-screen max-w-full grid grid-cols-12 grid-rows-12 grid-flow-col gap-2 p-2">
+			<!-- Main interface modules -->
+			<div class="module m-main m-lf1 col-[1/5] row-[1/13] flex flex-col h-full gap-2">
+				<div class="module m-main m-lf1 grow basis-1/2 w-full">{% include 'module_avionics.html' %}</div>
+				<div class="module m-main m-lf1 grow basis-1/4 w-full">{% include 'module_position.html' %}</div>
+			</div>
+			<div class="module m-main col-[5/9] row-[1/10]">{% include 'module_rocket.html' %}</div>
+			<div class="module m-main col-[5/9] row-[10/13]">{% include 'module_flightstate.html' %}</div>
+			<div class="module m-main col-[9/13] row-[1/6]">{% include 'module_errorlog.html' %}</div>
+			<div class="module m-main col-[9/13] row-[6/13]">{% include 'module_auxdata.html' %}</div>
+
+			<!-- Operations modules -->
+			<div class="module m-ops col-[1/5] row-[1/7]">{% include 'module_continuitycheck.html' %}</div>
+			<div class="module m-ops col-[1/5] row-[7/13]">{% include 'module_poptest.html' %}</div>
+			<div class="module m-ops col-[5/9] row-[7/13]">{% include 'module_auxcontrols.html' %}</div>
+			<div class="module m-ops col-[9/13] row-[1/13]">{% include 'module_flags.html' %}</div>
+			<div class="module m-ops col-[5/9] row-[1/7]">{% include 'module_futurecontrols.html' %}</div>
+
+			<!-- Video 1 modules -->
+			<div class="module m-lf1 col-[1/13] row-[1/13] items-center justify-center">
+				<p class="text-white">TODO Single video page (video above timeline?)</p>
+			</div>
+
+			<!-- Video 2 modules -->
+			<div class="module m-lf2 col-[1/13] row-[1/13] items-center justify-center">
+				<p class="text-white text-center w-full">TODO Double video page</p>
+			</div>
+
+			<!-- HMI modules -->
+			<div class="module m-hmi col-[1/13] row-[1/13]">
+				<p class="text-white text-center w-full">TODO HMI</p>
+			</div>
+
+		</main>
+
+		<!-- Javascript should generally go below, not in individual modules -->
+		<script src="js/GCS_Display.js"></script>
+		<script src="js/GCS_API.js"></script>
+
+		<!-- Data visualisation module -->
+		<script src="js/d3.min.js"></script>
+        <script src="js/GCS_Graphs.js"></script>
+		
+		<!-- Debug/testing module -->
+		<script src="js/GCS_Testing.js"></script>
+	</body>
+</html>
