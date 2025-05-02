@@ -151,6 +151,11 @@ function displayUpdateAuxData(data) {
     if (data.gasBottleWeight2 != undefined) {
         displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 2)
     }
+
+    // Rocket load cell weight
+    if (data.analogVoltageInput1 != undefined) {
+        displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
+    }
     
 }
 

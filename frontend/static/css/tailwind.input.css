@@ -40,7 +40,7 @@ and only modify it if you know what you're doing :)
     }
 
     h3 {
-        @apply font-mono font-bold text-center text-hive-200;
+        @apply font-mono font-bold text-center text-zinc-200;
     }
 
     h3::before {
@@ -55,6 +55,11 @@ and only modify it if you know what you're doing :)
 
     input {
         @apply border border-zinc-700 my-0.5 rounded-sm max-w-full font-mono text-white text-right;
+    }
+
+    input.error {
+        @apply bg-red-600;
+        filter: drop-shadow(0 0 5px var(--color-red-600)) drop-shadow(0 0 10px var(--color-red-600));
     }
 
     .flex input {

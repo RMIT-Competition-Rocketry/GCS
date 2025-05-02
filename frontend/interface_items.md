@@ -3,19 +3,19 @@
 These are the item IDs for updating values with JavaScript.
 
 ### Aux Data (aux)
-| Name | Unit | API ID | API key | ID |
-| --- | --- | --- | --- | --- |
-| Transducer 1 | Bar | 6 | `transducer1` | `aux-transducer-1` |
-| Transducer 2 | Bar | 6 | `transducer2` | `aux-transducer-2` |
-| Transducer 3 | Bar | 6 | `transducer3` | `aux-transducer-3` |
-| Thermocouple 1 | degC | 6 | `thermocouple1` | `aux-thermocouple-1` |
-| Thermocouple 2 | degC | 6 | `thermocouple2` | `aux-thermocouple-2` |
-| Thermocouple 3 | degC | 6 | `thermocouple3` | `aux-thermocouple-3` |
-| Thermocouple 4 | degC | 6 | `thermocouple4` | `aux-thermocouple-4` |
-| Internal temperature | degC | 7 | `internalTemp` | `aux-internaltemp` |
-| Gas bottle 1 | kg | 7 | `gasBottleWeight1` | `aux-gasbottle-1` |
-| Gas bottle 2 | kg | 7 | `gasBottleWeight2` | `aux-gasbottle-2` |
-| Rocket load cell | kg |  |  | `aux-loadcell` |
+| Name | Unit | API ID | API key | ID | Error ID | Error Key |
+| --- | --- | --- | --- | --- | --- | --- |
+| Transducer 1 | Bar | 6 | `transducer1` | `aux-transducer-1` | 6,7 | `errorFlags.transducer1Error` |
+| Transducer 2 | Bar | 6 | `transducer2` | `aux-transducer-2` | 6,7 | `errorFlags.transducer2Error` |
+| Transducer 3 | Bar | 6 | `transducer3` | `aux-transducer-3` | 6,7 | `errorFlags.transducer3Error` |
+| Thermocouple 1 | degC | 6 | `thermocouple1` | `aux-thermocouple-1` | 6,7 | `errorFlags.thermocouple1Error` |
+| Thermocouple 2 | degC | 6 | `thermocouple2` | `aux-thermocouple-2` | 6,7 | `errorFlags.thermocouple2Error` |
+| Thermocouple 3 | degC | 6 | `thermocouple3` | `aux-thermocouple-3` | 6,7 | `errorFlags.thermocouple3Error` |
+| Thermocouple 4 | degC | 6 | `thermocouple4` | `aux-thermocouple-4` | 6,7 | `errorFlags.thermocouple4Error` |
+| Internal temperature | degC | 7 | `internalTemp` | `aux-internaltemp` |  |  |
+| Gas bottle 1 | kg | 7 | `gasBottleWeight1` | `aux-gasbottle-1` |  |  |
+| Gas bottle 2 | kg | 7 | `gasBottleWeight2` | `aux-gasbottle-2` |  |  |
+| Rocket load cell | kg | 7 | `analogVoltageInput1` | `aux-loadcell` |  |  |
 
 ### Avionics (av)
 | Name | Unit | API ID | API key | ID |
@@ -147,13 +147,13 @@ These are the item IDs for updating values with JavaScript.
 - errorFlags.relay1Error
 - errorFlags.relay2Error
 - errorFlags.relay3Error
-- errorFlags.thermocouple1Error
-- errorFlags.thermocouple2Error
-- errorFlags.thermocouple3Error
-- errorFlags.thermocouple4Error
-- errorFlags.transducer1Error
-- errorFlags.transducer2Error
-- errorFlags.transducer3Error
+- errorFlags.thermocouple1Error ✅
+- errorFlags.thermocouple2Error ✅
+- errorFlags.thermocouple3Error ✅
+- errorFlags.thermocouple4Error ✅
+- errorFlags.transducer1Error ✅
+- errorFlags.transducer2Error ✅
+- errorFlags.transducer3Error ✅
 - errorFlags.transducer4Error
 ​​
 ### ID 7 (GSE Data 2)
@@ -183,11 +183,11 @@ These are the item IDs for updating values with JavaScript.
 - errorFlags.relay1Error
 - errorFlags.relay2Error
 - errorFlags.relay3Error
-- errorFlags.thermocouple1Error
-- errorFlags.thermocouple2Error
-- errorFlags.thermocouple3Error
-- errorFlags.thermocouple4Error
-- errorFlags.transducer1Error
-- errorFlags.transducer2Error
-- errorFlags.transducer3Error
+- errorFlags.thermocouple1Error ✅
+- errorFlags.thermocouple2Error ✅
+- errorFlags.thermocouple3Error ✅
+- errorFlags.thermocouple4Error ✅
+- errorFlags.transducer1Error ✅
+- errorFlags.transducer2Error ✅
+- errorFlags.transducer3Error ✅
 - errorFlags.transducer4Error
