@@ -8,6 +8,7 @@ import os
 import time
 import backend.includes_python.process_logging as slogger  # slog deez nuts
 import backend.includes_python.service_helper as service_helper
+from cli.start_middleware import InterfaceType, get_interface_type
 import enum
 
 # This file can be imported or rain as an emulation service if __main__
@@ -29,7 +30,8 @@ class MockPacket(ABC):
     @classmethod
     def initialize_settings(cls,
                             EMULATION_CONFIG: dict,
-                            FAKE_DEVICE_NAME: str = None):
+                            FAKE_DEVICE_NAME: str = None,
+                            INTERFACE_TYPE: InterfaceType = InterfaceType.TEST):
         """Initialise settings for the MockPacket object
 
         Args:
@@ -45,6 +47,7 @@ class MockPacket(ABC):
         # Set static class values
         cls._FAKE_DEVICE_NAME = FAKE_DEVICE_NAME
         cls._INITIALISED = True
+        MockPacket._INTERFACE_TYPE = INTERFACE_TYPE
 
     def __init__(self):
         if not self._INITIALISED:
@@ -57,15 +60,13 @@ class MockPacket(ABC):
 
     def write_payload(self):
         """Writes payload of bytes to device"""
+
         if self._FAKE_DEVICE_NAME is None:
             raise ValueError("Cannot write to device. Device name not set.")
         try:
+            payload_bytes = self.get_payload_bytes()
             with open(self._FAKE_DEVICE_NAME, 'wb') as device:
-                device.write(metric.Metric._int_to_byte_unsigned(self.ID))
-                device.write(metric.Metric._float32_to_bytes(self.RSSI))
-                device.write(metric.Metric._float32_to_bytes(self.SNR))
-                for byte in self.payload_after_id_and_meta:
-                    device.write(byte)
+                device.write(payload_bytes)
         except Exception as e:
             slogger.error(
                 f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}")
@@ -73,11 +74,42 @@ class MockPacket(ABC):
 
     def get_payload_bytes(self) -> bytes:
         """Concatenates the ID and payload fragments into a single bytes object."""
-        payload_bytes = bytearray()
-        payload_bytes.extend(metric.Metric._int_to_byte_unsigned(self.ID))
-        for fragment in self.payload_after_id_and_meta:
-            payload_bytes.extend(fragment)
-        return bytes(payload_bytes)
+        def _format_test_payload() -> bytes:
+            output_bytes = bytearray()
+            output_bytes.extend(metric.Metric._int_to_byte_unsigned(self.ID))
+            output_bytes.extend(metric.Metric._float32_to_bytes(self.RSSI))
+            output_bytes.extend(metric.Metric._float32_to_bytes(self.SNR))
+            for fragment in self.payload_after_id_and_meta:
+                output_bytes.extend(fragment)
+            return output_bytes
+
+        def _format_test_uart_payload() -> bytes:
+            # Responses looks like this
+            # ...
+            # +TEST: LEN:32, RSSI:-46, SNR:10
+            # +TEST: RX
+            # "0400FFEA0838001FFFDA0400FFC1FFEB0007FFA73C6DAABE0000000000000000"
+            # +TEST: LEN:32, RSSI:-45, SNR:10
+            # +TEST: RX
+            # "0400001908490042FFCD03F7FFCFFFC0002DFFE93C6DAABE0000000000000000"
+            # ...
+            CRLF = '\r\n'
+            header = f"+TEST: LEN:{len(self.payload_after_id_and_meta)+1}, RSSI:{int(round(self.RSSI))}, SNR:{int(round(self.SNR))}"+CRLF
+            header_suffix = "+TEST: RX" + "\n"
+            data_payload_bytes = bytearray()
+            data_payload_bytes.extend(
+                metric.Metric._int_to_byte_unsigned(self.ID))
+            for fragment in self.payload_after_id_and_meta:
+                data_payload_bytes.extend(fragment)
+            data_payload_hex_line = f'"{data_payload_bytes.hex()}"' + CRLF
+            output_string = header + header_suffix + data_payload_hex_line
+            return output_string.encode('ascii')
+
+        match MockPacket._INTERFACE_TYPE:
+            case InterfaceType.TEST:
+                return _format_test_payload()
+            case InterfaceType.TEST_UART:
+                return _format_test_uart_payload()
 
 
 class GCStoGSEStateCMD(MockPacket):
@@ -472,6 +504,8 @@ def main():
 
     try:
         FAKE_DEVICE_NAME = sys.argv[sys.argv.index('--device-rocket') + 1]
+        INTERFACE_TYPE = get_interface_type(
+            sys.argv[sys.argv.index('--interface-type') + 1])
     except ValueError:
         slogger.error("Failed to find device names in arguments for emulator")
         raise
@@ -479,6 +513,7 @@ def main():
     MockPacket.initialize_settings(
         config.load_config()['emulation'],
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
+        INTERFACE_TYPE=INTERFACE_TYPE,
     )
 
     # Consider the implications of writing GCSto* packets as well.

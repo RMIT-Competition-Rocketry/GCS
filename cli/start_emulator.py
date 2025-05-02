@@ -1,18 +1,20 @@
 import logging
 import cli.proccess as process
+import cli.start_middleware as start_middleware
 
 
-def start_fake_serial_device_emulator(logger: logging.Logger, DEVICE: str):
+def start_fake_serial_device_emulator(logger: logging.Logger, DEVICE: str,
+                                      INTERFACE_TYPE: start_middleware.InterfaceType) -> None:
     SERVICE_NAME = "device emulator"
     try:
 
         EMULATOR_COMMAND = [
             "python3", "-u", "-Xfrozen_modules=off", "-m", "backend.tools.device_emulator",
-            "--device-rocket", DEVICE
+            "--device-rocket", DEVICE, "--interface-type", INTERFACE_TYPE.value,
         ]
 
         logger.debug(
-            f"Starting {SERVICE_NAME} module with: {EMULATOR_COMMAND}")
+            f"Starting {SERVICE_NAME} module with: {EMULATOR_COMMAND} with interface type: {INTERFACE_TYPE}")
 
         emulator_process = process.LoggedSubProcess(
             EMULATOR_COMMAND,
@@ -24,4 +26,4 @@ def start_fake_serial_device_emulator(logger: logging.Logger, DEVICE: str):
     except Exception as e:
         logger.error(
             f"An error occurred while starting {SERVICE_NAME}: {e}")
-        return None, None
+        raise

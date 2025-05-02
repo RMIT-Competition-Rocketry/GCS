@@ -1,15 +1,19 @@
+// uart_test_interface.hpp
 #pragma once
 
 #include <termios.h>
 
+#include <chrono>
+#include <mutex>
 #include <string>
+#include <vector>
 
 #include "lora_interface.hpp"
 
-class TestInterface : public LoraInterface {
+class TestUartInterface : public LoraInterface {
  public:
-  TestInterface(const std::string &device_path, int baud_rate = B115200);
-  virtual ~TestInterface();
+  TestUartInterface(const std::string &device_path, int baud_rate = B115200);
+  virtual ~TestUartInterface();
 
   bool initialize() override;
   ssize_t read_data(std::vector<uint8_t> &buffer) override;
@@ -21,5 +25,5 @@ class TestInterface : public LoraInterface {
   int uart_fd_ = -1;
   std::string device_path_;
 
-  void configure_test_interface();
+  void configure_test_uart();
 };

@@ -2,6 +2,7 @@ import logging
 import cli.proccess as process
 import os
 import enum
+import config.config as config
 from typing import Optional
 
 
@@ -9,6 +10,28 @@ class InterfaceType(enum.Enum):
     # Reference the main middleware cpp file
     UART = "UART"
     TEST = "TEST"
+    TEST_UART = "TEST_UART"
+
+
+def get_interface_type(interface: Optional[str]) -> InterfaceType:
+    """Get the interface type from the command line argument or config"""
+    if interface is None:  # Unspecified by user
+        interface = config.load_config(
+        )['hardware']['interface'].strip().upper()
+    else:
+        interface = interface.strip().upper()
+
+    # Convert string to InterfaceType enum
+    try:
+        for enum_member in InterfaceType:
+            if enum_member.name == interface:
+                return enum_member
+        # If we get here, no matching enum value was found
+        valid_types = [e.name for e in InterfaceType]
+        raise ValueError(
+            f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}")
+    except Exception as e:
+        raise ValueError(f"Invalid interface type: {interface}")
 
 
 class MiddlewareSubprocess(process.LoggedSubProcess):
