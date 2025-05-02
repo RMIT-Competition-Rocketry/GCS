@@ -278,8 +278,8 @@ class AVtoGCSData2(MockPacket):
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        LATITUDE="-37.80808500000",  # Must be 15 chars. Don't include null byte
-        LONGITUDE="144.96507800000",
+        LATITUDE=-37.80808500000,  # Must be 15 chars. Don't include null byte
+        LONGITUDE=144.96507800000,
     ):
         super().__init__()
         self.ID = 0x04
@@ -297,7 +297,12 @@ class AVtoGCSData2(MockPacket):
                 PAYLOAD_CONNECTION_FLAG,
                 CAMERA_CONTROLLER_CONNECTION,
             ),
-            metric.Metric.GPS(LATITUDE, LONGITUDE)
+            metric.Metric.GPS(LATITUDE, LONGITUDE),
+            metric.Metric.NAVIGATION_STATUS("69"),
+            metric.Metric.QUATERNION(0),
+            metric.Metric.QUATERNION(1),
+            metric.Metric.QUATERNION(-1),
+            metric.Metric.QUATERNION(0.5),
         ]
 
 

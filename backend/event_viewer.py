@@ -115,6 +115,11 @@ class Packet(ABC):
                 "camera_controller_connection_flag",
                 "GPS_latitude",
                 "GPS_longitude",
+                "nav_status",
+                "qw",
+                "qx",
+                "qy",
+                "qz",
             ],
             "AV_TO_GCS_DATA_3": [
                 "rssi",
@@ -630,8 +635,8 @@ class AV_TO_GCS_DATA_2(Packet):
 
     def __init__(self):
         super().__init__(0x04, None)
-        self._GPS_latitude_old = ""
-        self._GPS_longitude_old = ""
+        self._GPS_latitude_old = 0
+        self._GPS_longitude_old = 0
 
     def process(self, PROTO_DATA: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2) -> None:
         super().process(PROTO_DATA)
@@ -640,9 +645,10 @@ class AV_TO_GCS_DATA_2(Packet):
         GPS_longitude = PROTO_DATA.GPS_longitude
         # Add condition for to only work when in state:
         # FlightState_pb.FlightState.LANDED
-        if (GPS_latitude != self._GPS_latitude_old or
-                GPS_longitude != self._GPS_longitude_old):
-            # TODO Maybe you need to add GPS fix to this condition as well
+        if ((GPS_latitude != self._GPS_latitude_old or
+                GPS_longitude != self._GPS_longitude_old) and
+            PROTO_DATA.state_flags.GPS_fix_flag and
+                PROTO_DATA.flightState == FlightState_pb.FlightState.LANDED):
             slogger.info(
                 f"GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
             maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"

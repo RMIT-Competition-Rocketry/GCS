@@ -66,9 +66,6 @@
                 "id": "check",
                 "color": "terminal.ansiCyan"
             },
-            "problemMatcher": [
-                "$pytest"
-            ]
         },
         {
             "label": "start socat manually",
@@ -95,6 +92,23 @@
             "args": [
                 "backend/tools/zeromq_debug_sub_raw.py",
                 "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start websocket debug subscriber",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_websocket.py",
             ],
             "icon": {
                 "id": "debug-console"

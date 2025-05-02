@@ -10,6 +10,14 @@ message AV_TO_GCS_DATA_2 {
     optional common.FlightState flightState = 2;
     optional common.AVStateFlags state_flags = 3;
 
-    optional string GPS_latitude = 4;
-    optional string GPS_longitude = 5;
+    optional float GPS_latitude = 4;
+    optional float GPS_longitude = 5;
+
+    optional string navigation_status = 6;
+
+    // Quaternion notation
+    optional float qw = 7;
+    optional float qx = 8;
+    optional float qy = 9;
+    optional float qz = 10;
 }
