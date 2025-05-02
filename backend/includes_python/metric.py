@@ -24,7 +24,7 @@ class Metric:
         return bytes([~data[0] & 0xFF])
 
     @staticmethod
-    def _float_to_bytes(value: float, NUM_BYTES: int = 4) -> bytes:
+    def _float_to_bytes(value: float, NUM_BYTES: int = 4, LITTLE_ENDIAN: bool = False) -> bytes:
         """Converts a float to bytes (default 32-bit/4 bytes).
 
         Args:
@@ -37,17 +37,17 @@ class Metric:
         Raises:
             ValueError: If NUM_BYTES is not 4 (float32) or 8 (float64)
         """
-
+        mode = '<' if LITTLE_ENDIAN else '>'
         if NUM_BYTES == 4:
             # https://docs.python.org/3/library/struct.html#byte-order-size-and-alignment
-            return struct.pack('>f', value)  # big-endian float32
+            return struct.pack(f'{mode}f', value)
         elif NUM_BYTES == 8:  # Double?
-            return struct.pack('>d', value)  # big-endian float64
+            return struct.pack(f'{mode}d', value)
         else:
             raise ValueError("NUM_BYTES must be 4 (float32) or 8 (float64)")
 
     @staticmethod
-    def _float32_to_bytes(value: float) -> bytes:
+    def _float32_to_bytes(value: float, LITTLE_ENDIAN: bool = False) -> bytes:
         """Converts a float to a 32-bit (4 byte) representation.
 
         Args:
@@ -61,7 +61,7 @@ class Metric:
         """
         if not Metric.is_valid_float32(value):
             raise ValueError("Value must be a valid 32-bit float")
-        return Metric._float_to_bytes(value, 4)
+        return Metric._float_to_bytes(value, 4, LITTLE_ENDIAN)
 
     @staticmethod
     def _float64_to_bytes(value: float) -> bytes:
@@ -691,11 +691,11 @@ class Metric:
 
     @staticmethod
     def GPS(LATITUDE: str, LONGITUDE: str) -> bytes:
-        """GPS coordinate char bytes
+        """GPS coordinate float
 
         Args:
-            LATITUDE (str): 15 char string
-            LONGITUDE (str): 15 char string
+            LATITUDE (float): 32 bit float
+            LONGITUDE (float): 32 bit float
 
         Raises:
             ValueError: Raised if string length != 15
@@ -703,14 +703,18 @@ class Metric:
         Returns:
             bytes: Byte output
         """
-        if not (
-            isinstance(LATITUDE, str) and isinstance(LONGITUDE, str)
-            and len(LATITUDE) == 15 and len(LONGITUDE) == 15
-        ):
-            raise ValueError("Latitude and longitude must be 15 char strings.")
+        if not Metric.is_valid_float32(LATITUDE):
+            raise ValueError(
+                f"LATITUDE must be a valid 32-bit float.: {LATITUDE}")
 
-        # No null bytes here I think
-        return bytes(LATITUDE + LONGITUDE, 'utf-8')
+        if not Metric.is_valid_float32(LONGITUDE):
+            raise ValueError(
+                f"LONGITUDE must be a valid 32-bit float.: {LONGITUDE}")
+
+        ba = bytearray()
+        ba.extend(Metric._float32_to_bytes(LATITUDE, LITTLE_ENDIAN=True))
+        ba.extend(Metric._float32_to_bytes(LONGITUDE, LITTLE_ENDIAN=True))
+        return bytes(ba)
 
     @staticmethod
     def TRANSDUCER(
@@ -877,3 +881,40 @@ class Metric:
             raise ValueError("Value must be a valid 32-bit float.")
 
         return Metric._float32_to_bytes(VALUE)
+
+    @staticmethod
+    def QUATERNION(
+        VALUE: float,
+    ) -> bytes:
+        """_summary_
+
+        Args:
+            VALUE (float): 32bit float. [-1,1]
+
+        Returns:
+            bytes: _description_
+        """
+
+        if not Metric.is_valid_float32(VALUE):
+            raise ValueError("Value must be a valid 32-bit float.")
+
+        if not (-1 <= VALUE <= 1):
+            raise ValueError(
+                f"Quaternion is not normalised. You had {VALUE}, need [-1,1]")
+
+        return Metric._float32_to_bytes(VALUE, LITTLE_ENDIAN=True)
+
+    @staticmethod
+    def NAVIGATION_STATUS(
+        VALUE: str,
+    ) -> bytes:
+        """_summary_
+
+        Args:
+            VALUE (str): 2 char string
+        """
+
+        if len(VALUE) != 2:
+            raise ValueError("Navigation status must be 2 characters")
+
+        return bytes(VALUE, "utf-8")

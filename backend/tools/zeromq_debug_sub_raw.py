@@ -4,7 +4,7 @@ from datetime import datetime
 import signal
 import hashlib
 import backend.includes_python.ansci as ansci
-import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
+import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 
 # Subscribes to the ZeroMQ PUB socket and prints received messages in hex and ASCII format
 
@@ -91,7 +91,7 @@ def main(socket_path):
             print(f"({sha_data}) {hex_data}")
             if len(message) > 1:
                 try:
-                    data = AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1()
+                    data = AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2()
                     data.ParseFromString(message)
                     print(f"Parsed message\n: {data}")
                 except Exception as e:
