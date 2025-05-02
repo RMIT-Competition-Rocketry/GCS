@@ -7,38 +7,6 @@ let rocketRoll = 0;
 let rocketYaw = 0;
 const deltaTime = 0.2; // 5 packets per second
 
-// === LIVE ORIENTATION UPDATER ===
-function rocketUpdate(data) {
-    if (!rocket || !data) return;
-
-    const gx = data.gyroX || 0;
-    const gy = data.gyroY || 0;
-    const gz = data.gyroZ || 0;
-
-    // DEAD RECKONING:
-    rocketPitch += gx * deltaTime;
-    rocketRoll += gy * deltaTime;
-    rocketYaw += gz * deltaTime;
-
-    // Apply to rocket rotation
-    rocket.rotation.x = THREE.MathUtils.degToRad(rocketPitch); // pitch
-    rocket.rotation.z = THREE.MathUtils.degToRad(rocketRoll); // roll
-    rocket.rotation.y = THREE.MathUtils.degToRad(rocketYaw) + Math.PI / 2; // yaw + correction
-
-    // Live HUD update
-    const pitchEl = document.getElementById("pitchDisplay");
-    const yawEl = document.getElementById("yawDisplay");
-    const rollEl = document.getElementById("rollDisplay");
-
-    if (pitchEl && yawEl && rollEl) {
-        pitchEl.textContent = `Pitch: ${rocketPitch.toFixed(1)}°`;
-        yawEl.textContent = `Yaw:   ${rocketYaw.toFixed(1)}°`;
-        rollEl.textContent = `Roll:  ${rocketRoll.toFixed(1)}°`;
-    }
-}
-
-window.rocketUpdate = rocketUpdate;
-
 // === MAIN VIEWER INITIALISATION ===
 window.addEventListener("DOMContentLoaded", () => {
     console.log("Loaded rocket_viewer.js");
@@ -116,6 +84,8 @@ window.addEventListener("DOMContentLoaded", () => {
             camera.position.copy(center);
             camera.position.z += size * 1.3;
             camera.lookAt(center);
+
+            renderScene();
         },
         (xhr) =>
             console.log(
@@ -124,17 +94,52 @@ window.addEventListener("DOMContentLoaded", () => {
         (err) => console.error(" Error loading model:", err)
     );
 
-    function animate() {
-        requestAnimationFrame(animate);
+    function renderScene() {
         renderer.render(scene, camera);
     }
-    animate();
 
     function onResize() {
         renderer.setSize(container.clientWidth, container.clientHeight);
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
+        renderScene()
     }
     
     window.addEventListener("resize", onResize);
+
+
+    // === LIVE ORIENTATION UPDATER ===
+    function rocketUpdate(data) {
+        if (!rocket || !data) return;
+
+        const gx = data.gyroX || 0;
+        const gy = data.gyroY || 0;
+        const gz = data.gyroZ || 0;
+
+        // DEAD RECKONING:
+        rocketPitch += gx * deltaTime;
+        rocketRoll += gy * deltaTime;
+        rocketYaw += gz * deltaTime;
+
+        // Apply to rocket rotation
+        rocket.rotation.x = THREE.MathUtils.degToRad(rocketPitch); // pitch
+        rocket.rotation.z = THREE.MathUtils.degToRad(rocketRoll); // roll
+        rocket.rotation.y = THREE.MathUtils.degToRad(rocketYaw) + Math.PI / 2; // yaw + correction
+
+        // Live HUD update
+        const pitchEl = document.getElementById("pitchDisplay");
+        const yawEl = document.getElementById("yawDisplay");
+        const rollEl = document.getElementById("rollDisplay");
+
+        if (pitchEl && yawEl && rollEl) {
+            pitchEl.textContent = `Pitch: ${rocketPitch.toFixed(1)}°`;
+            yawEl.textContent = `Yaw:   ${rocketYaw.toFixed(1)}°`;
+            rollEl.textContent = `Roll:  ${rocketRoll.toFixed(1)}°`;
+        }
+
+        // Only render the scene when data is updated
+        renderScene();
+    }
+
+    window.rocketUpdate = rocketUpdate;
 });

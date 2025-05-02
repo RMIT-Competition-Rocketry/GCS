@@ -27,7 +27,9 @@ const maxReconnectInterval = 5000;
 var api_socket;
 var reconnectInterval = initialReconnectInterval;
 var reconnectTimeout;
+var connected = false;
 
+// Reconnecting code
 function scheduleReconnect() {
     reconnectTimeout = setTimeout(() => {
         reconnectInterval = Math.min(
@@ -38,11 +40,24 @@ function scheduleReconnect() {
     }, reconnectInterval);
 }
 
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        // Clear timeouts when tabbed away from
+        clearTimeout(reconnectTimeout); 
+    } else {
+        // Attempt reconnecting again
+        if (connected == false) {
+            scheduleReconnect();
+        }
+    }
+});
+
 function API_socketConnect() {
     const api_url = window.location.host.split(":")[0];
     api_socket = new WebSocket(`ws://${api_url}:1887`);
 
     api_socket.onopen = () => {
+        connected = true;
         console.log(`connection gaming - ${api_url}`);
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
@@ -51,10 +66,12 @@ function API_socketConnect() {
     api_socket.onmessage = API_OnMessage;
 
     api_socket.onerror = (error) => {
+        connected = false;
         console.error("websocket error: ", error);
     };
 
     api_socket.onclose = () => {
+        connected = false;
         console.log("Socket closed: attempting to reconnect automatically");
         scheduleReconnect();
     };
