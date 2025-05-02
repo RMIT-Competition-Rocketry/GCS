@@ -122,8 +122,10 @@ function API_OnMessage(event) {
 
             /// AV ROCKET
             // Rocket module
-            if (typeof rocketUpdate === "function") {
-                rocketUpdate(apiData);
+            if (apiLatest.id == 3) {
+                if (typeof rocketUpdate === "function") {
+                    rocketUpdate(apiData);
+                }
             }
         }
         // HANDLE GSE PACKETS
