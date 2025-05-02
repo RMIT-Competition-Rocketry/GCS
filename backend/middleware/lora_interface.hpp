@@ -24,8 +24,7 @@ class LoraInterface {
   static std::vector<uint8_t> float_to_be_bytes(const float VALUE) {
     uint32_t bits;
     static_assert(sizeof(VALUE) == sizeof(bits), "Float size mismatch");
-    std::memcpy(&bits, &VALUE, sizeof(bits));
-    bits = htonl(bits);  // To Big Endian
+    std::memcpy(&bits, &VALUE, sizeof(bits));  // Should already be big endian
     return {static_cast<uint8_t>((bits >> 24) & 0xFF),
             static_cast<uint8_t>((bits >> 16) & 0xFF),
             static_cast<uint8_t>((bits >> 8) & 0xFF),

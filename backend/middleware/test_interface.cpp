@@ -15,15 +15,17 @@ TestInterface::TestInterface(const std::string &device_path, int baud_rate)
 
 TestInterface::~TestInterface() {
   // If file descriptor indicates it is open, close it
+  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ >= 0) close(uart_fd_);
 }
 
 bool TestInterface::initialize() {
+  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
   if (uart_fd_ < 0) {
-    slogger::error("Error: Failed to open TEST UART device: " + device_path_);
+    slogger::error("Error: Failed to open TEST device: " + device_path_);
     throw std::system_error(errno, std::system_category(),
-                            "Failed to open TEST UART device");
+                            "Failed to open TEST device");
   }
 
   configure_test_interface();
@@ -54,6 +56,7 @@ void TestInterface::configure_test_interface() {
 }
 
 ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer) {
+  std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("TEST UART file descriptor is invalid");
     return -1;
@@ -67,6 +70,6 @@ ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer) {
 }
 
 ssize_t TestInterface::write_data(const std::vector<uint8_t> &data) {
-  // Write to the Aether
+  // Write to the Aether. This doesn't actually do anything
   return static_cast<ssize_t>(data.size());
 }

@@ -20,6 +20,7 @@ class UartInterface : public LoraInterface {
   bool initialize() override;
   ssize_t read_data(std::vector<uint8_t> &buffer) override;
   ssize_t write_data(const std::vector<uint8_t> &data) override;
+  static std::vector<uint8_t> hex_string_to_bytes(const std::string &hex);
 
  private:
   std::recursive_mutex io_mutex_;
@@ -50,5 +51,4 @@ class UartInterface : public LoraInterface {
 
   ssize_t write_serial(const std::vector<uint8_t> &data);
   std::vector<uint8_t> read_with_timeout(int timeout_ms);
-  std::vector<uint8_t> hex_string_to_bytes(const std::string &hex);
 };

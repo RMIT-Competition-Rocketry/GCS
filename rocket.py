@@ -15,7 +15,7 @@ from typing import Optional, Callable
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
-from cli.start_middleware import start_middleware, InterfaceType
+from cli.start_middleware import start_middleware, InterfaceType, get_interface_type
 from cli.start_event_viewer import start_event_viewer
 from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
@@ -40,30 +40,6 @@ class DecoratorSelector(enum.Enum):
     ALL_DEV = enum.auto()  # Give me all the dev options
     SIM = enum.auto()  # Give me the options for simulation
     GSE_ONLY = enum.auto()  # Give me just the GSE only option
-
-
-def get_interface_type(interface: Optional[str]) -> InterfaceType:
-    """Get the interface type from the command line argument or config"""
-    if interface is None:  # Unspecified by user
-        interface = config.load_config(
-        )['hardware']['interface'].strip().upper()
-        logger.debug(f"Using interface type from config: {interface}")
-    else:
-        interface = interface.strip().upper()
-        logger.debug(f"Using interface type from CLI: {interface}")
-
-    # Convert string to InterfaceType enum
-    try:
-        for enum_member in InterfaceType:
-            if enum_member.name == interface:
-                return enum_member
-        # If we get here, no matching enum value was found
-        valid_types = [e.name for e in InterfaceType]
-        raise ValueError(
-            f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}")
-    except Exception as e:
-        logger.error(f"Error processing interface type: {e}")
-        raise ValueError(f"Invalid interface type: {interface}")
 
 
 def cli_decorator_factory(SELECTOR: DecoratorSelector):
@@ -164,7 +140,7 @@ def start_services(COMMAND: Command,
             "Internal Docker implimentation is out of date. Do not use")
         start_docker_container(logger)
 
-    # 0.1 Build C++ middleware
+    # 1 Build C++ middleware
     if not nobuild:
         try:
             start_middleware_build(logger, CMakeBuildModes.DEBUG)
@@ -182,14 +158,10 @@ def start_services(COMMAND: Command,
             logger.info("Starting UART interface")
             # Just leave second (emulator) device as None
             devices = ("/dev/ttyAMA0", None)
+        case InterfaceType.TEST_UART:
+            devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TEST:
-            if COMMAND == Command.RUN:
-                logger.warning("Test interface selected in production mode")
-            logger.info("Starting TEST interface")
-            devices = start_fake_serial_device(logger)
-            if devices == (None, None):
-                raise RuntimeError(
-                    "Failed to start fake serial device. Exiting")
+            devices = run_pseudoterm_setup(COMMAND)
         case _:
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
@@ -214,8 +186,9 @@ def start_services(COMMAND: Command,
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical
-    if INTERFACE_TYPE == InterfaceType.TEST and COMMAND == Command.DEV:
-        start_fake_serial_device_emulator(logger, devices[1])
+    if INTERFACE_TYPE in [InterfaceType.TEST, InterfaceType.TEST_UART] \
+            and COMMAND == Command.DEV:
+        start_fake_serial_device_emulator(logger, devices[1], INTERFACE_TYPE)
     elif COMMAND == Command.SIMULATION:
         start_simulator(logger, devices[1])
 
@@ -226,12 +199,24 @@ def start_services(COMMAND: Command,
     if not nopendant:
         start_pendant_emulator(logger)
 
-    # 7. Start the webcocket / frontend API
+    # 7. Start the websocket / frontend API
     start_frontend_api(logger, "gcs_rocket")
 
     # 8. Start the frontend web server
     if frontend:
         start_frontend_webserver(logger)
+
+
+def run_pseudoterm_setup(COMMAND: Command):
+    if COMMAND == Command.RUN:
+        logger.warning("Test interface selected in production mode")
+    logger.info("Starting pseudo-terminals for emulation")
+    devices = start_fake_serial_device(logger)
+    if devices == (None, None):
+        raise RuntimeError(
+            "Failed to start fake serial device. Exiting")
+
+    return devices
 
 
 @click.group()

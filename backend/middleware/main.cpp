@@ -22,6 +22,7 @@
 #include "sequence.hpp"
 #include "subprocess_logging.hpp"
 #include "test_interface.hpp"
+#include "test_uart_interface.hpp"
 #include "uart_interface.hpp"
 
 // This file hosts the ZeroMQ IPC server stuff
@@ -224,6 +225,8 @@ std::shared_ptr<LoraInterface> create_interface(
     interface = std::make_shared<UartInterface>(DEVICE_PATH);
   } else if (INTERFACE_NAME == "TEST") {
     interface = std::make_shared<TestInterface>(DEVICE_PATH);
+  } else if (INTERFACE_NAME == "TEST_UART") {
+    interface = std::make_shared<TestUartInterface>(DEVICE_PATH);
   } else {
     throw std::runtime_error("Error: Invalid interface type");
   }

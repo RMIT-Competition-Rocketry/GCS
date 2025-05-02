@@ -791,7 +791,7 @@ class GSE_TO_GCS_DATA_1(GSEPacket):
         THERMOCOUPLE_VALUE_ERROR = [
             (PROTO_DATA.thermocouple_1, PROTO_DATA.error_flags.thermocouple_1_error),
             (PROTO_DATA.thermocouple_2, PROTO_DATA.error_flags.thermocouple_2_error),
-            (PROTO_DATA.thermocouple_2, PROTO_DATA.error_flags.thermocouple_2_error),
+            (PROTO_DATA.thermocouple_3, PROTO_DATA.error_flags.thermocouple_3_error),
             (PROTO_DATA.thermocouple_4, PROTO_DATA.error_flags.thermocouple_4_error),
         ]
         for i, thermocouple_values in enumerate(THERMOCOUPLE_VALUE_ERROR):

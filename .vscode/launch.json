@@ -65,6 +65,23 @@
             ]
         },
         {
+            "name": "Python Debugger: cli dev uart",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            // I think this is the default value anyway.
+            // But you can debug python subprocess with this which is great
+            // Just need to use the CALL STACK menu on the left in VSCode
+            "subProcess": true,
+            "args": [
+                "dev",
+                "--interface",
+                "test_uart",
+                "--nopendant"
+            ]
+        },
+        {
             "name": "Python Debugger: cli simulator",
             "type": "debugpy",
             "request": "launch",
