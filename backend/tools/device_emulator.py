@@ -529,8 +529,6 @@ def main():
                                GSEtoGCSData1(),
                                GSEtoGCSData2()]
 
-    test_packets_and_source = [AVtoGCSData2()]
-
     # Used for the sequence lock class GSE debugging
     GSE_LOCK_PATH = config.load_config(
     )['locks']['lock_file_gse_response_path']
