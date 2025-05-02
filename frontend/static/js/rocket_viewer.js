@@ -1,5 +1,5 @@
-import * as THREE from "https://cdn.skypack.dev/three@0.129.0/build/three.module.js";
-import { GLTFLoader } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from "./three.module.js";
+import { GLTFLoader } from "./GLTFLoader.js";
 
 let rocket = null;
 let rocketPitch = 0;
@@ -130,9 +130,11 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     animate();
 
-    window.addEventListener("resize", () => {
+    function onResize() {
         renderer.setSize(container.clientWidth, container.clientHeight);
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
-    });
+    }
+    
+    window.addEventListener("resize", onResize);
 });
