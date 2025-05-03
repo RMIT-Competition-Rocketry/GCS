@@ -546,7 +546,7 @@ def send_packet() -> device_emulator.GCStoGSEStateCMD:
             state_command = device_emulator.GCStoGSEStateCMD(**states)
             try:
                 push_socket.send(
-                    state_command.get_payload_bytes(), flags=zmq.NOBLOCK)
+                    state_command.get_payload_bytes(EXTERNAL=True), flags=zmq.NOBLOCK)
             except zmq.ZMQError:
                 # Queue is likely full
                 slogger.warning(

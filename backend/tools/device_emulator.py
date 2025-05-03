@@ -72,13 +72,14 @@ class MockPacket(ABC):
                 f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}")
             raise
 
-    def get_payload_bytes(self) -> bytes:
+    def get_payload_bytes(self, EXTERNAL=False) -> bytes:
         """Concatenates the ID and payload fragments into a single bytes object."""
         def _format_test_payload() -> bytes:
             output_bytes = bytearray()
             output_bytes.extend(metric.Metric._int_to_byte_unsigned(self.ID))
-            output_bytes.extend(metric.Metric._float32_to_bytes(self.RSSI))
-            output_bytes.extend(metric.Metric._float32_to_bytes(self.SNR))
+            if not EXTERNAL:
+                output_bytes.extend(metric.Metric._float32_to_bytes(self.RSSI))
+                output_bytes.extend(metric.Metric._float32_to_bytes(self.SNR))
             for fragment in self.payload_after_id_and_meta:
                 output_bytes.extend(fragment)
             return output_bytes
