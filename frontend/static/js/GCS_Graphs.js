@@ -6,6 +6,8 @@
  * Functions and constants should be prefixed with "graph_"
  */
 
+MAX_POINTS = 200;
+
 // DEFINE CHARTS
 const LINE_COLOURS = [
     "var(--color-red-500)",
@@ -209,10 +211,25 @@ function graphResize(chart) {
 // Render graph
 function graphRender(chart) {
     if (chart != undefined && chart.x != undefined) {
+        // Limit chart to MAX_POINTS (rolling)
+        if (chart.xOffset === undefined) {
+            chart.xOffset = 0; // Store the number of points shifted
+        }
+
+        let xShift = 0;
+        chart.lines.forEach(line => {
+            if (line.data.length > MAX_POINTS) {
+                xShift = (line.data.length - MAX_POINTS);
+                line.data.splice(0, line.data.length - MAX_POINTS); // Remove old points
+            }
+        });
+        chart.xOffset += xShift;
+
+
         // Update X domain
         chart.x.domain([
-            0,
-            Math.max(...chart.lines.map((line) => line.data.length)) - 1,
+            chart.xOffset,
+            Math.max(...chart.lines.map((line) => line.data.length)) - 1 + chart.xOffset,
         ]);
         chart.g
             .select("g")
@@ -257,7 +274,7 @@ function graphRender(chart) {
         chart.lines.forEach((lineData, index) => {
             const line = d3
                 .line()
-                .x((d, i) => chart.x(i))
+                .x((d, i) => chart.x(i+chart.xOffset))
                 .y((d) => chart.y(d));
 
             // Add path for each line
