@@ -116,27 +116,27 @@ function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
     // Transducers
     if (data.transducer1 != undefined) {
-        displaySetValue("aux-transducer-1", data.transducer1, 1);
+        displaySetValue("aux-transducer-1", data.transducer1, 2);
     }
     if (data.transducer2 != undefined) {
-        displaySetValue("aux-transducer-2", data.transducer2, 1);
+        displaySetValue("aux-transducer-2", data.transducer2, 2);
     }
     if (data.transducer3 != undefined) {
-        displaySetValue("aux-transducer-3", data.transducer3, 1);
+        displaySetValue("aux-transducer-3", data.transducer3, 2);
     }
 
     // Thermocouples
     if (data.thermocouple1 != undefined) {
-        displaySetValue("aux-thermocouple-1", data.thermocouple1, 1);
+        displaySetValue("aux-thermocouple-1", data.thermocouple1, 2);
     }
     if (data.thermocouple2 != undefined) {
-        displaySetValue("aux-thermocouple-2", data.thermocouple2, 1);
+        displaySetValue("aux-thermocouple-2", data.thermocouple2, 2);
     }
     if (data.thermocouple3 != undefined) {
-        displaySetValue("aux-thermocouple-3", data.thermocouple3, 1);
+        displaySetValue("aux-thermocouple-3", data.thermocouple3, 2);
     }
     if (data.thermocouple4 != undefined) {
-        displaySetValue("aux-thermocouple-4", data.thermocouple4, 1);
+        displaySetValue("aux-thermocouple-4", data.thermocouple4, 2);
     }
 
     // Internal temperature
@@ -215,14 +215,6 @@ function displayUpdateAvionics(data) {
     }
 }
 
-function displayUpdateContinuityCheck(data) {
-    /// MODULE CONTINUITYCHECK
-}
-
-function displayUpdateFlags(data) {
-    /// MODULE FLAGS
-}
-
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
 
@@ -233,22 +225,6 @@ function displayUpdateFlightState(data) {
     if (data.flightState != undefined) {
         displaySetString("fs-flightstate", data.flightState);
     }
-}
-
-function displayUpdateHMI(data) {
-    /// MODULE HMI
-}
-
-function displayUpdateOtherControls(data) {
-    /// MODULE OTHERCONTROLS
-}
-
-function displayUpdatePayload(data) {
-    /// MODULE PAYLOAD
-}
-
-function displayUpdatePopTest(data) {
-    /// MODULE POPTEST
 }
 
 function displayUpdatePosition(data) {
@@ -267,11 +243,21 @@ function displayUpdatePosition(data) {
 
     // GPS
     if (data.GPSLatitude != undefined) {
-        displaySetString("pos-gps-lat", data.GPSLatitude);
+        // Only update if reading isn't 0
+        if (data.GPSLatitude != 0) {
+            displaySetString("pos-gps-lat", data.GPSLatitude);
+        } else {
+            // Mark as stale?
+        }   
     }
 
     if (data.GPSLongitude != undefined) {
-        displaySetString("pos-gps-lon", data.GPSLongitude);
+        // Only update if reading isn't 0
+        if (data.GPSLongitude != 0) {
+            displaySetString("pos-gps-lon", data.GPSLongitude);
+        } else {
+            // Mark as stale?
+        }
     }
 }
 
@@ -287,7 +273,7 @@ function displayUpdateRadio(data) {
             }
 
             if (data.meta.snr != undefined) {
-                displaySetValue("radio-av-snr", data.meta.snr, 1);
+                displaySetValue("radio-av-snr", data.meta.snr, 0);
             }
 
             if (data.meta.packets != undefined) {
@@ -300,7 +286,7 @@ function displayUpdateRadio(data) {
             }
 
             if (data.meta.snr != undefined) {
-                displaySetValue("radio-gse-snr", data.meta.snr, 1);
+                displaySetValue("radio-gse-snr", data.meta.snr, 0);
             }
 
             if (data.meta.packets != undefined) {
