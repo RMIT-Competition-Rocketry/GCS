@@ -158,7 +158,7 @@ function API_OnMessage(event) {
             apiData._radio = "gse";
             apiData.meta.packets = ++packetsGSE;
 
-            console.log(apiData);
+            //console.log(apiData);
             checkErrorConditions(apiData);
 
             /// GSE DISPLAY VALUES
