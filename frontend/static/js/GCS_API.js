@@ -147,7 +147,7 @@ function API_OnMessage(event) {
 
             /// AV ROCKET
             // Rocket module
-            if (apiLatest.id == 3) {
+            if (apiLatest.id == 4) {
                 if (typeof rocketUpdate === "function") {
                     rocketUpdate(apiData);
                 }
