@@ -6,6 +6,8 @@
  * Functions and constants should be prefixed with "graph_"
  */
 
+MAX_POINTS = 200;
+
 // DEFINE CHARTS
 const LINE_COLOURS = [
     "var(--color-red-500)",
@@ -13,30 +15,35 @@ const LINE_COLOURS = [
     "var(--color-blue-500)",
     "white",
 ];
-const DEFAULT_MARGINS = { top: 8, right: 8, bottom: 20, left: 40 };
+const DEFAULT_MARGINS = { top: 4, right: 10, bottom: 20, left: 40 };
 
-const GRAPH_AV_ACCEL = { selector: "#graph-av-accel", data: [] };
-const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data: [] };
+const GRAPH_AV_ACCEL = {
+    selector: "#graph-av-accel",
+    data: [],
+    ylabel: "Acceleration",
+};
+const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data: [], ylabel: "Gyro" };
 const GRAPH_AV_VELOCITY = {
     selector: "#graph-av-velocity",
     data: [],
     margin: { top: 8, right: 8, bottom: 20, left: 50 },
+    ylabel: "Velocity",
 };
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
     data: [],
-    margin: { top: 8, right: 8, bottom: 20, left: 50 },
+    margin: { top: 8, right: 8, bottom: 20, left: 50 }, ylabel: "Altitude",
 };
-const GRAPH_AUX_TRANSDUCERS = { selector: "#graph-aux-transducers", data: [] };
+const GRAPH_AUX_TRANSDUCERS = { selector: "#graph-aux-transducers", data: [], ylabel: "Transducer Pressure" };
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
-    data: [],
+    data: [], ylabel: "Thermocouple Temp"
 };
 const GRAPH_AUX_INTERNALTEMP = {
     selector: "#graph-aux-internaltemp",
-    data: [],
+    data: [], ylabel: "Enclosure Temp" 
 };
-const GRAPH_AUX_GASBOTTLES = { selector: "#graph-aux-gasbottles", data: [] };
+const GRAPH_AUX_GASBOTTLES = { selector: "#graph-aux-gasbottles", data: [], ylabel: "Gas Bottle Weight" };
 
 // Create and initialise line graphs
 function graphCreateLine(chart, numLines) {
@@ -69,22 +76,43 @@ function graphCreateLine(chart, numLines) {
         );
 
     // Create and style the x and y axis
+    // x axis
     chart.g
         .append("g")
         .attr("transform", `translate(0,${chart.graphHeight})`)
-        .call(d3.axisBottom(chart.x))
+        .call(
+            d3
+                .axisBottom(chart.x)
+                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+        )
         .selectAll(".domain")
         .attr("stroke", "#f79322")
         .attr("stroke-width", 2);
     chart.g.selectAll(".tick line").attr("stroke", "#f79322");
 
+    // Y-axis
     chart.yAxis = chart.g.append("g").attr("class", "y-axis");
     chart.yAxis
-        .call(d3.axisLeft(chart.y))
+        .call(
+            d3
+                .axisLeft(chart.y)
+                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+        )
         .selectAll(".domain")
         .attr("stroke", "#f79322")
         .attr("stroke-width", 2);
     chart.yAxis.selectAll(".tick line").attr("stroke", "#f79322");
+
+    // Y-axis Label
+    chart.yAxisLabel = chart.svg
+        .append("text")
+        .attr("text-anchor", "middle")
+        .attr("font-size", "90%")
+        .attr("fill", "white")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -Math.round(chart.graphHeight / 2))
+        .attr("y", 10)
+        .text(chart.ylabel || "Y LABEL");
 
     // Line
     /*
@@ -160,10 +188,21 @@ function graphResize(chart) {
     chart.g
         .select("g")
         .attr("transform", `translate(0,${chart.graphHeight})`)
-        .call(d3.axisBottom(chart.x));
+        .call(
+            d3
+                .axisBottom(chart.x)
+                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+        );
 
     chart.y.range([chart.graphHeight, 0]);
-    chart.yAxis.call(d3.axisLeft(chart.y));
+    chart.yAxis.call(
+        d3.axisLeft(chart.y).tickFormat((d) => (Number.isInteger(d) ? d : ""))
+    );
+
+    chart.yAxisLabel.attr(
+        "x",
+        -Math.round(chart.graphHeight / 2) - chart.margin.top
+    );
 
     // Re-render
     graphRender(chart);
@@ -172,21 +211,61 @@ function graphResize(chart) {
 // Render graph
 function graphRender(chart) {
     if (chart != undefined && chart.x != undefined) {
+        // Limit chart to MAX_POINTS (rolling)
+        if (chart.xOffset === undefined) {
+            chart.xOffset = 0; // Store the number of points shifted
+        }
+
+        let xShift = 0;
+        chart.lines.forEach(line => {
+            if (line.data.length > MAX_POINTS) {
+                xShift = (line.data.length - MAX_POINTS);
+                line.data.splice(0, line.data.length - MAX_POINTS); // Remove old points
+            }
+        });
+        chart.xOffset += xShift;
+
+
         // Update X domain
         chart.x.domain([
-            0,
-            Math.max(...chart.lines.map((line) => line.data.length)) - 1,
+            chart.xOffset,
+            Math.max(...chart.lines.map((line) => line.data.length)) - 1 + chart.xOffset,
         ]);
         chart.g
             .select("g")
             .transition()
             .duration(0)
-            .call(d3.axisBottom(chart.x));
+            .call(
+                d3
+                    .axisBottom(chart.x)
+                    .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+            );
 
         // Update Y domain (with padding for multiple lines)
         const allData = chart.lines.flatMap((line) => line.data);
-        chart.y.domain([d3.min(allData) - 1, d3.max(allData) + 1]);
-        chart.yAxis.transition().duration(0).call(d3.axisLeft(chart.y));
+        chart.y.domain([d3.min(allData) - 1, d3.max(allData) + 1]).nice();
+        chart.yAxis
+            .transition()
+            .duration(0)
+            .call(
+                d3
+                    .axisLeft(chart.y)
+                    .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+            );
+
+        // De-emphasixe hidden non-integer axis values 
+        chart.g
+            .selectAll(".tick")
+            .filter((d) => !Number.isInteger(d))
+            .select("line")
+            .style("stroke", "#ccc")
+            .style("stroke-width", 0.5);
+
+        chart.g
+            .selectAll(".tick")
+            .filter((d) => !Number.isInteger(d))
+            .select("text")
+            .style("display", "none");
 
         // Remove old lines before rendering new ones
         chart.g.selectAll(".line-path").remove();
@@ -195,7 +274,7 @@ function graphRender(chart) {
         chart.lines.forEach((lineData, index) => {
             const line = d3
                 .line()
-                .x((d, i) => chart.x(i))
+                .x((d, i) => chart.x(i+chart.xOffset))
                 .y((d) => chart.y(d));
 
             // Add path for each line
@@ -276,7 +355,7 @@ function graphUpdatePosition(data) {
     // POSITION MODULE GRAPHS
     // Altitude
     if (data.altitude != undefined) {
-        GRAPH_POS_ALT.lines[0].data.push(data.altitude);
+        GRAPH_POS_ALT.lines[0].data.push(metresToFeet(data.altitude)); // Graph in feet
         graphRender(GRAPH_POS_ALT);
     }
 }

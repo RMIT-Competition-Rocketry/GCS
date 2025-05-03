@@ -19,7 +19,7 @@
 
     <!-- Altitude -->
     <section class="flex flex-col grow p-0">
-        <h3>Altitude (m)</h3>
+        <h3>Altitude (ft)</h3>
         <div class="grow w-full h-full">
             <svg
                 id="graph-pos-alt"
@@ -30,25 +30,27 @@
         </div>
         <div class="flex gap-1 items-center px-2">
             <p class="text-right">&nbsp;&nbsp;&nbsp;&nbsp;Altitude:</p>
+            <input readonly autocomplete="off" class="pos-alt-ft border-b-red-500 border-b-2" />
+            <p>'</p>
             <input
                 readonly
                 autocomplete="off"
-                class="pos-alt-m border-b-red-500 border-b-2"
+                class="pos-alt-m"
             />
             <p class="mr-4">m</p>
-            <input readonly autocomplete="off" class="pos-alt-ft" />
-            <p>ft</p>
+            
         </div>
         <div class="flex gap-1 items-center px-2">
             <p class="text-right">Max&nbsp;Altitude:</p>
+            <input readonly autocomplete="off" class="pos-maxalt-ft" />
+            <p>'</p>
             <input
                 readonly
                 autocomplete="off"
                 class="pos-maxalt-m"
             />
             <p class="mr-4">m</p>
-            <input readonly autocomplete="off" class="pos-maxalt-ft" />
-            <p>ft</p>
+            
         </div>
     </section>
 </div>
