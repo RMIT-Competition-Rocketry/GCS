@@ -245,7 +245,7 @@ function displayUpdatePosition(data) {
     if (data.GPSLatitude != undefined) {
         // Only update if reading isn't 0
         if (data.GPSLatitude != 0) {
-            displaySetString("pos-gps-lat", data.GPSLatitude);
+            displaySetValue("pos-gps-lat", data.GPSLatitude, 6);
         } else {
             // Mark as stale?
         }   
@@ -254,7 +254,7 @@ function displayUpdatePosition(data) {
     if (data.GPSLongitude != undefined) {
         // Only update if reading isn't 0
         if (data.GPSLongitude != 0) {
-            displaySetString("pos-gps-lon", data.GPSLongitude);
+            displaySetValue("pos-gps-lon", data.GPSLongitude, 6);
         } else {
             // Mark as stale?
         }

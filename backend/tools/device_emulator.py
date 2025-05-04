@@ -190,7 +190,7 @@ class AVtoGCSData1(MockPacket):
     def __init__(
         self,
         RSSI: float = 0.0,
-        SNR: float = 69,
+        SNR: float = 61,
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
@@ -269,7 +269,7 @@ class AVtoGCSData2(MockPacket):
     def __init__(
         self,
         RSSI: float = 0.0,
-        SNR: float = 69,
+        SNR: float = 62,
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
@@ -278,8 +278,8 @@ class AVtoGCSData2(MockPacket):
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        LATITUDE=-37.80808500000,  # Must be 15 chars. Don't include null byte
-        LONGITUDE=144.96507800000,
+        LATITUDE=-3628.816650000,  # Must be 15 chars. Don't include null byte
+        LONGITUDE=14401.967773000,
     ):
         super().__init__()
         self.ID = 0x04
@@ -310,7 +310,7 @@ class AVtoGCSData3(MockPacket):
     def __init__(
         self,
         RSSI: float = 0.0,
-        SNR: float = 69,
+        SNR: float = 63,
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
@@ -344,7 +344,7 @@ class GSEtoGCSData1(MockPacket):
     def __init__(
         self,
         RSSI: float = 0.0,
-        SNR: float = 69,
+        SNR: float = 71,
         MANUAL_PURGED: bool = False,
         O2_FILL_ACTIVATED: bool = False,
         SELECTOR_SWITCH_NEUTRAL_POSITION: bool = False,
@@ -353,13 +353,13 @@ class GSEtoGCSData1(MockPacket):
         IGNITION_SELECTED: bool = False,
         GAS_FILL_SELECTED: bool = False,
         SYSTEM_ACTIVATED: bool = False,
-        TRANSDUCER1: float = 1234,
-        TRANSDUCER2: float = 1234,
-        TRANSDUCER3: float = 1234,
-        THERMOCOUPLE1: float = 1234,
-        THERMOCOUPLE2: float = 1234,
-        THERMOCOUPLE3: float = 1234,
-        THERMOCOUPLE4: float = 1234,
+        TRANSDUCER1: float = 0.5,
+        TRANSDUCER2: float = 1.0,
+        TRANSDUCER3: float = 1.5,
+        THERMOCOUPLE1: float = 21.23,
+        THERMOCOUPLE2: float = 32.34,
+        THERMOCOUPLE3: float = 43.45,
+        THERMOCOUPLE4: float = 54.56,
         IGNITION_ERROR: bool = False,
         RELAY3_ERROR: bool = False,
         RELAY2_ERROR: bool = True,
@@ -425,7 +425,7 @@ class GSEtoGCSData2(MockPacket):
     def __init__(
         self,
         RSSI: float = 0.0,
-        SNR: float = 69,
+        SNR: float = 72,
         MANUAL_PURGED: bool = False,
         O2_FILL_ACTIVATED: bool = False,
         SELECTOR_SWITCH_NEUTRAL_POSITION: bool = False,

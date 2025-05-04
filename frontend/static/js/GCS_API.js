@@ -20,6 +20,28 @@ function feetToMetres(feet) {
     return feet / 3.28084;
 }
 
+function gpsToDecimal(gps) {
+    // Converts the compressed GPS value into a decimal degrees coordinate
+    if (gps == 0) {
+        return 0;
+    }
+
+    // Split string into parts
+    let [intPart, decPart] = gps.toString().split('.');
+    
+    // Get sign (positive or negative)
+    let sign = intPart >= 0 ? 1 : -1;
+
+    // Equations only work on positive numbers (since rounding and modulus changes in negative)
+    intPart = Math.abs(intPart);
+    let degrees = parseInt(intPart / 100);
+    let minutes = parseInt(intPart % 100);
+    let seconds = parseFloat(decPart.slice(0, 2) + '.' + decPart.slice(2));
+
+    // Convert to decimal
+    return sign * (degrees + minutes/60 + seconds/3600);
+}
+
 // API
 const initialReconnectInterval = 200;
 const maxReconnectInterval = 5000;
@@ -229,13 +251,21 @@ function processDataForDisplay(apiData, apiId) {
                 ? apiData.accelLowZ
                 : apiData.accelHighZ;
     }
-
+    
     // Altitude
     // Track maximum altitude
     if (altitudeMax == undefined || apiData.altitude > altitudeMax) {
         altitudeMax = apiData.altitude;
     }
     processedData.altitudeMax = altitudeMax;
+
+    // GPS position
+    if (apiData.GPSLatitude != undefined) {
+        processedData.GPSLatitude = gpsToDecimal(apiData.GPSLatitude);
+    }
+    if (apiData.GPSLongitude != undefined) {
+        processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude);
+    }
 
     // Return processed data
     return processedData;
