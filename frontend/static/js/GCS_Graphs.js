@@ -20,30 +20,30 @@ const DEFAULT_MARGINS = { top: 4, right: 10, bottom: 20, left: 40 };
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
     data: [],
-    ylabel: "Acceleration",
+    ylabel: "Acceleration (g)",
 };
-const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data: [], ylabel: "Gyro" };
+const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data: [], ylabel: "Rotation Rate (°/s)" };
 const GRAPH_AV_VELOCITY = {
     selector: "#graph-av-velocity",
     data: [],
     margin: { top: 8, right: 8, bottom: 20, left: 50 },
-    ylabel: "Velocity",
+    ylabel: "Vertical Speed (m/s)",
 };
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
     data: [],
-    margin: { top: 8, right: 8, bottom: 20, left: 50 }, ylabel: "Altitude",
+    margin: { top: 8, right: 8, bottom: 20, left: 50 }, ylabel: "Altitude (ft)",
 };
-const GRAPH_AUX_TRANSDUCERS = { selector: "#graph-aux-transducers", data: [], ylabel: "Transducer Pressure" };
+const GRAPH_AUX_TRANSDUCERS = { selector: "#graph-aux-transducers", data: [], ylabel: "Pressure (bar)" };
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
-    data: [], ylabel: "Thermocouple Temp"
+    data: [], ylabel: "Temperature (°C)"
 };
 const GRAPH_AUX_INTERNALTEMP = {
     selector: "#graph-aux-internaltemp",
-    data: [], ylabel: "Enclosure Temp" 
+    data: [], ylabel: "Temperature (°C)" 
 };
-const GRAPH_AUX_GASBOTTLES = { selector: "#graph-aux-gasbottles", data: [], ylabel: "Gas Bottle Weight" };
+const GRAPH_AUX_GASBOTTLES = { selector: "#graph-aux-gasbottles", data: [], ylabel: "Mass (kg)" };
 
 // Create and initialise line graphs
 function graphCreateLine(chart, numLines) {

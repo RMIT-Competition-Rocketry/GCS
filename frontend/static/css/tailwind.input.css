@@ -53,8 +53,12 @@ and only modify it if you know what you're doing :)
         @apply text-hive;
     }
 
+    label {
+        @apply text-sm;
+    }
+
     input {
-        @apply border border-zinc-700 my-0.5 rounded-sm max-w-full font-mono text-white text-right;
+        @apply text-base text-center text-white font-mono border border-zinc-700 rounded-sm max-w-full mx-0.5;
     }
 
     input.error {
@@ -160,7 +164,7 @@ and only modify it if you know what you're doing :)
     }
 
     .indicator-boolean {
-        @apply w-10 h-10 rounded-full border border-hive mx-auto;
+        @apply w-8 h-8 rounded-full border border-hive mx-auto;
 
         &.on {
             @apply bg-emerald-600;
@@ -168,7 +172,7 @@ and only modify it if you know what you're doing :)
         }
 
         &.on::after {
-            @apply h-10 text-emerald-300 text-3xl;
+            @apply h-8 text-emerald-300 text-3xl;
             content: 'on';
         }
 
