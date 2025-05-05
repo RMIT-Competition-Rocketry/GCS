@@ -97,10 +97,22 @@ class ByteParser {
   }
 
   int32_t extract_signed_bits(const uint8_t num_bits) {
-    uint32_t value = extract_unsigned_bits(num_bits);
-    if (value & (1 << (num_bits - 1))) {  // Check sign bit
-      value |= (0xFFFFFFFF << num_bits);  // Extend sign
+    if (num_bits == 0) {
+      return 0;
     }
+
+    if (num_bits > 32) {
+      throw std::out_of_range("Invalid bit extraction request.");
+    }
+
+    uint32_t value = extract_unsigned_bits(num_bits);
+
+    if (num_bits < 32) {
+      if (value & (1 << (num_bits - 1))) {  // Check sign bit
+        value |= (~((1 << num_bits) - 1));  // Sign extend
+      }
+    }
+
     return static_cast<int32_t>(value);
   }
 
