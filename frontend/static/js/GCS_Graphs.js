@@ -210,7 +210,7 @@ function graphResize(chart) {
 
 // Render graph
 function graphRender(chart) {
-    if (chart != undefined && chart.x != undefined) {
+    if (chart != undefined && chart.x != undefined && chart.lines != undefined) {
         // Limit chart to MAX_POINTS (rolling)
         if (chart.xOffset === undefined) {
             chart.xOffset = 0; // Store the number of points shifted
@@ -325,10 +325,12 @@ function graphUpdateAvionics(data) {
             data.accelY != undefined &&
             data.accelZ != undefined
         ) {
-            GRAPH_AV_ACCEL.lines[0].data.push(data.accelX);
-            GRAPH_AV_ACCEL.lines[1].data.push(data.accelY);
-            GRAPH_AV_ACCEL.lines[2].data.push(data.accelZ);
-            graphRender(GRAPH_AV_ACCEL);
+            if (GRAPH_AV_ACCEL.lines != undefined) {
+                GRAPH_AV_ACCEL.lines[0].data.push(data.accelX);
+                GRAPH_AV_ACCEL.lines[1].data.push(data.accelY);
+                GRAPH_AV_ACCEL.lines[2].data.push(data.accelZ);
+                graphRender(GRAPH_AV_ACCEL);
+            }
         }
 
         // Gyroscope
@@ -337,17 +339,21 @@ function graphUpdateAvionics(data) {
             data.gyroY != undefined &&
             data.gyroZ != undefined
         ) {
-            GRAPH_AV_GYRO.lines[0].data.push(data.gyroX);
-            GRAPH_AV_GYRO.lines[1].data.push(data.gyroY);
-            GRAPH_AV_GYRO.lines[2].data.push(data.gyroZ);
-            graphRender(GRAPH_AV_GYRO);
+            if (GRAPH_AV_GYRO.lines != undefined) {
+                GRAPH_AV_GYRO.lines[0].data.push(data.gyroX);
+                GRAPH_AV_GYRO.lines[1].data.push(data.gyroY);
+                GRAPH_AV_GYRO.lines[2].data.push(data.gyroZ);
+                graphRender(GRAPH_AV_GYRO);
+            }
         }
     }
 
     // Velocity
     if (data.velocity != undefined) {
-        GRAPH_AV_VELOCITY.lines[0].data.push(data.velocity);
-        graphRender(GRAPH_AV_VELOCITY);
+        if (GRAPH_AV_VELOCITY.lines != undefined) {
+            GRAPH_AV_VELOCITY.lines[0].data.push(data.velocity);
+            graphRender(GRAPH_AV_VELOCITY);
+        }
     }
 }
 
@@ -355,8 +361,10 @@ function graphUpdatePosition(data) {
     // POSITION MODULE GRAPHS
     // Altitude
     if (data.altitude != undefined) {
-        GRAPH_POS_ALT.lines[0].data.push(metresToFeet(data.altitude)); // Graph in feet
-        graphRender(GRAPH_POS_ALT);
+        if (GRAPH_POS_ALT.lines != undefined) {
+            GRAPH_POS_ALT.lines[0].data.push(metresToFeet(data.altitude)); // Graph in feet
+            graphRender(GRAPH_POS_ALT);
+        }
     }
 }
 
@@ -369,10 +377,12 @@ function graphUpdateAuxData(data) {
             data.transducer2 != undefined &&
             data.transducer3 != undefined
         ) {
-            GRAPH_AUX_TRANSDUCERS.lines[0].data.push(data.transducer1);
-            GRAPH_AUX_TRANSDUCERS.lines[1].data.push(data.transducer2);
-            GRAPH_AUX_TRANSDUCERS.lines[2].data.push(data.transducer3);
-            graphRender(GRAPH_AUX_TRANSDUCERS);
+            if (GRAPH_AUX_TRANSDUCERS.lines != undefined) {
+                GRAPH_AUX_TRANSDUCERS.lines[0].data.push(data.transducer1);
+                GRAPH_AUX_TRANSDUCERS.lines[1].data.push(data.transducer2);
+                GRAPH_AUX_TRANSDUCERS.lines[2].data.push(data.transducer3);
+                graphRender(GRAPH_AUX_TRANSDUCERS);
+            }
         }
 
         // Thermocouples
@@ -382,19 +392,23 @@ function graphUpdateAuxData(data) {
             data.thermocouple3 != undefined &&
             data.thermocouple4 != undefined
         ) {
-            GRAPH_AUX_THERMOCOUPLES.lines[0].data.push(data.thermocouple1);
-            GRAPH_AUX_THERMOCOUPLES.lines[1].data.push(data.thermocouple2);
-            GRAPH_AUX_THERMOCOUPLES.lines[2].data.push(data.thermocouple3);
-            GRAPH_AUX_THERMOCOUPLES.lines[3].data.push(data.thermocouple4);
-            graphRender(GRAPH_AUX_THERMOCOUPLES);
+            if (GRAPH_AUX_THERMOCOUPLES.lines != undefined) {
+                GRAPH_AUX_THERMOCOUPLES.lines[0].data.push(data.thermocouple1);
+                GRAPH_AUX_THERMOCOUPLES.lines[1].data.push(data.thermocouple2);
+                GRAPH_AUX_THERMOCOUPLES.lines[2].data.push(data.thermocouple3);
+                GRAPH_AUX_THERMOCOUPLES.lines[3].data.push(data.thermocouple4);
+                graphRender(GRAPH_AUX_THERMOCOUPLES);
+            }
         }
     }
 
     if (data.id == 7) {
         // Internal temperature
         if (data.internalTemp != undefined) {
-            GRAPH_AUX_INTERNALTEMP.lines[0].data.push(data.internalTemp);
-            graphRender(GRAPH_AUX_INTERNALTEMP);
+            if (GRAPH_AUX_INTERNALTEMP.lines != undefined) {
+                GRAPH_AUX_INTERNALTEMP.lines[0].data.push(data.internalTemp);
+                graphRender(GRAPH_AUX_INTERNALTEMP);
+            }
         }
 
         // Gas bottle weights
@@ -402,9 +416,11 @@ function graphUpdateAuxData(data) {
             data.gasBottleWeight1 != undefined &&
             data.gasBottleWeight2 != undefined
         ) {
-            GRAPH_AUX_GASBOTTLES.lines[0].data.push(data.gasBottleWeight1);
-            GRAPH_AUX_GASBOTTLES.lines[1].data.push(data.gasBottleWeight2);
-            graphRender(GRAPH_AUX_GASBOTTLES);
+            if (GRAPH_AUX_GASBOTTLES.lines != undefined) {
+                GRAPH_AUX_GASBOTTLES.lines[0].data.push(data.gasBottleWeight1);
+                GRAPH_AUX_GASBOTTLES.lines[1].data.push(data.gasBottleWeight2);
+                graphRender(GRAPH_AUX_GASBOTTLES);
+            }
         }
     }
 }
