@@ -74,7 +74,10 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         "id": packet_id,
                         "data": data
                     }
-                    await websocket.send(json.dumps(output))
+                    try:
+                        await websocket.send(json.dumps(output))
+                    except websockets.ConnectionClosedOK:
+                        pass
                 else:
                     slogger.error(f"Unexpected packet ID: {packet_id}")
             # Give event handler time to check shutdown event

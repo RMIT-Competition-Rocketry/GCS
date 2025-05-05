@@ -10,6 +10,7 @@ import backend.includes_python.process_logging as slogger  # slog deez nuts
 import backend.includes_python.service_helper as service_helper
 from cli.start_middleware import InterfaceType, get_interface_type
 import enum
+import math
 
 # This file can be imported or rain as an emulation service if __main__
 # This file is for lower level emulation. Hence some things are passed bitwise
@@ -280,6 +281,10 @@ class AVtoGCSData2(MockPacket):
         CAMERA_CONTROLLER_CONNECTION=True,
         LATITUDE=-3628.816650000,  # Must be 15 chars. Don't include null byte
         LONGITUDE=14401.967773000,
+        QW=0,
+        QX=1,
+        QY=-1,
+        QZ=0.5,
     ):
         super().__init__()
         self.ID = 0x04
@@ -299,10 +304,10 @@ class AVtoGCSData2(MockPacket):
             ),
             metric.Metric.GPS(LATITUDE, LONGITUDE),
             metric.Metric.NAVIGATION_STATUS("69"),
-            metric.Metric.QUATERNION(0),
-            metric.Metric.QUATERNION(1),
-            metric.Metric.QUATERNION(-1),
-            metric.Metric.QUATERNION(0.5),
+            metric.Metric.QUATERNION(QW),
+            metric.Metric.QUATERNION(QX),
+            metric.Metric.QUATERNION(QY),
+            metric.Metric.QUATERNION(QZ),
         ]
 
 
@@ -504,6 +509,134 @@ class GSEtoGCSData2(MockPacket):
         ]
 
 
+def sinusoid(t: float, min: float, max: float, period: float, phase: float) -> float:
+    """Generates a sinusoidal value between min and max over time"""
+    # t is the time in seconds
+    # max is the maximum y value
+    # min is the minimum y value
+    # period is the period of the sine wave in seconds
+    # phase is the phase shift in radians
+    amplitude = (max - min) / 2
+    offset = (max + min) / 2
+    return amplitude * math.sin(2 * math.pi * (t / period) + phase) + offset
+
+
+def get_sinusoid_packets(START_TIME: float):
+    """Just generate packets with sinusoidal values over time.
+    Values ranges should cover optimal operating conditions"""
+    # AVtoGCSData1(),
+    # AVtoGCSData2(),
+    # AVtoGCSData3(),
+    # GSEtoGCSData1(),
+    # GSEtoGCSData2()
+    TIME_NOW = time.monotonic()
+    T = TIME_NOW - START_TIME
+
+    ARGS_AV_COMMON = {"RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
+                      "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
+                      "FLIGHT_STATE_MSB": False,
+                      "FLIGHT_STATE_1": False,
+                      "FLIGHT_STATE_LSB": False,
+                      "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": False,
+                      "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": False,
+                      "GPS_FIX_FLAG": False,
+                      "PAYLOAD_CONNECTION_FLAG": True,
+                      "CAMERA_CONTROLLER_CONNECTION": True}
+
+    ARGS_AVtoGCSData1 = ARGS_AV_COMMON | {
+        "ACCEL_LOW_X": int(2048*sinusoid(T, min=-16, max=16, period=5, phase=2*math.pi/3)),
+        "ACCEL_LOW_Y": int(2048*sinusoid(T, min=-16, max=16, period=5, phase=4*math.pi/3)),
+        "ACCEL_LOW_Z": -int(2048*sinusoid(T, min=-16, max=16, period=5, phase=6*math.pi/3)),
+        "ACCEL_HIGH_X": -int(1024*sinusoid(T, min=-32, max=32, period=5, phase=2*math.pi/3)),
+        "ACCEL_HIGH_Y": -int(1024*sinusoid(T, min=-32, max=32, period=5, phase=4*math.pi/3)),
+        "ACCEL_HIGH_Z": int(1024*sinusoid(T, min=-32, max=32, period=5, phase=6*math.pi/3)),
+        # should be [-30,30] on output
+        "GYRO_X": int(sinusoid(T, min=-30, max=30, period=5, phase=2*math.pi/3)/0.00875),
+        "GYRO_Y": int(sinusoid(T, min=-30, max=30, period=5, phase=4*math.pi/3)/0.00875),
+        "GYRO_Z": int(sinusoid(T, min=-30, max=30, period=5, phase=6*math.pi/3)/0.00875),
+        "ALTITUDE": sinusoid(T, min=0, max=3000, period=40, phase=0),
+        "VELOCITY": sinusoid(T, min=0, max=350, period=20, phase=0),
+        "APOGEE_PRIMARY_TEST_COMPETE": False,
+        "APOGEE_SECONDARY_TEST_COMPETE": False,
+        "APOGEE_PRIMARY_TEST_RESULTS": False,
+        "APOGEE_SECONDARY_TEST_RESULTS": False,
+        "MAIN_PRIMARY_TEST_COMPETE": False,
+        "MAIN_SECONDARY_TEST_COMPETE": False,
+        "MAIN_PRIMARY_TEST_RESULTS": False,
+        "MAIN_SECONDARY_TEST_RESULTS": False,
+        "MOVE_TO_BROADCAST": False
+    }
+
+    ARGS_AVtoGCSData2 = ARGS_AV_COMMON | {
+        "LATITUDE": sinusoid(T, min=-37.80808500000-0.1, max=37.80808500000+0.1, period=10, phase=0),
+        "LONGITUDE": sinusoid(T, min=144.96507800000-0.1, max=144.96507800000+0.1, period=10, phase=0),
+        "QW": sinusoid(T, min=-1, max=1, period=3, phase=1*2*math.pi/4),
+        "QX": sinusoid(T, min=-1, max=1, period=4, phase=2*2*math.pi/4),
+        "QY": sinusoid(T, min=-1, max=1, period=5, phase=3*2*math.pi/4),
+        "QZ": sinusoid(T, min=-1, max=1, period=6, phase=4*2*math.pi/4),
+    }
+
+    ARGS_AVtoGCSData3 = ARGS_AV_COMMON
+
+    ARGS_GSE_COMMON = {
+        "RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
+        "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
+        "MANUAL_PURGED": False,
+        "O2_FILL_ACTIVATED": False,
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": False,
+        "N2O_FILL_ACTIVATED": False,
+        "IGNITION_FIRED": False,
+        "IGNITION_SELECTED": False,
+        "GAS_FILL_SELECTED": False,
+        "SYSTEM_ACTIVATED": False,
+        "IGNITION_ERROR": False,
+        "RELAY3_ERROR": False,
+        "RELAY2_ERROR": False,
+        "RELAY1_ERROR": False,
+        "THERMOCOUPLE_4_ERROR": False,
+        "THERMOCOUPLE_3_ERROR": False,
+        "THERMOCOUPLE_2_ERROR": False,
+        "THERMOCOUPLE_1_ERROR": False,
+        "LOAD_CELL_4_ERROR": False,
+        "LOAD_CELL_3_ERROR": False,
+        "LOAD_CELL_2_ERROR": False,
+        "LOAD_CELL_1_ERROR": False,
+        "TRANSDUCER_4_ERROR": False,
+        "TRANSDUCER_3_ERROR": False,
+        "TRANSDUCER_2_ERROR": False,
+        "TRANSDUCER_1_ERROR": False,
+    }
+
+    ARGS_GSEtoGCSData1 = ARGS_GSE_COMMON | {
+        "TRANSDUCER1": sinusoid(T, min=1, max=30, period=10, phase=1*2*math.pi/3),
+        "TRANSDUCER2": sinusoid(T, min=1, max=30, period=10, phase=2*2*math.pi/3),
+        "TRANSDUCER3": sinusoid(T, min=1, max=30, period=10, phase=3*2*math.pi/3),
+        "THERMOCOUPLE1": sinusoid(T, min=10, max=40, period=20, phase=1*2*math.pi/4),
+        "THERMOCOUPLE2": sinusoid(T, min=10, max=40, period=20, phase=2*2*math.pi/4),
+        "THERMOCOUPLE3": sinusoid(T, min=10, max=40, period=20, phase=3*2*math.pi/4),
+        "THERMOCOUPLE4": sinusoid(T, min=10, max=40, period=20, phase=4*2*math.pi/4),
+    }
+
+    ARGS_GSEtoGCSData2 = ARGS_GSE_COMMON | {
+        "INTERNAL_TEMPERATURE": sinusoid(T, min=15, max=60, period=30, phase=0),
+        "WIND_SPEED": sinusoid(T, min=15, max=20, period=30, phase=0),
+        "GAS_BOTTLE_WEIGHT_1": int(sinusoid(T, min=12, max=18, period=30, phase=0)),
+        "GAS_BOTTLE_WEIGHT_2": int(sinusoid(T, min=12, max=18, period=30, phase=math.pi/2)),
+        "ADDITIONAL_VA_1": sinusoid(T, min=15, max=60, period=30, phase=0),
+        "ADDITIONAL_VA_2": 0,
+        "ADDITIONAL_CURRENT_1": 0,
+        "ADDITIONAL_CURRENT_2": 0,
+    }
+
+    return [
+        AVtoGCSData1(**ARGS_AVtoGCSData1),
+        AVtoGCSData2(**ARGS_AVtoGCSData2),
+        AVtoGCSData3(**ARGS_AVtoGCSData3),
+        GSEtoGCSData1(**ARGS_GSEtoGCSData1),
+        GSEtoGCSData2(**ARGS_GSEtoGCSData2)
+    ]
+
+
 def main():
     slogger.debug("Emulator starting")
 
@@ -539,9 +672,10 @@ def main():
     last_time_gse_written = START_TIME
     last_time_av_written = START_TIME
     LOCK_WARNING_TIME = 5
+    TIME_INBETWEEN_PACKETS = 0.01
 
     while not service_helper.time_to_stop():
-        for packet in test_packets_and_source:
+        for packet in get_sinusoid_packets(START_TIME):
             device = packet.ORIGIN_DEVICE
             # As a cheeky sequence emulation, only write when the lock file is PRESENT
             match device:
@@ -549,15 +683,15 @@ def main():
                     if os.path.exists(AV_LOCK_PATH):
                         packet.write_payload()
                         last_time_av_written = time.monotonic()
-                        time.sleep(0.190)
+                        time.sleep(TIME_INBETWEEN_PACKETS)
                 case MockPacket._SourceDevice.GSE:
                     if os.path.exists(GSE_LOCK_PATH):
                         packet.write_payload()
                         last_time_gse_written = time.monotonic()
-                        time.sleep(0.190)
+                        time.sleep(TIME_INBETWEEN_PACKETS)
                 case MockPacket._SourceDevice.GCS:
                     packet.write_payload()
-                    time.sleep(0.190)
+                    time.sleep(TIME_INBETWEEN_PACKETS)
         # Warn if locks are present for too long. Possible deadlock while in dev
 
         check_time = time.monotonic()
