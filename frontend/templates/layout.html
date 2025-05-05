@@ -19,7 +19,7 @@
 					<div class="icon icon-rocket"></div>
 					<span>Main Interface</span>
 				</a>
-				<a href="#m-ops" class="w-1/5">
+				<a href="#m-password" class="w-1/5">
 					<div class="icon icon-gamepad"></div>
 					<span>Single Operator</span>
 				</a>
@@ -35,6 +35,7 @@
 					<div class="icon icon-sitemap"></div>
 					<span>HMI</span>
 				</a>
+				<a href="#m-ops" id="m-ops-button" class="w-0 h-0"></a> <!-- Needed for password page -->
 			</nav>
 
 			<div class="w-1/6 grow">{% include 'module_radio.html' %}</div>
@@ -54,7 +55,9 @@
 			<div class="module m-main col-[9/13] row-[1/6]">{% include 'module_errorlog.html' %}</div>
 			<div class="module m-main col-[9/13] row-[6/13]">{% include 'module_auxdata.html' %}</div>
 
-			<!-- Operations modules -->
+			<!-- Single operator password page-->
+			<div class="module m-password col-[1/13] row-[1/13]">{% include 'module_password.html' %}</div>
+			<!-- Single operator modules -->
 			<div class="module m-ops col-[1/5] row-[1/7]">{% include 'module_continuitycheck.html' %}</div>
 			<div class="module m-ops col-[1/5] row-[7/13]">{% include 'module_poptest.html' %}</div>
 			<div class="module m-ops col-[5/9] row-[7/13]">{% include 'module_auxcontrols.html' %}</div>
