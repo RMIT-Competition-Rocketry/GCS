@@ -11,6 +11,10 @@
 Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Control Station**) data ingestion and visualisation software.
 
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
+<p align="center">
+  <img src="docs/assets/serp2launchSetup.jpg" height="200px"/>
+  <img src="docs/assets/serp2launch.jpg" height="200px">
+</p>
 
 ## Contents
 
