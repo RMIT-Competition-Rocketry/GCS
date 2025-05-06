@@ -11,5 +11,5 @@ frontend/  @RMIT-Competition-Rocketry/gcs-frontend-capstone
 docs/* 
 notes/* 
 
-# Tristian simulation tooling
+# Tristan simulation tooling
 backend/simulation/ @trist4nl3
