@@ -62,7 +62,9 @@ def get_simulated_flight_data() -> pd.DataFrame:
             csv_export_name,
             "altitude", "speed",
             "w1", "w2", "w3",
-            "ax", "ay", "az"
+            "ax", "ay", "az",
+            'e0', 'e1', 'e2', 'e3',
+            'latitude', "longitude"
         )
         with open(extra_data_path, "w") as f:
             json.dump({

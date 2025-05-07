@@ -1,5 +1,5 @@
 from rocket_sim import flight_simulation
-from backend.tools.device_emulator import AVtoGCSData1, MockPacket
+from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, MockPacket
 from itertools import count
 import math
 import sys
@@ -20,7 +20,7 @@ TIMEOUT_INTERVAL_MS = float(sim_cfg["timeout_interval_ms"])
 MS_PER_SECOND = 1000
 
 
-def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float):
+def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float, latitude: float, longitude: float, qw: float, qx: float, qy: float, qz: float, qm: float):
     """
     Sends a simulated telemetry packet with the provided sensor values.
 
@@ -31,20 +31,15 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
       These should be divided by 0.00875 to convert to degrees per second.
     - ax, ay, az (float): Acceleration readings (typically from an accelerometer).
       These should be converted from m/s^2 to g-force units (divide by 9.80665).
+    - Latitude, Longitude (float): this is the coordinates of the rocket at time t
+    - qw, qx, qy, qz (float): quaternions
+    - qm (float): the magnitude of all the quaternion components
 
     Notes:
     - The conversion is currently being done in this function so don't worry about that
     - The packet format and transmission method should match the backend
     """
-    packet = AVtoGCSData1(
-        FLIGHT_STATE_MSB=False,
-        FLIGHT_STATE_1=False,
-        FLIGHT_STATE_LSB=False,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
-        GPS_FIX_FLAG=False,
-        PAYLOAD_CONNECTION_FLAG=True,
-        CAMERA_CONTROLLER_CONNECTION=True,
+    packet1 = AVtoGCSData1(
         ACCEL_LOW_X=int(ax / 9.81 * 2048),
         ACCEL_LOW_Y=int(ay / 9.81 * 2048),
         ACCEL_LOW_Z=int(az / 9.81 * 2048),
@@ -54,22 +49,25 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         GYRO_X=int(math.degrees(w1)/0.00875),
         GYRO_Y=int(math.degrees(w2)/0.00875),
         GYRO_Z=int(math.degrees(w3)/0.00875),
-
         ALTITUDE=altitude,
         VELOCITY=speed,
-        APOGEE_PRIMARY_TEST_COMPETE=True,
-        APOGEE_SECONDARY_TEST_COMPETE=False,
-        APOGEE_PRIMARY_TEST_RESULTS=False,
-        APOGEE_SECONDARY_TEST_RESULTS=False,
-        MAIN_PRIMARY_TEST_COMPETE=True,
-        MAIN_SECONDARY_TEST_COMPETE=False,
-        MAIN_PRIMARY_TEST_RESULTS=False,
-        MAIN_SECONDARY_TEST_RESULTS=False,
         MOVE_TO_BROADCAST=True
     )
+    packet2 = AVtoGCSData2(
+        LATITUDE=latitude,
+        LONGITUDE=longitude,
+        QW = qw / abs(qm),
+        QX = qx / abs(qm),
+        QY = qy / abs(qm),
+        QZ = qz / abs(qm)
+    )
     # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
+    if service_helper.time_to_stop():
+        return 
     time.sleep(0.01)  # Allow the buffer to update
-    packet.write_payload()
+    packet1.write_payload()
+    # time.sleep(0.01)
+    packet2.write_payload()
 
 
 def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
@@ -94,7 +92,7 @@ def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
 
 
 def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
-    """Partition flight data into segments of TIMEOUT_INTERVAL_MS
+    """Partition flight data into segments of TIMEOUT_INTERVAL
 
     Args:
         FLIGHT_DATA (pd.DataFrame): Flight data with physics values. Sorted by time please
@@ -174,6 +172,11 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
             first_packet = False
         if service_helper.time_to_stop():
             break
+        qw = packet[" e0"]
+        qx = packet[" e1"]
+        qy = packet[" e2"]
+        qz = packet[" e3"]
+        qm = math.sqrt(qw**2 + qx**2 + qy**2 +qz**2)
         send_simulated_packet(
             packet[" Altitude AGL (m)"],
             packet[" Speed - Velocity Magnitude (m/s)"],
@@ -182,18 +185,17 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
             packet[" ω3 (rad/s)"],
             packet[" Ax (m/s²)"],
             packet[" Ay (m/s²)"],
-            packet[" Az (m/s²)"]
+            packet[" Az (m/s²)"],
+            packet[" Latitude (°)"],
+            packet[" Longitude (°)"],
+            packet[" e0"],
+            packet[" e1"],
+            packet[" e2"],
+            packet[" e3"], 
+            qm, 
         )
+        
         last_packet_time = time.monotonic()
-
-
-def validate_timeout_interval(TIMEOUT_MS):
-    if TIMEOUT_MS < 0:
-        slogger.error(f"Timeout interval cannot be negative: {TIMEOUT_MS}")
-        raise ValueError("Timeout interval cannot be negative")
-    if TIMEOUT_MS > 10000:
-        slogger.warning(
-            f"Timeout interval is quite large, consider reducing it: {TIMEOUT_MS}")
 
 
 def main():
@@ -201,14 +203,10 @@ def main():
     try:
         FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
     except ValueError:
-        slogger.error(
-            "Failed to find device names in arguments for simulator")
+        slogger.error("Failed to find device names in arguments for simulator")
         raise
     FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
-    validate_timeout_interval(TIMEOUT_INTERVAL_MS)
-    # Just to skip post processing if signal was recieved in data generation
     run_emulator(FLIGHT_DATA, FAKE_DEVICE_PATH)
-    slogger.info("Simulation stopping")
 
 
 if __name__ == "__main__":
