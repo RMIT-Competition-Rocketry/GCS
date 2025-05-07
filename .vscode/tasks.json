@@ -264,6 +264,26 @@
                 "id": "rocket",
                 "color": "terminal.ansiBlue"
             }
+        },
+        {
+            "label": "Play Replay System",
+            "type": "shell",
+            "command": "./.venv/bin/python",
+            "args": [
+                "backend/replay_system/replay_engine.py",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}:$PYTHONPATH"
+                },
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
+            }
         }
     ],
     "inputs": [
