@@ -271,6 +271,8 @@
             "command": "./.venv/bin/python",
             "args": [
                 "backend/replay_system/replay_engine.py",
+                "--device-rocket",
+                "/tmp/gcs_rocket.sock"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",
