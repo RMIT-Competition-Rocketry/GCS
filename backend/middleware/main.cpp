@@ -62,7 +62,9 @@ std::string vectorToHexString(const std::vector<uint8_t> &data,
 template <typename PacketType>
 std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
                                            std::vector<uint8_t> &buffer,
-                                           zmq::socket_t &pub_socket) {
+                                           zmq::socket_t &pub_socket,
+                                           const auto READER_BOOT_TIME,
+                                           Sequence &sequence) {
   // SIZE does not include ID byte that's already been read
   if (BUFFER_BYTE_COUNT >= PacketType::SIZE + 1) {
     try {
@@ -71,7 +73,12 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
           std::make_unique<PacketType>(&buffer[1]);
 
       // Convert to protobuf and serialize to a string
-      auto proto_msg = payload->toProtobuf();
+      float TIMESTAMP = std::chrono::duration<float>(
+                            std::chrono::steady_clock::now() - READER_BOOT_TIME)
+                            .count();
+      auto proto_msg =
+          payload->toProtobuf(TIMESTAMP, sequence.get_packet_count_av(),
+                              sequence.get_packet_count_gse());
       if (!proto_msg.IsInitialized()) {
         std::string missing_info = proto_msg.InitializationErrorString();
         slogger::warning(std::string(PacketType::PACKET_NAME) +
@@ -121,8 +128,9 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
                      zmq::socket_t &pub_socket, Sequence &sequence) {
   set_thread_name("input_read_loop");
   std::vector<uint8_t> buffer(1024);
-  auto last_read_time = std::chrono::steady_clock::now();
-  auto last_timeout_warning_time = std::chrono::steady_clock::now();
+  auto READER_BOOT_TIME = std::chrono::steady_clock::now();
+  auto last_read_time = READER_BOOT_TIME;
+  auto last_timeout_warning_time = READER_BOOT_TIME;
 
   while (running) {
     ssize_t count = interface->read_data(buffer);
@@ -141,8 +149,10 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
         // for GCS
         switch (packet_id) {
           case AV_TO_GCS_DATA_1::ID: {  // 3
+            sequence.increment_packet_count_av();
             std::unique_ptr<AV_TO_GCS_DATA_1> proto_msg =
-                process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket);
+                process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket,
+                                                 READER_BOOT_TIME, sequence);
             if (proto_msg == nullptr) {
               // Yeah we got it, so you can just continue talking to other
               // devices. But we assume it was garbage and the information in it
@@ -157,8 +167,10 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
             break;
           }
           case AV_TO_GCS_DATA_2::ID: {  // 4
+            sequence.increment_packet_count_av();
             std::unique_ptr<AV_TO_GCS_DATA_2> proto_msg =
-                process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket);
+                process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket,
+                                                 READER_BOOT_TIME, sequence);
             if (proto_msg == nullptr) {
               sequence.received_av();
               break;
@@ -166,8 +178,10 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
             post_process_av(sequence, proto_msg->flight_state());
           } break;
           case AV_TO_GCS_DATA_3::ID: {  // 5
+            sequence.increment_packet_count_av();
             std::unique_ptr<AV_TO_GCS_DATA_3> proto_msg =
-                process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket);
+                process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket,
+                                                 READER_BOOT_TIME, sequence);
             if (proto_msg == nullptr) {
               sequence.received_av();
               break;
@@ -176,12 +190,16 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
             break;
           }
           case GSE_TO_GCS_DATA_1::ID: {  // 6
-            process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket);
+            sequence.increment_packet_count_gse();
+            process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket,
+                                              READER_BOOT_TIME, sequence);
             sequence.received_gse();
             break;
           }
           case GSE_TO_GCS_DATA_2::ID: {  // 7
-            process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket);
+            sequence.increment_packet_count_gse();
+            process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket,
+                                              READER_BOOT_TIME, sequence);
             sequence.received_gse();
             break;
           }
@@ -304,7 +322,6 @@ int main(int argc, char *argv[]) {
     sequence.set_gse_only_mode(mode == "--GSE_ONLY");
   }
 
-  // ZeroMQ setup
   zmq::context_t context(1);
 
   // PUB socket for broadcasting incoming data

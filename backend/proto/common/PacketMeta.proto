@@ -6,5 +6,8 @@ message PacketMeta {
     // These 2 are from radios 
     optional float rssi = 1;
     optional float snr = 2;
+    optional float timestamp_s = 3;
+    optional int64 total_packet_count_av = 4;
+    optional int64 total_packet_count_gse = 5;
 }
 

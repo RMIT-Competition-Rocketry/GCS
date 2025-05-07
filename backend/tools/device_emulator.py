@@ -657,13 +657,8 @@ def main():
         INTERFACE_TYPE=INTERFACE_TYPE,
     )
 
-    # Consider the implications of writing GCSto* packets as well.
+    # Always consider the implications of writing GCSto* packets.
     # They are not recieved by the GCS
-    test_packets_and_source = [AVtoGCSData1(),
-                               AVtoGCSData2(),
-                               AVtoGCSData3(),
-                               GSEtoGCSData1(),
-                               GSEtoGCSData2()]
 
     # Used for the sequence lock class GSE debugging
     GSE_LOCK_PATH = config.load_config(
