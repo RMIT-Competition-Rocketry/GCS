@@ -999,6 +999,10 @@
     aspect-ratio: var(--aspect-video);
   }
 
+  .h-0 {
+    height: calc(var(--spacing) * 0);
+  }
+
   .h-5 {
     height: calc(var(--spacing) * 5);
   }
@@ -1037,6 +1041,10 @@
 
   .min-h-\[190px\] {
     min-height: 190px;
+  }
+
+  .w-0 {
+    width: calc(var(--spacing) * 0);
   }
 
   .w-1\/3 {

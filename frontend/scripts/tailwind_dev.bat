@@ -1,2 +1,0 @@
-:: Windows batch script for Tailwind watcher, based on the bash script. Not sure if this will even work 
-.\third_party\tailwindcss.exe --cwd .\frontend -i .\static\css\tailwind.input.css -o .\static\css\tailwind.css --watch --optimize
