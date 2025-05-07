@@ -521,14 +521,17 @@ def sinusoid(t: float, min: float, max: float, period: float, phase: float) -> f
     return amplitude * math.sin(2 * math.pi * (t / period) + phase) + offset
 
 
-def get_sinusoid_packets(START_TIME: float):
+def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
     """Just generate packets with sinusoidal values over time.
-    Values ranges should cover optimal operating conditions"""
-    # AVtoGCSData1(),
-    # AVtoGCSData2(),
-    # AVtoGCSData3(),
-    # GSEtoGCSData1(),
-    # GSEtoGCSData2()
+    Values ranges should cover optimal operating conditions
+
+    Args:
+        START_TIME (float): A constant monotonic time value in seconds since the start of the program.
+
+    Returns:
+        List[MockPacket]: A list of all simulated packet types
+    """
+
     TIME_NOW = time.monotonic()
     T = TIME_NOW - START_TIME
 
