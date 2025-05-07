@@ -215,8 +215,8 @@ function displayUpdateAvionics(data) {
 
     // Velocity
     if (data.velocity != undefined) {
-        displaySetValue("av-velocity", data.velocity);
-        displaySetValue("av-velocity-ft", metresToFeet(data.velocity));
+        displaySetValue("av-velocity", data.velocity, 0);
+        displaySetValue("av-velocity-ft", metresToFeet(data.velocity), 0);
     }
 
     // Mach speed
@@ -241,13 +241,13 @@ function displayUpdatePosition(data) {
     /// MODULE POSITION
     // Altitude
     if (data.altitude != undefined) {
-        displaySetValue("pos-alt-m", data.altitude);
+        displaySetValue("pos-alt-m", data.altitude, 0);
         displaySetValue("pos-alt-ft", metresToFeet(data.altitude), 0);
     }
 
     // Max altitude
     if (data.altitudeMax != undefined) {
-        displaySetValue("pos-maxalt-m", data.altitudeMax);
+        displaySetValue("pos-maxalt-m", data.altitudeMax, 0);
         displaySetValue("pos-maxalt-ft", metresToFeet(data.altitudeMax), 0);
     }
 

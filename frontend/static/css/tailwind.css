@@ -1308,6 +1308,10 @@
     background-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
   }
 
+  .bg-hive\/50 {
+    background-color: color-mix(in oklab, var(--color-hive) 50%, transparent);
+  }
+
   .bg-red-500 {
     background-color: var(--color-red-500);
   }

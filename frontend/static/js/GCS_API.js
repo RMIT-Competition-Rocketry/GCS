@@ -207,6 +207,12 @@ function API_OnMessage(event) {
             displayUpdatePayload(apiData);
             */
         }
+
+        // Rerender graphs
+        if (typeof graphRequestRender === "function") {
+            graphRequestRender();
+        }
+
     } catch (error) {
         console.error("Data processing error:", error);
     }

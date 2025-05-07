@@ -211,83 +211,100 @@ function graphResize(chart) {
 // Render graph
 function graphRender(chart) {
     if (chart != undefined && chart.x != undefined && chart.lines != undefined) {
-        // Limit chart to MAX_POINTS (rolling)
-        if (chart.xOffset === undefined) {
-            chart.xOffset = 0; // Store the number of points shifted
-        }
+        if (chart.rerender != undefined && chart.rerender == true) {
+            chart.rerender = false;
 
-        let xShift = 0;
-        chart.lines.forEach(line => {
-            if (line.data.length > MAX_POINTS) {
-                xShift = (line.data.length - MAX_POINTS);
-                line.data.splice(0, line.data.length - MAX_POINTS); // Remove old points
+            // Limit chart to MAX_POINTS (rolling)
+            if (chart.xOffset === undefined) {
+                chart.xOffset = 0; // Store the number of points shifted
             }
-        });
-        chart.xOffset += xShift;
+
+            let xShift = 0;
+            chart.lines.forEach(line => {
+                if (line.data.length > MAX_POINTS) {
+                    xShift = (line.data.length - MAX_POINTS);
+                    line.data.splice(0, line.data.length - MAX_POINTS); // Remove old points
+                }
+            });
+            chart.xOffset += xShift;
 
 
-        // Update X domain
-        chart.x.domain([
-            chart.xOffset,
-            Math.max(...chart.lines.map((line) => line.data.length)) - 1 + chart.xOffset,
-        ]);
-        chart.g
-            .select("g")
-            .transition()
-            .duration(0)
-            .call(
-                d3
-                    .axisBottom(chart.x)
-                    .tickFormat((d) => (Number.isInteger(d) ? d : ""))
-            );
-
-        // Update Y domain (with padding for multiple lines)
-        const allData = chart.lines.flatMap((line) => line.data);
-        chart.y.domain([d3.min(allData) - 1, d3.max(allData) + 1]).nice();
-        chart.yAxis
-            .transition()
-            .duration(0)
-            .call(
-                d3
-                    .axisLeft(chart.y)
-                    .tickFormat((d) => (Number.isInteger(d) ? d : ""))
-            );
-
-        // De-emphasixe hidden non-integer axis values 
-        chart.g
-            .selectAll(".tick")
-            .filter((d) => !Number.isInteger(d))
-            .select("line")
-            .style("stroke", "#ccc")
-            .style("stroke-width", 0.5);
-
-        chart.g
-            .selectAll(".tick")
-            .filter((d) => !Number.isInteger(d))
-            .select("text")
-            .style("display", "none");
-
-        // Remove old lines before rendering new ones
-        chart.g.selectAll(".line-path").remove();
-
-        // Render each line with a different color
-        chart.lines.forEach((lineData, index) => {
-            const line = d3
-                .line()
-                .x((d, i) => chart.x(i+chart.xOffset))
-                .y((d) => chart.y(d));
-
-            // Add path for each line
+            // Update X domain
+            chart.x.domain([
+                chart.xOffset,
+                Math.max(...chart.lines.map((line) => line.data.length)) - 1 + chart.xOffset,
+            ]);
             chart.g
-                .append("path")
-                .datum(lineData.data)
-                .attr("class", "line-path")
-                .attr("fill", "none")
-                .attr("stroke", lineData.color || LINE_COLOURS[index]) // Cycle through colors
-                .attr("stroke-width", 1.5)
-                .attr("d", line);
-        });
+                .select("g")
+                .transition()
+                .duration(0)
+                .call(
+                    d3
+                        .axisBottom(chart.x)
+                        .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                );
+
+            // Update Y domain (with padding for multiple lines)
+            const allData = chart.lines.flatMap((line) => line.data);
+            chart.y.domain([d3.min(allData) - 1, d3.max(allData) + 1]).nice();
+            chart.yAxis
+                .transition()
+                .duration(0)
+                .call(
+                    d3
+                        .axisLeft(chart.y)
+                        .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                );
+
+            // De-emphasixe hidden non-integer axis values 
+            chart.g
+                .selectAll(".tick")
+                .filter((d) => !Number.isInteger(d))
+                .select("line")
+                .style("stroke", "#ccc")
+                .style("stroke-width", 0.5);
+
+            chart.g
+                .selectAll(".tick")
+                .filter((d) => !Number.isInteger(d))
+                .select("text")
+                .style("display", "none");
+
+            // Remove old lines before rendering new ones
+            chart.g.selectAll(".line-path").remove();
+
+            // Render each line with a different color
+            chart.lines.forEach((lineData, index) => {
+                const line = d3
+                    .line()
+                    .x((d, i) => chart.x(i+chart.xOffset))
+                    .y((d) => chart.y(d));
+
+                // Add path for each line
+                chart.g
+                    .append("path")
+                    .datum(lineData.data)
+                    .attr("class", "line-path")
+                    .attr("fill", "none")
+                    .attr("stroke", lineData.color || LINE_COLOURS[index]) // Cycle through colors
+                    .attr("stroke-width", 1.5)
+                    .attr("d", line);
+            });
+        }
     }
+}
+
+function graphRequestRender() {
+    graphRender(GRAPH_AV_ACCEL);
+    graphRender(GRAPH_AV_GYRO);
+    graphRender(GRAPH_AV_VELOCITY);
+
+    graphRender(GRAPH_POS_ALT);
+
+    graphRender(GRAPH_AUX_TRANSDUCERS);
+    graphRender(GRAPH_AUX_THERMOCOUPLES);
+    graphRender(GRAPH_AUX_INTERNALTEMP);
+    graphRender(GRAPH_AUX_GASBOTTLES);
 }
 
 window.addEventListener("DOMContentLoaded", function () {
@@ -329,7 +346,7 @@ function graphUpdateAvionics(data) {
                 GRAPH_AV_ACCEL.lines[0].data.push(data.accelX);
                 GRAPH_AV_ACCEL.lines[1].data.push(data.accelY);
                 GRAPH_AV_ACCEL.lines[2].data.push(data.accelZ);
-                graphRender(GRAPH_AV_ACCEL);
+                GRAPH_AV_ACCEL.rerender = true;
             }
         }
 
@@ -343,7 +360,7 @@ function graphUpdateAvionics(data) {
                 GRAPH_AV_GYRO.lines[0].data.push(data.gyroX);
                 GRAPH_AV_GYRO.lines[1].data.push(data.gyroY);
                 GRAPH_AV_GYRO.lines[2].data.push(data.gyroZ);
-                graphRender(GRAPH_AV_GYRO);
+                GRAPH_AV_GYRO.rerender = true;
             }
         }
     }
@@ -352,7 +369,7 @@ function graphUpdateAvionics(data) {
     if (data.velocity != undefined) {
         if (GRAPH_AV_VELOCITY.lines != undefined) {
             GRAPH_AV_VELOCITY.lines[0].data.push(data.velocity);
-            graphRender(GRAPH_AV_VELOCITY);
+            GRAPH_AV_VELOCITY.rerender = true;
         }
     }
 }
@@ -363,7 +380,7 @@ function graphUpdatePosition(data) {
     if (data.altitude != undefined) {
         if (GRAPH_POS_ALT.lines != undefined) {
             GRAPH_POS_ALT.lines[0].data.push(metresToFeet(data.altitude)); // Graph in feet
-            graphRender(GRAPH_POS_ALT);
+            GRAPH_POS_ALT.rerender = true;
         }
     }
 }
@@ -381,7 +398,7 @@ function graphUpdateAuxData(data) {
                 GRAPH_AUX_TRANSDUCERS.lines[0].data.push(data.transducer1);
                 GRAPH_AUX_TRANSDUCERS.lines[1].data.push(data.transducer2);
                 GRAPH_AUX_TRANSDUCERS.lines[2].data.push(data.transducer3);
-                graphRender(GRAPH_AUX_TRANSDUCERS);
+                GRAPH_AUX_TRANSDUCERS.rerender = true;
             }
         }
 
@@ -397,7 +414,7 @@ function graphUpdateAuxData(data) {
                 GRAPH_AUX_THERMOCOUPLES.lines[1].data.push(data.thermocouple2);
                 GRAPH_AUX_THERMOCOUPLES.lines[2].data.push(data.thermocouple3);
                 GRAPH_AUX_THERMOCOUPLES.lines[3].data.push(data.thermocouple4);
-                graphRender(GRAPH_AUX_THERMOCOUPLES);
+                GRAPH_AUX_THERMOCOUPLES.rerender = true;
             }
         }
     }
@@ -407,7 +424,7 @@ function graphUpdateAuxData(data) {
         if (data.internalTemp != undefined) {
             if (GRAPH_AUX_INTERNALTEMP.lines != undefined) {
                 GRAPH_AUX_INTERNALTEMP.lines[0].data.push(data.internalTemp);
-                graphRender(GRAPH_AUX_INTERNALTEMP);
+                GRAPH_AUX_INTERNALTEMP.rerender = true;
             }
         }
 
@@ -419,7 +436,7 @@ function graphUpdateAuxData(data) {
             if (GRAPH_AUX_GASBOTTLES.lines != undefined) {
                 GRAPH_AUX_GASBOTTLES.lines[0].data.push(data.gasBottleWeight1);
                 GRAPH_AUX_GASBOTTLES.lines[1].data.push(data.gasBottleWeight2);
-                graphRender(GRAPH_AUX_GASBOTTLES);
+                GRAPH_AUX_GASBOTTLES.rerender = true;
             }
         }
     }
