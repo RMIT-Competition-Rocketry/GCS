@@ -435,19 +435,37 @@ confirmYes.addEventListener("click", () => {
 });
 
 
-const password = "HIVE-RMIT";
-const submit = getElementById(operatorSubmit);
-const incorrectWarning = getElementById("passIncorrect");
-function checkPassword() {
-    const input = getElementById(operatorPass).value;
-    
-    if (input === password) {
-        submit.disabled = false;
-        incorrectWarning.hidden = true;
+// single operator password page
+window.onload = function() {
+    const password = "HIVE-RMIT";
+    const submit = document.getElementById("operatorSubmit");
+    const incorrectWarning = document.getElementById("passIncorrect");
+    const inputEnter = document.getElementById("operatorPass");
 
-    }
-    else {
-        submit.disabled = true;
-        incorrectWarning.hidden = true;
-    }
-}
+    submit.addEventListener("click", () => {
+        const input = document.getElementById("operatorPass").value;
+        if (input === password) {
+            document.getElementById('m-ops-button').click();
+            incorrectWarning.hidden = true;
+
+        }
+        else {
+            incorrectWarning.hidden = false;
+        }
+    });
+
+    inputEnter.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            
+            if (inputEnter.value === password) {
+                document.getElementById('m-ops-button').click();
+                incorrectWarning.hidden = true;
+    
+            }
+            else {
+                incorrectWarning.hidden = false;
+            }
+        }
+    });
+
+};
