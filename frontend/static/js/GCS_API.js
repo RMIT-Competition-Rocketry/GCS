@@ -127,15 +127,18 @@ function API_socketConnect() {
 function API_OnMessage(event) {
     let apiLatest, apiData;
     try {
-        //console.log(JSON.parse(event.data));
         apiLatest = JSON.parse(event.data);
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
+
+        // console.log(apiLatest);
 
         // Send data to display
         // HANDLE AVIONICS PACKETS
         if ([3, 4, 5].includes(apiLatest.id)) {
             apiData._radio = "av1";
-            apiData.meta.packets = ++packetsAV1;
+            if (apiData.meta) {
+                apiData.meta.packets = ++packetsAV1;
+            }
 
             /// AV DISPLAY VALUES
             // Radio module
@@ -178,7 +181,9 @@ function API_OnMessage(event) {
         // HANDLE GSE PACKETS
         else if ([6, 7].includes(apiLatest.id)) {
             apiData._radio = "gse";
-            apiData.meta.packets = ++packetsGSE;
+            if (apiData.meta) {
+                apiData.meta.packets = ++packetsGSE;
+            }
 
             //console.log(apiData);
             checkErrorConditions(apiData);

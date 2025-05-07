@@ -8,7 +8,6 @@
  */
 
 // DYNAMIC MODULE SWITCHING CODE
-
 function displaySelectModule(selected) {
     document.querySelectorAll(".module").forEach((elem) => {
         if (elem.classList.contains(selected)) {
@@ -20,6 +19,7 @@ function displaySelectModule(selected) {
 }
 
 const selectedClasses = ["selected"];
+var verboseLogging = false;
 
 // Get selected page
 var selected = window.location.hash
@@ -62,10 +62,11 @@ document.querySelectorAll("nav a").forEach((elem) => {
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
 function displaySetValue(item, value, precision = 2) {
     // Updates a floating point value for a display item
-    let elements = document.querySelectorAll(`.${item}`);
-
+    if (verboseLogging) console.debug(`new value %c${item}%c ${parseFloat(value).toFixed(precision)}`, 'color:orange', 'color:white');
+    
     // Use classes instead of IDs since IDs must be unique
     // and some items occur on multiple pages
+    let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             // Update value
@@ -76,6 +77,9 @@ function displaySetValue(item, value, precision = 2) {
 
 function displaySetString(item, string) {
     // Updates a string for a display item
+    if (verboseLogging) console.debug(`new string %c${item}%c ${string}`, 'color:orange', 'color:white');
+
+    // Update all instances of item
     let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
@@ -87,6 +91,9 @@ function displaySetString(item, string) {
 
 function displaySetState(item, value) {
     // Updates the state of an indicator
+    if (verboseLogging) console.debug(`new state %c${item}%c ${value}`, 'color:orange', 'color:white');
+    
+    // Update all instances of item
     let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
@@ -99,11 +106,13 @@ function displaySetState(item, value) {
                 case "true":
                 case "on":
                 case true:
+                case 1:
                     elem.classList.add("on");
                     break;
                 case "false":
                 case "off":
                 case false:
+                case 0:
                     elem.classList.add("off");
                     break;
             }
@@ -204,9 +213,10 @@ function displayUpdateAvionics(data) {
         displaySetValue("av-gyro-z", data.gyroZ);
     }
 
-    // Velocity (m/s)
+    // Velocity
     if (data.velocity != undefined) {
         displaySetValue("av-velocity", data.velocity);
+        displaySetValue("av-velocity-ft", metresToFeet(data.velocity));
     }
 
     // Mach speed
