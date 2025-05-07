@@ -423,3 +423,21 @@ confirmYes.addEventListener("click", () => {
         isSolenoidActive = true;
     }
 });
+
+
+const password = "HIVE-RMIT";
+const submit = getElementById(operatorSubmit);
+const incorrectWarning = getElementById("passIncorrect");
+function checkPassword() {
+    const input = getElementById(operatorPass).value;
+    
+    if (input === password) {
+        submit.disabled = false;
+        incorrectWarning.hidden = true;
+
+    }
+    else {
+        submit.disabled = true;
+        incorrectWarning.hidden = true;
+    }
+}
