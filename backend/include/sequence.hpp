@@ -36,6 +36,12 @@ class Sequence {
   void set_gse_only_mode(bool mode) { gse_only_mode_ = mode; }
   bool gse_only_mode() const { return gse_only_mode_; }
 
+  long get_packet_count_av() const { return packet_count_av_; }
+  long get_packet_count_gse() const { return packet_count_gse_; }
+
+  void increment_packet_count_av() { packet_count_av_++; }
+  void increment_packet_count_gse() { packet_count_gse_++; }
+
  private:
   SequenceLock gse_write_lock_{"GSE"};
   SequenceLock av_write_lock_{"AV"};
@@ -43,4 +49,6 @@ class Sequence {
   bool gse_only_mode_ = false;  // GSE only mode. This is an option from CLI
   // Singleton assertion helper for constructor assertion
   bool singleton_created_ = false;
+  long packet_count_av_ = 0;
+  long packet_count_gse_ = 0;
 };

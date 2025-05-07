@@ -115,7 +115,7 @@ class AV_TO_GCS_DATA_1 {
   float accel_low_x() const { return accel_low_x_; }
 
   // Protobuf serialization
-  payload::AV_TO_GCS_DATA_1 toProtobuf() const {
+  payload::AV_TO_GCS_DATA_1 toProtobuf(const float timestamp_s, const long counter_av, const long counter_gcs) const {
     payload::AV_TO_GCS_DATA_1 proto_data;
 
     // Use the macro for simple fields with same name
