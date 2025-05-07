@@ -242,6 +242,27 @@
             }
         },
         {
+            "label": "start frontend (no API)",
+            "type": "shell",
+            "command": "flask",
+            "args": [
+                "--app",
+                "frontend.flask_server",
+                "--debug",
+                "run",
+                "--port=8008" 
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Run Simulation",
             "type": "shell",
             "command": "./.venv/bin/python",
