@@ -60,6 +60,7 @@ def replay_packets(packets: List[Packet]) -> None:
     
     start_time = time.time()
     first_timestamp = packets[0].timestamp_ms
+    last_status_time = start_time
     total_time = 0
     if service_helper.time_to_stop():
         return
@@ -73,14 +74,29 @@ def replay_packets(packets: List[Packet]) -> None:
         if service_helper.time_to_stop():
             break
         sent_time = time.time() - start_time
-        #slogger.debug(f"Packet time: {str(packet.timestamp_ms)} Sent time: {str(sent_time * 1000)} for packet: {packet.packet_type}")
+        total_time += sent_time
+        
+        current_time = time.time()
+        if current_time - last_status_time >= 60:
+            elapsed = current_time - start_time
+            packets_remaining = len(packets) - packets.index(packet) - 1
+            slogger.debug(
+                f"Status update: Elapsed {elapsed:.1f}s | "
+                f"Packets remaining: {packets_remaining} | "
+                f"Current packet: {packet.packet_type} @ {packet.timestamp_ms}ms"
+            )
+            last_status_time = current_time
+            
         send_packet(packet)
         
 def send_packet(packet: Packet) -> None:
     """Send packet based on the appropriate handler"""
+    if service_helper.time_to_stop():
+        return
     handler = PACKET_HANDLERS.get(packet.packet_type, unknown_packet_type)
     handler(packet)
-    
+       
+
 def unknown_packet_type(packet: Packet) -> None:
     """Not a valid packet type"""
     slogger.error(f"Unknown packet type {packet.packet_type}")
@@ -88,6 +104,32 @@ def unknown_packet_type(packet: Packet) -> None:
 def handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
     # @TODO Flight state
+    # Capping the gyro data for the y entry
+    if float(data["gyro_y"]) > 245:
+        slogger.error("BAD GYRO Y ENTRY DETECTED CAPPING VALUE")
+        data["gyro_y"] = 245
+    elif float(data["gyro_y"]) < -245:
+        slogger.error("BAD GYRO Y ENTRY DETECTED CAPPING VALUE")
+        data["gyro_y"] = -245
+        
+    # Capping the gyro data for the x entry
+    if float(data["gyro_x"]) > 245:
+        slogger.error("BAD GYRO X ENTRY DETECTED CAPPING VALUE")
+        data["gyro_x"] = 245
+    elif float(data["gyro_x"]) < -245:
+        slogger.error("BAD GYRO X ENTRY DETECTED CAPPING VALUE")
+        data["gyro_x"] = -245
+
+    # Capping the gyro data for the z entry
+    if float(data["gyro_z"]) > 245:
+        slogger.error("BAD GYRO Z ENTRY DETECTED CAPPING VALUE")
+        data["gyro_z"] = 245
+    elif float(data["gyro_z"]) < -245:
+        slogger.error("BAD GYRO Z ENTRY DETECTED CAPPING VALUE")
+        data["gyro_z"] = -245
+    
+    if service_helper.time_to_stop():
+        return
     item = AVtoGCSData1(
         RSSI = float(data["rssi"]),
         SNR = float(data["snr"]),
@@ -127,6 +169,8 @@ def handle_av_to_gcs_data_1(packet: Packet) -> None:
 def handle_av_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
     # @TODO flight state
+    if service_helper.time_to_stop():
+        return
     item = AVtoGCSData2(
         RSSI = float(data["rssi"]),
         SNR= float(data['snr']),
@@ -156,6 +200,8 @@ def handle_av_to_gcs_data_3(packet: Packet) -> None:
 
 def handle_gse_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
+    if service_helper.time_to_stop():
+        return
     item = GSEtoGCSData1(
         RSSI=float(data("rssi")),
         SNR=float(data("snr")),
@@ -198,6 +244,8 @@ def handle_gse_to_gcs_data_1(packet: Packet) -> None:
 
 def handle_gse_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
+    if service_helper.time_to_stop():
+        return
     item = GSEtoGCSData2(
         RSSI=data("rssi"),
         SNR=data("snr"),
@@ -286,6 +334,7 @@ def main():
     
     processed_packets = process_csv_packets()
     replay_packets(processed_packets)
+    slogger.info("FINISHED SENDING PACKETS")
 
 
 
