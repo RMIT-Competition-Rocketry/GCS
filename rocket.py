@@ -21,6 +21,7 @@ from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
+from cli.start_replay_system import start_replay_system
 
 
 logger: logging.Logger = None
@@ -33,6 +34,7 @@ class Command(enum.Enum):
     RUN = enum.auto()
     DEV = enum.auto()
     SIMULATION = enum.auto()
+    REPLAY = enum.auto()
 
 
 class DecoratorSelector(enum.Enum):
@@ -40,6 +42,7 @@ class DecoratorSelector(enum.Enum):
     ALL_DEV = enum.auto()  # Give me all the dev options
     SIM = enum.auto()  # Give me the options for simulation
     GSE_ONLY = enum.auto()  # Give me just the GSE only option
+    REPLAY = enum.auto()
 
 
 def cli_decorator_factory(SELECTOR: DecoratorSelector):
@@ -68,6 +71,18 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         click.option('--logpkt', is_flag=True,
                      help="Log packet data to csv")
     ]
+    
+    OPTIONS_REPLAY = [
+        click.option('-l', '--log-level', is_flag=False, type =_LOG_LEVEL_CHOICES,
+                     help="Overide the config log level",
+                     callback=_set_level, expose_value=False),
+        click.option('--docker', is_flag=True,
+                     help="Run in Docker"),
+        click.option('--nobuild', is_flag=True,
+                     help="Do not build binaries. Search for pre-built binaries"),
+        click.option('--logpkt', is_flag=True,
+                     help="Log packet data to csv")
+    ]
 
     OPTIONS_ALL_DEV = OPTIONS_SIM + OPTIONS_GSE_ONLY + [
         click.option('-i', '--interface', type=_INTERFACE_CHOICES,
@@ -84,6 +99,8 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         OPTIONS = OPTIONS_SIM
     elif SELECTOR == DecoratorSelector.GSE_ONLY:
         OPTIONS = OPTIONS_GSE_ONLY
+    elif SELECTOR == DecoratorSelector.REPLAY:
+        OPTIONS = OPTIONS_REPLAY
 
     def decorator(func: Callable) -> Callable:
         # Apply in reverse so the first in the list appears first in --help
@@ -191,6 +208,8 @@ def start_services(COMMAND: Command,
         start_fake_serial_device_emulator(logger, devices[1], INTERFACE_TYPE)
     elif COMMAND == Command.SIMULATION:
         start_simulator(logger, devices[1])
+    elif COMMAND == Command.REPLAY:
+        start_replay_system(logger, devices[1])
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
@@ -274,6 +293,19 @@ def simulation(docker, nobuild, logpkt):
                    frontend=True
                    )
 
+@click.command()
+@cli_decorator_factory(DecoratorSelector.SIM)
+def replay(docker, nobuild, logpkt):
+    """Start software in simulation mode"""
+    start_services(Command.REPLAY,
+                   DOCKER=docker,
+                   INTERFACE_ARG="TEST",
+                   nobuild=nobuild,
+                   logpkt=logpkt,
+                   nopendant=True,
+                   gse_only=False,
+                   frontend=True
+                   )
 
 def print_splash():
     """Prints a logo and splash screen for decoration"""
@@ -327,6 +359,7 @@ def main():
     cli.add_command(run)
     cli.add_command(dev)
     cli.add_command(simulation)
+    cli.add_command(replay)
 
     # Register custom signal handlers
     signal.signal(signal.SIGINT, signal_handler)   # Handle Ctrl+C

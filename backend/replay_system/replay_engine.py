@@ -280,6 +280,7 @@ def handle_gse_to_gcs_data_2(packet: Packet) -> None:
 def handle_gse_to_gcs_data_3(packet: Packet) -> None:
     slogger.error("GSE to GCS 3 not implemented")
     
+    
 
 def handle_gcs_to_av_state(packet: Packet) -> None:
     slogger.error("GCS to AV State not implemented")
