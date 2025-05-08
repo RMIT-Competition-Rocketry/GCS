@@ -128,19 +128,26 @@ function API_OnMessage(event) {
     let apiLatest, apiData;
     try {
         apiLatest = JSON.parse(event.data);
+        //console.log(apiLatest);
+
+        // Basic data processing
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
 
-        // console.log(apiLatest);
+        // Check for errors
+        checkErrorConditions(apiData);
 
-        // Send data to display
+        // HANDLE SINGLE OPERATOR PACKETS
+        if ([2].includes(apiData.id)) {
+
+        }
         // HANDLE AVIONICS PACKETS
-        if ([3, 4, 5].includes(apiLatest.id)) {
-            apiData._radio = "av1";
+        else if ([3, 4, 5].includes(apiData.id)) {
             if (apiData.meta) {
+                apiData.meta.radio = "av1";
                 apiData.meta.packets = ++packetsAV1;
             }
 
-            /// AV DISPLAY VALUES
+            // AV DISPLAY VALUES
             // Radio module
             if (typeof displayUpdateRadio === "function") {
                 displayUpdateRadio(apiData);
@@ -161,7 +168,7 @@ function API_OnMessage(event) {
                 displayUpdateFlightState(apiData);
             }
 
-            /// AV GRAPHS
+            // AV GRAPHS
             if (typeof graphUpdateAvionics === "function") {
                 graphUpdateAvionics(apiData);
             }
@@ -170,25 +177,22 @@ function API_OnMessage(event) {
                 graphUpdatePosition(apiData);
             }
 
-            /// AV ROCKET
+            // AV ROCKET
             // Rocket module
-            if (apiLatest.id == 4) {
+            if (apiData.id == 4) {
                 if (typeof rocketUpdate === "function") {
                     rocketUpdate(apiData);
                 }
             }
         }
         // HANDLE GSE PACKETS
-        else if ([6, 7].includes(apiLatest.id)) {
-            apiData._radio = "gse";
+        else if ([6, 7].includes(apiData.id)) {
             if (apiData.meta) {
+                apiData.meta.radio = "gse";
                 apiData.meta.packets = ++packetsGSE;
             }
 
-            //console.log(apiData);
-            checkErrorConditions(apiData);
-
-            /// GSE DISPLAY VALUES
+            // GSE DISPLAY VALUES
             // Radio module
             if (typeof displayUpdateRadio === 'function') {
                 displayUpdateRadio(apiData);
@@ -199,13 +203,10 @@ function API_OnMessage(event) {
                 displayUpdateAuxData(apiData);
             }
 
-            /// GSE GRAPHS
+            // GSE GRAPHS
             if (typeof graphUpdateAuxData === "function") {
                 graphUpdateAuxData(apiData);
             }
-            /*
-            displayUpdatePayload(apiData);
-            */
         }
 
         // Rerender graphs

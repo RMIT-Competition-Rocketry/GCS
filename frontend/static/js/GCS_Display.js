@@ -235,6 +235,10 @@ function displayUpdateFlightState(data) {
     if (data.flightState != undefined) {
         displaySetString("fs-flightstate", data.flightState);
     }
+
+    if (data.meta != undefined && data.meta.timestampS != undefined) {
+        displaySetValue("fs-time", data.meta.timestampS, 7);
+    }
 }
 
 function displayUpdatePosition(data) {
@@ -276,7 +280,7 @@ function displayUpdateRadio(data) {
     // TODO - Connection indicators
 
     if (data.meta != undefined) {
-        if (data._radio == "av1") {
+        if (data.meta.radio == "av1") {
             // AVIONICS DATA
             if (data.meta.rssi != undefined) {
                 displaySetValue("radio-av-rssi", data.meta.rssi, 0);
@@ -289,7 +293,7 @@ function displayUpdateRadio(data) {
             if (data.meta.packets != undefined) {
                 displaySetValue("radio-av-packets", data.meta.packets, 0);
             }
-        } else if (data._radio == "gse") {
+        } else if (data.meta.radio == "gse") {
             // GSE DATA
             if (data.meta.rssi != undefined) {
                 displaySetValue("radio-gse-rssi", data.meta.rssi, 0);
