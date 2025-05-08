@@ -1,0 +1,1 @@
+timestamp_ms,rssi,snr,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag
