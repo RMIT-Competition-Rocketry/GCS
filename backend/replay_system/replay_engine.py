@@ -86,37 +86,40 @@ def unknown_packet_type(packet: Packet) -> None:
     
 def handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
+    # @TODO Flight state
+    print(data)
+    print(data["rssi"])
     item = AVtoGCSData1(
-        RSSI = data.get["rssi"],
-        SNR = data.get["snr"],
+        RSSI = data["rssi"],
+        SNR = data["snr"],
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG= data.get["dual_board_connectivity_state_flag"],
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY= data.get["recovery_checks_complete_and_flight_ready"],
-        GPS_FIX_FLAG= data.get["GPS_fix_flag"],
-        PAYLOAD_CONNECTION_FLAG= data.get["payload_connection_flag"],
-        CAMERA_CONTROLLER_CONNECTION = data.get["camera_controller_connection_flag"],
-        ACCEL_LOW_X= data.get["accel_low_x"],
-        ACCEL_LOW_Y= data.get["accel_low_y"],
-        ACCEL_LOW_Z= data.get["accel_low_z"],
-        ACCEL_HIGH_X= data.get['accel_high_x'],
-        ACCEL_HIGH_Y= data.get['accel_high_y'],
-        ACCEL_HIGH_Z= data.get['accel_high_z'],
-        GYRO_X=data.get["gyro_x"],
-        GYRO_Y=data.get["gyro_y"],
-        GYRO_Z=data.get["gyro_z"],
-        ALTITUDE=data.get['altitude'],
-        VELOCITY=data.get["velocity"],
-        APOGEE_PRIMARY_TEST_COMPETE=data.get["apogee_primary_test_complete"],
-        APOGEE_SECONDARY_TEST_COMPETE=data.get["apogee_secondary_test_complete"],
-        APOGEE_PRIMARY_TEST_RESULTS=data.get["apogee_primary_test_results"],
-        APOGEE_SECONDARY_TEST_RESULTS=data.get["apogee_secondary_test_results"],
-        MAIN_PRIMARY_TEST_COMPETE=data.get["main_primary_test_complete"],
-        MAIN_SECONDARY_TEST_COMPETE=data.get["main_secondary_test_complete"],
-        MAIN_PRIMARY_TEST_RESULTS=data.get["main_primary_test_results"],
-        MAIN_SECONDARY_TEST_RESULTS=data.get["main_secondary_test_results"],
-        MOVE_TO_BROADCAST=data.get["broadcast_flag"]
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG= bool(data["dual_board_connectivity_state_flag"]),
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY= bool(data["recovery_checks_complete_and_flight_ready"]),
+        GPS_FIX_FLAG= bool(data["GPS_fix_flag"]),
+        PAYLOAD_CONNECTION_FLAG= bool(data["payload_connection_flag"]),
+        CAMERA_CONTROLLER_CONNECTION = bool(data["camera_controller_connection_flag"]),
+        ACCEL_LOW_X= data["accel_low_x"],
+        ACCEL_LOW_Y= data["accel_low_y"],
+        ACCEL_LOW_Z= data["accel_low_z"],
+        ACCEL_HIGH_X= data['accel_high_x'],
+        ACCEL_HIGH_Y= data['accel_high_y'],
+        ACCEL_HIGH_Z= data['accel_high_z'],
+        GYRO_X=data["gyro_x"],
+        GYRO_Y=data["gyro_y"],
+        GYRO_Z=data["gyro_z"],
+        ALTITUDE=data['altitude'],
+        VELOCITY=data["velocity"],
+        APOGEE_PRIMARY_TEST_COMPETE=bool(data["apogee_primary_test_complete"]),
+        APOGEE_SECONDARY_TEST_COMPETE=bool(data["apogee_secondary_test_complete"]),
+        APOGEE_PRIMARY_TEST_RESULTS=bool(data["apogee_primary_test_results"]),
+        APOGEE_SECONDARY_TEST_RESULTS=bool(data["apogee_secondary_test_results"]),
+        MAIN_PRIMARY_TEST_COMPETE=bool(data["main_primary_test_complete"]),
+        MAIN_SECONDARY_TEST_COMPETE=bool(data["main_secondary_test_complete"]),
+        MAIN_PRIMARY_TEST_RESULTS=bool(data["main_primary_test_results"]),
+        MAIN_SECONDARY_TEST_RESULTS=bool(data["main_secondary_test_results"]),
+        MOVE_TO_BROADCAST=bool(data["broadcast_flag"])
     )
     item.write_payload()
     
@@ -124,24 +127,26 @@ def handle_av_to_gcs_data_1(packet: Packet) -> None:
 
 def handle_av_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
+    # @TODO flight state
     item = AVtoGCSData2(
-        RSSI = data.get["rssi"],
-        SNR= data.get['snr'],
+        RSSI = data["rssi"],
+        SNR= data['snr'],
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=data.get['dual_board_connectivity_state_flag'],
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=data.get['recovery_checks_complete_and_flight_ready'],
-        GPS_FIX_FLAG=data.get['GPS_fix_flag'],
-        PAYLOAD_CONNECTION_FLAG=data.get["payload_connection_flag"],
-        CAMERA_CONTROLLER_CONNECTION=data.get['camera_controller_connection_flag'],
-        LATITUDE=data.get["GPS_latitude"],
-        LONGITUDE=data.get["GPS_longitude"],
-        QW=data.get['qw'],
-        QX=data.get['qx'],
-        QY=data.get['qy'],
-        QZ=data.get['qz'],
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(data['dual_board_connectivity_state_flag']),
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(data['recovery_checks_complete_and_flight_ready']),
+        GPS_FIX_FLAG=bool(data['GPS_fix_flag']),
+        PAYLOAD_CONNECTION_FLAG=bool(data["payload_connection_flag"]),
+        CAMERA_CONTROLLER_CONNECTION=bool(data['camera_controller_connection_flag']),
+        LATITUDE=data["GPS_latitude"],
+        LONGITUDE=data["GPS_longitude"],
+        QW=data['qw'],
+        QX=data['qx'],
+        QY=data['qy'],
+        QZ=data['qz'],
     )
+    item.write_payload()
     
     
 
@@ -153,46 +158,84 @@ def handle_av_to_gcs_data_3(packet: Packet) -> None:
 def handle_gse_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
     item = GSEtoGCSData1(
-        RSSI=data.get("rssi"),
-        SNR=data.get("snr"),
-        MANUAL_PURGED=data.get("manual_purged"),
-        O2_FILL_ACTIVATED=data.get("o2_fill_activated"),
-        SELECTOR_SWITCH_NEUTRAL_POSITION=data.get("selector_switch_neutral_position"),
-        N2O_FILL_ACTIVATED=data.get("n2o_fill_activated"),
-        IGNITION_FIRED=data.get("ignition_fired"),
-        IGNITION_SELECTED=data.get("ignition_selected"),
-        GAS_FILL_SELECTED=data.get("gas_fill_selected"),
-        SYSTEM_ACTIVATED=data.get("system_activated"),
-        TRANSDUCER1=data.get("transducer_1"),
-        TRANSDUCER2=data.get("transducer_2"),
-        TRANSDUCER3=data.get("transducer_3"),
-        THERMOCOUPLE1=data.get("thermocouple_1"),
-        THERMOCOUPLE2=data.get("thermocouple_2"),
-        THERMOCOUPLE3=data.get("thermocouple_3"),
-        THERMOCOUPLE4=data.get("thermocouple_4"),
-        IGNITION_ERROR=data.get("ignition_error"),
-        RELAY3_ERROR=data.get("relay_3_error"),
-        RELAY2_ERROR=data.get("relay_2_error"),
-        RELAY1_ERROR=data.get("relay_1_error"),
-        THERMOCOUPLE_4_ERROR=data.get("thermocouple_4_error"),
-        THERMOCOUPLE_3_ERROR=data.get("thermocouple_3_error"),
-        THERMOCOUPLE_2_ERROR=data.get("thermocouple_2_error"),
-        THERMOCOUPLE_1_ERROR=data.get("thermocouple_1_error"),
-        LOAD_CELL_4_ERROR=data.get("load_cell_4_error"),
-        LOAD_CELL_3_ERROR=data.get("load_cell_3_error"),
-        LOAD_CELL_2_ERROR=data.get("load_cell_2_error"),
-        LOAD_CELL_1_ERROR=data.get("load_cell_1_error"),
-        TRANSDUCER_4_ERROR=data.get("transducer_4_error"),
-        TRANSDUCER_3_ERROR=data.get("transducer_3_error"),
-        TRANSDUCER_2_ERROR=data.get("transducer_2_error"),
-        TRANSDUCER_1_ERROR=data.get("transducer_1_error")
+        RSSI=data("rssi"),
+        SNR=data("snr"),
+        MANUAL_PURGED=bool(data("manual_purged_activated")),
+        O2_FILL_ACTIVATED=bool(data("o2_fill_activated")),
+        SELECTOR_SWITCH_NEUTRAL_POSITION=bool(data("selector_switch_neutral_position")),
+        N2O_FILL_ACTIVATED=bool(data("n2o_fill_activated")),
+        IGNITION_FIRED=bool(data("ignition_fired")),
+        IGNITION_SELECTED=bool(data("ignition_selected")),
+        GAS_FILL_SELECTED=bool(data("gas_fill_selected")),
+        SYSTEM_ACTIVATED=bool(data("system_activated")),
+        TRANSDUCER1=data("transducer_1"),
+        TRANSDUCER2=data("transducer_2"),
+        TRANSDUCER3=data("transducer_3"),
+        THERMOCOUPLE1=data("thermocouple_1"),
+        THERMOCOUPLE2=data("thermocouple_2"),
+        THERMOCOUPLE3=data("thermocouple_3"),
+        THERMOCOUPLE4=data("thermocouple_4"),
+        IGNITION_ERROR= bool(data("ignition_error")),
+        RELAY3_ERROR=bool(data("relay_3_error")),
+        RELAY2_ERROR=bool(data("relay_2_error")),
+        RELAY1_ERROR=bool(data("relay_1_error")),
+        THERMOCOUPLE_4_ERROR= bool(data("thermocouple_4_error")),
+        THERMOCOUPLE_3_ERROR=bool(data("thermocouple_3_error")),
+        THERMOCOUPLE_2_ERROR=bool(data("thermocouple_2_error")),
+        THERMOCOUPLE_1_ERROR=bool(data("thermocouple_1_error")),
+        LOAD_CELL_4_ERROR=bool(data("load_cell_4_error")),
+        LOAD_CELL_3_ERROR= bool(data("load_cell_3_error")),
+        LOAD_CELL_2_ERROR=bool(data("load_cell_2_error")),
+        LOAD_CELL_1_ERROR=bool(data("load_cell_1_error")),
+        TRANSDUCER_4_ERROR=bool(data("transducer_4_error")),
+        TRANSDUCER_3_ERROR=bool(data("transducer_3_error")),
+        TRANSDUCER_2_ERROR=bool(data("transducer_2_error")),
+        TRANSDUCER_1_ERROR=bool(data("transducer_1_error"))
     )
+    item.write_payload()
         
     
     
 
 def handle_gse_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
+    item = GSEtoGCSData2(
+        RSSI=data("rssi"),
+        SNR=data("snr"),
+        MANUAL_PURGED=bool(data("manual_purged_activated")),
+        O2_FILL_ACTIVATED=bool(data("o2_fill_activated")),
+        SELECTOR_SWITCH_NEUTRAL_POSITION=bool(data("selector_switch_neutral_position")),
+        N2O_FILL_ACTIVATED=bool(data("n2o_fill_activated")),
+        IGNITION_FIRED=bool(data("ignition_fired")),
+        IGNITION_SELECTED=bool(data("ignition_selected")),
+        GAS_FILL_SELECTED=bool(data("gas_fill_selected")),
+        SYSTEM_ACTIVATED=bool(data("system_activated")),
+        INTERNAL_TEMPERATURE=data("internal_temp"),
+        WIND_SPEED=data["wind_speed"],
+        GAS_BOTTLE_WEIGHT_1=data["gas_bottle_weight_1"],
+        GAS_BOTTLE_WEIGHT_2=data["gas_bottle_weight_2"],
+        ADDITIONAL_VA_1=data["analog_voltage_input_1"],
+        ADDITIONAL_VA_2=data["analog_voltage_input_2"],
+        ADDITIONAL_CURRENT_1=data["additional_current_input_1"],
+        ADDITIONAL_CURRENT_2=data["additional_current_input_2"],
+        IGNITION_ERROR= bool(data("ignition_error")),
+        RELAY3_ERROR=bool(data("relay_3_error")),
+        RELAY2_ERROR=bool(data("relay_2_error")),
+        RELAY1_ERROR=bool(data("relay_1_error")),
+        THERMOCOUPLE_4_ERROR= bool(data("thermocouple_4_error")),
+        THERMOCOUPLE_3_ERROR=bool(data("thermocouple_3_error")),
+        THERMOCOUPLE_2_ERROR=bool(data("thermocouple_2_error")),
+        THERMOCOUPLE_1_ERROR=bool(data("thermocouple_1_error")),
+        LOAD_CELL_4_ERROR=bool(data("load_cell_4_error")),
+        LOAD_CELL_3_ERROR= bool(data("load_cell_3_error")),
+        LOAD_CELL_2_ERROR=bool(data("load_cell_2_error")),
+        LOAD_CELL_1_ERROR=bool(data("load_cell_1_error")),
+        TRANSDUCER_4_ERROR=bool(data("transducer_4_error")),
+        TRANSDUCER_3_ERROR=bool(data("transducer_3_error")),
+        TRANSDUCER_2_ERROR=bool(data("transducer_2_error")),
+        TRANSDUCER_1_ERROR=bool(data("transducer_1_error"))
+    )
+    item.write_payload()
     
 
 def handle_gse_to_gcs_data_3(packet: Packet) -> None:
