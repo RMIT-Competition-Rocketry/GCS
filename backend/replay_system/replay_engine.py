@@ -10,6 +10,7 @@ import os
 import csv
 from typing import List
 import time
+import math
 from datetime import datetime
 import config.config as config
 from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, AVtoGCSData3, GSEtoGCSData1, GSEtoGCSData2, GCStoAVStateCMD, GCStoGSEStateCMD, MockPacket   
@@ -87,11 +88,9 @@ def unknown_packet_type(packet: Packet) -> None:
 def handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
     # @TODO Flight state
-    print(data)
-    print(data["rssi"])
     item = AVtoGCSData1(
-        RSSI = data["rssi"],
-        SNR = data["snr"],
+        RSSI = float(data["rssi"]),
+        SNR = float(data["snr"]),
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
@@ -100,17 +99,17 @@ def handle_av_to_gcs_data_1(packet: Packet) -> None:
         GPS_FIX_FLAG= bool(data["GPS_fix_flag"]),
         PAYLOAD_CONNECTION_FLAG= bool(data["payload_connection_flag"]),
         CAMERA_CONTROLLER_CONNECTION = bool(data["camera_controller_connection_flag"]),
-        ACCEL_LOW_X= data["accel_low_x"],
-        ACCEL_LOW_Y= data["accel_low_y"],
-        ACCEL_LOW_Z= data["accel_low_z"],
-        ACCEL_HIGH_X= data['accel_high_x'],
-        ACCEL_HIGH_Y= data['accel_high_y'],
-        ACCEL_HIGH_Z= data['accel_high_z'],
-        GYRO_X=data["gyro_x"],
-        GYRO_Y=data["gyro_y"],
-        GYRO_Z=data["gyro_z"],
-        ALTITUDE=data['altitude'],
-        VELOCITY=data["velocity"],
+        ACCEL_LOW_X= int(float(data["accel_low_x"]) / 9.81 * 2048),
+        ACCEL_LOW_Y= int(float(data["accel_low_y"]) / 9.81 * 2048),
+        ACCEL_LOW_Z= int(float(data["accel_low_z"]) / 9.81 * 2048),
+        ACCEL_HIGH_X= int(float(data['accel_high_x']) / 9.81 * -1048),
+        ACCEL_HIGH_Y= int(float(data['accel_high_y']) / 9.81 * -1048),
+        ACCEL_HIGH_Z= int(float(data['accel_high_z']) / 9.81 * 1048),
+        GYRO_X=int((float(data["gyro_x"])) / 0.00875),
+        GYRO_Y=int((float(data["gyro_y"])) / 0.00875),
+        GYRO_Z=int((float(data["gyro_z"])) / 0.00875),
+        ALTITUDE=float(data['altitude']),
+        VELOCITY=float(data["velocity"]),
         APOGEE_PRIMARY_TEST_COMPETE=bool(data["apogee_primary_test_complete"]),
         APOGEE_SECONDARY_TEST_COMPETE=bool(data["apogee_secondary_test_complete"]),
         APOGEE_PRIMARY_TEST_RESULTS=bool(data["apogee_primary_test_results"]),
@@ -129,8 +128,8 @@ def handle_av_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
     # @TODO flight state
     item = AVtoGCSData2(
-        RSSI = data["rssi"],
-        SNR= data['snr'],
+        RSSI = float(data["rssi"]),
+        SNR= float(data['snr']),
         FLIGHT_STATE_MSB=False,
         FLIGHT_STATE_1=False,
         FLIGHT_STATE_LSB=False,
@@ -139,12 +138,12 @@ def handle_av_to_gcs_data_2(packet: Packet) -> None:
         GPS_FIX_FLAG=bool(data['GPS_fix_flag']),
         PAYLOAD_CONNECTION_FLAG=bool(data["payload_connection_flag"]),
         CAMERA_CONTROLLER_CONNECTION=bool(data['camera_controller_connection_flag']),
-        LATITUDE=data["GPS_latitude"],
-        LONGITUDE=data["GPS_longitude"],
-        QW=data['qw'],
-        QX=data['qx'],
-        QY=data['qy'],
-        QZ=data['qz'],
+        LATITUDE=float(data["GPS_latitude"]),
+        LONGITUDE=float(data["GPS_longitude"]),
+        QW=float(data['qw']),
+        QX=float(data['qx']),
+        QY=float(data['qy']),
+        QZ=float(data['qz']),
     )
     item.write_payload()
     
@@ -158,8 +157,8 @@ def handle_av_to_gcs_data_3(packet: Packet) -> None:
 def handle_gse_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
     item = GSEtoGCSData1(
-        RSSI=data("rssi"),
-        SNR=data("snr"),
+        RSSI=float(data("rssi")),
+        SNR=float(data("snr")),
         MANUAL_PURGED=bool(data("manual_purged_activated")),
         O2_FILL_ACTIVATED=bool(data("o2_fill_activated")),
         SELECTOR_SWITCH_NEUTRAL_POSITION=bool(data("selector_switch_neutral_position")),
@@ -168,13 +167,13 @@ def handle_gse_to_gcs_data_1(packet: Packet) -> None:
         IGNITION_SELECTED=bool(data("ignition_selected")),
         GAS_FILL_SELECTED=bool(data("gas_fill_selected")),
         SYSTEM_ACTIVATED=bool(data("system_activated")),
-        TRANSDUCER1=data("transducer_1"),
-        TRANSDUCER2=data("transducer_2"),
-        TRANSDUCER3=data("transducer_3"),
-        THERMOCOUPLE1=data("thermocouple_1"),
-        THERMOCOUPLE2=data("thermocouple_2"),
-        THERMOCOUPLE3=data("thermocouple_3"),
-        THERMOCOUPLE4=data("thermocouple_4"),
+        TRANSDUCER1=float(data("transducer_1")),
+        TRANSDUCER2=float(data("transducer_2")),
+        TRANSDUCER3=float(data("transducer_3")),
+        THERMOCOUPLE1=float(data("thermocouple_1")),
+        THERMOCOUPLE2=float(data("thermocouple_2")),
+        THERMOCOUPLE3=float(data("thermocouple_3")),
+        THERMOCOUPLE4=float(data("thermocouple_4")),
         IGNITION_ERROR= bool(data("ignition_error")),
         RELAY3_ERROR=bool(data("relay_3_error")),
         RELAY2_ERROR=bool(data("relay_2_error")),
@@ -210,14 +209,14 @@ def handle_gse_to_gcs_data_2(packet: Packet) -> None:
         IGNITION_SELECTED=bool(data("ignition_selected")),
         GAS_FILL_SELECTED=bool(data("gas_fill_selected")),
         SYSTEM_ACTIVATED=bool(data("system_activated")),
-        INTERNAL_TEMPERATURE=data("internal_temp"),
-        WIND_SPEED=data["wind_speed"],
-        GAS_BOTTLE_WEIGHT_1=data["gas_bottle_weight_1"],
-        GAS_BOTTLE_WEIGHT_2=data["gas_bottle_weight_2"],
-        ADDITIONAL_VA_1=data["analog_voltage_input_1"],
-        ADDITIONAL_VA_2=data["analog_voltage_input_2"],
-        ADDITIONAL_CURRENT_1=data["additional_current_input_1"],
-        ADDITIONAL_CURRENT_2=data["additional_current_input_2"],
+        INTERNAL_TEMPERATURE=float(data("internal_temp")),
+        WIND_SPEED=float(data["wind_speed"]),
+        GAS_BOTTLE_WEIGHT_1=int(data["gas_bottle_weight_1"]),
+        GAS_BOTTLE_WEIGHT_2=int(data["gas_bottle_weight_2"]),
+        ADDITIONAL_VA_1=float(data["analog_voltage_input_1"]),
+        ADDITIONAL_VA_2=float(data["analog_voltage_input_2"]),
+        ADDITIONAL_CURRENT_1=float(data["additional_current_input_1"]),
+        ADDITIONAL_CURRENT_2=float(data["additional_current_input_2"]),
         IGNITION_ERROR= bool(data("ignition_error")),
         RELAY3_ERROR=bool(data("relay_3_error")),
         RELAY2_ERROR=bool(data("relay_2_error")),
