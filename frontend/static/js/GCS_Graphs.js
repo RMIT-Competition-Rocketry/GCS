@@ -6,7 +6,7 @@
  * Functions and constants should be prefixed with "graph_"
  */
 
-MAX_POINTS = 200;
+MAX_TIME = 20; // Seconds of graph shown, TODO: load config
 
 // DEFINE CHARTS
 const LINE_COLOURS = [
@@ -114,21 +114,6 @@ function graphCreateLine(chart, numLines) {
         .attr("y", 10)
         .text(chart.ylabel || "Y LABEL");
 
-    // Line
-    /*
-    chart.line = d3
-        .line()
-        .x((d, i) => chart.x(i))
-        .y((d) => chart.y(d));
-    chart.path = chart.g
-        .append("path")
-        .datum(d3.range(1).map(() => 0)) // initial data
-        .attr("fill", "none")
-        .attr("stroke", "red")
-        .attr("stroke-width", 1.5)
-        .attr("d", chart.line);
-        */
-
     // Lines array to hold multiple line data sets
     chart.lines = [];
     for (let i = 0; i < numLines; i++) {
@@ -198,7 +183,6 @@ function graphResize(chart) {
     chart.yAxis.call(
         d3.axisLeft(chart.y).tickFormat((d) => (Number.isInteger(d) ? d : ""))
     );
-
     chart.yAxisLabel.attr(
         "x",
         -Math.round(chart.graphHeight / 2) - chart.margin.top
@@ -210,43 +194,35 @@ function graphResize(chart) {
 
 // Render graph
 function graphRender(chart) {
-    if (chart != undefined && chart.x != undefined && chart.lines != undefined) {
-        if (chart.rerender != undefined && chart.rerender == true) {
-            chart.rerender = false;
+    if (chart && chart.x && chart.lines) {
+        // Get timestamp of data
+        const now = Math.max(d3.max(chart.lines.flatMap(line => line.data), d => d.x), displayTimestamp != undefined ? displayTimestamp : -Infinity);
+        const windowStart = now - MAX_TIME;
 
-            // Limit chart to MAX_POINTS (rolling)
-            if (chart.xOffset === undefined) {
-                chart.xOffset = 0; // Store the number of points shifted
-            }
+        if (chart.lastRender != now) {
+            chart.lastRender = now;
 
-            let xShift = 0;
+            // Limit data to last 30 seconds
             chart.lines.forEach(line => {
-                if (line.data.length > MAX_POINTS) {
-                    xShift = (line.data.length - MAX_POINTS);
-                    line.data.splice(0, line.data.length - MAX_POINTS); // Remove old points
-                }
+                line.data = line.data.filter(d => d.x >= windowStart);
             });
-            chart.xOffset += xShift;
+            const allPoints = chart.lines.flatMap(line => line.data);
+            
+            // Update x and y domains
+            chart.x.domain([windowStart, now]);
+            chart.y.domain([
+                d3.min(allPoints, d => d.y) - 1,
+                d3.max(allPoints, d => d.y) + 1
+            ]).nice();
 
-
-            // Update X domain
-            chart.x.domain([
-                chart.xOffset,
-                Math.max(...chart.lines.map((line) => line.data.length)) - 1 + chart.xOffset,
-            ]);
+            // Update rendering of X and Y domain
             chart.g
                 .select("g")
                 .transition()
                 .duration(0)
                 .call(
-                    d3
-                        .axisBottom(chart.x)
-                        .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                    d3.axisBottom(chart.x).tickFormat(d => `${d}`)
                 );
-
-            // Update Y domain (with padding for multiple lines)
-            const allData = chart.lines.flatMap((line) => line.data);
-            chart.y.domain([d3.min(allData) - 1, d3.max(allData) + 1]).nice();
             chart.yAxis
                 .transition()
                 .duration(0)
@@ -256,14 +232,13 @@ function graphRender(chart) {
                         .tickFormat((d) => (Number.isInteger(d) ? d : ""))
                 );
 
-            // De-emphasixe hidden non-integer axis values 
+            // De-emphasize hidden non-integer axis values 
             chart.g
                 .selectAll(".tick")
                 .filter((d) => !Number.isInteger(d))
                 .select("line")
                 .style("stroke", "#ccc")
                 .style("stroke-width", 0.5);
-
             chart.g
                 .selectAll(".tick")
                 .filter((d) => !Number.isInteger(d))
@@ -277,8 +252,13 @@ function graphRender(chart) {
             chart.lines.forEach((lineData, index) => {
                 const line = d3
                     .line()
-                    .x((d, i) => chart.x(i+chart.xOffset))
-                    .y((d) => chart.y(d));
+                    .x((d) => chart.x(d.x))
+                    .y((d) => chart.y(d.y))
+                    .defined((d, i, data) => {
+                        if (i === 0) return true;
+                        // Only render if time from previous point < 1s
+                        return Math.abs(d.x - data[i - 1].x) < 1;
+                    });
 
                 // Add path for each line
                 chart.g
@@ -335,59 +315,71 @@ window.addEventListener("DOMContentLoaded", function () {
 // Update modules
 function graphUpdateAvionics(data) {
     // AVIONICS MODULE GRAPHS
-    if (data.id == 3) {
+    if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountAv) {
+        const timestamp = data.meta.timestampS;
+        const packet = data.meta.totalPacketCountAv;
+
         // Acceleration
-        if (
-            data.accelX != undefined &&
-            data.accelY != undefined &&
-            data.accelZ != undefined
-        ) {
-            if (GRAPH_AV_ACCEL.lines != undefined) {
-                GRAPH_AV_ACCEL.lines[0].data.push(data.accelX);
-                GRAPH_AV_ACCEL.lines[1].data.push(data.accelY);
-                GRAPH_AV_ACCEL.lines[2].data.push(data.accelZ);
-                GRAPH_AV_ACCEL.rerender = true;
+        if (GRAPH_AV_ACCEL.lines != undefined) {
+            if (data?.accelX) {
+                GRAPH_AV_ACCEL.lines[0].data.push({ x: timestamp, y: data.accelX});
+            }
+
+            if (data.accelY != undefined) {
+                GRAPH_AV_ACCEL.lines[1].data.push({ x: timestamp, y: data.accelY});
+            }
+
+            if (data.accelZ != undefined) {
+                GRAPH_AV_ACCEL.lines[2].data.push({ x: timestamp, y: data.accelZ});
             }
         }
 
         // Gyroscope
-        if (
-            data.gyroX != undefined &&
-            data.gyroY != undefined &&
-            data.gyroZ != undefined
-        ) {
-            if (GRAPH_AV_GYRO.lines != undefined) {
-                GRAPH_AV_GYRO.lines[0].data.push(data.gyroX);
-                GRAPH_AV_GYRO.lines[1].data.push(data.gyroY);
-                GRAPH_AV_GYRO.lines[2].data.push(data.gyroZ);
-                GRAPH_AV_GYRO.rerender = true;
+        if (GRAPH_AV_GYRO.lines != undefined) {
+            if (data.gyroX != undefined) {
+                GRAPH_AV_GYRO.lines[0].data.push({ x: timestamp, y: data.gyroX});
+            }
+
+            if (data.gyroY != undefined) {
+                GRAPH_AV_GYRO.lines[1].data.push({ x: timestamp, y: data.gyroY});
+            }
+
+            if (data.gyroZ != undefined) {
+                GRAPH_AV_GYRO.lines[2].data.push({ x: timestamp, y: data.gyroZ});
             }
         }
-    }
 
-    // Velocity
-    if (data.velocity != undefined) {
+        // Velocity
         if (GRAPH_AV_VELOCITY.lines != undefined) {
-            GRAPH_AV_VELOCITY.lines[0].data.push(data.velocity);
-            GRAPH_AV_VELOCITY.rerender = true;
+            if (data.velocity != undefined) {
+                GRAPH_AV_VELOCITY.lines[0].data.push({ x: timestamp, y: data.velocity});
+            }
         }
     }
 }
 
 function graphUpdatePosition(data) {
     // POSITION MODULE GRAPHS
-    // Altitude
-    if (data.altitude != undefined) {
-        if (GRAPH_POS_ALT.lines != undefined) {
-            GRAPH_POS_ALT.lines[0].data.push(metresToFeet(data.altitude)); // Graph in feet
-            GRAPH_POS_ALT.rerender = true;
+    if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountAv) {
+        const timestamp = data.meta.timestampS;
+        const packet = data.meta.totalPacketCountAv;
+
+        // Altitude
+        if (GRAPH_POS_ALT.lines?.[0]?.data) {
+            if (data.altitude != undefined) {
+                // Graph in feet
+                GRAPH_POS_ALT.lines[0].data.push({ x: timestamp, y: metresToFeet(data.altitude)});
+            }
         }
     }
 }
 
 function graphUpdateAuxData(data) {
     // AUXILLIARY DATA MODULE GRAPHS
-    if (data.id == 6) {
+    if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountGse) {
+        const timestamp = data.meta.timestampS;
+        const packet = data.meta.totalPacketCountGse;
+
         // Transducers
         if (
             data.transducer1 != undefined &&
@@ -395,10 +387,9 @@ function graphUpdateAuxData(data) {
             data.transducer3 != undefined
         ) {
             if (GRAPH_AUX_TRANSDUCERS.lines != undefined) {
-                GRAPH_AUX_TRANSDUCERS.lines[0].data.push(data.transducer1);
-                GRAPH_AUX_TRANSDUCERS.lines[1].data.push(data.transducer2);
-                GRAPH_AUX_TRANSDUCERS.lines[2].data.push(data.transducer3);
-                GRAPH_AUX_TRANSDUCERS.rerender = true;
+                GRAPH_AUX_TRANSDUCERS.lines[0].data.push({ x: timestamp, y: data.transducer1});
+                GRAPH_AUX_TRANSDUCERS.lines[1].data.push({ x: timestamp, y: data.transducer2});
+                GRAPH_AUX_TRANSDUCERS.lines[2].data.push({ x: timestamp, y: data.transducer3});
             }
         }
 
@@ -410,21 +401,17 @@ function graphUpdateAuxData(data) {
             data.thermocouple4 != undefined
         ) {
             if (GRAPH_AUX_THERMOCOUPLES.lines != undefined) {
-                GRAPH_AUX_THERMOCOUPLES.lines[0].data.push(data.thermocouple1);
-                GRAPH_AUX_THERMOCOUPLES.lines[1].data.push(data.thermocouple2);
-                GRAPH_AUX_THERMOCOUPLES.lines[2].data.push(data.thermocouple3);
-                GRAPH_AUX_THERMOCOUPLES.lines[3].data.push(data.thermocouple4);
-                GRAPH_AUX_THERMOCOUPLES.rerender = true;
+                GRAPH_AUX_THERMOCOUPLES.lines[0].data.push({ x: timestamp, y: data.thermocouple1});
+                GRAPH_AUX_THERMOCOUPLES.lines[1].data.push({ x: timestamp, y: data.thermocouple2});
+                GRAPH_AUX_THERMOCOUPLES.lines[2].data.push({ x: timestamp, y: data.thermocouple3});
+                GRAPH_AUX_THERMOCOUPLES.lines[3].data.push({ x: timestamp, y: data.thermocouple4});
             }
         }
-    }
 
-    if (data.id == 7) {
         // Internal temperature
         if (data.internalTemp != undefined) {
             if (GRAPH_AUX_INTERNALTEMP.lines != undefined) {
-                GRAPH_AUX_INTERNALTEMP.lines[0].data.push(data.internalTemp);
-                GRAPH_AUX_INTERNALTEMP.rerender = true;
+                GRAPH_AUX_INTERNALTEMP.lines[0].data.push({ x: timestamp, y: data.internalTemp});
             }
         }
 
@@ -434,9 +421,8 @@ function graphUpdateAuxData(data) {
             data.gasBottleWeight2 != undefined
         ) {
             if (GRAPH_AUX_GASBOTTLES.lines != undefined) {
-                GRAPH_AUX_GASBOTTLES.lines[0].data.push(data.gasBottleWeight1);
-                GRAPH_AUX_GASBOTTLES.lines[1].data.push(data.gasBottleWeight2);
-                GRAPH_AUX_GASBOTTLES.rerender = true;
+                GRAPH_AUX_GASBOTTLES.lines[0].data.push({ x: timestamp, y: data.gasBottleWeight1});
+                GRAPH_AUX_GASBOTTLES.lines[1].data.push({ x: timestamp, y: data.gasBottleWeight2});
             }
         }
     }

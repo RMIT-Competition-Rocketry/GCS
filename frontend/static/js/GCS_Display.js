@@ -227,17 +227,20 @@ function displayUpdateAvionics(data) {
 
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
-
-    // TODO:
-    // - Flight timer
-    // - Human readable flight state values
-
-    if (data.flightState != undefined) {
+    if (data?.flightState) {
         displaySetString("fs-flightstate", data.flightState);
     }
 
-    if (data.meta != undefined && data.meta.timestampS != undefined) {
-        displaySetValue("fs-time", data.meta.timestampS, 7);
+    if (data?.meta?.timestampS) {
+        displayUpdateTime(data.meta.timestampS);
+    }
+}
+
+function displayUpdateTime(timestamp) {
+    /// SYSTEM TIME
+    if (timestamp != undefined) {
+        displayTimestamp = Math.max(displayTimestamp, timestamp);
+        displaySetValue("fs-time", displayTimestamp, 3);
     }
 }
 

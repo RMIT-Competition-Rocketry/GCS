@@ -11,45 +11,18 @@ var altitudeMax;
 var packetsAV1 = 0;
 var packetsGSE = 0;
 
-// UNIT CONVERSION FUNCTIONS
-function metresToFeet(metres) {
-    return metres * 3.28084;
-}
-
-function feetToMetres(feet) {
-    return feet / 3.28084;
-}
-
-function gpsToDecimal(gps) {
-    // Converts the compressed GPS value into a decimal degrees coordinate
-    if (gps == 0) {
-        return 0;
-    }
-
-    // Split string into parts
-    let [intPart, decPart] = gps.toString().split('.');
-    
-    // Get sign (positive or negative)
-    let sign = intPart >= 0 ? 1 : -1;
-
-    // Equations only work on positive numbers (since rounding and modulus changes in negative)
-    intPart = Math.abs(intPart);
-    let degrees = parseInt(intPart / 100);
-    let minutes = parseInt(intPart % 100);
-    let seconds = parseFloat(decPart.slice(0, 2) + '.' + decPart.slice(2));
-
-    // Convert to decimal
-    return sign * (degrees + minutes/60 + seconds/3600);
-}
-
 // API
 const initialReconnectInterval = 200;
 const maxReconnectInterval = 5000;
+const graphRenderRate = 20; // fps for graphs (5 still looks good)
 
-var api_socket;
+var apiSocket;
+var apiTimestamp = 0; // Timestamp for keeping up with API
+var displayTimestamp = 0; // Timestamp rendered to display and used for graphs
 var reconnectInterval = initialReconnectInterval;
 var reconnectTimeout;
 var connected = false;
+var then, now, fpsInterval;
 
 // Reconnecting code
 function scheduleReconnect() {
@@ -61,6 +34,38 @@ function scheduleReconnect() {
         API_socketConnect();
     }, reconnectInterval);
 }
+
+// Animation/timing code
+function startAnimating() {
+    fpsInterval = 1000 / graphRenderRate;
+    then = window.performance.now();
+    animate();
+}
+startAnimating();
+
+function animate(newtime) {
+    requestAnimationFrame(animate);
+
+    // Calculate time since last loop
+    let now = newtime;
+    let elapsed = now - then;
+
+    // Rerender if enough time has elapsed
+    if (elapsed > (fpsInterval)) {
+        then = now - (elapsed % fpsInterval);
+
+        // Rerender graphs
+        if (typeof graphRequestRender === "function") {
+            graphRequestRender();
+        }
+
+        // Increment time (so if we stop getting packets, time moves forward)
+        // This will be overwritten by API time when packets come through again
+        apiTimestamp += (elapsed/1000);
+        displayTimestamp = Math.max(displayTimestamp, apiTimestamp - (fpsInterval/1000));
+    }
+}
+
 /*
 function logError(message) {
     const logArea = document.getElementById('errorLogBox');
@@ -99,9 +104,9 @@ document.addEventListener('visibilitychange', function() {
 
 function API_socketConnect() {
     const api_url = window.location.host.split(":")[0];
-    api_socket = new WebSocket(`ws://${api_url}:1887`);
+    apiSocket = new WebSocket(`ws://${api_url}:1887`);
 
-    api_socket.onopen = () => {
+    apiSocket.onopen = () => {
         connected = true;
         console.log(`Successfully connected to server at: - ${api_url}`);
         logMessage("Connected successfully", "notification");
@@ -109,20 +114,21 @@ function API_socketConnect() {
         reconnectInterval = initialReconnectInterval;
     };
 
-    api_socket.onmessage = API_OnMessage;
+    apiSocket.onmessage = API_OnMessage;
 
-    api_socket.onerror = (error) => {
+    apiSocket.onerror = (error) => {
         connected = false;
         console.error("websocket error: ", error);
     };
 
-    api_socket.onclose = () => {
+    apiSocket.onclose = () => {
         connected = false;
         console.log("Socket closed: attempting to reconnect automatically");
         logMessage("Connection Lost: Attempting to reconnect", "error");
         scheduleReconnect();
     };
 }
+API_socketConnect();
 
 function API_OnMessage(event) {
     let apiLatest, apiData;
@@ -172,7 +178,6 @@ function API_OnMessage(event) {
             if (typeof graphUpdateAvionics === "function") {
                 graphUpdateAvionics(apiData);
             }
-
             if (typeof graphUpdatePosition === "function") {
                 graphUpdatePosition(apiData);
             }
@@ -209,22 +214,19 @@ function API_OnMessage(event) {
             }
         }
 
-        // Rerender graphs
-        if (typeof graphRequestRender === "function") {
-            graphRequestRender();
-        }
-
     } catch (error) {
         console.error("Data processing error:", error);
     }
 }
 
 function checkErrorConditions(apiData) {
-    Object.entries(apiData.errorFlags).forEach(([key, value]) => {
-        if (value === true) {
-            logMessage(`${key} flag raised`, "error");
-        }
-    });
+    if (apiData.errorFlags != undefined) {
+        Object.entries(apiData.errorFlags).forEach(([key, value]) => {
+            if (value === true) {
+                logMessage(`${key} flag raised`, "error");
+            }
+        });
+    }
 /*
     if (api_data.id === 6) {
         if (api_data.thermocouple1 > 34.5) {
@@ -242,6 +244,11 @@ function processDataForDisplay(apiData, apiId) {
     // Process data from the API for display
     const processedData = { ...apiData }; // Shallow copy
     processedData.id = apiId;
+
+    // Timestamp and connection
+    if (apiData?.meta?.timestampS) {
+        apiTimestamp = apiData.meta.timestampS;
+    }
 
     // Acceleration
     // Determine whether to use low or high precision values
@@ -283,4 +290,33 @@ function processDataForDisplay(apiData, apiId) {
     return processedData;
 }
 
-API_socketConnect();
+// UNIT CONVERSION FUNCTIONS
+function metresToFeet(metres) {
+    return metres * 3.28084;
+}
+
+function feetToMetres(feet) {
+    return feet / 3.28084;
+}
+
+function gpsToDecimal(gps) {
+    // Converts the compressed GPS value into a decimal degrees coordinate
+    if (gps == 0) {
+        return 0;
+    }
+
+    // Split string into parts
+    let [intPart, decPart] = gps.toString().split('.');
+    
+    // Get sign (positive or negative)
+    let sign = intPart >= 0 ? 1 : -1;
+
+    // Equations only work on positive numbers (since rounding and modulus changes in negative)
+    intPart = Math.abs(intPart);
+    let degrees = parseInt(intPart / 100);
+    let minutes = parseInt(intPart % 100);
+    let seconds = parseFloat(decPart.slice(0, 2) + '.' + decPart.slice(2));
+
+    // Convert to decimal
+    return sign * (degrees + minutes/60 + seconds/3600);
+}
