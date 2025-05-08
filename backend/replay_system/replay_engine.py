@@ -10,8 +10,6 @@ import os
 import csv
 from typing import List
 import time
-import math
-from datetime import datetime
 import config.config as config
 from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, AVtoGCSData3, GSEtoGCSData1, GSEtoGCSData2, GCStoAVStateCMD, GCStoGSEStateCMD, MockPacket   
 import backend.includes_python.process_logging as slogger
@@ -103,7 +101,6 @@ def unknown_packet_type(packet: Packet) -> None:
     
 def handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
-    # @TODO Flight state
     # Capping the gyro data for the y entry
     if float(data["gyro_y"]) > 245:
         slogger.error("BAD GYRO Y ENTRY DETECTED CAPPING VALUE")
@@ -130,12 +127,15 @@ def handle_av_to_gcs_data_1(packet: Packet) -> None:
     
     if service_helper.time_to_stop():
         return
+    
+    # Getting the flight state so its easier to convert into bits
+    flight_state = int(data["FlightState"])
     item = AVtoGCSData1(
         RSSI = float(data["rssi"]),
         SNR = float(data["snr"]),
-        FLIGHT_STATE_MSB=False,
-        FLIGHT_STATE_1=False,
-        FLIGHT_STATE_LSB=False,
+        FLIGHT_STATE_MSB=bool((flight_state >> 2) & 1),
+        FLIGHT_STATE_1=bool((flight_state >> 1) & 1),
+        FLIGHT_STATE_LSB=bool((flight_state >> 0) & 1),
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG= bool(data["dual_board_connectivity_state_flag"]),
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY= bool(data["recovery_checks_complete_and_flight_ready"]),
         GPS_FIX_FLAG= bool(data["GPS_fix_flag"]),
@@ -168,15 +168,17 @@ def handle_av_to_gcs_data_1(packet: Packet) -> None:
 
 def handle_av_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
-    # @TODO flight state
     if service_helper.time_to_stop():
         return
+    
+    # Get flight state
+    flight_state = int(data["FlightState"])
     item = AVtoGCSData2(
         RSSI = float(data["rssi"]),
         SNR= float(data['snr']),
-        FLIGHT_STATE_MSB=False,
-        FLIGHT_STATE_1=False,
-        FLIGHT_STATE_LSB=False,
+        FLIGHT_STATE_MSB=bool((flight_state >> 2) & 1),
+        FLIGHT_STATE_1=bool((flight_state >> 1) & 1),
+        FLIGHT_STATE_LSB=bool((flight_state >> 0) & 1),
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(data['dual_board_connectivity_state_flag']),
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(data['recovery_checks_complete_and_flight_ready']),
         GPS_FIX_FLAG=bool(data['GPS_fix_flag']),
