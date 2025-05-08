@@ -164,13 +164,10 @@ def handle_av_to_gcs_data_1(packet: Packet) -> None:
     )
     item.write_payload()
     
-    
-
 def handle_av_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
     if service_helper.time_to_stop():
         return
-    
     # Get flight state
     flight_state = int(data["FlightState"])
     item = AVtoGCSData2(
@@ -193,12 +190,8 @@ def handle_av_to_gcs_data_2(packet: Packet) -> None:
     )
     item.write_payload()
     
-    
-
 def handle_av_to_gcs_data_3(packet: Packet) -> None:
-    slogger.error("AV to GCS 3 not implemented")
-    
-    
+    slogger.error("AV to GCS 3 not implemented")  
 
 def handle_gse_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
@@ -241,9 +234,6 @@ def handle_gse_to_gcs_data_1(packet: Packet) -> None:
     )
     item.write_payload()
         
-    
-    
-
 def handle_gse_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
     if service_helper.time_to_stop():
@@ -302,7 +292,6 @@ def get_available_missions() -> List[str]:
     dir = "backend/replay_system/mission_data"
     return [d for d in os.listdir(dir) if os.path.isdir(os.path.join(dir, d))]
     
-
 PACKET_HANDLERS = {
     PacketType.AV_TO_GCS_DATA_1: handle_av_to_gcs_data_1,
     PacketType.AV_TO_GCS_DATA_2: handle_av_to_gcs_data_2,
@@ -313,7 +302,6 @@ PACKET_HANDLERS = {
     PacketType.GSE_TO_GCS_DATA_2: handle_gse_to_gcs_data_2,
     PacketType.GCS_TO_GSE_STATE_CMD: handle_gcs_to_gse_state, 
 }
-    
     
 def main():
     available_mission_data = get_available_missions()
@@ -333,13 +321,9 @@ def main():
         slogger.error("Failed to find device names in arguments for replay system")
         raise
     
-    
     processed_packets = process_csv_packets()
     replay_packets(processed_packets)
     slogger.info("FINISHED SENDING PACKETS")
-
-
-
 
 if __name__ == "__main__":
     main()
