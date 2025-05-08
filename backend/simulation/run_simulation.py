@@ -176,6 +176,7 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
         qx = packet[" e1"]
         qy = packet[" e2"]
         qz = packet[" e3"]
+        # Using qm to normalize the quaternions to [-1,1]
         qm = math.sqrt(qw**2 + qx**2 + qy**2 +qz**2)
         send_simulated_packet(
             packet[" Altitude AGL (m)"],
