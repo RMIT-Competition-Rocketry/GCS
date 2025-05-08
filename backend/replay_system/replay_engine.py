@@ -14,6 +14,13 @@ import config.config as config
 from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, AVtoGCSData3, GSEtoGCSData1, GSEtoGCSData2, GCStoAVStateCMD, GCStoGSEStateCMD, MockPacket   
 import backend.includes_python.process_logging as slogger
 import backend.includes_python.service_helper as service_helper
+import configparser
+
+cfg = configparser.ConfigParser()
+cfg.read("config/replay.ini")
+timeout_cfg = cfg["Timeout"]
+MIN_TIMESTAMP_MS = float(timeout_cfg["min_timeout_ms"])
+SLEEP_BUFFER_MS = float(timeout_cfg["sleep_buffer_error"])
 
 class PacketType(Enum):
     GCS_TO_AV_STATE_CMD =  0
@@ -31,7 +38,7 @@ class Packet:
     packet_type: PacketType
     data: dict
     
-def process_csv_packets() -> List[Packet]:
+def process_csv_packets(min_timestamp_ms: int) -> List[Packet]:
     """Read and sort all the csv files"""
     packets = []
     for packet_type in PacketType:
@@ -41,49 +48,66 @@ def process_csv_packets() -> List[Packet]:
                 reader = csv.DictReader(f)
                 
                 for row in reader:
-                    packet = Packet(
-                        timestamp_ms= float(row['timestamp_ms']),
-                        packet_type = packet_type,
-                        data = row
-                    )
-                    packets.append(packet)
+                    timestamp_ms = float(row['timestamp_ms'])
+                    if timestamp_ms > min_timestamp_ms:
+                        packet = Packet(
+                            timestamp_ms= timestamp_ms,
+                            packet_type = packet_type,
+                            data = row
+                        )
+                        packets.append(packet)
         except FileNotFoundError:
             slogger.error(f'Warning Missing File: {filename}')
             
     return sorted(packets, key=lambda x : x.timestamp_ms)
 
-def replay_packets(packets: List[Packet]) -> None:
+def replay_packets(packets: List[Packet], min_timestamp_ms: int) -> None:
     if not packets:
         return 
     
-    start_time = time.time()
-    first_timestamp = packets[0].timestamp_ms
-    last_status_time = start_time
-    total_time = 0
+    #first_timestamp = packets[0].timestamp_ms
+    start_time = time.time() - (min_timestamp_ms / 1000)
+    # last_status_time = start_time
+    
     if service_helper.time_to_stop():
         return
     for packet in packets:
-        # Find when the packet should be sent
-        
-        target_time = start_time + (packet.timestamp_ms) / 1000.0
-        time_to_wait = target_time - time.time()
-        if time_to_wait > 0:
-            time.sleep(time_to_wait)
         if service_helper.time_to_stop():
             break
-        sent_time = time.time() - start_time
-        total_time += sent_time
+        # Find when the packet should be sent
+        target_time = start_time + (packet.timestamp_ms) / 1000.0
+        time_to_wait = target_time - time.time()
+        if time_to_wait > 3.0:
+            slogger.info(f"Time until next packet: {time_to_wait}")
+        # slogger.debug(f"Time to wait: {time_to_wait} for packet: {packet.packet_type} at time: {packet.timestamp_ms}")
+        if time_to_wait > 0:
+            remaining_time = time_to_wait
+            while remaining_time > 0:
+                chunk = min(SLEEP_BUFFER_MS / 1000, time_to_wait)
+                time.sleep(chunk)
+                remaining_time -= chunk
+                if service_helper.time_to_stop():
+                    break
+                
+                
+        if service_helper.time_to_stop():
+            break
         
-        current_time = time.time()
-        if current_time - last_status_time >= 60:
-            elapsed = current_time - start_time
-            packets_remaining = len(packets) - packets.index(packet) - 1
-            slogger.debug(
-                f"Status update: Elapsed {elapsed:.1f}s | "
-                f"Packets remaining: {packets_remaining} | "
-                f"Current packet: {packet.packet_type} @ {packet.timestamp_ms}ms"
-            )
-            last_status_time = current_time
+        # @TODO Progress Checkers
+        # sent_time = time.time() + (MIN_TIMESTAMP_MS /1000) - start_time
+        
+        # current_time = time.time()
+        # if current_time - last_status_time >= 60:
+        #     if service_helper.time_to_stop():
+        #         break
+        #     elapsed = current_time - start_time
+        #     packets_remaining = len(packets) - packets.index(packet) - 1
+        #     slogger.debug(
+        #         f"Status update: Elapsed {elapsed:.1f}s | "
+        #         f"Packets remaining: {packets_remaining} | "
+        #         f"Current packet: {packet.packet_type} @ {packet.timestamp_ms}ms"
+        #     )
+        #     last_status_time = current_time
             
         send_packet(packet)
         
@@ -101,29 +125,20 @@ def unknown_packet_type(packet: Packet) -> None:
     
 def handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
-    # Capping the gyro data for the y entry
-    if float(data["gyro_y"]) > 245:
-        slogger.error("BAD GYRO Y ENTRY DETECTED CAPPING VALUE")
-        data["gyro_y"] = 245
-    elif float(data["gyro_y"]) < -245:
-        slogger.error("BAD GYRO Y ENTRY DETECTED CAPPING VALUE")
-        data["gyro_y"] = -245
-        
-    # Capping the gyro data for the x entry
-    if float(data["gyro_x"]) > 245:
-        slogger.error("BAD GYRO X ENTRY DETECTED CAPPING VALUE")
-        data["gyro_x"] = 245
-    elif float(data["gyro_x"]) < -245:
-        slogger.error("BAD GYRO X ENTRY DETECTED CAPPING VALUE")
-        data["gyro_x"] = -245
-
-    # Capping the gyro data for the z entry
-    if float(data["gyro_z"]) > 245:
-        slogger.error("BAD GYRO Z ENTRY DETECTED CAPPING VALUE")
-        data["gyro_z"] = 245
-    elif float(data["gyro_z"]) < -245:
-        slogger.error("BAD GYRO Z ENTRY DETECTED CAPPING VALUE")
-        data["gyro_z"] = -245
+    def temp_gyro_capper(packet: Packet, axis: str) -> Packet:
+        gyro = "gyro_" + axis
+        if float(data[gyro]) > 245:
+            slogger.error(f"BAD GYRO {axis} ENTRY DETECTED CAPPING VALUE")
+            data[gyro] = 245
+        elif float(data[gyro]) < -245:
+            slogger.error(f"BAD GYRO {axis} ENTRY DETECTED CAPPING VALUE")
+            data[gyro] = -245
+        return packet
+    # Check gyro values
+    packet = temp_gyro_capper(packet, "x")
+    packet = temp_gyro_capper(packet, "y")
+    packet = temp_gyro_capper(packet, "z")
+    
     
     if service_helper.time_to_stop():
         return
@@ -198,39 +213,39 @@ def handle_gse_to_gcs_data_1(packet: Packet) -> None:
     if service_helper.time_to_stop():
         return
     item = GSEtoGCSData1(
-        RSSI=float(data("rssi")),
-        SNR=float(data("snr")),
-        MANUAL_PURGED=bool(data("manual_purged_activated")),
-        O2_FILL_ACTIVATED=bool(data("o2_fill_activated")),
-        SELECTOR_SWITCH_NEUTRAL_POSITION=bool(data("selector_switch_neutral_position")),
-        N2O_FILL_ACTIVATED=bool(data("n2o_fill_activated")),
-        IGNITION_FIRED=bool(data("ignition_fired")),
-        IGNITION_SELECTED=bool(data("ignition_selected")),
-        GAS_FILL_SELECTED=bool(data("gas_fill_selected")),
-        SYSTEM_ACTIVATED=bool(data("system_activated")),
-        TRANSDUCER1=float(data("transducer_1")),
-        TRANSDUCER2=float(data("transducer_2")),
-        TRANSDUCER3=float(data("transducer_3")),
-        THERMOCOUPLE1=float(data("thermocouple_1")),
-        THERMOCOUPLE2=float(data("thermocouple_2")),
-        THERMOCOUPLE3=float(data("thermocouple_3")),
-        THERMOCOUPLE4=float(data("thermocouple_4")),
-        IGNITION_ERROR= bool(data("ignition_error")),
-        RELAY3_ERROR=bool(data("relay_3_error")),
-        RELAY2_ERROR=bool(data("relay_2_error")),
-        RELAY1_ERROR=bool(data("relay_1_error")),
-        THERMOCOUPLE_4_ERROR= bool(data("thermocouple_4_error")),
-        THERMOCOUPLE_3_ERROR=bool(data("thermocouple_3_error")),
-        THERMOCOUPLE_2_ERROR=bool(data("thermocouple_2_error")),
-        THERMOCOUPLE_1_ERROR=bool(data("thermocouple_1_error")),
-        LOAD_CELL_4_ERROR=bool(data("load_cell_4_error")),
-        LOAD_CELL_3_ERROR= bool(data("load_cell_3_error")),
-        LOAD_CELL_2_ERROR=bool(data("load_cell_2_error")),
-        LOAD_CELL_1_ERROR=bool(data("load_cell_1_error")),
-        TRANSDUCER_4_ERROR=bool(data("transducer_4_error")),
-        TRANSDUCER_3_ERROR=bool(data("transducer_3_error")),
-        TRANSDUCER_2_ERROR=bool(data("transducer_2_error")),
-        TRANSDUCER_1_ERROR=bool(data("transducer_1_error"))
+        RSSI=float(data["rssi"]),
+        SNR=float(data["snr"]),
+        MANUAL_PURGED=bool(data["manual_purge_activated"]),
+        O2_FILL_ACTIVATED=bool(data["o2_fill_activated"]),
+        SELECTOR_SWITCH_NEUTRAL_POSITION=bool(data["selector_switch_neutral_position"]),
+        N2O_FILL_ACTIVATED=bool(data["n20_fill_activated"]),
+        IGNITION_FIRED=bool(data["ignition_fired"]),
+        IGNITION_SELECTED=bool(data["ignition_selected"]),
+        GAS_FILL_SELECTED=bool(data["gas_fill_selected"]),
+        SYSTEM_ACTIVATED=bool(data["system_activated"]),
+        TRANSDUCER1=float(data["transducer_1"]),
+        TRANSDUCER2=float(data["transducer_2"]),
+        TRANSDUCER3=float(data["transducer_3"]),
+        THERMOCOUPLE1=float(data["thermocouple_1"]),
+        THERMOCOUPLE2=float(data["thermocouple_2"]),
+        THERMOCOUPLE3=float(data["thermocouple_3"]),
+        THERMOCOUPLE4=float(data["thermocouple_4"]),
+        IGNITION_ERROR= bool(data["ignition_error"]),
+        RELAY3_ERROR=bool(data["relay_3_error"]),
+        RELAY2_ERROR=bool(data["relay_2_error"]),
+        RELAY1_ERROR=bool(data["relay_1_error"]),
+        THERMOCOUPLE_4_ERROR= bool(data["thermocouple_4_error"]),
+        THERMOCOUPLE_3_ERROR=bool(data["thermocouple_3_error"]),
+        THERMOCOUPLE_2_ERROR=bool(data["thermocouple_2_error"]),
+        THERMOCOUPLE_1_ERROR=bool(data["thermocouple_1_error"]),
+        LOAD_CELL_4_ERROR=bool(data["load_cell_4_error"]),
+        LOAD_CELL_3_ERROR= bool(data["load_cell_3_error"]),
+        LOAD_CELL_2_ERROR=bool(data["load_cell_2_error"]),
+        LOAD_CELL_1_ERROR=bool(data["load_cell_1_error"]),
+        TRANSDUCER_4_ERROR=bool(data["transducer_4_error"]),
+        TRANSDUCER_3_ERROR=bool(data["transducer_3_error"]),
+        TRANSDUCER_2_ERROR=bool(data["transducer_2_error"]),
+        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"])
     )
     item.write_payload()
         
@@ -239,17 +254,17 @@ def handle_gse_to_gcs_data_2(packet: Packet) -> None:
     if service_helper.time_to_stop():
         return
     item = GSEtoGCSData2(
-        RSSI=data("rssi"),
-        SNR=data("snr"),
-        MANUAL_PURGED=bool(data("manual_purged_activated")),
-        O2_FILL_ACTIVATED=bool(data("o2_fill_activated")),
-        SELECTOR_SWITCH_NEUTRAL_POSITION=bool(data("selector_switch_neutral_position")),
-        N2O_FILL_ACTIVATED=bool(data("n2o_fill_activated")),
-        IGNITION_FIRED=bool(data("ignition_fired")),
-        IGNITION_SELECTED=bool(data("ignition_selected")),
-        GAS_FILL_SELECTED=bool(data("gas_fill_selected")),
-        SYSTEM_ACTIVATED=bool(data("system_activated")),
-        INTERNAL_TEMPERATURE=float(data("internal_temp")),
+        RSSI=float(data["rssi"]),
+        SNR=float(data["snr"]),
+        MANUAL_PURGED=bool(data["manual_purge_activated"]),
+        O2_FILL_ACTIVATED=bool(data["o2_fill_activated"]),
+        SELECTOR_SWITCH_NEUTRAL_POSITION=bool(data["selector_switch_neutral_position"]),
+        N2O_FILL_ACTIVATED=bool(data["n20_fill_activated"]),
+        IGNITION_FIRED=bool(data["ignition_fired"]),
+        IGNITION_SELECTED=bool(data["ignition_selected"]),
+        GAS_FILL_SELECTED=bool(data["gas_fill_selected"]),
+        SYSTEM_ACTIVATED=bool(data["system_activated"]),
+        INTERNAL_TEMPERATURE=float(data["internal_temp"]),
         WIND_SPEED=float(data["wind_speed"]),
         GAS_BOTTLE_WEIGHT_1=int(data["gas_bottle_weight_1"]),
         GAS_BOTTLE_WEIGHT_2=int(data["gas_bottle_weight_2"]),
@@ -257,22 +272,22 @@ def handle_gse_to_gcs_data_2(packet: Packet) -> None:
         ADDITIONAL_VA_2=float(data["analog_voltage_input_2"]),
         ADDITIONAL_CURRENT_1=float(data["additional_current_input_1"]),
         ADDITIONAL_CURRENT_2=float(data["additional_current_input_2"]),
-        IGNITION_ERROR= bool(data("ignition_error")),
-        RELAY3_ERROR=bool(data("relay_3_error")),
-        RELAY2_ERROR=bool(data("relay_2_error")),
-        RELAY1_ERROR=bool(data("relay_1_error")),
-        THERMOCOUPLE_4_ERROR= bool(data("thermocouple_4_error")),
-        THERMOCOUPLE_3_ERROR=bool(data("thermocouple_3_error")),
-        THERMOCOUPLE_2_ERROR=bool(data("thermocouple_2_error")),
-        THERMOCOUPLE_1_ERROR=bool(data("thermocouple_1_error")),
-        LOAD_CELL_4_ERROR=bool(data("load_cell_4_error")),
-        LOAD_CELL_3_ERROR= bool(data("load_cell_3_error")),
-        LOAD_CELL_2_ERROR=bool(data("load_cell_2_error")),
-        LOAD_CELL_1_ERROR=bool(data("load_cell_1_error")),
-        TRANSDUCER_4_ERROR=bool(data("transducer_4_error")),
-        TRANSDUCER_3_ERROR=bool(data("transducer_3_error")),
-        TRANSDUCER_2_ERROR=bool(data("transducer_2_error")),
-        TRANSDUCER_1_ERROR=bool(data("transducer_1_error"))
+        IGNITION_ERROR= bool(data["ignition_error"]),
+        RELAY3_ERROR=bool(data["relay_3_error"]),
+        RELAY2_ERROR=bool(data["relay_2_error"]),
+        RELAY1_ERROR=bool(data["relay_1_error"]),
+        THERMOCOUPLE_4_ERROR= bool(data["thermocouple_4_error"]),
+        THERMOCOUPLE_3_ERROR=bool(data["thermocouple_3_error"]),
+        THERMOCOUPLE_2_ERROR=bool(data["thermocouple_2_error"]),
+        THERMOCOUPLE_1_ERROR=bool(data["thermocouple_1_error"]),
+        LOAD_CELL_4_ERROR=bool(data["load_cell_4_error"]),
+        LOAD_CELL_3_ERROR= bool(data["load_cell_3_error"]),
+        LOAD_CELL_2_ERROR=bool(data["load_cell_2_error"]),
+        LOAD_CELL_1_ERROR=bool(data["load_cell_1_error"]),
+        TRANSDUCER_4_ERROR=bool(data["transducer_4_error"]),
+        TRANSDUCER_3_ERROR=bool(data["transducer_3_error"]),
+        TRANSDUCER_2_ERROR=bool(data["transducer_2_error"]),
+        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"])
     )
     item.write_payload()
     
@@ -303,12 +318,23 @@ PACKET_HANDLERS = {
     PacketType.GSE_TO_GCS_DATA_2: handle_gse_to_gcs_data_2,
     PacketType.GCS_TO_GSE_STATE_CMD: handle_gcs_to_gse_state, 
 }
+
+def validate_timeout_skip(packet: Packet, min_timeout_ms: int) -> int:
+    # Get the first packet timeout
+    first_timestamp_ms = packet[0].timestamp_ms
+    
+    if (first_timestamp_ms > min_timeout_ms + SLEEP_BUFFER_MS):
+        new_timeout = int(first_timestamp_ms - SLEEP_BUFFER_MS)
+        slogger.warning(f"Minimum timeout is too long between packets, adjusting the min_timeout_ms to: {new_timeout}")
+        return new_timeout
+    return min_timeout_ms
     
 def main():
     available_mission_data = get_available_missions()
     if not available_mission_data:
         slogger.error("No mission data in the directory backend/replay_system/mission_data")
         
+    
     # Only one mission data @TODO please make it based on args
     mission = available_mission_data[-1]
     slogger.info(f"Available missions: {','.join(available_mission_data)}")
@@ -322,8 +348,15 @@ def main():
         slogger.error("Failed to find device names in arguments for replay system")
         raise
     
-    processed_packets = process_csv_packets()
-    replay_packets(processed_packets)
+    
+    
+    processed_packets = process_csv_packets(MIN_TIMESTAMP_MS)
+    
+    # Will need to valid timeout before the gaps between packets may be extremely large
+    # When replaying the packets the delay will cause an error when trying to shut down
+    valid_timeout = validate_timeout_skip(processed_packets, MIN_TIMESTAMP_MS)
+ 
+    replay_packets(processed_packets, valid_timeout)
     slogger.info("FINISHED SENDING PACKETS")
 
 if __name__ == "__main__":
