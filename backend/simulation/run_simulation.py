@@ -16,8 +16,9 @@ cfg = configparser.ConfigParser()
 cfg.read("config/simulation.ini")
 sim_cfg = cfg["Simulation"]
 # In seconds
-TIMEOUT_INTERVAL_MS = float(sim_cfg["timeout_interval_ms"])
+TIMEOUT_INTERVAL_MS = float(sim_cfg["packet_timeout_interval_ms"])
 MS_PER_SECOND = 1000
+PACKET_TIMEOUT_MS = float(sim_cfg["packet_sleep_interval_ms"])
 
 
 def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float, latitude: float, longitude: float, qw: float, qx: float, qy: float, qz: float, qm: float):
@@ -64,11 +65,28 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
     # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
     if service_helper.time_to_stop():
         return 
-    time.sleep(0.01)  # Allow the buffer to update
+    time.sleep(PACKET_TIMEOUT_MS / 1000)  # Allow the buffer to update
     packet1.write_payload()
     # time.sleep(0.01)
     packet2.write_payload()
 
+def validate_timeout_interval(TIMEOUT_MS: int, TYPE: str):
+    if TIMEOUT_MS < 0:
+        slogger.error(f"Timeout interval cannot be negative: {TIMEOUT_MS}")
+        raise ValueError("Timeout interval cannot be negative")
+    if TYPE == "window":
+        if TIMEOUT_MS > 10000:
+            slogger.warning(
+                f"Timeout interval is quite large, consider reducing it: {TIMEOUT_MS}")
+    elif TYPE == "buffer":
+        if TIMEOUT_MS < 10:
+            slogger.warning(
+                f"Buffer interval is too small and will miss packets, consider increasing it: {TIMEOUT_MS}"
+            )
+        elif TIMEOUT_MS > 1000:
+            slogger.warning(
+                f"Buffer interval is quite large, the simulation may take a longer to run, consider reducing it: {TIMEOUT_MS}"
+            )
 
 def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
     """
@@ -199,6 +217,13 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
 
 
 def main():
+    
+    slogger.info("Validing Emulator Timeouts")
+    # Validate timeouts before starting emulator
+    validate_timeout_interval(TIMEOUT_INTERVAL_MS, "window")
+    validate_timeout_interval(PACKET_TIMEOUT_MS, "buffer")
+    
+    
     slogger.info("Emulator Starting Simulation...")
     try:
         FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
