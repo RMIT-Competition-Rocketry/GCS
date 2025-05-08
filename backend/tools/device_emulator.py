@@ -554,9 +554,9 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
         "ACCEL_HIGH_Y": -int(1024*sinusoid(T, min=-32, max=32, period=5, phase=4*math.pi/3)),
         "ACCEL_HIGH_Z": int(1024*sinusoid(T, min=-32, max=32, period=5, phase=6*math.pi/3)),
         # should be [-30,30] on output
-        "GYRO_X": int(sinusoid(T, min=-30, max=30, period=5, phase=2*math.pi/3)/0.00875),
-        "GYRO_Y": int(sinusoid(T, min=-30, max=30, period=5, phase=4*math.pi/3)/0.00875),
-        "GYRO_Z": int(sinusoid(T, min=-30, max=30, period=5, phase=6*math.pi/3)/0.00875),
+        "GYRO_X": int(sinusoid(T, min=-286.72, max=286.71, period=5, phase=2*math.pi/3)/0.00875),
+        "GYRO_Y": int(sinusoid(T, min=-286.72, max=286.71, period=5, phase=4*math.pi/3)/0.00875),
+        "GYRO_Z": int(sinusoid(T, min=-286.72, max=286.71, period=5, phase=6*math.pi/3)/0.00875),
         "ALTITUDE": sinusoid(T, min=0, max=3000, period=40, phase=0),
         "VELOCITY": sinusoid(T, min=0, max=350, period=20, phase=0),
         "APOGEE_PRIMARY_TEST_COMPETE": False,
