@@ -146,7 +146,7 @@
             "args": [
                 "backend/frontend_api.py",
                 "--socket-path",
-                "gcs_rocket"
+                "gcs_rocket",
             ],
             "icon": {
                 "id": "debug-console"
@@ -272,7 +272,9 @@
             "args": [
                 "backend/replay_system/replay_engine.py",
                 "--device-rocket",
-                "/tmp/gcs_rocket.sock"
+                "/tmp/gcs_rocket.sock",
+                "--mission-type",
+                "20250504"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",

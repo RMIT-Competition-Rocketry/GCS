@@ -21,8 +21,7 @@ from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
-from cli.start_replay_system import start_replay_system
-
+from cli.start_replay_system import start_replay_system, MissionType, get_mission_type
 
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
@@ -56,6 +55,11 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                                       case_sensitive=False)
     _INTERFACE_CHOICES = click.Choice(
         [e.value for e in InterfaceType], case_sensitive=False)
+    # @TODO PLEASE CHANGE THIS TO BE BETTER
+    _MISSION_CHOICES = click.Choice(
+        [e.value for e in MissionType], case_sensitive=False
+    )
+    print([e.value for e in MissionType])
 
     OPTIONS_GSE_ONLY = [click.option('--gse-only', is_flag=True,
                                      help="Run the system in GSE only mode")]
@@ -71,9 +75,9 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         click.option('--logpkt', is_flag=True,
                      help="Log packet data to csv")
     ]
-    
+
     OPTIONS_REPLAY = [
-        click.option('-l', '--log-level', is_flag=False, type =_LOG_LEVEL_CHOICES,
+        click.option('-l', '--log-level', is_flag=False, type=_LOG_LEVEL_CHOICES,
                      help="Overide the config log level",
                      callback=_set_level, expose_value=False),
         click.option('--docker', is_flag=True,
@@ -81,7 +85,9 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         click.option('--nobuild', is_flag=True,
                      help="Do not build binaries. Search for pre-built binaries"),
         click.option('--logpkt', is_flag=True,
-                     help="Log packet data to csv")
+                     help="Log packet data to csv"),
+        click.option('-m', '--mission', type=_MISSION_CHOICES,
+                     help="Select what mission to replay.")
     ]
 
     OPTIONS_ALL_DEV = OPTIONS_SIM + OPTIONS_GSE_ONLY + [
@@ -135,7 +141,8 @@ def start_services(COMMAND: Command,
                    logpkt: bool = False,
                    nopendant: bool = False,
                    gse_only: bool = False,
-                   frontend: bool = False):
+                   frontend: bool = False,
+                   MISSION_ARG: Optional[MissionType] = None):
     """Starts all services required for the given command.
 
     Args:
@@ -183,6 +190,17 @@ def start_services(COMMAND: Command,
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
 
+    # @TODO
+    if MISSION_ARG != None:
+        MISSION_TYPE = get_mission_type(MISSION_ARG)
+        match MISSION_TYPE:
+            case MissionType.MISSION1:
+                logger.info(
+                    f"Using Mission Data {MissionType.MISSION1.value}")
+            case _:
+                logger.error("Invalid mission type")
+                raise ValueError("Invalid mission type")
+
     # 3. Run C++ middleware
     # Note that `devices` are paired pseudo-ttys
     try:
@@ -209,7 +227,7 @@ def start_services(COMMAND: Command,
     elif COMMAND == Command.SIMULATION:
         start_simulator(logger, devices[1])
     elif COMMAND == Command.REPLAY:
-        start_replay_system(logger, devices[1])
+        start_replay_system(logger, devices[1], MISSION_TYPE)
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
@@ -293,9 +311,10 @@ def simulation(docker, nobuild, logpkt):
                    frontend=True
                    )
 
+
 @click.command()
-@cli_decorator_factory(DecoratorSelector.SIM)
-def replay(docker, nobuild, logpkt):
+@cli_decorator_factory(DecoratorSelector.REPLAY)
+def replay(docker, nobuild, logpkt, mission):
     """Start software in simulation mode"""
     start_services(Command.REPLAY,
                    DOCKER=docker,
@@ -304,8 +323,10 @@ def replay(docker, nobuild, logpkt):
                    logpkt=logpkt,
                    nopendant=True,
                    gse_only=False,
-                   frontend=True
+                   frontend=True,
+                   MISSION_ARG=mission
                    )
+
 
 def print_splash():
     """Prints a logo and splash screen for decoration"""

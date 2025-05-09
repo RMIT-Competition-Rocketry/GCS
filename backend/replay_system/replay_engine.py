@@ -45,7 +45,7 @@ def process_csv_packets(min_timestamp_ms: int, mission_path: str) -> List[Packet
     """Read and sort all the csv files"""
     packets = []
     for packet_type in PacketType:
-        filename = os.join.path(mission_path, f"{packet_type}.csv")
+        filename = os.path.join(mission_path, f"{packet_type.name}.csv")
         try:
             with open(filename, 'r') as f:
                 reader = csv.DictReader(f)
@@ -82,7 +82,7 @@ def replay_packets(packets: List[Packet], min_timestamp_ms: int) -> None:
         target_time = start_time + (packet.timestamp_ms) / 1000.0
         time_to_wait = target_time - time.time()
         if time_to_wait > 3.0:
-            slogger.info(f"Time until next packet: {time_to_wait}")
+            slogger.warning(f"Time until next packet: {time_to_wait}")
         # slogger.debug(f"Time to wait: {time_to_wait} for packet: {packet.packet_type} at time: {packet.timestamp_ms}")
         if time_to_wait > 0:
             remaining_time = time_to_wait
@@ -131,19 +131,25 @@ def unknown_packet_type(packet: Packet) -> None:
 def handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
 
-    def temp_gyro_capper(packet: Packet, axis: str) -> Packet:
-        gyro = "gyro_" + axis
-        if float(data[gyro]) > 245:
-            slogger.error(f"BAD GYRO {axis} ENTRY DETECTED CAPPING VALUE")
-            data[gyro] = 245
-        elif float(data[gyro]) < -245:
-            slogger.error(f"BAD GYRO {axis} ENTRY DETECTED CAPPING VALUE")
-            data[gyro] = -245
+    def _gyro_capper(packet: Packet, axis: str) -> Packet:
+        key = "gyro_" + axis
+        CURRENT_VALUE = float(data[key])
+
+        ABS_THRESHOLD = 245.0
+
+        if CURRENT_VALUE > ABS_THRESHOLD:
+            slogger.error(
+                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE")
+            data[key] = ABS_THRESHOLD
+        elif CURRENT_VALUE < -ABS_THRESHOLD:
+            slogger.error(
+                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE")
+            data[key] = -ABS_THRESHOLD
         return packet
     # Check gyro values
-    packet = temp_gyro_capper(packet, "x")
-    packet = temp_gyro_capper(packet, "y")
-    packet = temp_gyro_capper(packet, "z")
+    packet = _gyro_capper(packet, "x")
+    packet = _gyro_capper(packet, "y")
+    packet = _gyro_capper(packet, "z")
 
     if service_helper.time_to_stop():
         return
@@ -323,11 +329,6 @@ def handle_gcs_to_gse_state(packet: Packet) -> None:
     slogger.error("GCS to GSE state not implemented")
 
 
-def get_available_missions() -> List[str]:
-    dir = "backend/replay_system/mission_data"
-    return [d for d in os.listdir(dir) if os.path.isdir(os.path.join(dir, d))]
-
-
 PACKET_HANDLERS = {
     PacketType.AV_TO_GCS_DATA_1: handle_av_to_gcs_data_1,
     PacketType.AV_TO_GCS_DATA_2: handle_av_to_gcs_data_2,
@@ -335,7 +336,7 @@ PACKET_HANDLERS = {
     PacketType.GCS_TO_AV_STATE_CMD: handle_gcs_to_av_state,
     PacketType.GSE_TO_GCS_DATA_1: handle_gse_to_gcs_data_1,
     PacketType.GSE_TO_GCS_DATA_2: handle_gse_to_gcs_data_2,
-    PacketType.GSE_TO_GCS_DATA_2: handle_gse_to_gcs_data_2,
+    PacketType.GSE_TO_GCS_DATA_3: handle_gse_to_gcs_data_3,
     PacketType.GCS_TO_GSE_STATE_CMD: handle_gcs_to_gse_state,
 }
 
@@ -359,18 +360,19 @@ def get_mission_path():
 
 def main():
     mission_path = get_mission_path()
-    available_mission_data = get_available_missions(mission_path)
-    if not available_mission_data:
-        slogger.error(
-            f"No mission data in the directory {mission_path}")
-
-    # Only one mission data @TODO please make it based on args
-    mission = available_mission_data[-1]
-    slogger.info(f"Available missions: {','.join(available_mission_data)}")
-    slogger.info(f"Emulator Starting Replay System from mission {mission}")
 
     # Remake the path to the mission selected
-    mission_path = os.join.path(mission_path, mission)
+    try:
+        MISSION_NAME = sys.argv[sys.argv.index('--mission-type') + 1]
+
+        mission_path = os.path.join(mission_path, MISSION_NAME)
+
+    except ValueError:
+        slogger.error(
+            "Failed to find the mission name in arguments for replay system"
+        )
+        raise
+
     try:
         FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
         MockPacket.initialize_settings(
