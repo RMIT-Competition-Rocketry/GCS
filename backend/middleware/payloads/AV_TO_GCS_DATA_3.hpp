@@ -64,12 +64,17 @@ class AV_TO_GCS_DATA_3 {
 
   // Protobuf serialization
 
-  payload::AV_TO_GCS_DATA_3 toProtobuf() const {
+  payload::AV_TO_GCS_DATA_3 toProtobuf(const float TIMESTAMP_S,
+                                       const int64_t COUNTER_AV,
+                                       const int64_t COUNTER_GCS) const {
     payload::AV_TO_GCS_DATA_3 proto_data;
 
     common::PacketMeta *packet_meta = new common::PacketMeta();
     SET_SUB_PROTO_FIELD(packet_meta, rssi);
     SET_SUB_PROTO_FIELD(packet_meta, snr);
+    packet_meta->set_timestamp_s(TIMESTAMP_S);
+    packet_meta->set_total_packet_count_av(COUNTER_AV);
+    packet_meta->set_total_packet_count_gse(COUNTER_GCS);
     proto_data.set_allocated_meta(packet_meta);
 
     // Use the macro for simple fields with same name

@@ -77,6 +77,9 @@ class Packet(ABC):
             "AV_TO_GCS_DATA_1": [
                 "rssi",
                 "snr",
+                "timestamp_ms",
+                "total_packet_count_av",
+                "total_packet_count_gse",
                 "FlightState",
                 "dual_board_connectivity_state_flag",
                 "recovery_checks_complete_and_flight_ready",
@@ -107,6 +110,9 @@ class Packet(ABC):
             "AV_TO_GCS_DATA_2": [
                 "rssi",
                 "snr",
+                "timestamp_ms",
+                "total_packet_count_av",
+                "total_packet_count_gse",
                 "FlightState",
                 "dual_board_connectivity_state_flag",
                 "recovery_checks_complete_and_flight_ready",
@@ -124,6 +130,9 @@ class Packet(ABC):
             "AV_TO_GCS_DATA_3": [
                 "rssi",
                 "snr",
+                "timestamp_ms",
+                "total_packet_count_av",
+                "total_packet_count_gse",
                 "FlightState",
                 "dual_board_connectivity_state_flag",
                 "recovery_checks_complete_and_flight_ready",
@@ -135,6 +144,9 @@ class Packet(ABC):
             "GSE_TO_GCS_DATA_1": [
                 "rssi",
                 "snr",
+                "timestamp_ms",
+                "total_packet_count_av",
+                "total_packet_count_gse",
                 "manual_purge_activated",
                 "o2_fill_activated",
                 "selector_switch_neutral_position",
@@ -170,6 +182,9 @@ class Packet(ABC):
             "GSE_TO_GCS_DATA_2": [
                 "rssi",
                 "snr",
+                "timestamp_ms",
+                "total_packet_count_av",
+                "total_packet_count_gse",
                 "manual_purge_activated",
                 "o2_fill_activated",
                 "selector_switch_neutral_position",

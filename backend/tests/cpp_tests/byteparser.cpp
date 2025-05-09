@@ -221,10 +221,10 @@ TEST(ByteParserExtractUBitsTest, ExtractBitsLittleShort) {
   EXPECT_EQ(parser.extract_unsigned_bits(16), 43724U);  // 0b1010101011001100
 }
 
-TEST(ByteParserExtractUBitsTest, ExtractBitsLittleFloatNegative) {
-  uint8_t data[] = {0b00000000, 0b00000000, 0b10000000, 0b10111111};
+TEST(ByteParserExtractUBitsTest, ExtractBitsLittleSIGNED) {
+  uint8_t data[] = {0b11111110, 0b11111111, 0b11111111, 0b11111111};
   ByteParser parser(data, sizeof(data), ByteOrder::LITTLE_ENDIAN_ORDER);
-  EXPECT_EQ(parser.extract_signed_bits(32), -1);
+  EXPECT_EQ(parser.extract_signed_bits(32), -2);
 }
 
 // --------- TEST: .swap_byte_order (LITTLE ENDIAN) ---------
