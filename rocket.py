@@ -84,8 +84,6 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                      help="Run in Docker"),
         click.option('--nobuild', is_flag=True,
                      help="Do not build binaries. Search for pre-built binaries"),
-        click.option('--logpkt', is_flag=True,
-                     help="Log packet data to csv"),
         click.option('-m', '--mission', type=_MISSION_CHOICES,
                      help="Select what mission to replay.")
     ]
@@ -314,13 +312,12 @@ def simulation(docker, nobuild, logpkt):
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.REPLAY)
-def replay(docker, nobuild, logpkt, mission):
+def replay(docker, nobuild, mission):
     """Start software in simulation mode"""
     start_services(Command.REPLAY,
                    DOCKER=docker,
                    INTERFACE_ARG="TEST",
                    nobuild=nobuild,
-                   logpkt=logpkt,
                    nopendant=True,
                    gse_only=False,
                    frontend=True,
