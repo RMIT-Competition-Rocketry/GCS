@@ -10,6 +10,9 @@ class Metric:
     SIGNED_INT = Annotated[int, Literal['signed']]
     UNSIGNED_INT = Annotated[int, Literal['unsigned']]
 
+    # Using list for iterating over these values in emulator
+    POSSIBLE_NAV_VALUES = ["NF", "DR", "G2", "G3", "D2", "D3", "RK", "TT"]
+
     @staticmethod
     def _invert_bits(num: int) -> int:
         num_bits = num.bit_length()  # Get the number of bits required to represent num
@@ -913,6 +916,12 @@ class Metric:
         Args:
             VALUE (str): 2 char string
         """
+        if not isinstance(VALUE, str):
+            raise ValueError("Navigation status must be a string")
+
+        if VALUE not in Metric.POSSIBLE_NAV_VALUES:
+            raise ValueError(
+                f'Navigation status must be one of: {" ".join(Metric.POSSIBLE_NAV_VALUES)}. Got: {VALUE}')
 
         if len(VALUE) != 2:
             raise ValueError("Navigation status must be 2 characters")

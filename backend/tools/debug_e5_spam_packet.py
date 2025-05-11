@@ -14,25 +14,40 @@ def send_at_commands():
     at_setup_commands = ["AT",
                          "AT+MODE=TEST",
                          "AT+TEST=RFCFG,915,SF9,500,12,16,22,OFF,OFF,OFF",
-                         "AT+TEST=?",
-                         "AT+TEST=RXLRPKT"]
+                         "AT+TEST=?"]
 
     try:
         for command in at_setup_commands:
             # Send the AT command
             ser.write((command + '\r\n').encode())
             print(f"Sent: {command}")
-            time.sleep(1)
+            time.sleep(0.5)
 
             response = ser.read_all().decode('utf-8', errors='ignore')
-            print(f">: {response}")
+            for line in response.splitlines():
+                print(f"> {line}")
 
-        print("Continuous read started")
+        PAYLOAD = "01"*32
+        TX_COMMAND = f"AT+TEST=TXLRPKT, \"{PAYLOAD}\""
+        print(f"TX_COMMAND: {TX_COMMAND}")
+        print("Continuous write starting")
+        packet_num = 0
+        execution_wait_time_ms = time.monotonic()
+        prev_time = time.monotonic()
         while True:
-            response = ser.read_all().decode('utf-8', errors='ignore')
-            if response:
-                print(f">: {response}")
+            ser.write((TX_COMMAND + '\r\n').encode())
+            response = ""
+            while "+TEST: TX DONE" not in response:
+                response += ser.read_all().decode('utf-8', errors='ignore')
 
+            packet_num += 1
+            now = time.monotonic()
+
+            delta_ms = (now - prev_time) * 1000
+            prev_time = now
+
+            print(f"\rSent packet {packet_num:<4d} | diff = {delta_ms:7.2f} ms",
+                  end='', flush=True)
     except Exception as e:
         print(f"Error during communication: {e}")
     finally:

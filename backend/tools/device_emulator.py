@@ -11,6 +11,7 @@ import backend.includes_python.service_helper as service_helper
 from cli.start_middleware import InterfaceType, get_interface_type
 import enum
 import math
+from backend.includes_python.metric import Metric
 
 # This file can be imported or rain as an emulation service if __main__
 # This file is for lower level emulation. Hence some things are passed bitwise
@@ -73,13 +74,14 @@ class MockPacket(ABC):
                 f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}")
             raise
 
-    def get_payload_bytes(self) -> bytes:
+    def get_payload_bytes(self, EXTERNAL=False) -> bytes:
         """Concatenates the ID and payload fragments into a single bytes object."""
         def _format_test_payload() -> bytes:
             output_bytes = bytearray()
             output_bytes.extend(metric.Metric._int_to_byte_unsigned(self.ID))
-            output_bytes.extend(metric.Metric._float32_to_bytes(self.RSSI))
-            output_bytes.extend(metric.Metric._float32_to_bytes(self.SNR))
+            if not EXTERNAL:
+                output_bytes.extend(metric.Metric._float32_to_bytes(self.RSSI))
+                output_bytes.extend(metric.Metric._float32_to_bytes(self.SNR))
             for fragment in self.payload_after_id_and_meta:
                 output_bytes.extend(fragment)
             return output_bytes
@@ -279,8 +281,9 @@ class AVtoGCSData2(MockPacket):
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        LATITUDE=-3628.816650000,  # Must be 15 chars. Don't include null byte
-        LONGITUDE=14401.967773000,
+        LATITUDE=-37.80808500000,  # Must be 15 chars. Don't include null byte
+        LONGITUDE=144.96507800000,
+        NAV_STATUS="G2",
         QW=0,
         QX=1,
         QY=-1,
@@ -303,7 +306,7 @@ class AVtoGCSData2(MockPacket):
                 CAMERA_CONTROLLER_CONNECTION,
             ),
             metric.Metric.GPS(LATITUDE, LONGITUDE),
-            metric.Metric.NAVIGATION_STATUS("69"),
+            metric.Metric.NAVIGATION_STATUS(NAV_STATUS),
             metric.Metric.QUATERNION(QW),
             metric.Metric.QUATERNION(QX),
             metric.Metric.QUATERNION(QY),
@@ -570,9 +573,15 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
         "MOVE_TO_BROADCAST": False
     }
 
+    # How long before new nav value? (seconds)
+    VALUE_CACHE_TIME_S = 1
+    index = int(T/VALUE_CACHE_TIME_S % len(Metric.POSSIBLE_NAV_VALUES))
+    nav_status = Metric.POSSIBLE_NAV_VALUES[index]
+
     ARGS_AVtoGCSData2 = ARGS_AV_COMMON | {
         "LATITUDE": sinusoid(T, min=-37.80808500000-0.1, max=37.80808500000+0.1, period=10, phase=0),
         "LONGITUDE": sinusoid(T, min=144.96507800000-0.1, max=144.96507800000+0.1, period=10, phase=0),
+        "NAV_STATUS": nav_status,
         "QW": sinusoid(T, min=-1, max=1, period=3, phase=1*2*math.pi/4),
         "QX": sinusoid(T, min=-1, max=1, period=4, phase=2*2*math.pi/4),
         "QY": sinusoid(T, min=-1, max=1, period=5, phase=3*2*math.pi/4),
