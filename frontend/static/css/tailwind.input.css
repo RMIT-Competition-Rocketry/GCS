@@ -40,7 +40,7 @@ and only modify it if you know what you're doing :)
     }
 
     h3 {
-        @apply font-mono font-bold text-center text-zinc-200;
+        @apply font-mono font-bold text-center text-zinc-200 leading-none;
     }
 
     h3::before {
@@ -79,7 +79,7 @@ and only modify it if you know what you're doing :)
 
     /* Main layout components */
     .module {
-        @apply flex justify-center items-center;
+        @apply flex justify-center items-center overflow-y-auto;
     }
 
     nav {

@@ -232,17 +232,15 @@ function displayUpdateFlightState(data) {
     if (data?.flightState) {
         displaySetString("fs-flightstate", data.flightState);
     }
-
-    if (data?.meta?.timestampS) {
-        displayUpdateTime(data.meta.timestampS);
-    }
 }
 
-function displayUpdateTime(timestamp) {
+function displayUpdateTime() {
     /// SYSTEM TIME
-    if (timestamp != undefined) {
-        displayTimestamp = Math.max(displayTimestamp, timestamp);
-        displaySetValue("fs-time", displayTimestamp, 3);
+    if (timestampApi != undefined) {
+        displaySetValue("fs-time-api", timestampApi, 3);
+    }
+    if (timestampLocal != undefined) {
+        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect, 3);
     }
 }
 

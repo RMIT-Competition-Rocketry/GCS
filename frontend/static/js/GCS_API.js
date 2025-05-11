@@ -19,8 +19,11 @@ const maxReconnectInterval = 5000;
 const graphRenderRate = 20; // fps for graphs (5 still looks good)
 
 var apiSocket;
-var apiTimestamp = 0; // Timestamp for keeping up with API
-var displayTimestamp = 0; // Timestamp rendered to display and used for graphs
+var timestampLocalLoad = Date.now(); // Timestamp upon page load (refreshed with API to keep time-alignment)
+var timestampLocal = 0; // Local timekeeping (for page to keep updating even if API stops sending signals)
+var timestampApi = 0; // Timestamp sent by the API
+var timestampApiConnect; // First API timestamp sent upon connection with API
+var timeDrift;
 var reconnectInterval = initialReconnectInterval;
 var reconnectTimeout;
 var connected = false;
@@ -63,16 +66,23 @@ function animate(newtime) {
 
         // Increment time (so if we stop getting packets, time moves forward)
         // This will be overwritten by API time when packets come through again
-        apiTimestamp += (elapsed/1000);
-        displayTimestamp = Math.max(displayTimestamp, apiTimestamp - (fpsInterval/1000));
-
-        // Update timestamps to current time
-        if (displayTimestamp - apiTimestamp > 0.5) {
-            displayTimestamp = apiTimestamp;
+        timestampLocal = (Date.now() - timestampLocalLoad) / 1000;
+        timeDrift = timestampLocal - (timestampApi - timestampApiConnect);
+   
+        if (displayUpdateTime != undefined) {
+            displayUpdateTime();
         }
+        
+        // Time drift
+        /*
+        console.log("Time drift:", timeDrift);
+        if (timeDrift > 5) {
+            timestampLocal = timestampApi;
+        }
+        */
 
         // Log time
-        //console.log(apiTimestamp, displayTimestamp, fpsInterval/1000);
+        //console.log(timestampApi, timestampLocal, fpsInterval/1000);
     }
 }
 
@@ -118,6 +128,7 @@ function API_socketConnect() {
 
     apiSocket.onopen = () => {
         connected = true;
+        timestampApiConnect = undefined;
         console.log(`Successfully connected to server at: - ${api_url}`);
         logMessage("Connected successfully", "notification");
         clearTimeout(reconnectTimeout);
@@ -128,11 +139,13 @@ function API_socketConnect() {
 
     apiSocket.onerror = (error) => {
         connected = false;
+        timestampApiConnect = undefined;
         console.error("websocket error: ", error);
     };
 
     apiSocket.onclose = () => {
         connected = false;
+        timestampApiConnect = undefined;
         console.log("Socket closed: attempting to reconnect automatically");
         logMessage("Connection Lost: Attempting to reconnect", "error");
         scheduleReconnect();
@@ -248,7 +261,12 @@ function processDataForDisplay(apiData, apiId) {
     if (apiData?.meta) {
         // Timestamp and connection
         if (apiData.meta?.timestampS) {
-            apiTimestamp = apiData.meta.timestampS;
+            timestampApi = apiData.meta.timestampS;
+
+            if (timestampApiConnect == undefined) {
+                timestampApiConnect = timestampApi;
+                timestampLocalLoad = Date.now();
+            }
         }
 
         // Packets

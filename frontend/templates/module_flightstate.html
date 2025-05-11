@@ -5,15 +5,21 @@
 	<div class="grow flex flex-col gap-2 mt-4 px-2">
 		<div class="border-2 border-hive/50 bg-hive/20 grow">
 		</div>
-		<div class="grid grid-cols-3 gap-4">
-			<p class="flex gap-1 items-center col-span-2">
+		<div class="flex flex-row gap-4">
+			<p class="flex gap-1 items-center grow">
 				<span>State:</span>
 				<input readonly autocomplete="off" class="fs-flightstate text-center text-base">
 			</p>
-			<p class="flex gap-1 items-center">
-				<span>Time:</span>
-				<input readonly autocomplete="off" class="fs-time text-right">s
-			</p>
+			<div>
+				<p class="flex gap-1 items-center">
+					<span>Local Time:</span>
+					<input readonly autocomplete="off" class="fs-time-local text-right" size="8">s
+				</p>
+				<p class="flex gap-1 items-center">
+					<span>GSE Time:</span>
+					<input readonly autocomplete="off" class="fs-time-api text-right" size="8">s
+				</p>
+			</div>
 		</div>
 	</div>
 </div>

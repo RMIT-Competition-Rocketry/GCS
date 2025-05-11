@@ -6,7 +6,9 @@
  * Functions and constants should be prefixed with "graph_"
  */
 
-MAX_TIME = 20; // Seconds of graph shown, TODO: load config
+const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
+const GRAPH_GAP_SIZE = 0.2; // Amount of seconds between data points before a line isn't drawn between them
+const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
 const LINE_COLOURS = [
@@ -15,35 +17,63 @@ const LINE_COLOURS = [
     "var(--color-blue-500)",
     "white",
 ];
-const DEFAULT_MARGINS = { top: 4, right: 10, bottom: 20, left: 40 };
+const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 20, left: 50 };
 
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
     data: [],
     ylabel: "Acceleration (g)",
 };
-const GRAPH_AV_GYRO = { selector: "#graph-av-gyro", data: [], ylabel: "Rotation Rate (°/s)" };
+const GRAPH_AV_GYRO = {
+    selector: "#graph-av-gyro",
+    data: [],
+    ylabel: "Rotation Rate (°/s)",
+};
 const GRAPH_AV_VELOCITY = {
     selector: "#graph-av-velocity",
     data: [],
-    margin: { top: 8, right: 8, bottom: 20, left: 50 },
     ylabel: "Vertical Speed (m/s)",
+    limits: {
+        yBottomMax: 0,
+    },
 };
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
     data: [],
-    margin: { top: 8, right: 8, bottom: 20, left: 50 }, ylabel: "Altitude (ft)",
+    ylabel: "Altitude (ft)",
+    limits: {
+        yBottomMax: 0,
+    },
 };
-const GRAPH_AUX_TRANSDUCERS = { selector: "#graph-aux-transducers", data: [], ylabel: "Pressure (bar)" };
+const GRAPH_AUX_TRANSDUCERS = {
+    selector: "#graph-aux-transducers",
+    data: [],
+    ylabel: "Pressure (bar)",
+    limits: {
+        yBottomMax: 0,
+    },
+};
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
-    data: [], ylabel: "Temperature (°C)"
+    data: [],
+    ylabel: "Temperature (°C)",
+    limits: {
+        yBottomMax: 0,
+    },
 };
 const GRAPH_AUX_INTERNALTEMP = {
     selector: "#graph-aux-internaltemp",
-    data: [], ylabel: "Temperature (°C)" 
+    data: [],
+    ylabel: "Temperature (°C)",
+    limits: {
+        yBottomMax: 0,
+    },
 };
-const GRAPH_AUX_GASBOTTLES = { selector: "#graph-aux-gasbottles", data: [], ylabel: "Mass (kg)" };
+const GRAPH_AUX_GASBOTTLES = {
+    selector: "#graph-aux-gasbottles",
+    data: [],
+    ylabel: "Mass (kg)",
+};
 
 // Create and initialise line graphs
 function graphCreateLine(chart, numLines) {
@@ -96,6 +126,7 @@ function graphCreateLine(chart, numLines) {
         .call(
             d3
                 .axisLeft(chart.y)
+                .ticks(GRAPH_TICKS_Y)
                 .tickFormat((d) => (Number.isInteger(d) ? d : ""))
         )
         .selectAll(".domain")
@@ -181,7 +212,7 @@ function graphResize(chart) {
 
     chart.y.range([chart.graphHeight, 0]);
     chart.yAxis.call(
-        d3.axisLeft(chart.y).tickFormat((d) => (Number.isInteger(d) ? d : ""))
+        d3.axisLeft(chart.y).ticks(GRAPH_TICKS_Y).tickFormat((d) => (Number.isInteger(d) ? d : ""))
     );
     chart.yAxisLabel.attr(
         "x",
@@ -196,7 +227,9 @@ function graphResize(chart) {
 function graphRender(chart) {
     if (chart && chart.x && chart.lines) {
         // Get timestamp of data
-        const now = Math.max(d3.max(chart.lines.flatMap(line => line.data), d => d.x), displayTimestamp != undefined ? displayTimestamp : -Infinity);
+        const now = Math.max(
+            d3.max(chart.lines.flatMap(line => line.data), d => d.x),
+            timestampLocal + timestampApiConnect);
         const windowStart = now - MAX_TIME;
 
         if (chart.lastRender != now) {
@@ -211,9 +244,9 @@ function graphRender(chart) {
             // Update x and y domains
             chart.x.domain([windowStart, now]);
             chart.y.domain([
-                d3.min(allPoints, d => d.y) - 1,
+                Math.min(d3.min(allPoints, d => d.y) - 1, chart?.limits?.yBottomMax != undefined ? chart?.limits?.yBottomMax : Infinity),
                 d3.max(allPoints, d => d.y) + 1
-            ]).nice();
+            ]);//.nice();
 
             // Update rendering of X and Y domain
             chart.g
@@ -229,6 +262,7 @@ function graphRender(chart) {
                 .call(
                     d3
                         .axisLeft(chart.y)
+                        .ticks(GRAPH_TICKS_Y)
                         .tickFormat((d) => (Number.isInteger(d) ? d : ""))
                 );
 
@@ -256,8 +290,8 @@ function graphRender(chart) {
                     .y((d) => chart.y(d.y))
                     .defined((d, i, data) => {
                         if (i === 0) return true;
-                        // Only render if time from previous point < 1s
-                        return Math.abs(d.x - data[i - 1].x) < 1;
+                        // Only render if distance from previous point < GRAPH_GAP_SIZE
+                        return Math.abs(d.x - data[i - 1].x) < GRAPH_GAP_SIZE;
                     });
 
                 // Add path for each line

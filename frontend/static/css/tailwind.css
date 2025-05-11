@@ -316,7 +316,9 @@
   h3 {
     text-align: center;
     font-family: var(--font-mono);
+    --tw-leading: 1;
     --tw-font-weight: var(--font-weight-bold);
+    line-height: 1;
     font-weight: var(--font-weight-bold);
     color: var(--color-zinc-200);
   }
@@ -370,6 +372,7 @@
     justify-content: center;
     align-items: center;
     display: flex;
+    overflow-y: auto;
   }
 
   nav {
@@ -1171,10 +1174,6 @@
 
   .overflow-hidden {
     overflow: hidden;
-  }
-
-  .overflow-y-scroll {
-    overflow-y: scroll;
   }
 
   .rounded {

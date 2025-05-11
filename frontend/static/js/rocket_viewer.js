@@ -11,7 +11,7 @@ let hasReceivedQuaternion = false;
 const deltaTime = 0.2;
 
 window.addEventListener("DOMContentLoaded", () => {
-    console.log(" Loaded rocket_viewer.js");
+    console.log("Loaded rocket_viewer.js");
 
     const container = document.getElementById("rocketViewerContainer");
     const canvas = document.getElementById("rocketCanvas");
@@ -72,7 +72,7 @@ window.addEventListener("DOMContentLoaded", () => {
             const size = box.getSize(new THREE.Vector3()).length();
 
             camera.position.copy(center);
-            camera.position.z += size * 1.3;
+            camera.position.z += size * 1.5;
             camera.lookAt(center);
 
             renderScene();
