@@ -97,6 +97,11 @@ previous_pressed_states = pressed_states.copy()
 
 controller_offline = True
 
+N2O_FILLING = False
+N2O_FILL_START_TIME = time.monotonic()
+N2O_FILLING_LAST = N2O_FILLING
+N2O_EXPECTED_FILL_TIME = 4*60
+
 stop_event = threading.Event()
 state_lock = threading.Lock()
 
@@ -159,7 +164,7 @@ def print_information():
 
     class gas_selection(enum.Enum):
         PURGE = enum.auto()
-        N20 = enum.auto()
+        N2O = enum.auto()
         NEUTRAL = enum.auto()
 
     def _handle_truth_value(TRUTH_VALUES: Dict[str, bool], COLOUR: str) -> Tuple[str, Union[system_selection, gas_selection]]:
@@ -186,7 +191,7 @@ def print_information():
                 case "PURGE":
                     enum = gas_selection.PURGE
                 case "N20":
-                    enum = gas_selection.N20
+                    enum = gas_selection.N2O
                 case "NEUTRAL":
                     enum = gas_selection.NEUTRAL
                 case _:
@@ -256,28 +261,41 @@ def print_information():
                               SYSTEM_SELECT: system_selection,
                               GAS_SELECT: gas_selection
                               ) -> str:
+        global N2O_FILLING, N2O_FILL_START_TIME
         if not ON:
+            N2O_FILLING = False
             return "System OFF"
         if SYSTEM_SELECT == system_selection.NEUTRAL:
+            N2O_FILLING = False
             return "System Neutral"
         if GAS_GO:
             match GAS_SELECT:
                 case gas_selection.PURGE:
+                    N2O_FILLING = False
                     return "Gas Purging"
-                case gas_selection.N20:
+                case gas_selection.N2O:
+                    if N2O_FILLING == False:
+                        # This is initial fill time. Set the timestamp
+                        N2O_FILL_START_TIME = time.monotonic()
+                    N2O_FILLING = True
                     return "Gas Filling N20"
                 case gas_selection.NEUTRAL:
+                    N2O_FILLING = False
                     return "Gas Neutral Mode"
         if SYSTEM_SELECT == system_selection.IGNITION:
             if O2_GO and not IGNITION_GO:
+                N2O_FILLING = False
                 return "Filling O2"
             if O2_GO and IGNITION_GO:
+                N2O_FILLING = False
                 return "Filling O2 & Ignition Firing"
             if not O2_GO and IGNITION_GO:
+                N2O_FILLING = False
                 return "Ignition Firing"
             if not O2_GO and not IGNITION_GO:
+                N2O_FILLING = False
                 return "Awiting Ignition Command"
-
+        N2O_FILLING = False
         return "Undefined state"
 
     """Prints information about current states to help the user understand where they're at"""
@@ -298,11 +316,18 @@ def print_information():
         GAS_SELECT_TEXT, GAS_SELECT = get_gas_select_values()
         ON_TEXT: str = format_on(ON)
 
-    print(f"ACTIVE:{ON_TEXT}|SELECT:{SYSTEM_SELECT_TEXT}", end="")
-    # Have not printed newline yet. Now add bold and red to variables in scope
     GAS_GO = GAS_DM and ON and SYSTEM_SELECT == system_selection.GAS
     O2_GO = IGNITION_DM and O2_MOMENTRAY and ON and SYSTEM_SELECT == system_selection.IGNITION
     IGNITION_GO = IGNITION_DM and IGNITION_FIRE and ON and SYSTEM_SELECT == system_selection.IGNITION
+
+    global N2O_FILLING_LAST
+    filling_n2o = GAS_GO and GAS_SELECT == gas_selection.N2O
+    if N2O_FILLING_LAST and not filling_n2o:
+        print()  # Newline after fill timer
+    N2O_FILLING_LAST = filling_n2o
+
+    print(f"ACTIVE:{ON_TEXT}|SELECT:{SYSTEM_SELECT_TEXT}", end="")
+    # Have not printed newline yet. Now add bold and red to variables in scope
     match SYSTEM_SELECT:
         case system_selection.GAS:
             print(gas_information_text(True, GAS_SELECT_TEXT, GAS_GO), end="")
@@ -334,6 +359,12 @@ def handle_controller_events():
     first_time = True
     firstAddedEvent = True
     while not stop_event.is_set():
+        if N2O_FILLING:
+            secs = time.monotonic() - N2O_FILL_START_TIME
+            mins = secs / 60.0
+            percentage = secs / N2O_EXPECTED_FILL_TIME * 100
+            print(
+                f"\rFilling N2O for {secs:.2f} s | {mins:.2f} m | ~{percentage:.2f}%", end="")
         if joystick is not None:
             events = pygame.event.get()
             if not events:
@@ -367,7 +398,7 @@ def handle_controller_events():
             # Thread safe instance copy
             current_states = pressed_states.copy()
         if (current_states != previous_pressed_states or first_time):
-            # Print on change. Many STDOUT ANSCI writes are expensive
+            # Print on change. Many STDOUT ANSI writes are expensive
             print_information()
             first_time = False
         previous_pressed_states = current_states
