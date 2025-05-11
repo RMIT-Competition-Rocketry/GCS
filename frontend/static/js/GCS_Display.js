@@ -62,6 +62,7 @@ document.querySelectorAll("nav a").forEach((elem) => {
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
 var verboseLogging = false;
 const indicatorStates = ["off", "on", "idle", "error"];
+const timeouts = {};
 
 function displaySetValue(item, value, precision = 2) {
     // Updates a floating point value for a display item
@@ -268,33 +269,68 @@ function displayUpdatePosition(data) {
 
 function displayUpdateRadio(data) {
     /// MODULE RADIO
-    // TODO - Connection indicators
-
-    if (data.meta != undefined) {
+    if (data?.meta?.radio) {
         if (data.meta.radio == "av1") {
             // AVIONICS DATA
-            if (data.meta.rssi != undefined) {
+            // Connection indicators
+            displaySetState("radio-av-state", 1);
+
+            clearTimeout(timeouts?.radioAv1Idle);
+            timeouts.radioAv1Idle = setTimeout(() => {
+                displaySetState("radio-av-state", 2);
+            }, 1000);
+
+            clearTimeout(timeouts?.radioAv1Error);
+            timeouts.radioAv1Error = setTimeout(() => {
+                displaySetState("radio-av-state", 3);
+            }, 5000);
+
+            // Update avionics radio data
+            if (data?.meta?.rssi) {
                 displaySetValue("radio-av-rssi", data.meta.rssi, 0);
             }
 
-            if (data.meta.snr != undefined) {
+            if (data?.meta?.snr) {
                 displaySetValue("radio-av-snr", data.meta.snr, 0);
             }
 
-            if (data.meta.packets != undefined) {
+            if (data?.meta?.packets) {
+                // Lost packets calculation
+                let lostPackets = data.meta.totalPacketCountAv - data.meta.packets;
+                
+                // Display number of packets
                 displaySetValue("radio-av-packets", data.meta.packets, 0);
             }
+
         } else if (data.meta.radio == "gse") {
             // GSE DATA
-            if (data.meta.rssi != undefined) {
+            // Connection indicators
+            displaySetState("radio-gse-state", 1);
+
+            clearTimeout(timeouts?.radioGseIdle);
+            timeouts.radioGseIdle = setTimeout(() => {
+                displaySetState("radio-gse-state", 2);
+            }, 1000);
+
+            clearTimeout(timeouts?.radioGseError);
+            timeouts.radioGseError = setTimeout(() => {
+                displaySetState("radio-gse-state", 3);
+            }, 5000);
+
+            // Update GSE radio data
+            if (data?.meta?.rssi) {
                 displaySetValue("radio-gse-rssi", data.meta.rssi, 0);
             }
 
-            if (data.meta.snr != undefined) {
+            if (data?.meta?.snr) {
                 displaySetValue("radio-gse-snr", data.meta.snr, 0);
             }
 
-            if (data.meta.packets != undefined) {
+            if (data?.meta?.packets) {
+                // Lost packets calculation
+                let lostPackets = data.meta.totalPacketCountGse - data.meta.packets;
+                
+                // Display number of packets
                 displaySetValue("radio-gse-packets", data.meta.packets, 0);
             }
         }

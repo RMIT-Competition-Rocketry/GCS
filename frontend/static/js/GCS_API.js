@@ -9,7 +9,9 @@
 // Global display values
 var altitudeMax;
 var packetsAV1 = 0;
+var packetsAV1offset = 0;
 var packetsGSE = 0;
+var packetsGSEoffset = 0;
 
 // API
 const initialReconnectInterval = 200;
@@ -148,11 +150,6 @@ function API_OnMessage(event) {
         }
         // HANDLE AVIONICS PACKETS
         else if ([3, 4, 5].includes(apiData.id)) {
-            if (apiData.meta) {
-                apiData.meta.radio = "av1";
-                apiData.meta.packets = ++packetsAV1;
-            }
-
             // AV DISPLAY VALUES
             // Radio module
             if (typeof displayUpdateRadio === "function") {
@@ -192,11 +189,6 @@ function API_OnMessage(event) {
         }
         // HANDLE GSE PACKETS
         else if ([6, 7].includes(apiData.id)) {
-            if (apiData.meta) {
-                apiData.meta.radio = "gse";
-                apiData.meta.packets = ++packetsGSE;
-            }
-
             // GSE DISPLAY VALUES
             // Radio module
             if (typeof displayUpdateRadio === 'function') {
@@ -245,10 +237,38 @@ function processDataForDisplay(apiData, apiId) {
     const processedData = { ...apiData }; // Shallow copy
     processedData.id = apiId;
 
-    // Timestamp and connection
-    if (apiData?.meta?.timestampS) {
-        apiTimestamp = apiData.meta.timestampS;
+    if (apiData?.meta) {
+        // Timestamp and connection
+        if (apiData.meta?.timestampS) {
+            apiTimestamp = apiData.meta.timestampS;
+        }
+
+        // Packets
+        if ([3, 4, 5].includes(apiId)) {
+            if (apiData.meta?.totalPacketCountAv) {
+                if (packetsAV1 == 0) {
+                    packetsAV1offset = apiData.meta.totalPacketCountAv - 1;
+                }
+                processedData.meta.totalPacketCountAv = apiData.meta.totalPacketCountAv - packetsAV1offset;
+            }
+
+            processedData.meta.radio = "av1";
+            processedData.meta.packets = ++packetsAV1;
+
+        } else if ([6, 7].includes(apiId)) {
+            if (apiData.meta?.totalPacketCountGse) {
+                if (packetsGSE == 0) {
+                    packetsGSEoffset = apiData.meta.totalPacketCountGse - 1;
+                }
+                processedData.meta.totalPacketCountGse = apiData.meta.totalPacketCountGse - packetsGSEoffset;
+            }
+
+            processedData.meta.radio = "gse";
+            processedData.meta.packets = ++packetsGSE;
+            
+        }
     }
+    
 
     // Acceleration
     // Determine whether to use low or high precision values
@@ -320,3 +340,22 @@ function gpsToDecimal(gps) {
     // Convert to decimal
     return sign * (degrees + minutes/60 + seconds/3600);
 }
+
+// DEBOUNCE
+const debounce = (() => {
+  const timers = new Map();
+
+  return (fn, delay, key = fn) => {
+    // Use the function itself or an optional key as the timer ID
+    if (timers.has(key)) {
+      clearTimeout(timers.get(key));
+    }
+
+    const timer = setTimeout(() => {
+      fn();
+      timers.delete(key); // Clean up
+    }, delay);
+
+    timers.set(key, timer);
+  };
+})();
