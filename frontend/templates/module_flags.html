@@ -1,86 +1,44 @@
 <!-- Auxiliary data module (GSE) -->
-<div class="w-full h-full border-2 border-hive/50 flex flex-col gap-2">
-	<h2 class="text-center p-2">System Flags</h2>
-	<div class = "grid grid-rows-5 gap-2 gap-x-4"> 
-		<div class = "row-span-3 grid grid-rows-9 grid-cols-4 gap-2 pb-0">
+<div class="w-full h-full max-h-[800px] border-2 border-hive/50 flex flex-col gap-2">
+    <h2 class="text-center p-2">System Flags</h2>
+    <div class="grid grid-rows-5 gap-2 gap-x-4">
+        <div
+            class="row-span-3 grid grid-rows-9 grid-cols-4 gap-y-4 p-2 text-center items-center text-sm"
+        >
+            <p class="font-mono col-span-3">Dual Board Connectivity</p>
+            <div class="indicator-boolean"></div>
 
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">Dual Board Connectivity</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
+            <p class="font-mono col-span-3">
+                Recovery checks complete and flight ready
+            </p>
+            <div class="indicator-boolean"></div>
 
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">Recovery checks complete and flight ready</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
+            <p class="font-mono col-span-3">GPS Fix</p>
+            <div class="indicator-boolean"></div>
 
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">GPS Fix</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
+            <p class="font-mono col-span-3">Payload Connection</p>
+            <div class="indicator-boolean"></div>
 
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">Payload Connection</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
+            <p class="font-mono col-span-3">Camera Controller</p>
+            <div class="indicator-boolean"></div>
 
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">Camera Controller</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
+            <p class="font-mono col-span-3">Apogee Test</p>
+            <div class="indicator-boolean"></div>
 
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">Apogee Test</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
+            <p class="font-mono col-span-3">Main/Primary Test</p>
+            <div class="indicator-boolean"></div>
 
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">Main/Primary Test</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
+            <p class="font-mono col-span-3">Broadcast Flag</p>
+            <div class="indicator-boolean"></div>
+        </div>
 
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">Broadcast Flag</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
-
-			<div class="flex items-center justify-center p-2 col-span-3">
-				<p class="font-mono text-center text-sm">Wind Speed</p> 
-			</div>
-			<div class="flex items-center justify-center p-2">
-				<div class="indicator-boolean-small"></div>
-			</div>
-
-
-		</div>
-
-		<div class = "row-start-5 grid grid-rows-2"> 
-			<h2 class = "text-center p-2">3-Way Voting Status</h2>
-			<div class = "grid grid-cols-3"> 
-				<div class="indicator-boolean-small"></div>
-				<div class="indicator-boolean-small"></div>
-				<div class="indicator-boolean-small"></div>
-			</div>
-		</div>
-
-
-	</div>
-	
-	</div>
+        <div class="row-start-5 grid grid-rows-2">
+            <h2 class="text-center p-2">3-Way Voting Status</h2>
+            <div class="grid grid-cols-3">
+                <div class="indicator-boolean w-6 h-6"></div>
+                <div class="indicator-boolean w-6 h-6"></div>
+                <div class="indicator-boolean w-6 h-6"></div>
+            </div>
+        </div>
+    </div>
 </div>

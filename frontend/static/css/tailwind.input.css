@@ -164,66 +164,29 @@ and only modify it if you know what you're doing :)
     }
 
     .indicator-boolean {
-        @apply w-8 h-8 rounded-full border border-hive mx-auto;
-
-        &.on {
-            @apply bg-emerald-600;
-            filter: drop-shadow(0 0 5px var(--color-emerald-600)) drop-shadow(0 0 10px var(--color-emerald-600));
-        }
-
-        &.on::after {
-            @apply h-8 text-emerald-300 text-3xl;
-            content: 'on';
-        }
+        @apply w-8 h-8 max-w-8 max-h-8 aspect-square rounded-full border border-hive mx-auto bg-black/20;
 
         &.off {
-            @apply bg-hive/10;
+            @apply bg-hive/20;
         }
 
-        &.off::after {
-            @apply h-10 text-hive/50 text-xl;
-            content: 'off';
+        &.on, &.green {
+            @apply bg-green-400;
+            filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
         }
 
-        &.error {
-            @apply bg-red-900;
+        &.idle, &.amber {
+            @apply bg-yellow-300;
+            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));
         }
 
-        &.error::after {
-            @apply text-red-500 font-bold text-3xl;
-            content: 'ERROR!';
-        }
-    }
-
-    .indicator-boolean-small {
-        @apply w-6 h-6 rounded-full border border-hive mx-auto;
-
-        &.on {
-            @apply bg-emerald-600;
-            filter: drop-shadow(0 0 5px var(--color-emerald-600)) drop-shadow(0 0 10px var(--color-emerald-600));
-        }
-
-        &.on::after {
-            @apply h-10 text-emerald-300 text-3xl;
-            content: 'on';
-        }
-
-        &.off {
-            @apply bg-hive/10;
-        }
-
-        &.off::after {
-            @apply h-10 text-hive/50 text-xl;
-            content: 'off';
-        }
-
-        &.error {
-            @apply bg-red-900;
-        }
-
-        &.error::after {
-            @apply text-red-500 font-bold text-3xl;
-            content: 'ERROR!';
+        &.error, &.red {
+            @apply bg-red-600;
+            filter: drop-shadow(0 0 5px var(--color-red-600)) drop-shadow(0 0 10px var(--color-red-600));
+            background-image: url("/img/icons/exclamation.svg");
+            background-size: 100% 100%;
+            background-position: center center;
+            background-repeat: none;
         }
     }
 

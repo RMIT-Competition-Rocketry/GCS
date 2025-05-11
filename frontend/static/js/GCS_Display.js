@@ -19,7 +19,6 @@ function displaySelectModule(selected) {
 }
 
 const selectedClasses = ["selected"];
-var verboseLogging = false;
 
 // Get selected page
 var selected = window.location.hash
@@ -59,7 +58,11 @@ document.querySelectorAll("nav a").forEach((elem) => {
     });
 });
 
+
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
+var verboseLogging = false;
+const indicatorStates = ["off", "on", "idle", "error"];
+
 function displaySetValue(item, value, precision = 2) {
     // Updates a floating point value for a display item
     if (verboseLogging) console.debug(`new value %c${item}%c ${parseFloat(value).toFixed(precision)}`, 'color:orange', 'color:white');
@@ -97,24 +100,9 @@ function displaySetState(item, value) {
     let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
-            elem.classList.remove("on", "off", "error");
-
-            switch (value) {
-                case "error":
-                    elem.classList.add("error");
-                    break;
-                case "true":
-                case "on":
-                case true:
-                case 1:
-                    elem.classList.add("on");
-                    break;
-                case "false":
-                case "off":
-                case false:
-                case 0:
-                    elem.classList.add("off");
-                    break;
+            elem.classList.remove(...indicatorStates);
+            if (value >= 0 && value < indicatorStates.length) {
+                elem.classList.add(indicatorStates[value]);
             }
         });
     }

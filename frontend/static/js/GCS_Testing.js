@@ -10,8 +10,8 @@
 function testing_updateAllDisplayValues() {
     verboseLogging = true;
 
-    TESTING_DISPLAY_STATES.forEach((item) => {
-        displaySetState(item, "on");
+    TESTING_DISPLAY_STATES.forEach((item, i) => {
+        displaySetState(item, i);
     });
     TESTING_DISPLAY_ITEMS.forEach((item, i) => {
         displaySetValue(item, i);
