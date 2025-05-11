@@ -100,7 +100,8 @@ controller_offline = True
 N2O_FILLING = False
 N2O_FILL_START_TIME = time.monotonic()
 N2O_FILLING_LAST = N2O_FILLING
-N2O_EXPECTED_FILL_TIME = 4*60
+N2O_EXPECTED_FILL_TIME = 2*60 + 10
+TOTAL_N2O_FILL_TIMES = []
 
 stop_event = threading.Event()
 state_lock = threading.Lock()
@@ -320,10 +321,11 @@ def print_information():
     O2_GO = IGNITION_DM and O2_MOMENTRAY and ON and SYSTEM_SELECT == system_selection.IGNITION
     IGNITION_GO = IGNITION_DM and IGNITION_FIRE and ON and SYSTEM_SELECT == system_selection.IGNITION
 
-    global N2O_FILLING_LAST
+    global N2O_FILLING_LAST, TOTAL_N2O_FILL_TIMES
     filling_n2o = GAS_GO and GAS_SELECT == gas_selection.N2O
     if N2O_FILLING_LAST and not filling_n2o:
         print()  # Newline after fill timer
+        TOTAL_N2O_FILL_TIMES.append(time.monotonic() - N2O_FILL_START_TIME)
     N2O_FILLING_LAST = filling_n2o
 
     print(f"ACTIVE:{ON_TEXT}|SELECT:{SYSTEM_SELECT_TEXT}", end="")
@@ -347,7 +349,7 @@ def print_information():
 
 
 def handle_controller_events():
-    global previous_pressed_states, controller_offline
+    global previous_pressed_states, controller_offline, TOTAL_N2O_FILL_TIME
     joystick: Optional[pygame.joystick.JoystickType] = setup_controller()
     clock = pygame.time.Clock()
     if joystick is None:
@@ -360,11 +362,16 @@ def handle_controller_events():
     firstAddedEvent = True
     while not stop_event.is_set():
         if N2O_FILLING:
-            secs = time.monotonic() - N2O_FILL_START_TIME
-            mins = secs / 60.0
-            percentage = secs / N2O_EXPECTED_FILL_TIME * 100
+            total_secs = time.monotonic() - N2O_FILL_START_TIME + sum(TOTAL_N2O_FILL_TIMES)
+            total_ms = int(total_secs * 1000)
+            minutes = total_ms // 60000
+            seconds = (total_ms % 60000) // 1000
+            milliseconds = total_ms % 1000
+            percentage = total_secs / N2O_EXPECTED_FILL_TIME * 100
             print(
-                f"\rFilling N2O for {secs:.2f} s | {mins:.2f} m | ~{percentage:.2f}%", end="")
+                f"\rFilling N2O for {total_secs:.2f} s | {minutes:02}:{seconds:02}.{milliseconds:03} | ~{percentage:.2f}%",
+                end=""
+            )
         if joystick is not None:
             events = pygame.event.get()
             if not events:
