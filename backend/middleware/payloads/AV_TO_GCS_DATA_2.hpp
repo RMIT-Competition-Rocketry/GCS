@@ -48,9 +48,7 @@ class AV_TO_GCS_DATA_2 {
 
     try {
       // Skip 2 bytes for nav
-      parser.extract_unsigned_bits(16);
-      navigation_status_ = "NA";
-      // navigation_status_ = parser.extract_string(2);
+      navigation_status_ = parser.extract_string(2);
     } catch (const std::exception &e) {
       slogger::error(e.what());
     }
