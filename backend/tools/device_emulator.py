@@ -11,6 +11,7 @@ import backend.includes_python.service_helper as service_helper
 from cli.start_middleware import InterfaceType, get_interface_type
 import enum
 import math
+from backend.includes_python.metric import Metric
 
 # This file can be imported or rain as an emulation service if __main__
 # This file is for lower level emulation. Hence some things are passed bitwise
@@ -282,6 +283,7 @@ class AVtoGCSData2(MockPacket):
         CAMERA_CONTROLLER_CONNECTION=True,
         LATITUDE=-37.80808500000,  # Must be 15 chars. Don't include null byte
         LONGITUDE=144.96507800000,
+        NAV_STATUS="G2",
         QW=0,
         QX=1,
         QY=-1,
@@ -304,7 +306,7 @@ class AVtoGCSData2(MockPacket):
                 CAMERA_CONTROLLER_CONNECTION,
             ),
             metric.Metric.GPS(LATITUDE, LONGITUDE),
-            metric.Metric.NAVIGATION_STATUS("69"),
+            metric.Metric.NAVIGATION_STATUS(NAV_STATUS),
             metric.Metric.QUATERNION(QW),
             metric.Metric.QUATERNION(QX),
             metric.Metric.QUATERNION(QY),
@@ -571,9 +573,15 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
         "MOVE_TO_BROADCAST": False
     }
 
+    # How long before new nav value? (seconds)
+    VALUE_CACHE_TIME_S = 1
+    index = int(T/VALUE_CACHE_TIME_S % len(Metric.POSSIBLE_NAV_VALUES))
+    nav_status = Metric.POSSIBLE_NAV_VALUES[index]
+
     ARGS_AVtoGCSData2 = ARGS_AV_COMMON | {
         "LATITUDE": sinusoid(T, min=-37.80808500000-0.1, max=37.80808500000+0.1, period=10, phase=0),
         "LONGITUDE": sinusoid(T, min=144.96507800000-0.1, max=144.96507800000+0.1, period=10, phase=0),
+        "NAV_STATUS": nav_status,
         "QW": sinusoid(T, min=-1, max=1, period=3, phase=1*2*math.pi/4),
         "QX": sinusoid(T, min=-1, max=1, period=4, phase=2*2*math.pi/4),
         "QY": sinusoid(T, min=-1, max=1, period=5, phase=3*2*math.pi/4),
