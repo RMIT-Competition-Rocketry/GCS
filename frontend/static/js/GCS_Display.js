@@ -80,16 +80,19 @@ function displaySetValue(item, value, precision = 2) {
 }
 
 function displaySetString(item, string) {
-    // Updates a string for a display item
-    if (verboseLogging) console.debug(`new string %c${item}%c ${string}`, 'color:orange', 'color:white');
+    // Updates the string in a display item
+    
+    if (string != undefined) {
+        if (verboseLogging) console.debug(`new string %c${item}%c ${string}`, 'color:orange', 'color:white');
 
-    // Update all instances of item
-    let elements = document.querySelectorAll(`.${item}`);
-    if (elements && elements.length > 0) {
-        elements.forEach((elem) => {
-            // Update string
-            elem.value = string;
-        });
+        // Update all instances of item
+        let elements = document.querySelectorAll(`.${item}`);
+        if (elements && elements.length > 0) {
+            elements.forEach((elem) => {
+                // Update string
+                elem.value = string;
+            });
+        }
     }
 }
 
@@ -160,12 +163,22 @@ function displayUpdateAuxData(data) {
 function displayUpdateAvionics(data) {
     /// MODULE AVIONICS
     // Indicators
-    if (data.stateFlags != undefined) {
-        if (data.stateFlags.GPSFixFlag != undefined) {
-            displaySetState("av-state-gpsfix", data.stateFlags.GPSFixFlag);
+    if (data?.navigationStatus) {
+        // Nav state
+        if (["NF"].includes(data.navigationStatus)) {
+            // Red
+            displaySetState("av-state-gpsfix", 3);
+        } else if (["DR", "TT"].includes(data.navigationStatus)) {
+            // Yellow
+            displaySetState("av-state-gpsfix", 2);
+        } else if (["D2", "D3", "G2", "G3", "RK"].includes(data.navigationStatus)) {
+            // Green
+            displaySetState("av-state-gpsfix", 1);
         }
+    }
 
-        if (data.stateFlags.dualBoardConnectivityStateFlag != undefined) {
+    if (data?.stateFlags) {
+        if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "av-state-dualboard",
                 data.stateFlags.dualBoardConnectivityStateFlag
@@ -264,6 +277,11 @@ function displayUpdatePosition(data) {
         } else {
             // Mark as stale?
         }
+    }
+
+    // Nav state
+    if (data?.navigationStatus) {
+        displaySetString("pos-navstate", data.navigationStatus);
     }
 }
 

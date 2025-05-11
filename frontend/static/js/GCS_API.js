@@ -65,6 +65,14 @@ function animate(newtime) {
         // This will be overwritten by API time when packets come through again
         apiTimestamp += (elapsed/1000);
         displayTimestamp = Math.max(displayTimestamp, apiTimestamp - (fpsInterval/1000));
+
+        // Update timestamps to current time
+        if (displayTimestamp - apiTimestamp > 0.5) {
+            displayTimestamp = apiTimestamp;
+        }
+
+        // Log time
+        //console.log(apiTimestamp, displayTimestamp, fpsInterval/1000);
     }
 }
 
@@ -340,22 +348,3 @@ function gpsToDecimal(gps) {
     // Convert to decimal
     return sign * (degrees + minutes/60 + seconds/3600);
 }
-
-// DEBOUNCE
-const debounce = (() => {
-  const timers = new Map();
-
-  return (fn, delay, key = fn) => {
-    // Use the function itself or an optional key as the timer ID
-    if (timers.has(key)) {
-      clearTimeout(timers.get(key));
-    }
-
-    const timer = setTimeout(() => {
-      fn();
-      timers.delete(key); // Clean up
-    }, delay);
-
-    timers.set(key, timer);
-  };
-})();

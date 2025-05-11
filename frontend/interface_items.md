@@ -50,6 +50,7 @@ These are the item IDs for updating values with JavaScript.
 | Max altitude | ft |  |  | `pos-maxalt-f` |
 | GPS latitude |  | 4 | `GPSLatitude` | `pos-gps-lat` |
 | GPS longitude |  | 4 | `GPSLongitude` | `pos-gps-lon` |
+| Nav state |  |  | `navigationStatus` | `pos-navstate` |
 
 ### Radio (radio)
 | Name | Unit | API ID | API key | ID |
