@@ -12,6 +12,7 @@ on:
       - '.github/workflows/build_and_test_cpp.yml'
       - '!docs/**'
       - '!notes/**'
+      - 'backend/tests/**'
   pull_request:
     paths:
       - '**/CMakeLists.txt'
@@ -23,6 +24,8 @@ on:
       - '.github/workflows/build_and_test_cpp.yml'
       - '!docs/**'
       - '!notes/**'
+      - 'backend/tests/**'
+
 
 env:
   ACT: false
