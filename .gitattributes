@@ -1,0 +1,19 @@
+# -------------------- LINGUIST --------------------
+
+# Exclude libraries from linguist analysis
+frontend/static/js/d3.min.js linguist-vendored
+frontend/static/js/three.module.js linguist-vendored
+
+# Exclude reference code as well
+notes/old_esp32_rx_code.cpp linguist-documentation 
+
+docker/Dockerfile.dev linguist-language=Dockerfile
+
+# -------------------- OTHERS --------------------
+
+# Treat all excalidraw files as binary
+*.excalidraw binary
+
+# Enforce standard line endings for expected file systems
+*.sh  text eol=lf
+*.bat text eol=crlf
