@@ -14,7 +14,6 @@ import config.config as config
 from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, AVtoGCSData3, GSEtoGCSData1, GSEtoGCSData2, GCStoAVStateCMD, GCStoGSEStateCMD, MockPacket
 import backend.includes_python.process_logging as slogger
 import backend.includes_python.service_helper as service_helper
-from backend.simulation.run_simulation import get_replay_sim_data
 import configparser
 
 cfg = configparser.ConfigParser()
@@ -366,6 +365,9 @@ def main():
     try:
         MISSION_NAME = sys.argv[sys.argv.index('--mission-type') + 1]
         mission_path = os.path.join(mission_path, MISSION_NAME)
+        if not os.path.exists(mission_path):
+            raise FileNotFoundError(
+                f"Mission directory not found: {mission_path}")
 
     except ValueError:
         slogger.error(

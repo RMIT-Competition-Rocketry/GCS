@@ -5,43 +5,32 @@ import os
 from typing import Optional
 
 
-class MissionType(enum.Enum):
-    MISSION1 = "20250504"
+def get_mission_path(mission: Optional[str]) -> str:
+    """Get the mission path from the command line argument, validation should exist already"""
+    MISSION_PATH = os.path.join("backend", "replay_system", "mission_data")
 
+    if mission is None:
+        raise ValueError("Mission argument is required")
 
-def get_mission_type(mission: Optional[str]) -> MissionType:
-    """Get the interface type from the command line argument or config"""
-    # @TODO do this later
-    # if interface is None:  # Unspecified by user
-    #     interface = config.load_config(
-    #     )['hardware']['interface'].strip().upper()
-    # else:
-    #     interface = interface.strip().upper()
+    FULL_MISSION_PATH = os.path.join(MISSION_PATH, mission)
+    if not os.path.exists(FULL_MISSION_PATH):
+        valid_missions = [d for d in os.listdir(
+            MISSION_PATH) if os.path.isdir(os.path.join(MISSION_PATH, d))]
 
-    # Convert string to MissionType enum
-    try:
-        for enum_member in MissionType:
-            if enum_member.value == mission:
-                return enum_member
-        # If we get here, no matching enum value was found
-        valid_types = [e.name for e in MissionType]
         raise ValueError(
-            f"Invalid mission type: '{mission}'. Valid types are: {', '.join(valid_types)}")
-    except Exception as e:
-        raise ValueError(f"Invalid mission type: {mission}")
+            f"Invalid Mission: {mission}. Valid missions are {', '. join(valid_missions)}"
+        )
+    return mission
 
 
-def start_replay_system(logger: logging.Logger, DEVICE: str, MISSION_TYPE: MissionType):
-    if not isinstance(MISSION_TYPE, MissionType):
-        raise ValueError(
-            f"MISSION_TYPE must be a MissionType value, got: {MISSION_TYPE} as type {type(MISSION_TYPE)} instead")
+def start_replay_system(logger: logging.Logger, DEVICE: str, MISSION: str):
     SERVICE_NAME = "replay system"
     try:
         REPLAY_COMMAND = [
             "python3", "-u", os.path.join("backend",
                                           "replay_system", "replay_engine.py"),
             "--device-rocket", DEVICE,
-            "--mission-type", MISSION_TYPE.value,
+            "--mission-type", MISSION,
         ]
 
         logger.debug(
