@@ -323,7 +323,7 @@ function graphRender(chart) {
                     .x((d) => chart.x(d.x))
                     .y((d) => chart.y(d.y))
                     .defined((d, i, data) => {
-                        return d.prev || d.next;
+                        return d.prev;//d.prev && d.next;
                     });
 
                 chart.g
@@ -373,7 +373,7 @@ function graphAddValue(graph, line, timestamp, value) {
 
     // Loop backwards from the end to find where to insert the data
     let index = data.length;
-    while (index > 0 && data[index - 1].x >= timestamp) {
+    while (index > 0 && data[index - 1].x > timestamp) {
         index--;
     }
     data.splice(index, 0, point);

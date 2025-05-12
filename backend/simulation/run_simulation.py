@@ -70,7 +70,7 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         return
     time.sleep(0.01)  # Allow the buffer to update
     packet1.write_payload()
-    # time.sleep(0.01)
+    time.sleep(0.01)
     packet2.write_payload()
 
 
@@ -170,7 +170,7 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
         if (not first_packet):
             TIME_UNTIL_NEXT_PACKET_S = PACKET_TIME_S - \
                 (last_packet_time - start_time)
-            if TIME_UNTIL_NEXT_PACKET_S >= 0:
+            if TIME_UNTIL_NEXT_PACKET_S > 0:
                 time.sleep(TIME_UNTIL_NEXT_PACKET_S)
         else:
             first_packet = False

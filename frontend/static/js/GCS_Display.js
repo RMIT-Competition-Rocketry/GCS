@@ -124,7 +124,6 @@ function displaySetState(item, value) {
 function displaySetActiveFlightState(item) {
     // Updates active flight state to a specific html element
     let elements = document.querySelectorAll(`.${item}`);
-    console.log(elements);
 
     if (elements && elements.length > 0) {
         // Make sure we're actually updating this

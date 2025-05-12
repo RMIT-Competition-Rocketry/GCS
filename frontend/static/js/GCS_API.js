@@ -10,7 +10,7 @@
 const initialReconnectInterval = 200;   // Initial reconnection wait time
 const maxReconnectInterval = 5000;      // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20;     // FPS for rendering graphs
-const maxDesync = 1;  // Max desync (s) before local time realigns itself with GSE 
+const maxDesync = 1/graphRenderRate;  // Max desync (s) before local time realigns itself with GSE 
 
 // API connection
 var apiSocket;
@@ -264,13 +264,14 @@ function processDataForDisplay(apiData, apiId) {
             } else {
                 // Code to synchronise local time with GSE time if it gets too far behind
                 timeDrift = timestampLocal - (timestampApi - timestampApiConnect);
+                
+                // Correct time drift (API out of sync with frontend)
                 if (timeDrift > maxDesync) {
-                    timestampLocalLoad += maxDesync/2;
-                    timestampLocal = (Date.now() - timestampLocalLoad) / 1000;
-                } else if (timeDrift < -(1000 / graphRenderRate)) {
-                    timestampLocalLoad -= maxDesync;
-                    timestampLocal = (Date.now() - timestampLocalLoad) / 1000;
+                    timestampLocalLoad += maxDesync * 1000 / 2; // half of value (ms to s)
+                } else if (timeDrift < -maxDesync) {
+                    timestampLocalLoad -= maxDesync * 1000 / 2;
                 }
+               //console.log(timeDrift);
             }
         }
 
