@@ -65,6 +65,7 @@ const indicatorStates = ["off", "on", "idle", "error"];
 const timeouts = {};
 
 function displaySetValue(item, value, precision = 2) {
+function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (verboseLogging) console.debug(`new value %c${item}%c ${parseFloat(value).toFixed(precision)}`, 'color:orange', 'color:white');
     
@@ -75,6 +76,13 @@ function displaySetValue(item, value, precision = 2) {
         elements.forEach((elem) => {
             // Update value
             elem.value = parseFloat(value).toFixed(precision);
+
+            // Update error state
+            if (error) {
+                elem.classList.add("error");
+            } else {
+                elem.classList.remove("error");
+            }
         });
     }
 }
