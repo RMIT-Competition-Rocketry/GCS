@@ -1,9 +1,9 @@
-from rocket_sim.flight import run_flight
+from backend.simulation.rocket_sim.flight import run_flight
 import pandas as pd
 import backend.includes_python.process_logging as slogger
 import os
 import shutil
-from rocket_sim.config import hash_ini_file
+from backend.simulation.rocket_sim.config import hash_ini_file
 import json
 
 

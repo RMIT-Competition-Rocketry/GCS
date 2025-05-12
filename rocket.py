@@ -21,7 +21,7 @@ from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
-from cli.start_replay_system import start_replay_system, get_available_missions
+from cli.start_replay_system import start_replay_system, get_available_missions, SimulationType
 
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
@@ -56,9 +56,16 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                                       case_sensitive=False)
     _INTERFACE_CHOICES = click.Choice(
         [e.value for e in InterfaceType], case_sensitive=False)
-    # @TODO PLEASE CHANGE THIS TO BE BETTER
     _MISSION_CHOICES = click.Choice(
         get_available_missions(), case_sensitive=False)
+
+    _REPLAY_MODES = click.Choice(
+        ['mission', 'simulation'], case_sensitive=False
+    )
+
+    _SIMULATION_CHOICES = click.Choice(
+        [e.value for e in SimulationType], case_sensitive=False
+    )
 
     OPTIONS_GSE_ONLY = [click.option('--gse-only', is_flag=True,
                                      help="Run the system in GSE only mode")]
@@ -83,8 +90,12 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                      help="Run in Docker"),
         click.option('--nobuild', is_flag=True,
                      help="Do not build binaries. Search for pre-built binaries"),
-        click.option('-m', '--mission', type=_MISSION_CHOICES,
-                     help="Select what mission to replay.")
+        click.option('--mode', type=_REPLAY_MODES,
+                     help="Select the replay mode"),
+        click.option('--mission', type=_MISSION_CHOICES,
+                     help="Select what mission to replay (required for mission mode)"),
+        click.option('-s', '--simulation', type=_SIMULATION_CHOICES,
+                     help="Select simulation type (required for simulation mode)")
     ]
 
     OPTIONS_ALL_DEV = OPTIONS_SIM + OPTIONS_GSE_ONLY + [
@@ -139,7 +150,9 @@ def start_services(COMMAND: Command,
                    nopendant: bool = False,
                    gse_only: bool = False,
                    frontend: bool = False,
-                   MISSION_ARG: Optional[str] = None):
+                   replay_mode: Optional[str] = None,
+                   MISSION_ARG: Optional[str] = None,
+                   SIMULATION_ARG: Optional[str] = None):
     """Starts all services required for the given command.
 
     Args:
@@ -187,6 +200,30 @@ def start_services(COMMAND: Command,
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
 
+    # Verification for the replay mode
+    if COMMAND == Command.REPLAY:
+        if not replay_mode:
+            raise click.UsageError("--mode is required for the replay engine")
+
+        if replay_mode == 'mission':
+            if not MISSION_ARG:
+                raise click.UsageError(
+                    "--mission is required to run a specified mission")
+            elif MISSION_ARG == 'TEST':
+                raise NotImplementedError(
+                    f"{MISSION_ARG} has not been implemented yet")
+
+            logger.info(f"Using mission data:{MISSION_ARG}")
+
+        elif replay_mode == 'simulation':
+            if not SIMULATION_ARG:
+                raise click.UsageError(
+                    "--simulation is required to run a specified scenario")
+            elif SIMULATION_ARG != 'TEST':
+                raise NotImplementedError(
+                    f"{SIMULATION_ARG} has not been implemented yet")
+            logger.info(f"Running simulation: {SIMULATION_ARG}")
+
     # 3. Run C++ middleware
     # Note that `devices` are paired pseudo-ttys
     try:
@@ -213,7 +250,12 @@ def start_services(COMMAND: Command,
     elif COMMAND == Command.SIMULATION:
         start_simulator(logger, devices[1])
     elif COMMAND == Command.REPLAY:
-        start_replay_system(logger, devices[1], MISSION_ARG)
+        if replay_mode == "mission":
+            start_replay_system(
+                logger, devices[1], MISSION=MISSION_ARG, SIMULATION=None)
+        else:
+            start_replay_system(
+                logger, devices[1], MISSION=None, SIMULATION=SIMULATION_ARG)
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
@@ -300,7 +342,7 @@ def simulation(docker, nobuild, logpkt):
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.REPLAY)
-def replay(docker, nobuild, mission):
+def replay(docker, nobuild, mode, mission, simulation):
     """Start software in simulation mode"""
     start_services(Command.REPLAY,
                    DOCKER=docker,
@@ -309,7 +351,9 @@ def replay(docker, nobuild, mission):
                    nopendant=True,
                    gse_only=False,
                    frontend=True,
-                   MISSION_ARG=mission
+                   replay_mode=mode,
+                   MISSION_ARG=mission,
+                   SIMULATION_ARG=simulation
                    )
 
 

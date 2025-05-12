@@ -1,7 +1,7 @@
 """
     Just read the csv file and read it linearly no stress
     Replay the following CSV files
-    
+
 """
 from enum import Enum
 from dataclasses import dataclass
@@ -14,24 +14,15 @@ import config.config as config
 from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, AVtoGCSData3, GSEtoGCSData1, GSEtoGCSData2, GCStoAVStateCMD, GCStoGSEStateCMD, MockPacket
 import backend.includes_python.process_logging as slogger
 import backend.includes_python.service_helper as service_helper
+from backend.replay_system.packet_type import PacketType
 import configparser
+import argparse
 
 cfg = configparser.ConfigParser()
 cfg.read("config/replay.ini")
 timeout_cfg = cfg["Timeout"]
 MIN_TIMESTAMP_MS = float(timeout_cfg["min_timeout_ms"])
 SLEEP_BUFFER_MS = float(timeout_cfg["sleep_buffer_error"])
-
-
-class PacketType(Enum):
-    GCS_TO_AV_STATE_CMD = 0
-    GSE_TO_GCS_DATA_1 = 1
-    GSE_TO_GCS_DATA_2 = 2
-    GSE_TO_GCS_DATA_3 = 3  # Doesn't exist?
-    AV_TO_GCS_DATA_1 = 4
-    AV_TO_GCS_DATA_2 = 5
-    AV_TO_GCS_DATA_3 = 6
-    GCS_TO_GSE_STATE_CMD = 7
 
 
 @dataclass
@@ -45,6 +36,7 @@ def process_csv_packets(min_timestamp_ms: int, mission_path: str) -> List[Packet
     """Read and sort all the csv files"""
     packets = []
     for packet_type in PacketType:
+
         filename = os.path.join(mission_path, f"{packet_type.name}.csv")
         try:
             with open(filename, 'r') as f:
@@ -53,6 +45,7 @@ def process_csv_packets(min_timestamp_ms: int, mission_path: str) -> List[Packet
                 for row in reader:
                     timestamp_ms = float(row['timestamp_ms'])
                     if timestamp_ms > min_timestamp_ms:
+                        slogger.info(packet_type)
                         packet = Packet(
                             timestamp_ms=timestamp_ms,
                             packet_type=packet_type,
@@ -119,16 +112,38 @@ def send_packet(packet: Packet) -> None:
     """Send packet based on the appropriate handler"""
     if service_helper.time_to_stop():
         return
-    handler = PACKET_HANDLERS.get(packet.packet_type, unknown_packet_type)
-    handler(packet)
+    handle_packets(packet)
 
 
-def unknown_packet_type(packet: Packet) -> None:
+def handle_packets(packet: Packet):
+    match packet.packet_type:
+        case PacketType.AV_TO_GCS_DATA_1:
+            _handle_av_to_gcs_data_1(packet)
+        case PacketType.AV_TO_GCS_DATA_2:
+            _handle_av_to_gcs_data_2(packet)
+        case PacketType.AV_TO_GCS_DATA_3:
+            _handle_av_to_gcs_data_3(packet)
+        case PacketType.GCS_TO_AV_STATE_CMD:
+            _handle_gcs_to_av_state(packet)
+        case PacketType.GSE_TO_GCS_DATA_1:
+            _handle_gse_to_gcs_data_1(packet)
+        case PacketType.GSE_TO_GCS_DATA_2:
+            _handle_gse_to_gcs_data_2(packet)
+        case PacketType.GSE_TO_GCS_DATA_3:
+            _handle_gse_to_gcs_data_3(packet)
+        case PacketType.GCS_TO_GSE_STATE_CMD:
+            _handle_gcs_to_gse_state(packet)
+        case _:
+            _unknown_packet_type
+
+
+def _unknown_packet_type(packet: Packet) -> None:
     """Not a valid packet type"""
     slogger.error(f"Unknown packet type {packet.packet_type}")
+    raise ValueError
 
 
-def handle_av_to_gcs_data_1(packet: Packet) -> None:
+def _handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
 
     def _gyro_capper(packet: Packet, axis: str) -> Packet:
@@ -196,7 +211,7 @@ def handle_av_to_gcs_data_1(packet: Packet) -> None:
     item.write_payload()
 
 
-def handle_av_to_gcs_data_2(packet: Packet) -> None:
+def _handle_av_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
     if service_helper.time_to_stop():
         return
@@ -226,11 +241,11 @@ def handle_av_to_gcs_data_2(packet: Packet) -> None:
     item.write_payload()
 
 
-def handle_av_to_gcs_data_3(packet: Packet) -> None:
+def _handle_av_to_gcs_data_3(packet: Packet) -> None:
     slogger.error("AV to GCS 3 not implemented")
 
 
-def handle_gse_to_gcs_data_1(packet: Packet) -> None:
+def _handle_gse_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
     if service_helper.time_to_stop():
         return
@@ -273,7 +288,7 @@ def handle_gse_to_gcs_data_1(packet: Packet) -> None:
     item.write_payload()
 
 
-def handle_gse_to_gcs_data_2(packet: Packet) -> None:
+def _handle_gse_to_gcs_data_2(packet: Packet) -> None:
     data = packet.data
     if service_helper.time_to_stop():
         return
@@ -317,28 +332,16 @@ def handle_gse_to_gcs_data_2(packet: Packet) -> None:
     item.write_payload()
 
 
-def handle_gse_to_gcs_data_3(packet: Packet) -> None:
+def _handle_gse_to_gcs_data_3(packet: Packet) -> None:
     slogger.error("GSE to GCS 3 not implemented")
 
 
-def handle_gcs_to_av_state(packet: Packet) -> None:
+def _handle_gcs_to_av_state(packet: Packet) -> None:
     slogger.error("GCS to AV State not implemented")
 
 
-def handle_gcs_to_gse_state(packet: Packet) -> None:
+def _handle_gcs_to_gse_state(packet: Packet) -> None:
     slogger.error("GCS to GSE state not implemented")
-
-
-PACKET_HANDLERS = {
-    PacketType.AV_TO_GCS_DATA_1: handle_av_to_gcs_data_1,
-    PacketType.AV_TO_GCS_DATA_2: handle_av_to_gcs_data_2,
-    PacketType.AV_TO_GCS_DATA_3: handle_av_to_gcs_data_3,
-    PacketType.GCS_TO_AV_STATE_CMD: handle_gcs_to_av_state,
-    PacketType.GSE_TO_GCS_DATA_1: handle_gse_to_gcs_data_1,
-    PacketType.GSE_TO_GCS_DATA_2: handle_gse_to_gcs_data_2,
-    PacketType.GSE_TO_GCS_DATA_3: handle_gse_to_gcs_data_3,
-    PacketType.GCS_TO_GSE_STATE_CMD: handle_gcs_to_gse_state,
-}
 
 
 def validate_timeout_skip(packet: Packet, min_timeout_ms: int) -> int:
@@ -359,41 +362,75 @@ def get_mission_path():
 
 
 def main():
-    mission_path = get_mission_path()
+    # Using parser because theres too many arguments and I couldn't get sys working
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--device-rocket', required=True)
+    parser.add_argument(
+        '--mode', choices=['simulation', 'mission'], required=True)
+    parser.add_argument('--mission', help="Check the mission directory names")
+    parser.add_argument('--simulation', choices=['TEST', 'legacy', 'FAIL'])
+    args = parser.parse_args()
 
-    # Remake the path to the mission selected
+    # mission_path = get_mission_path()
     try:
-        MISSION_NAME = sys.argv[sys.argv.index('--mission-type') + 1]
-        mission_path = os.path.join(mission_path, MISSION_NAME)
-        if not os.path.exists(mission_path):
-            raise FileNotFoundError(
-                f"Mission directory not found: {mission_path}")
+        if args.mode == 'mission':
+            if not args.mission:
+                raise ValueError("No mission has been provided")
+            mission_path = os.path.join(get_mission_path(), args.mission)
+            if not os.path.exists(mission_path):
+                raise FileNotFoundError(
+                    f"No mission direction found at: {mission_path}")
+            if str(args.mission).lower() == "test":
+                raise NotImplementedError("Test has not been implemented")
+            slogger.info(f"Starting mission replay for {args.mission}")
 
-    except ValueError:
-        slogger.error(
-            "Failed to find the mission type in arguments for replay system"
-        )
-        raise
+            processed_packets = process_csv_packets(
+                MIN_TIMESTAMP_MS, mission_path)
+        else:
+            from backend.simulation.run_simulation import get_replay_sim_data
+            if not args.simulation:
+                raise ValueError(
+                    "No simulation was selected, required for simulation mode")
+            if args.simulation != "TEST":
+                raise NotImplementedError(
+                    f"The simulation mode: {args.simulation} has not been implemented yet")
 
-    try:
-        FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
+            processed_packets = get_replay_sim_data()
+            slogger.info(f"Starting simulation replay for {args.simulation}")
+
+        if processed_packets is None:
+            raise ValueError(
+                "No packets have been received, replay data is empty")
+
         MockPacket.initialize_settings(
             config.load_config()[
-                'emulation'], FAKE_DEVICE_NAME=FAKE_DEVICE_PATH
+                'emulation'], FAKE_DEVICE_NAME=args.device_rocket
         )
-    except ValueError:
+
+        # Will need to valid timeout before the gaps between packets may be extremely large
+        # When replaying the packets the delay will cause an error when trying to shut down
+        valid_timeout = validate_timeout_skip(
+            processed_packets, MIN_TIMESTAMP_MS)
+
+        replay_packets(processed_packets, valid_timeout)
+        slogger.info("FINISHED SENDING PACKETS")
+
+    except ValueError as ve:
         slogger.error(
-            "Failed to find device names in arguments for replay system")
+            f"Value Error in replay system: {str(ve)}")
         raise
 
-    processed_packets = process_csv_packets(MIN_TIMESTAMP_MS, mission_path)
+    except FileNotFoundError as fe:
+        slogger.error(f"File not found: {str(fe)}")
+        raise
 
-    # Will need to valid timeout before the gaps between packets may be extremely large
-    # When replaying the packets the delay will cause an error when trying to shut down
-    valid_timeout = validate_timeout_skip(processed_packets, MIN_TIMESTAMP_MS)
+    except NotImplementedError as nie:
+        slogger.error(f"Feature has not been implemented: {str(nie)}")
+        raise
 
-    replay_packets(processed_packets, valid_timeout)
-    slogger.info("FINISHED SENDING PACKETS")
+    except Exception as e:
+        slogger.error(f"Something has gone wrong: {str(e)}")
+        raise
 
 
 if __name__ == "__main__":
