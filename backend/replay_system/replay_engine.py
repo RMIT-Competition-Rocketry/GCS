@@ -14,6 +14,7 @@ import config.config as config
 from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, AVtoGCSData3, GSEtoGCSData1, GSEtoGCSData2, GCStoAVStateCMD, GCStoGSEStateCMD, MockPacket
 import backend.includes_python.process_logging as slogger
 import backend.includes_python.service_helper as service_helper
+from backend.simulation.run_simulation import get_replay_sim_data
 import configparser
 
 cfg = configparser.ConfigParser()
@@ -364,12 +365,11 @@ def main():
     # Remake the path to the mission selected
     try:
         MISSION_NAME = sys.argv[sys.argv.index('--mission-type') + 1]
-
         mission_path = os.path.join(mission_path, MISSION_NAME)
 
     except ValueError:
         slogger.error(
-            "Failed to find the mission name in arguments for replay system"
+            "Failed to find the mission type in arguments for replay system"
         )
         raise
 

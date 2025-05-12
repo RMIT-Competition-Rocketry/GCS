@@ -1,6 +1,7 @@
 from rocket_sim import flight_simulation
 from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, MockPacket
 from itertools import count
+from enum import Enum
 import math
 import sys
 import pandas as pd
@@ -9,6 +10,17 @@ import backend.includes_python.process_logging as slogger
 import backend.includes_python.service_helper as service_helper
 import config.config as config
 import configparser
+from backend.replay_system.replay_engine import Packet, PacketType
+from typing import List
+from dataclasses import dataclass
+# Setting up enum
+
+
+class FlightType:
+    LEGACY: 0
+    TEST_SOLID: 1
+    TEST_LIQUID: 2
+    TEST_HYBRID: 3
 
 
 # Setting up the config
@@ -56,14 +68,14 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
     packet2 = AVtoGCSData2(
         LATITUDE=latitude,
         LONGITUDE=longitude,
-        QW = qw / abs(qm),
-        QX = qx / abs(qm),
-        QY = qy / abs(qm),
-        QZ = qz / abs(qm)
+        QW=qw / abs(qm),
+        QX=qx / abs(qm),
+        QY=qy / abs(qm),
+        QZ=qz / abs(qm)
     )
     # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
     if service_helper.time_to_stop():
-        return 
+        return
     time.sleep(0.01)  # Allow the buffer to update
     packet1.write_payload()
     # time.sleep(0.01)
@@ -73,7 +85,7 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
 def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
     """
         Returns a numerical score on how 'important' the packet is
-        We don't want to drop these packets 
+        We don't want to drop these packets
 
         Args:
             PACKET (type): Current packet for observation
@@ -177,7 +189,7 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
         qy = packet[" e2"]
         qz = packet[" e3"]
         # Using qm to normalize the quaternions to [-1,1]
-        qm = math.sqrt(qw**2 + qx**2 + qy**2 +qz**2)
+        qm = math.sqrt(qw**2 + qx**2 + qy**2 + qz**2)
         send_simulated_packet(
             packet[" Altitude AGL (m)"],
             packet[" Speed - Velocity Magnitude (m/s)"],
@@ -192,11 +204,93 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
             packet[" e0"],
             packet[" e1"],
             packet[" e2"],
-            packet[" e3"], 
-            qm, 
+            packet[" e3"],
+            qm,
         )
-        
+
         last_packet_time = time.monotonic()
+
+
+def simulation_to_replay_data(flight_data: pd.DataFrame):
+    """Convert to the Packet data struct"""
+    # Need to seperate data into seperate packets
+    packets = []
+
+    # Need to normalise quaternions for AV2
+    qw = packet[" e0"]
+    qx = packet[" e1"]
+    qy = packet[" e2"]
+    qz = packet[" e3"]
+    # Using qm to normalize the quaternions to [-1,1]
+    qm = abs(math.sqrt(qw**2 + qx**2 + qy**2 + qz**2))
+
+    for packet in flight_data:
+        AV1_PACKET = Packet(
+            timestamp_ms=packet['# Time(s)'] * 1000,
+            packet_type=PacketType.AV_TO_GCS_DATA_1,
+            data={
+                "RSSI": 0,
+                "SNR": 69.0,
+                "flight_state": packet["flight_state"],
+                "dual_board_connectivity_state_flag": False,
+                "recovery_checks_complete_and_flight_ready": False,
+                "GPS_fix_flag": False,
+                "payload_connection_flag": False,
+                "camera_controller_connection_flag": False,
+                "accel_low_x": packet[" Ax (m/s²)"],
+                "accel_low_y": packet[" Ay (m/s²)"],
+                "accel_low_z": packet[" Az (m/s²)"],
+                "accel_high_x": packet[" Ax (m/s²)"],
+                "accel_high_y": packet[" Ay (m/s²)"],
+                "accel_high_z": packet[" Az (m/s²)"],
+                "gyro_x": packet[" ω1 (rad/s)"],
+                "gyro_y": packet[" ω2 (rad/s)"],
+                "gyro_z": packet[" ω3 (rad/s)"],
+                "altitude": packet[" Altitude AGL (m)"],
+                "velocity": packet[" Speed - Velocity Magnitude (m/s)"],
+                "apogee_primary_test_complete": False,
+                "apogee_secondary_test_complete": False,
+                "apogee_primary_test_results": False,
+                "apogee_secondary_test_results": False,
+                "main_primary_test_complete": False,
+                "main_secondary_test_complete": False,
+                "main_primary_test_results": False,
+                "main_secondary_test_results": False,
+                "broadcast_flag": True
+            }
+        )
+        packets.append(AV1_PACKET)
+        AV2_PACKET = Packet(
+            timestamp_ms=packet['# Time(s)'] * 1000,
+            packet_type=PacketType.AV_TO_GCS_DATA_2,
+            data={
+                "RSSI": 0,
+                "SNR": 69.0,
+                "flight_state": packet["flight_state"],
+                "dual_board_connectivity_state_flag": False,
+                "recovery_checks_complete_and_flight_ready": False,
+                "GPS_fix_flag": False,
+                "payload_connection_flag": False,
+                "camera_controller_connection_flag": False,
+                "GPS_latitude": packet[" Latitude (°)"],
+                "GPS_longitude": packet[" Longitude (°)"],
+                "qw": qw / qm,
+                "qx": qx / qm,
+                "qy": qy / qm,
+                "qz": qz / qm
+            }
+        )
+        packets.append(AV2_PACKET)
+
+    return packets
+
+
+def get_replay_sim_data(flightType: FlightType) -> List:
+    """flightType enum will be used later on when rebuilding the sim for now its just an unused variable"""
+    FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
+    processed_data = post_process_simulation_data(FLIGHT_DATA)
+    replay_processed = replay_processed(processed_data)
+    return replay_processed
 
 
 def main():
