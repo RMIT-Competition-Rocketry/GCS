@@ -10,6 +10,7 @@
 const initialReconnectInterval = 200;   // Initial reconnection wait time
 const maxReconnectInterval = 5000;      // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20;     // FPS for rendering graphs
+const maxDesync = 1;  // Max desync (s) before local time realigns itself with GSE 
 
 // API connection
 var apiSocket;
@@ -75,15 +76,11 @@ function animate(newtime) {
         }
         
         // Time drift
-        /*
-        console.log("Time drift:", timeDrift);
-        if (timeDrift > 5) {
-            timestampLocal = timestampApi;
-        }
-        */
-
-        // Log time
-        //console.log(timestampApi, timestampLocal, fpsInterval/1000);
+        // If time drift is positive, it means the local time is ahead of the API
+        //      Which isn't much of a concern, just means the graph will be shifted behind slightly
+        // If time drift is negative, the local time is behind
+        //      So we should make it ahead
+        // Ideally time drift stays at a consistent 1s ahead (???)
     }
 }
 
@@ -253,13 +250,23 @@ function processDataForDisplay(apiData, apiId) {
     processedData.id = apiId;
 
     if (apiData?.meta) {
-        // Timestamp and connection
+        // Timestamp, synchronization and connection
         if (apiData.meta?.timestampS) {
             timestampApi = apiData.meta.timestampS;
 
             if (timestampApiConnect == undefined) {
                 timestampApiConnect = timestampApi;
                 timestampLocalLoad = Date.now();
+            } else {
+                // Code to synchronise local time with GSE time if it gets too far behind
+                timeDrift = timestampLocal - (timestampApi - timestampApiConnect);
+                if (timeDrift > maxDesync) {
+                    timestampLocalLoad += maxDesync/2;
+                    timestampLocal = (Date.now() - timestampLocalLoad) / 1000;
+                } else if (timeDrift < -(1000 / graphRenderRate)) {
+                    timestampLocalLoad -= maxDesync;
+                    timestampLocal = (Date.now() - timestampLocalLoad) / 1000;
+                }
             }
         }
 
@@ -332,18 +339,18 @@ function processDataForDisplay(apiData, apiId) {
 
 // UNIT CONVERSION FUNCTIONS
 function metresToFeet(metres) {
+    if (metres == undefined || isNaN(metres)) return undefined;
     return metres * 3.28084;
 }
 
 function feetToMetres(feet) {
+    if (feet == undefined || isNaN(feet)) return undefined;
     return feet / 3.28084;
 }
 
 function gpsToDecimal(gps) {
     // Converts the compressed GPS value into a decimal degrees coordinate
-    if (gps == 0) {
-        return 0;
-    }
+    if (gps == undefined || isNaN(gps) || gps == 0) return 0;
 
     // Split string into parts
     let [intPart, decPart] = gps.toString().split('.');

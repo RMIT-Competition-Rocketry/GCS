@@ -6,8 +6,8 @@
  * Functions and constants should be prefixed with "graph_"
  */
 
-const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
-const GRAPH_GAP_SIZE = 0.1; // Amount of seconds between data points before a line isn't drawn between them
+const MAX_TIME = 5; // Seconds of graph shown, TODO: load config
+const GRAPH_GAP_SIZE = 1; // Amount of seconds between data points before a line isn't drawn between them
 const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
@@ -74,6 +74,10 @@ const GRAPH_AUX_GASBOTTLES = {
     data: [],
     ylabel: "Mass (kg)",
 };
+
+const symbolCircle = d3.symbol()
+    .type(d3.symbolCircle)
+    .size(10);
 
 // Create and initialise line graphs
 function graphCreateLine(chart, numLines) {
@@ -225,19 +229,22 @@ function graphResize(chart) {
 
 // Render graph
 function graphRender(chart) {
-    if (chart && chart.x && chart.lines) {
+    if (chart && chart?.x && chart?.lines) {
         // Get timestamp of data
         const now = Math.max(
             d3.max(chart.lines.flatMap(line => line.data), d => d.x),
             timestampLocal + timestampApiConnect);
+
+        // Data is held in buffer for extra 5 seconds
         const windowStart = now - MAX_TIME;
 
         if (chart.lastRender != now) {
             chart.lastRender = now;
 
-            // Limit data to last 30 seconds
+            // Limit data to window
             chart.lines.forEach(line => {
-                line.data = line.data.filter(d => d.x >= windowStart);
+                // Data is held in buffer for extra 5 seconds in case there's timing issues
+                line.data = line.data.filter(d => d.x >= (windowStart - GRAPH_GAP_SIZE - 5));
             });
             const allPoints = chart.lines.flatMap(line => line.data);
             
@@ -279,29 +286,54 @@ function graphRender(chart) {
                 .select("text")
                 .style("display", "none");
 
-            // Remove old lines before rendering new ones
+            // Remove old lines and dots before rendering new ones
             chart.g.selectAll(".line-path").remove();
+            chart.g.selectAll(".line-dot").remove();
 
             // Render each line with a different color
             chart.lines.forEach((lineData, index) => {
+                // Line rendering logic is a bit messy oops
+                // If two points are close together, we draw a line between them.
+                lineData.data.forEach((d, i, data) => {
+                    d.prev = Math.abs(d.x - data[i-1]?.x) <= GRAPH_GAP_SIZE;
+                    d.next = Math.abs(d.x - data[i+1]?.x) <= GRAPH_GAP_SIZE;
+
+                    // If they're not close, we draw a point
+                    if (d.x >= windowStart && d.x <= now) {
+                        if (!d.prev && !d.next) {
+                            chart.g.append("path")
+                                .attr("class", "line-dot")
+                                .attr("d", symbolCircle)
+                                .attr("transform", `translate(${chart.x(d.x)},${chart.y(d.y)})`)
+                                .attr("fill", lineData.color || LINE_COLOURS[index]);
+                        } else if (!d.next || !d.prev) {
+                            chart.g.append("path")
+                                .attr("class", "line-dot")
+                                .attr("d", symbolCircle) // Make cross?
+                                .attr("transform", `translate(${chart.x(d.x)},${chart.y(d.y)})`)
+                                .attr("fill", lineData.color || LINE_COLOURS[index]);
+                        }
+                    }
+                    
+                });
+
+                // Add path for each line
                 const line = d3
                     .line()
                     .x((d) => chart.x(d.x))
                     .y((d) => chart.y(d.y))
                     .defined((d, i, data) => {
-                        if (i === 0) return true;
-                        // Only render if distance from previous point < GRAPH_GAP_SIZE
-                        return Math.abs(d.x - data[i - 1].x) < GRAPH_GAP_SIZE;
+                        return d.prev || d.next;
                     });
 
-                // Add path for each line
                 chart.g
                     .append("path")
-                    .datum(lineData.data)
+                    .datum(lineData.data.filter(d => d.x >= windowStart && d.x <= now))
                     .attr("class", "line-path")
                     .attr("fill", "none")
                     .attr("stroke", lineData.color || LINE_COLOURS[index]) // Cycle through colors
                     .attr("stroke-width", 1.5)
+                    .attr("stroke-linecap", "round")
                     .attr("d", line);
             });
         }
@@ -309,6 +341,7 @@ function graphRender(chart) {
 }
 
 function graphRequestRender() {
+    // Attempt to render all graphs
     graphRender(GRAPH_AV_ACCEL);
     graphRender(GRAPH_AV_GYRO);
     graphRender(GRAPH_AV_VELOCITY);
@@ -319,6 +352,33 @@ function graphRequestRender() {
     graphRender(GRAPH_AUX_THERMOCOUPLES);
     graphRender(GRAPH_AUX_INTERNALTEMP);
     graphRender(GRAPH_AUX_GASBOTTLES);
+}
+
+function graphAddValue(graph, line, timestamp, value) {
+    // Adds a value to a graph in the right position
+    // To make sure things are all valid and don't go out of order
+
+    // Make sure graph is valid and has lines defined
+    if (!graph?.lines || line < 0 || line >= graph.lines.length) return;
+
+    // Ensure timestamp is a valid number
+    if (timestamp == undefined || isNaN(timestamp) || timestamp < 0) return;
+
+    // Ensure value is a number
+    if (value == undefined || isNaN(value)) return;
+
+    // Add data to graph (sorted in chronological order)
+    const data = graph.lines[line].data;
+    const point = {x: timestamp, y:value};
+
+    // Loop backwards from the end to find where to insert the data
+    let index = data.length;
+    while (index > 0 && data[index - 1].x >= timestamp) {
+        index--;
+    }
+    data.splice(index, 0, point);
+
+    //graph.lines[line].data.push({ x: timestamp, y: value});
 }
 
 window.addEventListener("DOMContentLoaded", function () {
@@ -333,17 +393,6 @@ window.addEventListener("DOMContentLoaded", function () {
     graphCreateLine(GRAPH_AUX_THERMOCOUPLES, 4);
     graphCreateLine(GRAPH_AUX_INTERNALTEMP, 1);
     graphCreateLine(GRAPH_AUX_GASBOTTLES, 2);
-
-    // Load data from CSV
-    /*
-    d3.csv("data/testData2.csv", (d) => [+d.Altitude, +d.velocity, +d.TiltAngle, +d.FutureAngle, +d.RollAngle]).then(
-        (csvData) => {
-            graphFromCSVSimulated(csvData.map((item) => item[0]), GRAPH_POS_ALT);
-            graphFromCSVSimulated(csvData.map((item) => item[1]), GRAPH_AV_VELOCITY);
-            graphFromCSVSimulated(csvData.map((item) => item[2]), GRAPH_AV_GYRO);
-            graphFromCSVSimulated(csvData.map((item) => item[3]), GRAPH_AV_ACCEL);
-        }
-    );*/
 });
 
 // Update modules
@@ -351,44 +400,19 @@ function graphUpdateAvionics(data) {
     // AVIONICS MODULE GRAPHS
     if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountAv) {
         const timestamp = data.meta.timestampS;
-        const packet = data.meta.totalPacketCountAv;
 
         // Acceleration
-        if (GRAPH_AV_ACCEL.lines != undefined) {
-            if (data?.accelX) {
-                GRAPH_AV_ACCEL.lines[0].data.push({ x: timestamp, y: data.accelX});
-            }
-
-            if (data.accelY != undefined) {
-                GRAPH_AV_ACCEL.lines[1].data.push({ x: timestamp, y: data.accelY});
-            }
-
-            if (data.accelZ != undefined) {
-                GRAPH_AV_ACCEL.lines[2].data.push({ x: timestamp, y: data.accelZ});
-            }
-        }
+        graphAddValue(GRAPH_AV_ACCEL, 0, timestamp, data.accelX);
+        graphAddValue(GRAPH_AV_ACCEL, 1, timestamp, data.accelY);
+        graphAddValue(GRAPH_AV_ACCEL, 2, timestamp, data.accelZ);
 
         // Gyroscope
-        if (GRAPH_AV_GYRO.lines != undefined) {
-            if (data.gyroX != undefined) {
-                GRAPH_AV_GYRO.lines[0].data.push({ x: timestamp, y: data.gyroX});
-            }
-
-            if (data.gyroY != undefined) {
-                GRAPH_AV_GYRO.lines[1].data.push({ x: timestamp, y: data.gyroY});
-            }
-
-            if (data.gyroZ != undefined) {
-                GRAPH_AV_GYRO.lines[2].data.push({ x: timestamp, y: data.gyroZ});
-            }
-        }
+        graphAddValue(GRAPH_AV_GYRO, 0, timestamp, data.gyroX);
+        graphAddValue(GRAPH_AV_GYRO, 1, timestamp, data.gyroY);
+        graphAddValue(GRAPH_AV_GYRO, 2, timestamp, data.gyroZ);
 
         // Velocity
-        if (GRAPH_AV_VELOCITY.lines != undefined) {
-            if (data.velocity != undefined) {
-                GRAPH_AV_VELOCITY.lines[0].data.push({ x: timestamp, y: data.velocity});
-            }
-        }
+        graphAddValue(GRAPH_AV_VELOCITY, 0, timestamp, data.velocity);
     }
 }
 
@@ -396,15 +420,9 @@ function graphUpdatePosition(data) {
     // POSITION MODULE GRAPHS
     if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountAv) {
         const timestamp = data.meta.timestampS;
-        const packet = data.meta.totalPacketCountAv;
 
         // Altitude
-        if (GRAPH_POS_ALT.lines?.[0]?.data) {
-            if (data.altitude != undefined) {
-                // Graph in feet
-                GRAPH_POS_ALT.lines[0].data.push({ x: timestamp, y: metresToFeet(data.altitude)});
-            }
-        }
+        graphAddValue(GRAPH_POS_ALT, 0, timestamp, metresToFeet(data.altitude));
     }
 }
 
@@ -415,49 +433,21 @@ function graphUpdateAuxData(data) {
         const packet = data.meta.totalPacketCountGse;
 
         // Transducers
-        if (
-            data.transducer1 != undefined &&
-            data.transducer2 != undefined &&
-            data.transducer3 != undefined
-        ) {
-            if (GRAPH_AUX_TRANSDUCERS.lines != undefined) {
-                GRAPH_AUX_TRANSDUCERS.lines[0].data.push({ x: timestamp, y: data.transducer1});
-                GRAPH_AUX_TRANSDUCERS.lines[1].data.push({ x: timestamp, y: data.transducer2});
-                GRAPH_AUX_TRANSDUCERS.lines[2].data.push({ x: timestamp, y: data.transducer3});
-            }
-        }
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.transducer1);
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.transducer2);
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.transducer3);
 
         // Thermocouples
-        if (
-            data.thermocouple1 != undefined &&
-            data.thermocouple2 != undefined &&
-            data.thermocouple3 != undefined &&
-            data.thermocouple4 != undefined
-        ) {
-            if (GRAPH_AUX_THERMOCOUPLES.lines != undefined) {
-                GRAPH_AUX_THERMOCOUPLES.lines[0].data.push({ x: timestamp, y: data.thermocouple1});
-                GRAPH_AUX_THERMOCOUPLES.lines[1].data.push({ x: timestamp, y: data.thermocouple2});
-                GRAPH_AUX_THERMOCOUPLES.lines[2].data.push({ x: timestamp, y: data.thermocouple3});
-                GRAPH_AUX_THERMOCOUPLES.lines[3].data.push({ x: timestamp, y: data.thermocouple4});
-            }
-        }
+        graphAddValue(GRAPH_AUX_THERMOCOUPLES, 0, timestamp, data.thermocouple1);
+        graphAddValue(GRAPH_AUX_THERMOCOUPLES, 1, timestamp, data.thermocouple2);
+        graphAddValue(GRAPH_AUX_THERMOCOUPLES, 2, timestamp, data.thermocouple3);
+        graphAddValue(GRAPH_AUX_THERMOCOUPLES, 3, timestamp, data.thermocouple4);
 
         // Internal temperature
-        if (data.internalTemp != undefined) {
-            if (GRAPH_AUX_INTERNALTEMP.lines != undefined) {
-                GRAPH_AUX_INTERNALTEMP.lines[0].data.push({ x: timestamp, y: data.internalTemp});
-            }
-        }
+        graphAddValue(GRAPH_AUX_INTERNALTEMP, 0, timestamp, data.internalTemp);
 
         // Gas bottle weights
-        if (
-            data.gasBottleWeight1 != undefined &&
-            data.gasBottleWeight2 != undefined
-        ) {
-            if (GRAPH_AUX_GASBOTTLES.lines != undefined) {
-                GRAPH_AUX_GASBOTTLES.lines[0].data.push({ x: timestamp, y: data.gasBottleWeight1});
-                GRAPH_AUX_GASBOTTLES.lines[1].data.push({ x: timestamp, y: data.gasBottleWeight2});
-            }
-        }
+        graphAddValue(GRAPH_AUX_GASBOTTLES, 0, timestamp, data.gasBottleWeight1);
+        graphAddValue(GRAPH_AUX_GASBOTTLES, 1, timestamp, data.gasBottleWeight2);
     }
 }
