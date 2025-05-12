@@ -7,6 +7,8 @@ frontend/static/js/three.module.js linguist-vendored
 # Exclude reference code as well
 notes/old_esp32_rx_code.cpp linguist-documentation 
 
+docker/Dockerfile.dev linguist-language=Dockerfile
+
 # -------------------- OTHERS --------------------
 
 # Treat all excalidraw files as binary
