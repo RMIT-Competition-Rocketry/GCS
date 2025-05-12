@@ -12,6 +12,7 @@ on:
       - '.github/workflows/build_and_test_cpp.yml'
       - '!docs/**'
       - '!notes/**'
+      - 'backend/tests/**'
   pull_request:
     paths:
       - '**/CMakeLists.txt'
@@ -23,6 +24,8 @@ on:
       - '.github/workflows/build_and_test_cpp.yml'
       - '!docs/**'
       - '!notes/**'
+      - 'backend/tests/**'
+
 
 env:
   ACT: false
@@ -249,12 +252,25 @@ jobs:
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    # --- Export binaries as artifacts ---
+    # --- Extract and list proto generated files for debugging ---
+    - name: List protobuf generated files
+      run: |
+        echo "Listing protobuf generated files in backend/proto/generated:"
+        find "backend/proto/generated" -type f | sort
+
+    # --- Upload the entire build directory as an artifact ---
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
         path: build
+
+    # --- Specifically upload proto generated files as a separate artifact ---
+    - name: Upload Proto Generated Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: proto-generated-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+        path: backend/proto/generated/
 
   test-cpp:
     runs-on: ubuntu-latest
@@ -265,31 +281,50 @@ jobs:
         os: [ubuntu-latest]
         build_type: [Release, Debug]
         cpp_compiler: [g++, clang++]
-
+    env:
+      CI_BUILD_ENV: ${{ matrix.build_type }}
     steps:
     - uses: actions/checkout@v4  # Needed for scripts
+    
+    # --- Download main build artifacts ---
     - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
         name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
         path: build
 
-    - name: Install CMake and tree
+    # --- Download proto generated files as well (redundant but ensures they're explicitly available) ---
+    - name: Download Proto Generated Files
+      uses: actions/download-artifact@v4
+      with:
+        name: proto-generated-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+        path: backend/proto/generated
+
+    - name: Install testing dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake tree
+        sudo apt-get install -y cmake tree socat
 
     - name: Install python testing dependencies
       run: |
         python3 -m pip install --upgrade pip
+        python3 -m pip install -r requirements.txt
         python3 -m pip install -r backend/tests/requirements.txt
 
-    - name: Tree debug
-      run: tree
+    # --- Debug the directory structure including proto files ---
+    - name: Debug directory structure
+      run: |
+        echo "Listing proto generated files in backend/proto/generated:"
+        find backend/proto/generated -type f | sort
+        echo "Complete build directory structure:"
+        tree build
 
-    # Set executable permissions for tests
-    - name: Set executable permissions
+    # --- Set executable permissions for tests and binaries ---
+    - name: Set executable permissions for tests
       run: chmod +x build/backend/tests/runC++Tests
+
+    - name: Set executable permissions for main binary
+      run: find build -name "middleware*" -type f -exec chmod +x {} \;
 
     - name: Run Tests
       working-directory: ${{ github.workspace }}/build

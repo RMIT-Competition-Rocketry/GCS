@@ -13,7 +13,7 @@ The GCS software is run by using a Python based CLI with a C++ server component.
 | Software | Version | Release Mode Only | Docker Dev | Native Dev |
 | --- | --- | --- | --- | --- |
 | Python | `3.11.x` | ✅ | ✅ | ✅ |
-| Docker | | ❌ | ✅ | ✅ |
+| Docker | | ❌ | ✅ | ❌ |
 | Socat | Latest? | ❌ | 🐳 | ✅ |
 | Cmake | >=`3.25` | ❌ | 🐳 | 🟨 |
 | g++ or clang++ | Untested | ❌ | 🐳 | 🟨 |

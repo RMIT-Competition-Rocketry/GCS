@@ -1,4 +1,4 @@
 # This should always pass
 
-def test_dumy():
+def test_dummy():
     assert True

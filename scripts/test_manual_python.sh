@@ -8,7 +8,17 @@ if [ ! -f "cli/ascii_art_logo.txt" ]; then
   exit 1
 fi
 
+if [ -f ".venv/bin/activate" ]; then
+  # shellcheck disable=SC1091
+  source .venv/bin/activate
+elif [ -f "venv/bin/activate" ]; then
+  # shellcheck disable=SC1091
+  source venv/bin/activate
+fi
+
+
 export PYTHONPATH="${PWD}:$PYTHONPATH"
 
 echo "Running Python tests..."
+
 pytest backend/tests/python_tests -v;
