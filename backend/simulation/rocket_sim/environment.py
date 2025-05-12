@@ -1,6 +1,7 @@
 import datetime
 from rocketpy import Environment
-from rocket_sim.config import get_env_config
+from backend.simulation.rocket_sim.config import get_env_config
+
 
 def create_environment():
     """
@@ -9,7 +10,8 @@ def create_environment():
     # Get the config
     cfg = get_env_config()
     # Create the environment object needed for the flight
-    env = Environment(latitude=cfg["latitude"], longitude=-cfg["longitude"], elevation=cfg["elevation"])
+    env = Environment(latitude=cfg["latitude"], longitude=-
+                      cfg["longitude"], elevation=cfg["elevation"])
     # Required by rocketpy for "launch time"
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
     env.set_date((tomorrow.year, tomorrow.month, tomorrow.day, 12))  # UTC time
