@@ -21,7 +21,7 @@ from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
-from cli.start_replay_system import start_replay_system
+from cli.start_replay_system import start_replay_system, get_available_missions
 
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
@@ -42,16 +42,6 @@ class DecoratorSelector(enum.Enum):
     SIM = enum.auto()  # Give me the options for simulation
     GSE_ONLY = enum.auto()  # Give me just the GSE only option
     REPLAY = enum.auto()
-
-
-def get_available_missions():
-    """Scans the mission directory and then returns the available missions"""
-    MISSION_PATH = os.path.join("backend", "replay_system", "mission_data")
-    if not os.path.exists(MISSION_PATH):
-        return []
-
-    return [d for d in os.listdir(MISSION_PATH)
-            if os.path.isdir(os.path.join(MISSION_PATH, d))]
 
 
 def cli_decorator_factory(SELECTOR: DecoratorSelector):
@@ -196,16 +186,6 @@ def start_services(COMMAND: Command,
         case _:
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
-
-    # @TODO
-    if MISSION_ARG is not None:
-        MISSION_PATH = os.path.join(
-            "backend", "replay_system", "mission_data", MISSION_ARG)
-        if not os.path.exists(MISSION_PATH):
-            valid_missions = get_available_missions()
-            raise ValueError(
-                f"Invalid mission: '{MISSION_ARG}'. Valid missions are: {', '.join(valid_missions)}")
-        logger.info(f"Using mission data {MISSION_ARG}")
 
     # 3. Run C++ middleware
     # Note that `devices` are paired pseudo-ttys

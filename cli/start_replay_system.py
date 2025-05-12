@@ -5,6 +5,16 @@ import os
 from typing import Optional
 
 
+def get_available_missions():
+    """Scans the mission directory and then returns the available missions"""
+    MISSION_PATH = os.path.join("backend", "replay_system", "mission_data")
+    if not os.path.exists(MISSION_PATH):
+        return []
+
+    return [d for d in os.listdir(MISSION_PATH)
+            if os.path.isdir(os.path.join(MISSION_PATH, d))]
+
+
 def get_mission_path(mission: Optional[str]) -> str:
     """Get the mission path from the command line argument, validation should exist already"""
     MISSION_PATH = os.path.join("backend", "replay_system", "mission_data")
@@ -13,10 +23,7 @@ def get_mission_path(mission: Optional[str]) -> str:
         raise ValueError("Mission argument is required")
 
     FULL_MISSION_PATH = os.path.join(MISSION_PATH, mission)
-    if not os.path.exists(FULL_MISSION_PATH):
-        valid_missions = [d for d in os.listdir(
-            MISSION_PATH) if os.path.isdir(os.path.join(MISSION_PATH, d))]
-
+    if FULL_MISSION_PATH not in get_available_missions():
         raise ValueError(
             f"Invalid Mission: {mission}. Valid missions are {', '. join(valid_missions)}"
         )
