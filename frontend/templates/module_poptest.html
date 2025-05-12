@@ -20,23 +20,33 @@
 
     <!-- Pop test options -->
 	<div class="col-start-4 row-start-1 row-span-4 flex flex-col justify-center gap-1">
-	<label for="optionMainP" class="flex items-center justify-center">
 		<input type="checkbox" id="optionMainP" class="sr-only peer">
-		<span class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">Main: Primary</span>
-	</label>
-	<label for="optionMainS" class="flex items-center justify-center">
-		<input type="checkbox" id="optionMainS" class="sr-only peer">
-		<span class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">Main: Secondary</span>
-	</label>
-	<label for="optionApogeeP" class="flex items-center justify-center">
-		<input type="checkbox" id="optionApogeeP" class="sr-only peer">
-		<span class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">Apogee: Primary</span>
-	</label>
-	<label for="optionApogeeS" class="flex items-center justify-center">
-		<input type="checkbox" id="optionApogeeS" class="sr-only peer">
-		<span class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">Apogee: Secondary</span>
-	</label>
-	</div>
+		<label for="optionMainP" class="peer-checked:opacity-100 pop_selector opacity-60 w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
+			Main: Primary
+		</label>
+
+		<button>
+			<input type="checkbox" id="optionMainS" class="sr-only peer">
+			<label for="optionMainS" class="peer-checked:opacity-100 pop_selector opacity-60 w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
+				Main: Secondary
+			</label>
+		</button>
+
+		<button>
+			<input type="checkbox" id="optionApogeeP" class="sr-only peer">
+			<label for="optionApogeeP" class="peer-checked:opacity-100 pop_selector opacity-60 w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
+				Apogee: Primary
+			</label>
+		</button>
+
+		<button>
+			<input type="checkbox" id="optionApogeeS" class="sr-only peer">
+			<label for="optionApogeeS" class="peer-checked:opacity-100 pop_selector opacity-60 w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
+				Apogee: Secondary
+			</label>
+		</button>
+</div>
+
 
 	
     <!-- Indicators -->
