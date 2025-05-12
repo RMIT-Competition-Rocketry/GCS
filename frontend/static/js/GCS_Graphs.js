@@ -6,7 +6,7 @@
  * Functions and constants should be prefixed with "graph_"
  */
 
-const MAX_TIME = 5; // Seconds of graph shown, TODO: load config
+const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
 const GRAPH_GAP_SIZE = 1; // Amount of seconds between data points before a line isn't drawn between them
 const GRAPH_TICKS_Y = 8;
 
