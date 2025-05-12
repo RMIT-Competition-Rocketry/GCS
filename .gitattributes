@@ -1,0 +1,6 @@
+# Exclude libraries from linguist analysis
+frontend/js/d3.min.js linguist-vendored
+frontend/js/three.module.js linguist-vendored
+
+# Exclude reference code as well
+notes/old_esp32_rx_code.cpp linguist-vendored
