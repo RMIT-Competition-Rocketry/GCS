@@ -353,7 +353,7 @@ class AVPacket(Packet):
                         FlightState_pb.FlightState.LAUNCH | \
                         FlightState_pb.FlightState.COAST | \
                         FlightState_pb.FlightState.APOGEE | \
-                        FlightState_pb.FlightState.DECENT | \
+                        FlightState_pb.FlightState.DESCENT | \
                         FlightState_pb.FlightState.LANDED:
                     slogger.info(
                         f"Flight state changed to {flight_state_name}")
