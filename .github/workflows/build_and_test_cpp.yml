@@ -277,10 +277,10 @@ jobs:
         name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
         path: build
 
-    - name: Install CMake and tree
+    - name: Install testing dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake tree
+        sudo apt-get install -y cmake tree socat
 
     - name: Install python testing dependencies
       run: |
