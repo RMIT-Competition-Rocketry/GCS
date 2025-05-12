@@ -112,6 +112,7 @@ def start_middleware(logger: logging.Logger,
         MIDDLEWARE_BINARY_PATH = get_middleware_path(BINARY_NAME)
 
         if MIDDLEWARE_BINARY_PATH is None:
+            logger.debug(f"WORKING DIRECTORY: {os.getcwd()}")
             raise FileNotFoundError(
                 f"Could not find {SERVICE_NAME} binary ({BINARY_NAME}) in build/ or root folder. Please run $ bash scripts/release.sh")
 
