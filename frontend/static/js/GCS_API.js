@@ -10,7 +10,6 @@
 const initialReconnectInterval = 200;   // Initial reconnection wait time
 const maxReconnectInterval = 5000;      // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20;     // FPS for rendering graphs
-//const FLIGHTSTATE = ["PRE_FLIGHT_NO_FLIGHT_READY", "PRE_FLIGHT_FLIGHT_READY", "LAUNCH", "COAST", "APOGEE", "DESCENT", "LANDED", "OH_NO"];
 
 // API connection
 var apiSocket;

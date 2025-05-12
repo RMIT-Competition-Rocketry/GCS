@@ -271,7 +271,7 @@ function displayUpdateFlightState(data) {
             // Apogee
             stateName = "Apogee";
 
-        } else if (data.flightState == 5 || data.flightState == "DESCENT") {
+        } else if (data.flightState == 5 || data.flightState == "DESCENT" || data.flightState == "DECENT") {
             // Descent
             stateName = "Descent";
 
