@@ -2,7 +2,7 @@
 *  @mcloughlan
 
 # Frontend team does not require reviews when merging into their folder on the main branch
-frontend/  @RMIT-Competition-Rocketry/gcs-frontend-capstone
+frontend/**  @RMIT-Competition-Rocketry/gcs-frontend-capstone
 
 # If any permissions need to be changed, it can be done by IREC team
 .github/CODEOWNERS  @RMIT-Competition-Rocketry/spaceport-aurc-2025
@@ -12,4 +12,4 @@ docs/*
 notes/* 
 
 # Tristian simulation tooling
-backend/simulation/ @trist4nl3
+backend/simulation/** @trist4nl3
