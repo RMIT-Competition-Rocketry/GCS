@@ -146,7 +146,7 @@
             "args": [
                 "backend/frontend_api.py",
                 "--socket-path",
-                "gcs_rocket"
+                "gcs_rocket",
             ],
             "icon": {
                 "id": "debug-console"
@@ -270,6 +270,30 @@
                 "backend/simulation/run_simulation.py",
                 "--device-rocket",
                 "/tmp/gcs_rocket.sock"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}:$PYTHONPATH"
+                },
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
+            }
+        },
+        {
+            "label": "Play Replay System",
+            "type": "shell",
+            "command": "./.venv/bin/python",
+            "args": [
+                "backend/replay_system/replay_engine.py",
+                "--device-rocket",
+                "/tmp/gcs_rocket.sock",
+                "--mission-type",
+                "20250504"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",

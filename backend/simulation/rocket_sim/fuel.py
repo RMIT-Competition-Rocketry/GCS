@@ -1,5 +1,6 @@
 from rocketpy import Fluid, CylindricalTank, MassFlowRateBasedTank
-from rocket_sim.config import get_fuel_tank_config
+from backend.simulation.rocket_sim.config import get_fuel_tank_config
+
 
 def create_oxidizer_tank():
     """
@@ -9,10 +10,13 @@ def create_oxidizer_tank():
     """
     # Creating fuel examples
     cfg = get_fuel_tank_config()
-    oxidizer_liq = Fluid(name=cfg["fuels"]["liquid"]["name"], density=cfg["fuels"]["liquid"]["density"])
-    oxidizer_gas = Fluid(name=cfg["fuels"]["gas"]["name"], density=cfg["fuels"]["liquid"]["density"])
+    oxidizer_liq = Fluid(
+        name=cfg["fuels"]["liquid"]["name"], density=cfg["fuels"]["liquid"]["density"])
+    oxidizer_gas = Fluid(
+        name=cfg["fuels"]["gas"]["name"], density=cfg["fuels"]["liquid"]["density"])
     # Get tank geometry
-    tank_shape = CylindricalTank(cfg["tank"]["geometry"]["radius"], cfg["tank"]["geometry"]["height"])
+    tank_shape = CylindricalTank(
+        cfg["tank"]["geometry"]["radius"], cfg["tank"]["geometry"]["height"])
 
     # Define the tank
     # Since it is a massflow rate based tank this means that the mass flow rates of the liquid
