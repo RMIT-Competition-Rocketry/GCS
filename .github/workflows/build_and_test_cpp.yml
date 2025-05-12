@@ -281,7 +281,8 @@ jobs:
         os: [ubuntu-latest]
         build_type: [Release, Debug]
         cpp_compiler: [g++, clang++]
-
+    env:
+      CI_BUILD_ENV: ${{ matrix.build_type }}
     steps:
     - uses: actions/checkout@v4  # Needed for scripts
     

@@ -5,6 +5,7 @@ import signal
 import time
 import threading
 import queue
+import pytest
 
 
 # NOTE PLEASE READ DEV NOTES FOR UPGRADES
@@ -17,6 +18,7 @@ import queue
 # Also maybe add a couple more lines to check for from each individual service in case one of them fails.
 # --------------------
 
+@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
 def test_cli_dev():
     print(sys.executable)
     cmd = [sys.executable, "-u", "rocket.py",
