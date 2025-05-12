@@ -285,6 +285,7 @@ jobs:
     - name: Install python testing dependencies
       run: |
         python3 -m pip install --upgrade pip
+        python3 -m pip install -r requirements.txt
         python3 -m pip install -r backend/tests/requirements.txt
 
     - name: Tree debug
