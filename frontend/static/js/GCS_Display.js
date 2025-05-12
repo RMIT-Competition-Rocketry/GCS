@@ -121,6 +121,30 @@ function displaySetState(item, value) {
     }
 }
 
+function displaySetActiveFlightState(item) {
+    // Updates active flight state to a specific html element
+    let elements = document.querySelectorAll(`.${item}`);
+    console.log(elements);
+
+    if (elements && elements.length > 0) {
+        // Make sure we're actually updating this
+        if (elements[0].classList.contains("active")) return;
+
+        // The active element is different, update active item
+        let active = document.querySelectorAll(`.active`);
+        if (active && active.length > 0) {
+            active.forEach((elem) => {
+                elem.classList.remove("active");
+            });
+        }
+
+        // Update active item
+        elements.forEach((elem) => {
+            elem.classList.add("active");
+        });
+    }
+}
+
 // FUNCTIONS FOR UPDATING MODULES
 function displayUpdateTime() {
     /// SYSTEM TIME
@@ -254,30 +278,37 @@ function displayUpdateFlightState(data) {
         if (data.flightState == 0 || data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
             // Preflight (not ready)
             stateName = "Pre-flight (not ready)";
+            displaySetActiveFlightState("fs-state-preflight");
 
         } else if (data.flightState == 1 || data.flightState == "PRE_FLIGHT_FLIGHT_READY") {
             // Preflight (ready)
             stateName = "Pre-flight (flight ready)";
+            displaySetActiveFlightState("fs-state-preflight");
 
         } else if (data.flightState == 2 || data.flightState == "LAUNCH") {
             // Launch
             stateName = "Launch";
+            displaySetActiveFlightState("fs-state-launch");
 
         } else if (data.flightState == 3 || data.flightState == "COAST") {
             // Coast
             stateName = "Coast";
+            displaySetActiveFlightState("fs-state-coast");
 
         } else if (data.flightState == 4 || data.flightState == "APOGEE") {
             // Apogee
             stateName = "Apogee";
+            displaySetActiveFlightState("fs-state-apogee");
 
         } else if (data.flightState == 5 || data.flightState == "DESCENT" || data.flightState == "DECENT") {
             // Descent
             stateName = "Descent";
+            displaySetActiveFlightState("fs-state-descent");
 
         } else if (data.flightState == 6 || data.flightState == "LANDED") {
             // Landed successfully
             stateName = "Landed";
+            displaySetActiveFlightState("fs-state-landed");
 
         } else if (data.flightState == 7 || data.flightState == "ON_NO") {
             // Oh shit oh fuck what the heck :(

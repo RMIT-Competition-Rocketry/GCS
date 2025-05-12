@@ -492,8 +492,8 @@
     border-block-style: var(--tw-border-style);
     border-block-width: 1px;
     border-color: var(--color-hive);
+    background-color: var(--color-green-600);
     content: "";
-    background: #1e90ff;
     width: calc(50% - 1rem);
     height: 33.3333%;
     position: absolute;
@@ -514,10 +514,17 @@
 
   .indicator-flightstate .indicator-state {
     z-index: 10;
-    background: #1e90ff;
+    background-color: var(--color-green-400);
+    filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
   }
 
-  .indicator-flightstate.active:after, .indicator-flightstate.active ~ .indicator-flightstate .indicator-state, .indicator-flightstate.active ~ .indicator-flightstate:before, .indicator-flightstate.active ~ .indicator-flightstate:after {
+  .indicator-flightstate.active:after {
+    border-color: var(--color-hive-dark);
+    background: #000;
+  }
+
+  .indicator-flightstate.active ~ .indicator-flightstate .indicator-state, .indicator-flightstate.active ~ .indicator-flightstate:before, .indicator-flightstate.active ~ .indicator-flightstate:after {
+    filter: none;
     border-color: var(--color-hive-dark);
     background: #000;
   }

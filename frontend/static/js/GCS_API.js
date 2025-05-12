@@ -252,7 +252,11 @@ function processDataForDisplay(apiData, apiId) {
     if (apiData?.meta) {
         // Timestamp, synchronization and connection
         if (apiData.meta?.timestampS) {
-            timestampApi = apiData.meta.timestampS;
+            if (timestampApi) {
+                timestampApi = Math.max(timestampApi, apiData.meta.timestampS);
+            } else {
+                timestampApi = apiData.meta.timestampS;
+            }
 
             if (timestampApiConnect == undefined) {
                 timestampApiConnect = timestampApi;
