@@ -67,20 +67,10 @@ function animate(newtime) {
         }
 
         // Increment time (so if we stop getting packets, time moves forward)
-        // This will be overwritten by API time when packets come through again
         timestampLocal = (Date.now() - timestampLocalLoad) / 1000;
-        timeDrift = timestampLocal - (timestampApi - timestampApiConnect);
-   
         if (displayUpdateTime != undefined) {
             displayUpdateTime();
         }
-        
-        // Time drift
-        // If time drift is positive, it means the local time is ahead of the API
-        //      Which isn't much of a concern, just means the graph will be shifted behind slightly
-        // If time drift is negative, the local time is behind
-        //      So we should make it ahead
-        // Ideally time drift stays at a consistent 1s ahead (???)
     }
 }
 
@@ -264,14 +254,12 @@ function processDataForDisplay(apiData, apiId) {
             } else {
                 // Code to synchronise local time with GSE time if it gets too far behind
                 timeDrift = timestampLocal - (timestampApi - timestampApiConnect);
-                
-                // Correct time drift (API out of sync with frontend)
-                if (timeDrift > maxDesync) {
-                    timestampLocalLoad += maxDesync * 1000 / 2; // half of value (ms to s)
-                } else if (timeDrift < -maxDesync) {
-                    timestampLocalLoad -= maxDesync * 1000 / 2;
-                }
-               //console.log(timeDrift);
+
+                // Time drift
+                // timeDrift > 0 means LOCAL is ahead of GSE
+                // timeDrift < 0 means GSE is ahead of LOCAL
+                // Ideally there's no time drift at all, but if there is it's used to update the time
+                //console.log(timeDrift);
             }
         }
 
@@ -300,7 +288,6 @@ function processDataForDisplay(apiData, apiId) {
             
         }
     }
-    
 
     // Acceleration
     // Determine whether to use low or high precision values

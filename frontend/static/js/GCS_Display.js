@@ -151,7 +151,7 @@ function displayUpdateTime() {
         displaySetValue("fs-time-api", timestampApi, 3);
     }
     if (timestampLocal != undefined && timestampLocal != 0) {
-        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect, 3);
+        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 3);
     }
 }
 

@@ -233,7 +233,7 @@ function graphRender(chart) {
         // Get timestamp of data
         const now = Math.max(
             d3.max(chart.lines.flatMap(line => line.data), d => d.x),
-            timestampLocal + timestampApiConnect);
+            timestampLocal + timestampApiConnect - timeDrift);
 
         // Data is held in buffer for extra 5 seconds
         const windowStart = now - MAX_TIME;
