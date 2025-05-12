@@ -1,69 +1,53 @@
-<!-- Pop test module -->
-<div class="w-full h-full border-2 border-hive/50">
-	<h2 class="text-center p-2">Pop test</h2> <br>
-  
-	<!-- Wrapper ensures flow remains correct -->
-	<div class="w-full h-full grid grid-cols-4 grid-rows-7">
+<div class="w-full h-full border-2 border-hive/50 font-mono text-xs">
+	<h2 class="text-center py-1 text-base">Pop Test</h2>
+	<br>	
+	<div class="grid grid-cols-4 gap-2 px-2 pb-2 items-center">
 
-		<div id  = "prompt" class="text-red-600 text-base font-normal font-mono">
-			Select an option
-		</div>
-
-		<div class = "row-start-2 col-start-2">
-			<button id = "popButton" class="pop_button_inactive w-24 h-24" disabled>
-			</button>
-		</div>
-
-		<div class="col-start-3 row-span-4 justify-center items-center">
-			<img src="img/selector_vector.svg" class="w-full h-full" />
-		</div>
-
-		<div class="col-start-4">
-			<input type="checkbox" id="optionMainP" class="sr-only peer">
-			<label for="optionMainP"
-				class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
-			Main: Primary
-			</label>
-		</div>
-
-		<div class="row-start-2 col-start-4">
-			<input type="checkbox" id="optionMainS" class="sr-only peer">
-			<label for="optionMainS"
-				class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
-			Main: Secondary
-			</label>
-		</div>
-
-		<div class="row-start-4 col-start-4">
-			<input type="checkbox" id="optionApogeeP" class="sr-only peer">
-			<label for="optionApogeeP"
-				class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
-			Apogee: Primary
-			</label>
-		</div>
-			
-			
-		<div class="row-start-5 col-start-4">
-			<input type="checkbox" id="optionApogeeS" class="sr-only peer">
-			<label for="optionApogeeS"
-				class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
-			Apogee: Secondary
-			</label>
-		</div>
-		
-		<p class="row-start-6 col-span-2 text-left font-mono">Pop Test CMD Received</p>
-		<div class="row-start-6 indicator-boolean"></div>
-
-			
-		<p class="row-start-7 col-span-2 text-left font-mono">Pop Test Result</p>
-		<div class="row-start-7 indicator-boolean"></div>
-	
-			
-		
+    <!-- Prompt -->
+    <div id="prompt" class="col-span-4 text-center text-red-600 mb-1">
+  		Select an option
 	</div>
-  
 
-		
+    <!-- Pop Button -->
+    <div class="col-start-2 row-start-1 flex justify-center items-center p-4">
+      <button id="popButton" class="pop_button_inactive w-24 h-24" disabled></button>
+    </div>
 
+    <!-- Vector Image -->
+    <!-- <div class="col-start-3 row-start-1 flex justify-center items-center">
+      <img src="img/selector_vector.svg" class="w-20 h-20 object-contain" />
+    </div> -->
+
+    <!-- Pop test options -->
+	<div class="col-start-4 row-start-1 row-span-4 flex flex-col justify-center gap-1">
+	<label for="optionMainP" class="flex items-center justify-center">
+		<input type="checkbox" id="optionMainP" class="sr-only peer">
+		<span class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">Main: Primary</span>
+	</label>
+	<label for="optionMainS" class="flex items-center justify-center">
+		<input type="checkbox" id="optionMainS" class="sr-only peer">
+		<span class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">Main: Secondary</span>
+	</label>
+	<label for="optionApogeeP" class="flex items-center justify-center">
+		<input type="checkbox" id="optionApogeeP" class="sr-only peer">
+		<span class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">Apogee: Primary</span>
+	</label>
+	<label for="optionApogeeS" class="flex items-center justify-center">
+		<input type="checkbox" id="optionApogeeS" class="sr-only peer">
+		<span class="pop_selector w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">Apogee: Secondary</span>
+	</label>
+	</div>
+
+	
+    <!-- Indicators -->
+    <div class="col-span-2 flex items-center gap-2 font-mono text-sm">
+      <p>Pop Test CMD Received</p>
+      <div class="indicator-boolean"></div>
+    </div>
+
+    <div class="col-span-2 flex items-center gap-2 font-mono text-sm">
+      <p>Pop Test Result</p>
+      <div class="indicator-boolean"></div>
+    </div>
   </div>
-
+</div>

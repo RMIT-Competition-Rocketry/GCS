@@ -418,12 +418,12 @@ function validateSelection() {
         popButton.disabled = false;
         popButton.classList.remove("pop_button_inactive");
         popButton.classList.add("pop_button_active");
-        prompt.hidden = true;
+        prompt.style.visibility = 'hidden';
     } else {
         popButton.disabled = true;
         popButton.classList.remove("pop_button_active");
         popButton.classList.add("pop_button_inactive");
-        prompt.hidden = false;
+        prompt.style.visibility = 'visible';
     }
 }
 
