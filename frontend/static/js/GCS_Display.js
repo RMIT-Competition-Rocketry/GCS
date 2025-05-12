@@ -66,23 +66,25 @@ const timeouts = {};
 
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
-    if (verboseLogging) console.debug(`new value %c${item}%c ${parseFloat(value).toFixed(precision)}`, 'color:orange', 'color:white');
-    
-    // Use classes instead of IDs since IDs must be unique
-    // and some items occur on multiple pages
-    let elements = document.querySelectorAll(`.${item}`);
-    if (elements && elements.length > 0) {
-        elements.forEach((elem) => {
-            // Update value
-            elem.value = parseFloat(value).toFixed(precision);
+    if (value != undefined && !Number.isNaN(value)) {
+        if (verboseLogging) console.debug(`new value %c${item}%c ${parseFloat(value).toFixed(precision)}`, 'color:orange', 'color:white');
 
-            // Update error state
-            if (error) {
-                elem.classList.add("error");
-            } else {
-                elem.classList.remove("error");
-            }
-        });
+        // Use classes instead of IDs since IDs must be unique
+        // and some items occur on multiple pages
+        let elements = document.querySelectorAll(`.${item}`);
+        if (elements && elements.length > 0) {
+            elements.forEach((elem) => {
+                // Update value
+                elem.value = parseFloat(value).toFixed(precision);
+
+                // Update error state
+                if (error) {
+                    elem.classList.add("error");
+                } else {
+                    elem.classList.remove("error");
+                }
+            });
+        }
     }
 }
 
@@ -120,6 +122,16 @@ function displaySetState(item, value) {
 }
 
 // FUNCTIONS FOR UPDATING MODULES
+function displayUpdateTime() {
+    /// SYSTEM TIME
+    if (timestampApi != undefined && timestampApi != 0) {
+        displaySetValue("fs-time-api", timestampApi, 3);
+    }
+    if (timestampLocal != undefined && timestampLocal != 0) {
+        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect, 3);
+    }
+}
+
 function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
     // Transducers
@@ -239,51 +251,41 @@ function displayUpdateFlightState(data) {
     if (data?.flightState) {
         let stateName = "";
 
-        if (data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
+        if (data.flightState == 0 || data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
             // Preflight (not ready)
             stateName = "Pre-flight (not ready)";
 
-        } else if (data.flightState == "PRE_FLIGHT_FLIGHT_READY") {
+        } else if (data.flightState == 1 || data.flightState == "PRE_FLIGHT_FLIGHT_READY") {
             // Preflight (ready)
             stateName = "Pre-flight (flight ready)";
 
-        } else if (data.flightState == "LAUNCH") {
+        } else if (data.flightState == 2 || data.flightState == "LAUNCH") {
             // Launch
             stateName = "Launch";
 
-        } else if (data.flightState == "COAST") {
+        } else if (data.flightState == 3 || data.flightState == "COAST") {
             // Coast
             stateName = "Coast";
 
-        } else if (data.flightState == "APOGEE") {
+        } else if (data.flightState == 4 || data.flightState == "APOGEE") {
             // Apogee
             stateName = "Apogee";
 
-        } else if (data.flightState == "DECENT") {
+        } else if (data.flightState == 5 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
 
-        } else if (data.flightState == "LANDED") {
+        } else if (data.flightState == 6 || data.flightState == "LANDED") {
             // Landed successfully
             stateName = "Landed";
 
-        } else if (data.flightState == "ON_NO") {
+        } else if (data.flightState == 7 || data.flightState == "ON_NO") {
             // Oh shit oh fuck what the heck :(
             stateName = "Aaaaaaah!!!!";
 
         }
 
         displaySetString("fs-flightstate", stateName);
-    }
-}
-
-function displayUpdateTime() {
-    /// SYSTEM TIME
-    if (timestampApi != undefined) {
-        displaySetValue("fs-time-api", timestampApi, 3);
-    }
-    if (timestampLocal != undefined) {
-        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect, 3);
     }
 }
 

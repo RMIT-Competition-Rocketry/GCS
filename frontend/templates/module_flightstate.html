@@ -1,17 +1,27 @@
 <!-- Flight state module -->
 <!-- Includes time, flight state indicator -->
-<div class="w-full h-full border-t-2 border-hive/50 flex flex-col font-mono">
+<div class="w-full h-full border-t-2 border-hive-dark flex flex-col font-mono">
 	<h2>Flight State</h2>
 	<div class="grow flex flex-col gap-2 mt-4 px-2">
-		<div class="border-2 border-hive/50 text-center bg-hive/20 grow grid grid-cols-6 items-center justify-center">
-			
-			<div class="indicator-boolean indicator-flightstate fs-state-preflight"></div>
-			<div class="indicator-boolean indicator-flightstate fs-state-launch"></div>
-			<div class="indicator-boolean indicator-flightstate fs-state-coast"></div>
-			<div class="indicator-boolean indicator-flightstate fs-state-apogee"></div>
-			<div class="indicator-boolean indicator-flightstate fs-state-descent"></div>
-			<div class="indicator-boolean indicator-flightstate fs-state-landed"></div>
-
+		<div class="border-2 border-hive-dark text-center bg-hive/20 grow grid grid-cols-6 items-center justify-center -z-50">
+			<div class="indicator-flightstate">
+				<div class="indicator-state fs-state-preflight"></div>
+			</div>
+			<div class="indicator-flightstate">
+				<div class="indicator-state fs-state-launch"></div>
+			</div>
+			<div class="indicator-flightstate active">
+				<div class="indicator-state fs-state-coast"></div>
+			</div>
+			<div class="indicator-flightstate">
+				<div class="indicator-state fs-state-apogee"></div>
+			</div>
+			<div class="indicator-flightstate">
+				<div class="indicator-state fs-state-descent"></div>
+			</div>
+			<div class="indicator-flightstate">
+				<div class="indicator-state fs-state-landed"></div>
+			</div>
 			<p>
 				PRE-FLIGHT
 			</p>

@@ -17,6 +17,7 @@ and only modify it if you know what you're doing :)
 @theme {
     --font-fauna: "Fauna";
     --color-hive: #f79322;
+    --color-hive-dark: #663d0e;
     --color-legacy: #f5e570;
 }
 
@@ -150,20 +151,7 @@ and only modify it if you know what you're doing :)
             drop-shadow(1px -1px 0 var(--current-color));
     }
 
-    /* Old unused styles */
-    .indicator-numeric {
-        @apply bg-zinc-900 rounded-sm flex justify-between py-0.5 px-2 items-center;
-
-        & span:first-child {
-            @apply text-hive font-medium;
-        }
-
-        & span:last-child {
-            @apply font-mono;
-        }
-    }
-
-    .indicator-boolean {
+    .indicator-state {
         @apply w-8 h-8 max-w-8 max-h-8 aspect-square rounded-full border border-hive mx-auto bg-black/20;
 
         &.off {
@@ -191,39 +179,49 @@ and only modify it if you know what you're doing :)
     }
 
     .indicator-flightstate {
-        position: relative;
-    }
+        @apply relative;
 
-    .indicator-flightstate::before {
-        content: '';
-        position: absolute;
-        top: .9em;
-        left: -5em;
-        width: 5em;
-        height: .2em;
-        background: dodgerblue;
-        z-index: -5;
-    }
-
-    .indicator-flightstate:first-child::before {
-        display: none;
-    }
-
-    .active {
-        background: dodgerblue;
+        &::before, &::after {
+            @apply absolute -z-5 w-[calc(50%-1rem)] h-1/3 top-1/3 border-y border-hive;
+            content: '';
+            background: dodgerblue;
         }
 
-        .active ~ .indicator-flightstate {
-        background: lightblue;
+        &::before {
+            @apply left-0;
         }
 
-        .active ~ .indicator-flightstate::before {
-        background: lightblue;
+        &::after {
+            @apply right-0;
         }
+
+        &:first-of-type::before, &:last-of-type::after {
+            @apply hidden;
+        }
+
+        & .indicator-state {
+            @apply z-10;
+            background: dodgerblue;
+        }
+
+        &.active {
+            &::after {
+                background: black;
+                border-color: var(--color-hive-dark);
+            }
+        }
+
+        &.active ~ .indicator-flightstate {
+            & .indicator-state, &::before, &::after {
+                background: black;
+                border-color: var(--color-hive-dark);
+            }
+        }
+    }
 
     /* Continuity module */
     .continuity-header {
-        @apply font-mono text-hive border-r-1 border-hive/50 flex flex-row items-center text-center justify-center;
+        @apply font-mono text-hive border-r-1 border-hive-dark flex flex-row items-center text-center justify-center;
     }
 
     .continuity-button {
@@ -244,7 +242,7 @@ and only modify it if you know what you're doing :)
     }
 
     .continuity-variables-middle {
-        @apply flex flex-row items-center justify-center border-r-1 border-hive/50 p-2
+        @apply flex flex-row items-center justify-center border-r-1 border-hive-dark p-2
     }
 
     .continuity-variables-right {
