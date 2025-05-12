@@ -32,4 +32,6 @@ def load_config(file_path=get_default_config_path()) -> Dict[str, str]:
         raise FileNotFoundError(f"Config file not found: {file_path}")
     config.read(file_path)
 
+    # TODO add range, exisitance and type checks here. Throw errors if not valid.
+
     return config

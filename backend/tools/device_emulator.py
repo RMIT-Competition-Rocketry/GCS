@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import config.config as config
 from typing import Optional, List
 import sys
+import random
 from backend.includes_python import metric
 import os
 import time
@@ -50,6 +51,10 @@ class MockPacket(ABC):
         cls._FAKE_DEVICE_NAME = FAKE_DEVICE_NAME
         cls._INITIALISED = True
         MockPacket._INTERFACE_TYPE = INTERFACE_TYPE
+        MockPacket._NOISE_COEFFICIENT = float(
+            EMULATION_CONFIG["noise_coefficient"])
+        MockPacket._PACKET_LOSS = float(
+            EMULATION_CONFIG["packet_loss"])  # [0-1]
 
     def __init__(self):
         if not self._INITIALISED:
@@ -281,7 +286,7 @@ class AVtoGCSData2(MockPacket):
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        LATITUDE=-37.80808500000,  # Must be 15 chars. Don't include null byte
+        LATITUDE=-37.80808500000,
         LONGITUDE=144.96507800000,
         NAV_STATUS="G2",
         QW=0,
@@ -512,16 +517,33 @@ class GSEtoGCSData2(MockPacket):
         ]
 
 
-def sinusoid(t: float, min: float, max: float, period: float, phase: float) -> float:
-    """Generates a sinusoidal value between min and max over time"""
-    # t is the time in seconds
-    # max is the maximum y value
-    # min is the minimum y value
-    # period is the period of the sine wave in seconds
-    # phase is the phase shift in radians
+def sinusoid(t: float, min: float, max: float, period: float,
+             phase: float, apply_noise: bool = True) -> float:
+    """Generate sinusoidal value for simulation purposes
+
+    Args:
+        t (float): Time in seconds
+        min (float): Min y value
+        max (float): Max y value
+        period (float): Period in seconds
+        phase (float): Phase in radians
+        apply_noise (bool, optional): Apply fake signal noise. Defaults to True.
+
+    Returns:
+        float: Output value
+    """
+
     amplitude = (max - min) / 2
     offset = (max + min) / 2
-    return amplitude * math.sin(2 * math.pi * (t / period) + phase) + offset
+    base = amplitude * math.sin(2 * math.pi * (t / period) + phase) + offset
+
+    if apply_noise:
+        noise_range_abs = amplitude * MockPacket._NOISE_COEFFICIENT
+        base *= 1-MockPacket._NOISE_COEFFICIENT  # Make space for noise
+        noise = MockPacket._NOISE_COEFFICIENT * random.random() * noise_range_abs
+        return base + noise
+
+    return base
 
 
 def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
@@ -678,6 +700,8 @@ def main():
     START_TIME = time.monotonic()
     last_time_gse_written = START_TIME
     last_time_av_written = START_TIME
+    last_time_av_warned = START_TIME
+    last_time_gse_warned = START_TIME
     LOCK_WARNING_TIME = 5
     TIME_INBETWEEN_PACKETS = 0.01
 
@@ -685,6 +709,8 @@ def main():
         for packet in get_sinusoid_packets(START_TIME):
             device = packet.ORIGIN_DEVICE
             # As a cheeky sequence emulation, only write when the lock file is PRESENT
+            if random.random() < MockPacket._PACKET_LOSS:
+                continue
             match device:
                 case MockPacket._SourceDevice.AV:
                     if os.path.exists(AV_LOCK_PATH):
@@ -704,12 +730,14 @@ def main():
         check_time = time.monotonic()
         AV_AWAIT_TIME = check_time - last_time_av_written
         GSE_AWAIT_TIME = check_time - last_time_gse_written
-        if (AV_AWAIT_TIME) > LOCK_WARNING_TIME:
+        if (AV_AWAIT_TIME) > LOCK_WARNING_TIME and check_time - last_time_av_warned > 3:
             slogger.warning(
                 f"AV emulation awaiting server sequence timing for {round(AV_AWAIT_TIME)} seconds")
-        if (GSE_AWAIT_TIME) > LOCK_WARNING_TIME:
+            last_time_av_warned = check_time
+        if (GSE_AWAIT_TIME) > LOCK_WARNING_TIME and check_time - last_time_gse_warned > 3:
             slogger.warning(
                 f"GSE emulation awaiting server sequence timing for {round(GSE_AWAIT_TIME)} seconds")
+            last_time_gse_warned = check_time
 
     slogger.debug("Emulator finished")
 
