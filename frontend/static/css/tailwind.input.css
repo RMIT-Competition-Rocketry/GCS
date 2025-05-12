@@ -190,6 +190,37 @@ and only modify it if you know what you're doing :)
         }
     }
 
+    .indicator-flightstate {
+        position: relative;
+    }
+
+    .indicator-flightstate::before {
+        content: '';
+        position: absolute;
+        top: .9em;
+        left: -5em;
+        width: 5em;
+        height: .2em;
+        background: dodgerblue;
+        z-index: -5;
+    }
+
+    .indicator-flightstate:first-child::before {
+        display: none;
+    }
+
+    .active {
+        background: dodgerblue;
+        }
+
+        .active ~ .indicator-flightstate {
+        background: lightblue;
+        }
+
+        .active ~ .indicator-flightstate::before {
+        background: lightblue;
+        }
+
     /* Continuity module */
     .continuity-header {
         @apply font-mono text-hive border-r-1 border-hive/50 flex flex-row items-center text-center justify-center;

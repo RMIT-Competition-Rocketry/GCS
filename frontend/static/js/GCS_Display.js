@@ -64,7 +64,6 @@ var verboseLogging = false;
 const indicatorStates = ["off", "on", "idle", "error"];
 const timeouts = {};
 
-function displaySetValue(item, value, precision = 2) {
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (verboseLogging) console.debug(`new value %c${item}%c ${parseFloat(value).toFixed(precision)}`, 'color:orange', 'color:white');
@@ -238,7 +237,43 @@ function displayUpdateAvionics(data) {
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data?.flightState) {
-        displaySetString("fs-flightstate", data.flightState);
+        let stateName = "";
+
+        if (data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
+            // Preflight (not ready)
+            stateName = "Pre-flight (not ready)";
+
+        } else if (data.flightState == "PRE_FLIGHT_FLIGHT_READY") {
+            // Preflight (ready)
+            stateName = "Pre-flight (flight ready)";
+
+        } else if (data.flightState == "LAUNCH") {
+            // Launch
+            stateName = "Launch";
+
+        } else if (data.flightState == "COAST") {
+            // Coast
+            stateName = "Coast";
+
+        } else if (data.flightState == "APOGEE") {
+            // Apogee
+            stateName = "Apogee";
+
+        } else if (data.flightState == "DECENT") {
+            // Descent
+            stateName = "Descent";
+
+        } else if (data.flightState == "LANDED") {
+            // Landed successfully
+            stateName = "Landed";
+
+        } else if (data.flightState == "ON_NO") {
+            // Oh shit oh fuck what the heck :(
+            stateName = "Aaaaaaah!!!!";
+
+        }
+
+        displaySetString("fs-flightstate", stateName);
     }
 }
 

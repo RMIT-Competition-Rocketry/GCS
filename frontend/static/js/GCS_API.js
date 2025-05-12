@@ -6,28 +6,30 @@
  * Functions and constants should be prefixed with "api_"
  */
 
+// Constants
+const initialReconnectInterval = 200;   // Initial reconnection wait time
+const maxReconnectInterval = 5000;      // Maximum amount of time between reconnect attempts
+const graphRenderRate = 20;     // FPS for rendering graphs
+const FLIGHTSTATE = ["PRE_FLIGHT_NO_FLIGHT_READY", "PRE_FLIGHT_FLIGHT_READY", "LAUNCH", "COAST", "APOGEE", "DECENT", "LANDED", "OH_NO"];
+
+// API connection
+var apiSocket;
+var reconnectInterval = initialReconnectInterval;
+var reconnectTimeout;
+var connected = false;
+var then, now, fpsInterval;
+
 // Global display values
 var altitudeMax;
 var packetsAV1 = 0;
 var packetsAV1offset = 0;
 var packetsGSE = 0;
 var packetsGSEoffset = 0;
-
-// API
-const initialReconnectInterval = 200;
-const maxReconnectInterval = 5000;
-const graphRenderRate = 20; // fps for graphs (5 still looks good)
-
-var apiSocket;
 var timestampLocalLoad = Date.now(); // Timestamp upon page load (refreshed with API to keep time-alignment)
 var timestampLocal = 0; // Local timekeeping (for page to keep updating even if API stops sending signals)
 var timestampApi = 0; // Timestamp sent by the API
 var timestampApiConnect; // First API timestamp sent upon connection with API
 var timeDrift;
-var reconnectInterval = initialReconnectInterval;
-var reconnectTimeout;
-var connected = false;
-var then, now, fpsInterval;
 
 // Reconnecting code
 function scheduleReconnect() {
@@ -86,6 +88,7 @@ function animate(newtime) {
     }
 }
 
+// Logging code
 /*
 function logError(message) {
     const logArea = document.getElementById('errorLogBox');
@@ -156,43 +159,35 @@ API_socketConnect();
 function API_OnMessage(event) {
     let apiLatest, apiData;
     try {
+        // Handle incoming data
         apiLatest = JSON.parse(event.data);
-        //console.log(apiLatest);
-
-        // Basic data processing
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
 
-        // Check for errors
+        // Flag data for errors
         checkErrorConditions(apiData);
 
-        // HANDLE SINGLE OPERATOR PACKETS
-        if ([2].includes(apiData.id)) {
-
-        }
-        // HANDLE AVIONICS PACKETS
-        else if ([3, 4, 5].includes(apiData.id)) {
-            // AV DISPLAY VALUES
-            // Radio module
+        
+        if (apiData.id == 2) {
+            ///// ----- SINGLE OPERATOR PACKETS ----- /////
+            //
+            
+        } else if (apiData.id == 3 || apiData.id == 4) {
+            ///// ----- AVIONICS PACKETS ----- /////
+            // Display values
             if (typeof displayUpdateRadio === "function") {
                 displayUpdateRadio(apiData);
             }
-
-            // Avionics module
             if (typeof displayUpdateAvionics === "function") {
                 displayUpdateAvionics(apiData);
             }
-
-            // Position module
             if (typeof displayUpdatePosition === "function") {
                 displayUpdatePosition(apiData);
             }
-
-            // Flight state module
             if (typeof displayUpdateFlightState === "function") {
                 displayUpdateFlightState(apiData);
             }
 
-            // AV GRAPHS
+            // Graphs
             if (typeof graphUpdateAvionics === "function") {
                 graphUpdateAvionics(apiData);
             }
@@ -200,28 +195,28 @@ function API_OnMessage(event) {
                 graphUpdatePosition(apiData);
             }
 
-            // AV ROCKET
-            // Rocket module
+            // Rocket visualisation
             if (apiData.id == 4) {
                 if (typeof rocketUpdate === "function") {
                     rocketUpdate(apiData);
                 }
             }
-        }
-        // HANDLE GSE PACKETS
-        else if ([6, 7].includes(apiData.id)) {
-            // GSE DISPLAY VALUES
-            // Radio module
+
+        } else if (apiData.id == 5) {
+            ///// ----- PAYLOAD PACKETS ----- /////
+            //
+
+        } else if (apiData.id == 6 || apiData.id == 7) {
+            ///// ----- GSE PACKETS ----- /////
+            // Display values
             if (typeof displayUpdateRadio === 'function') {
                 displayUpdateRadio(apiData);
             }
-
-            // Auxilliary data module
             if (typeof displayUpdateAuxData === 'function') {
                 displayUpdateAuxData(apiData);
             }
 
-            // GSE GRAPHS
+            // Graphs
             if (typeof graphUpdateAuxData === "function") {
                 graphUpdateAuxData(apiData);
             }

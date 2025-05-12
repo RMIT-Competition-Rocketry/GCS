@@ -3,7 +3,33 @@
 <div class="w-full h-full border-t-2 border-hive/50 flex flex-col font-mono">
 	<h2>Flight State</h2>
 	<div class="grow flex flex-col gap-2 mt-4 px-2">
-		<div class="border-2 border-hive/50 bg-hive/20 grow">
+		<div class="border-2 border-hive/50 text-center bg-hive/20 grow grid grid-cols-6 items-center justify-center">
+			
+			<div class="indicator-boolean indicator-flightstate fs-state-preflight"></div>
+			<div class="indicator-boolean indicator-flightstate fs-state-launch"></div>
+			<div class="indicator-boolean indicator-flightstate fs-state-coast"></div>
+			<div class="indicator-boolean indicator-flightstate fs-state-apogee"></div>
+			<div class="indicator-boolean indicator-flightstate fs-state-descent"></div>
+			<div class="indicator-boolean indicator-flightstate fs-state-landed"></div>
+
+			<p>
+				PRE-FLIGHT
+			</p>
+			<p>
+				LAUNCH
+			</p>
+			<p>
+				COAST
+			</p>
+			<p>
+				APOGEE
+			</p>
+			<p>
+				DESCENT
+			</p>
+			<p>
+				LANDED
+			</p>
 		</div>
 		<div class="flex flex-row gap-4">
 			<p class="flex gap-1 items-center grow">
