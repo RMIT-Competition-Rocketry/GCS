@@ -18,7 +18,7 @@ common::FlightState calc_flight_state(unsigned int val) {
     case 0b100:
       return common::FlightState::APOGEE;
     case 0b101:
-      return common::FlightState::DESCENT;
+      return common::FlightState::DECENT;
     case 0b110:
       return common::FlightState::LANDED;
     case 0b111:
