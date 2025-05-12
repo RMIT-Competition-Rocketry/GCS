@@ -255,8 +255,8 @@ jobs:
     # --- Extract and list proto generated files for debugging ---
     - name: List protobuf generated files
       run: |
-        echo "Listing protobuf generated files in build/backend/proto/generated:"
-        find "${{ steps.strings.outputs.build-output-dir }}/backend/proto/generated" -type f | sort
+        echo "Listing protobuf generated files in backend/proto/generated:"
+        find "backend/proto/generated" -type f | sort
 
     # --- Upload the entire build directory as an artifact ---
     - name: Upload Build Artifacts
@@ -270,7 +270,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: proto-generated-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-        path: ${{ steps.strings.outputs.build-output-dir }}/backend/proto/generated/
+        path: backend/proto/generated/
 
   test-cpp:
     runs-on: ubuntu-latest
@@ -297,7 +297,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: proto-generated-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-        path: build/backend/proto/generated
+        path: backend/proto/generated
 
     - name: Install testing dependencies
       run: |
@@ -313,8 +313,8 @@ jobs:
     # --- Debug the directory structure including proto files ---
     - name: Debug directory structure
       run: |
-        echo "Listing proto generated files in build/backend/proto/generated:"
-        find build/backend/proto/generated -type f | sort
+        echo "Listing proto generated files in backend/proto/generated:"
+        find backend/proto/generated -type f | sort
         echo "Complete build directory structure:"
         tree build
 
