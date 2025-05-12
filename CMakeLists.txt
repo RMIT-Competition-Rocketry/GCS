@@ -53,12 +53,14 @@ endfunction()
 
 # Abseil libraries for protobuf
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
-
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
+
+# Prevent Protobuf from exporting abseil-linked targets
 set(protobuf_BUILD_EXPORT OFF CACHE BOOL "Disable protobuf target exports" FORCE)
 set(protobuf_INSTALL OFF CACHE BOOL "Disable protobuf installation" FORCE)
-set(protobuf_ABSL_PROVIDER "package" CACHE STRING "Use existing abseil" FORCE)
 
+# Force Protobuf to use our abseil
+set(protobuf_ABSL_PROVIDER "package" CACHE STRING "Use existing abseil" FORCE)
 fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v30.1")
 
 # Force static ZMQ build before fetching
@@ -67,13 +69,6 @@ set(BUILD_STATIC_LIBS ON CACHE BOOL "Build static ZeroMQ libraries" FORCE)
 fetch_git_dependency(libzmq "ZeroMQ" "https://github.com/zeromq/libzmq.git" "v4.3.5")
 set(CPPZMQ_BUILD_TESTS OFF CACHE BOOL "Disable cppzmq tests" FORCE)
 fetch_git_dependency(cppzmq "cppzmq" "https://github.com/zeromq/cppzmq.git" "v4.10.0")
-
-# Ensure protobuf is properly imported
-if(TARGET protobuf::protoc)
-    message(STATUS "Protobuf compiler found")
-else()
-    message(FATAL_ERROR "Protobuf compiler not found. Check your Protobuf installation.")
-endif()
 
 find_library(UTF8_RANGE_LIBRARY NAMES utf8_range
     HINTS
@@ -114,22 +109,18 @@ list(REMOVE_ITEM LIB_SRCS "${SRC_DIR}/main.cpp")
 set(MAIN_SRC "${SRC_DIR}/main.cpp")
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(PROTO_BINARY_DIR "${CMAKE_SOURCE_DIR}/backend/proto/generated/")
-file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
+add_library(middleware_lib ${LIB_SRCS})
+add_executable(middleware_server ${MAIN_SRC})
 
-file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
-
-add_library(proto-objects OBJECT ${PROTO_FILES})
-
-include(${Protobuf_DIR}/protobuf-generate.cmake)
-
-target_include_directories(proto-objects PUBLIC
-    ${Protobuf_INCLUDE_DIRS}
-    ${UTF8_RANGE_INCLUDE_DIR}
-    "${CMAKE_CURRENT_LIST_DIR}/backend/proto"
-    ${PROTO_BINARY_DIR}
+target_compile_options(middleware_lib PRIVATE
+    $<$<CONFIG:Debug>:-O0 -g -Wall -Wextra -pthread>
+    $<$<CONFIG:Release>:-O3 -DNDEBUG -Wall -Wextra -pthread>
 )
 
+# Protobuf generation for cpp and python files
+# Docs: https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
+file(GLOB_RECURSE PROTO_FILES "${CMAKE_CURRENT_LIST_DIR}/backend/proto/*.proto")
+add_library(proto-objects OBJECT ${PROTO_FILES})
 target_link_libraries(proto-objects PUBLIC
     protobuf::libprotobuf
     ${UTF8_RANGE_LIBRARY}
@@ -147,6 +138,19 @@ target_link_libraries(proto-objects PUBLIC
     absl::status
     absl::statusor
     absl::flat_hash_map
+)
+set(PROTO_BINARY_DIR "${CMAKE_SOURCE_DIR}/backend/proto/generated/")
+file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
+
+target_include_directories(proto-objects PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
+
+set(FIX_IMPORT_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/scripts/__proto_import_fix.sh")
+
+# Make script executable
+configure_file(
+    ${FIX_IMPORT_SCRIPT}
+    ${CMAKE_CURRENT_BINARY_DIR}/fix_imports.sh
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
 )
 
 protobuf_generate(
@@ -167,15 +171,6 @@ protobuf_generate(
     FILES ${PROTO_FILES}
 )
 
-set(FIX_IMPORT_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/scripts/__proto_import_fix.sh")
-
-# Make script executable
-configure_file(
-    ${FIX_IMPORT_SCRIPT}
-    ${CMAKE_CURRENT_BINARY_DIR}/fix_imports.sh
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-)
-
 add_custom_target(fix-proto-imports ALL
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fix_imports.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -184,19 +179,15 @@ add_custom_target(fix-proto-imports ALL
 )
 
 add_dependencies(fix-proto-imports proto-objects)
-
-add_library(middleware_lib ${LIB_SRCS})
-add_executable(middleware_server ${MAIN_SRC})
-
-target_compile_options(middleware_lib PRIVATE
-    $<$<CONFIG:Debug>:-O0 -g -Wall -Wextra -pthread>
-    $<$<CONFIG:Release>:-O3 -DNDEBUG -Wall -Wextra -pthread>
-)
+add_dependencies(middleware_server fix-proto-imports)
 
 # Define DEBUG macro in debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(middleware_lib PUBLIC DEBUG)
 endif()
+
+# Add the generated sources to your middleware executable
+target_sources(middleware_server PUBLIC ${PROTO_SOURCES})
 
 # Make sure middleware can find the generated headers
 target_include_directories(middleware_server PUBLIC
@@ -207,7 +198,7 @@ target_include_directories(middleware_server PUBLIC
 # Include directories
 target_include_directories(middleware_lib PUBLIC
     ${UTF8_RANGE_INCLUDE_DIR}
-    ${PROTO_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}/generated # Protobuf generated headers
     ${Protobuf_INCLUDE_DIRS}
     ${ZMQ_INCLUDE_DIR}
     ${ZMQ_C_INCLUDE_DIR}
@@ -218,6 +209,7 @@ target_include_directories(middleware_lib PUBLIC
 )
 
 # Link libraries
+# Absl libaries do not link themselves. Fuck you absl
 target_link_libraries(middleware_lib PUBLIC
     protobuf::libprotobuf
     $<TARGET_OBJECTS:proto-objects>
@@ -242,7 +234,6 @@ target_link_libraries(middleware_lib PUBLIC
 )
 
 target_link_libraries(middleware_server PUBLIC middleware_lib)
-add_dependencies(middleware_server fix-proto-imports)
 
 # Add RPATH settings for the middleware server executable as well
 if(APPLE)
