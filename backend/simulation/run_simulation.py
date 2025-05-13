@@ -171,10 +171,8 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
         if (not first_packet):
             time_until_next_packet_s = _time_until_next_packet_s(PACKET_TIME_S)
             if time_until_next_packet_s > 0.6:
-                # print("seleeping:", time_until_next_packet_s*0.8)
                 time.sleep(time_until_next_packet_s*0.8)  # sleep off 80% of it
             while _time_until_next_packet_s(PACKET_TIME_S) > 0:
-                # print("waiting:", time_until_next_packet_s)
                 pass  # Busy wait to avoid sub 20-50ms sleep inaccuracies
 
         else:
