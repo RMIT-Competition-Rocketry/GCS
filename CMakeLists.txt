@@ -61,7 +61,8 @@ set(protobuf_INSTALL OFF CACHE BOOL "Disable protobuf installation" FORCE)
 
 # Force Protobuf to use our abseil
 set(protobuf_ABSL_PROVIDER "package" CACHE STRING "Use existing abseil" FORCE)
-fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" "v30.1")
+set(protobufVersionString "v30.1" CACHE STRING "Protobuf version" FORCE)
+fetch_git_dependency(Protobuf "Protobuf" "https://github.com/protocolbuffers/protobuf.git" ${protobufVersionString})
 
 # Force static ZMQ build before fetching
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static ZeroMQ libraries" FORCE)
@@ -69,6 +70,11 @@ set(BUILD_STATIC_LIBS ON CACHE BOOL "Build static ZeroMQ libraries" FORCE)
 fetch_git_dependency(libzmq "ZeroMQ" "https://github.com/zeromq/libzmq.git" "v4.3.5")
 set(CPPZMQ_BUILD_TESTS OFF CACHE BOOL "Disable cppzmq tests" FORCE)
 fetch_git_dependency(cppzmq "cppzmq" "https://github.com/zeromq/cppzmq.git" "v4.10.0")
+
+if(${Protobuf_DIR} STREQUAL "Protobuf_DIR-NOTFOUND")
+    message(AUTHOR_WARNING "This is a manual blocking error to stop CMake from failing on the generate_proto steps for now. ")
+    message(FATAL_ERROR "Protobuf not found. Please build from source on ${protobufVersionString} or run setup.sh")
+endif()
 
 find_library(UTF8_RANGE_LIBRARY NAMES utf8_range
     HINTS

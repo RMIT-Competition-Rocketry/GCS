@@ -68,9 +68,7 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
     # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
     if service_helper.time_to_stop():
         return
-    time.sleep(0.01)  # Allow the buffer to update
     packet1.write_payload()
-    # time.sleep(0.01)
     packet2.write_payload()
 
 
@@ -162,16 +160,21 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
     flight_data = post_process_simulation_data(flight_data)
 
     # Send the data to the mock packet
-    start_time = time.monotonic()
     first_packet = True
+    START_TIME = time.monotonic()
+
+    def _time_until_next_packet_s(PACKET_TIME_S):
+        return PACKET_TIME_S - (time.monotonic() - START_TIME)
 
     for packet in flight_data:
         PACKET_TIME_S = packet['# Time (s)']
         if (not first_packet):
-            TIME_UNTIL_NEXT_PACKET_S = PACKET_TIME_S - \
-                (last_packet_time - start_time)
-            if TIME_UNTIL_NEXT_PACKET_S >= 0:
-                time.sleep(TIME_UNTIL_NEXT_PACKET_S)
+            time_until_next_packet_s = _time_until_next_packet_s(PACKET_TIME_S)
+            if time_until_next_packet_s > 0.6:
+                time.sleep(time_until_next_packet_s*0.8)  # sleep off 80% of it
+            while _time_until_next_packet_s(PACKET_TIME_S) > 0:
+                pass  # Busy wait to avoid sub 20-50ms sleep inaccuracies
+
         else:
             first_packet = False
         if service_helper.time_to_stop():
@@ -199,8 +202,6 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
             packet[" e3"],
             qm,
         )
-
-        last_packet_time = time.monotonic()
 
 
 def simulation_to_replay_data(flight_data: pd.DataFrame):
