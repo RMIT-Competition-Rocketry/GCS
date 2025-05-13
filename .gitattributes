@@ -3,6 +3,9 @@
 # Exclude libraries from linguist analysis
 frontend/static/js/d3.min.js linguist-vendored
 frontend/static/js/three.module.js linguist-vendored
+frontend/static/js/GLTFLoader.js linguist-vendored
+
+frontend/static/css/tailwind.input.css linguist-vendored
 
 # Exclude reference code as well
 notes/old_esp32_rx_code.cpp linguist-documentation 
