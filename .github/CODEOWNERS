@@ -1,8 +1,13 @@
-# Frontend team does not require reviews when merging into their folder on the main branch
-frontend/**  @RMIT-Competition-Rocketry/gcs-frontend-capstone
-
 # Anything not specified requires a review by someone on the backend
 *  @mcloughlan
+
+# Frontend team does not require reviews when merging into their folder on the main branch
+frontend/*  @RMIT-Competition-Rocketry/gcs-frontend-capstone
+# Do this stupid explicit folder recurse to not include @mcloughlan as a co-owner
+frontend/scripts/**  @RMIT-Competition-Rocketry/gcs-frontend-capstone
+frontend/static/**  @RMIT-Competition-Rocketry/gcs-frontend-capstone
+frontend/templates/**  @RMIT-Competition-Rocketry/gcs-frontend-capstone
+
 
 # If any permissions need to be changed, it can be done by IREC team
 .github/CODEOWNERS  @RMIT-Competition-Rocketry/spaceport-aurc-2025
