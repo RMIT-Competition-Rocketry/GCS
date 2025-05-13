@@ -359,3 +359,33 @@ function gpsToDecimal(gps) {
     // Convert to decimal
     return sign * (degrees + minutes/60 + seconds/3600);
 }
+
+// Test function
+apiSocket.addEventListener('open', () => {
+    console.log('Socket connection opened');
+});
+
+apiSocket.addEventListener('message', (event) => {
+    console.log('Message from server:', event.data);
+});
+
+// Test function
+function testJSON() {
+    const payload = {
+        id: 9,
+        data: {
+            solenoid1High: false,
+            solenoid2High: false,
+            solenoid3High: false,
+        }
+    };
+
+    const payloadString = JSON.stringify(payload);
+
+    if (apiSocket.readyState === WebSocket.OPEN) {
+        apiSocket.send(payloadString);
+        console.log('Sent test JSON:', payload);
+    } else {
+        console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
+    }
+}

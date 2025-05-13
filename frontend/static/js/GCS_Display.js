@@ -551,6 +551,7 @@ confirmYes.addEventListener("click", () => {
         solenoid.classList.add("solenoid_button_active");
         document.querySelectorAll(".solSwitch").forEach((el) => {
             el.disabled = false;
+            testJSON();
         });
         isSolenoidActive = true;
     }
