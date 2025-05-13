@@ -56,6 +56,7 @@ install_protobuf() {
         return 1
     fi
 
+    ORIGINAL_DIR="$(pwd)"
     echo "Installing protobuf v$PROTOBUF_VERSION..."
     
     # Create temp directory for protobuf if it doesn't exist
@@ -111,7 +112,7 @@ install_protobuf() {
     echo "Protobuf v$PROTOBUF_VERSION installation completed successfully."
     
     # Return to original directory
-    cd - > /dev/null
+    cd "$ORIGINAL_DIR"
     return 0
 }
 
