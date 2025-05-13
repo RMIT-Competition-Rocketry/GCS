@@ -59,27 +59,54 @@ window.addEventListener("DOMContentLoaded", () => {
     ]);
 
     new GLTFLoader().load(
-        "/static/models/rocket_model.glb",
-        gltf => {
-            rocket = gltf.scene;
-            rocket.rotation.y = Math.PI / 2;
-            rocket.scale.set(2, 2, 2);
+    "/static/models/rocket_model.glb",
+    gltf => {
+        const model = gltf.scene;
+        model.scale.set(2, 2, 2);
 
-            scene.add(rocket);
+        // Center the model based on its bounding box
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center);  // Moves geometry to center around (0,0,0)
 
-            const box = new THREE.Box3().setFromObject(rocket);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3()).length();
+        // Create rocket group
+        rocket = new THREE.Group();
+        rocket.add(model);
 
-            camera.position.copy(center);
-            camera.position.z += size * 1.5;
-            camera.lookAt(center);
+        // Add rocket to scene
+        scene.add(rocket);
 
-            renderScene();
-        },
-        xhr => console.log(` Loading: ${((xhr.loaded / xhr.total) * 100).toFixed(1)}%`),
-        err => console.error(" Error loading model:", err)
-    );
+        // Add clean axis arrows
+        const axisLength = 2;
+        const headLength = 0.4;
+        const headWidth = 0.2;
+
+        const origin = new THREE.Vector3(2.5, -3, 2.5); // Shifted visually to bottom right
+
+        const xArrow = new THREE.ArrowHelper(
+            new THREE.Vector3(1, 0, 0), origin, axisLength, 0xff0000, headLength, headWidth
+        );
+        const yArrow = new THREE.ArrowHelper(
+            new THREE.Vector3(0, 1, 0), origin, axisLength, 0x00ff00, headLength, headWidth
+        );
+        const zArrow = new THREE.ArrowHelper(
+            new THREE.Vector3(0, 0, 1), origin, axisLength, 0x0000ff, headLength, headWidth
+        );
+
+        scene.add(xArrow, yArrow, zArrow);
+
+        // ===== Fit camera to the newly centered model =====
+        const size = box.getSize(new THREE.Vector3()).length();
+        camera.position.set(0, 0, size * 1.5);
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        renderScene();
+    },
+    xhr => console.log(`Loading: ${((xhr.loaded / xhr.total) * 100).toFixed(1)}%`),
+    err => console.error("Error loading model:", err)
+);
+
+
 
     function renderScene() {
         renderer.render(scene, camera);
@@ -99,8 +126,9 @@ window.addEventListener("DOMContentLoaded", () => {
         if (!rocket || !data) return;
 
         const pitchEl = document.getElementById("pitchDisplay");
+        const rollEl = document.getElementById("rollDisplay")
         const yawEl = document.getElementById("yawDisplay");
-        const rollEl = document.getElementById("rollDisplay");
+        ;
 
         if (
             data.qx !== undefined &&
@@ -119,8 +147,9 @@ window.addEventListener("DOMContentLoaded", () => {
             console.error(" No quaternion data has ever been received.");
             if (pitchEl && yawEl && rollEl) {
                 pitchEl.textContent = "Pitch: — (no data)";
-                yawEl.textContent = "Yaw:   — (no data)";
                 rollEl.textContent = "Roll:  — (no data)";
+                yawEl.textContent = "Yaw:   — (no data)";
+                
             }
             return;
         }
