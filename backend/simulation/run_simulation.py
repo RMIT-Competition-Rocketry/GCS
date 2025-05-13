@@ -161,17 +161,20 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
 
     # Send the data to the mock packet
     first_packet = True
+    START_TIME = time.monotonic()
 
     def _time_until_next_packet_s(PACKET_TIME_S):
-        return PACKET_TIME_S - time.monotonic()
+        return PACKET_TIME_S - (time.monotonic() - START_TIME)
 
     for packet in flight_data:
         PACKET_TIME_S = packet['# Time (s)']
         if (not first_packet):
             time_until_next_packet_s = _time_until_next_packet_s(PACKET_TIME_S)
             if time_until_next_packet_s > 0.6:
+                # print("seleeping:", time_until_next_packet_s*0.8)
                 time.sleep(time_until_next_packet_s*0.8)  # sleep off 80% of it
             while _time_until_next_packet_s(PACKET_TIME_S) > 0:
+                # print("waiting:", time_until_next_packet_s)
                 pass  # Busy wait to avoid sub 20-50ms sleep inaccuracies
 
         else:
@@ -201,8 +204,6 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
             packet[" e3"],
             qm,
         )
-
-        last_packet_time = time.monotonic()
 
 
 def simulation_to_replay_data(flight_data: pd.DataFrame):

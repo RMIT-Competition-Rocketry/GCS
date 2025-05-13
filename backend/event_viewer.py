@@ -77,7 +77,7 @@ class Packet(ABC):
             "AV_TO_GCS_DATA_1": [
                 "rssi",
                 "snr",
-                "timestamp_ms",
+                "timestamp_s_server_side",
                 "total_packet_count_av",
                 "total_packet_count_gse",
                 "FlightState",
@@ -110,7 +110,7 @@ class Packet(ABC):
             "AV_TO_GCS_DATA_2": [
                 "rssi",
                 "snr",
-                "timestamp_ms",
+                "timestamp_s_server_side",
                 "total_packet_count_av",
                 "total_packet_count_gse",
                 "FlightState",
@@ -130,7 +130,7 @@ class Packet(ABC):
             "AV_TO_GCS_DATA_3": [
                 "rssi",
                 "snr",
-                "timestamp_ms",
+                "timestamp_s_server_side",
                 "total_packet_count_av",
                 "total_packet_count_gse",
                 "FlightState",
@@ -144,7 +144,7 @@ class Packet(ABC):
             "GSE_TO_GCS_DATA_1": [
                 "rssi",
                 "snr",
-                "timestamp_ms",
+                "timestamp_s_server_side",
                 "total_packet_count_av",
                 "total_packet_count_gse",
                 "manual_purge_activated",
@@ -182,7 +182,7 @@ class Packet(ABC):
             "GSE_TO_GCS_DATA_2": [
                 "rssi",
                 "snr",
-                "timestamp_ms",
+                "timestamp_s_server_side",
                 "total_packet_count_av",
                 "total_packet_count_gse",
                 "manual_purge_activated",
@@ -229,7 +229,7 @@ class Packet(ABC):
                 cls._session_log_folder, f"{file_name}.csv")
             with open(csv_path, "w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["timestamp_ms"] + headers)
+                writer.writerow(["timestamp_ms_log_time"] + headers)
 
     @classmethod
     def setup(cls,
