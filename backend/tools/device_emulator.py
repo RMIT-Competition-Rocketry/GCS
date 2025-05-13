@@ -13,6 +13,7 @@ from cli.start_middleware import InterfaceType, get_interface_type
 import enum
 import math
 from backend.includes_python.metric import Metric
+import threading
 
 # This file can be imported or rain as an emulation service if __main__
 # This file is for lower level emulation. Hence some things are passed bitwise
@@ -24,6 +25,7 @@ class MockPacket(ABC):
     # Name of the fake device socat has made
     _FAKE_DEVICE_NAME: Optional[str] = None
     _INITIALISED: bool = False  # Flag to check if the settings have been initialized
+    _write_lock = threading.Lock()
 
     class _SourceDevice(enum.Enum):
         AV = enum.auto()
@@ -72,8 +74,9 @@ class MockPacket(ABC):
             raise ValueError("Cannot write to device. Device name not set.")
         try:
             payload_bytes = self.get_payload_bytes()
-            with open(self._FAKE_DEVICE_NAME, 'wb') as device:
-                device.write(payload_bytes)
+            with MockPacket._write_lock:
+                with open(self._FAKE_DEVICE_NAME, 'wb') as device:
+                    device.write(payload_bytes)
         except Exception as e:
             slogger.error(
                 f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}")
