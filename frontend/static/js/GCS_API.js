@@ -417,7 +417,7 @@ function testJSON() {
 
     if (apiSocket.readyState === WebSocket.OPEN) {
         apiSocket.send(payloadString);
-        console.log('Sent test JSON:', payload);
+        console.log('Sent test JSON:', payloadString);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
