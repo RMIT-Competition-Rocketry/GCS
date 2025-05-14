@@ -109,7 +109,7 @@ and only modify it if you know what you're doing :)
     }
 
     .icon {
-        @apply w-16 h-16 bg-white mx-auto aspect-square;
+        @apply w-12 h-12 bg-white mx-auto aspect-square;
         -webkit-mask-repeat: no-repeat;
         mask-repeat: no-repeat;
         -webkit-mask-size: contain;

@@ -17,7 +17,7 @@ const LINE_COLOURS = [
     "var(--color-blue-500)",
     "white",
 ];
-const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 20, left: 50 };
+const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
