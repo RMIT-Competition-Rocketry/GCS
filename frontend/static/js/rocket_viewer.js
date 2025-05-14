@@ -125,32 +125,21 @@ window.addEventListener("DOMContentLoaded", () => {
     function rocketUpdate(data) {
         if (!rocket || !data) return;
 
-        const pitchEl = document.getElementById("pitchDisplay");
-        const rollEl = document.getElementById("rollDisplay")
-        const yawEl = document.getElementById("yawDisplay");
-        ;
-
         if (
-            data.qx !== undefined &&
-            data.qy !== undefined &&
-            data.qz !== undefined &&
-            data.qw !== undefined
+            data?.qx &&
+            data?.qy &&
+            data?.qz &&
+            data?.qw
         ) {
             //  Valid quaternion received
             quat.set(data.qx, data.qy, data.qz, data.qw).normalize();
             lastQuaternion.copy(quat);
             hasReceivedQuaternion = true;
         } else if (hasReceivedQuaternion) {
-            console.warn(" Quaternion packet missing. Reusing last known orientation.");
+            console.warn("Quaternion packet missing. Reusing last known orientation.");
             quat.copy(lastQuaternion);
         } else {
-            console.error(" No quaternion data has ever been received.");
-            if (pitchEl && yawEl && rollEl) {
-                pitchEl.textContent = "Pitch: — (no data)";
-                rollEl.textContent = "Roll:  — (no data)";
-                yawEl.textContent = "Yaw:   — (no data)";
-                
-            }
+            console.error("No quaternion data has ever been received.");
             return;
         }
 
@@ -163,11 +152,9 @@ window.addEventListener("DOMContentLoaded", () => {
         const yaw = THREE.MathUtils.radToDeg(euler.y);
         const roll = THREE.MathUtils.radToDeg(euler.z);
 
-        if (pitchEl && yawEl && rollEl) {
-            pitchEl.textContent = `Pitch: ${pitch.toFixed(1)}°`;
-            yawEl.textContent   = `Yaw:   ${yaw.toFixed(1)}°`;
-            rollEl.textContent  = `Roll:  ${roll.toFixed(1)}°`;
-        }
+        displaySetValue("rocket-pitch", pitch, 1);
+        displaySetValue("rocket-yaw", yaw, 1);
+        displaySetValue("rocket-roll", roll, 1);
 
         renderScene();
     }

@@ -430,7 +430,6 @@ function graphUpdateAuxData(data) {
     // AUXILLIARY DATA MODULE GRAPHS
     if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountGse) {
         const timestamp = data.meta.timestampS;
-        const packet = data.meta.totalPacketCountGse;
 
         // Transducers
         graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.transducer1);

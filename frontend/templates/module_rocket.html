@@ -3,14 +3,10 @@
     <p class="font-bold uppercase text-emerald-300 text-center mt-4">
         6DOF Rocket Visualisation
     </p>
-    <div
-        class="text-center transform mt-1 text-emerald-300 z-10"
-    >
-        <span id="pitchDisplay" style="color: #ff4444;">Pitch: 0°</span>
-        <span id="yawDisplay" style="color: #44ff44;">Yaw: 0°</span>
-        <span id="rollDisplay" style="color: #4488ff;">Roll: 0°</span>
-        
-
+    <div class="flex flex-row gap-4 grow justify-center text-center text-emerald-300 z-10">
+        <span>Pitch:<input readonly autocomplete="off" class="rocket-pitch border-b-red-500 border-b-2 text-right" size="6">°</span>
+        <span>Yaw:<input readonly autocomplete="off" class="rocket-yaw border-b-green-500 border-b-2 text-right" size="6">°</span>
+        <span>Roll:<input readonly autocomplete="off" class="rocket-roll border-b-blue-500 border-b-2 text-right" size="6">°</span>
     </div>
 
     <!-- Viewer -->
