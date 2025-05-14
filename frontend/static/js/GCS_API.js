@@ -149,6 +149,7 @@ function API_OnMessage(event) {
         apiLatest = JSON.parse(event.data);
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
 
+        apiData.errors = [];
         // Flag data for errors
         checkErrorConditions(apiData);
 
@@ -218,20 +219,50 @@ function checkErrorConditions(apiData) {
         Object.entries(apiData.errorFlags).forEach(([key, value]) => {
             if (value === true) {
                 logMessage(`${key} flag raised`, "error");
+                apiData.errors.push(key);
             }
         });
     }
-/*
-    if (api_data.id === 6) {
-        if (api_data.thermocouple1 > 34.5) {
-            logMessage("Thermocouple1 too high", "error");
-            
+
+    if (apiData.id === 6) {
+        if (apiData.thermocouple1 > 34.5 && !apiData.errors.includes(thermocouple1Error)) {
+            logMessage("thermocouple1Error flag raised", "error");
+            apiData.errors.push("thermocouple1Error");
+        }
+        if (apiData.thermocouple2 > 34.5 && !apiData.errors.includes(thermocouple2Error)) {
+            logMessage("thermocouple2Error flag raised", "error");
+            apiData.errors.push("thermocouple2Error");
+        }
+        if (apiData.thermocouple3 > 34.5 && !apiData.errors.includes(thermocouple3Error)) {
+            logMessage("thermocouple3Error flag raised", "error");
+            apiData.errors.push("thermocouple3Error");
+        }
+        if (apiData.thermocouple4 > 34.5 && !apiData.errors.includes(thermocouple4Error)) {
+            logMessage("thermocouple4Error flag raised", "error");
+            apiData.errors.push("thermocouple4Error");
+        }
+        
+        if (apiData.transducer1 > 34.5 && !apiData.errors.includes(transducer1Error)) {
+            logMessage("transducer1Error flag raised", "error");
+            apiData.errors.push("transducer1Error");
+        }
+        if (apiData.transducer2 > 34.5 && !apiData.errors.includes(transducer2Error)) {
+            logMessage("transducer2Error flag raised", "error");
+            apiData.errors.push("transducer2Error");
+        }
+        if (apiData.transducer3 > 34.5 && !apiData.errors.includes(transducer3Error)) {
+            logMessage("transducer3Error flag raised", "error");
+            apiData.errors.push("transducer3Error");
         }
     }
-    if (api_data.id === 7) {
-        if (api_data.gasBottleWeight1 > )
+    if (apiData.id === 7) {
+        if (apiData.gasBottleWeight1 > 19 || apiData.gasBottleWeight1 < 15.1) {
+            logMessage("Gas bottle 1 weight not within target range", "error");
+        }
+        if (apiData.gasBottleWeight2 > 19 || apiData.gasBottleWeight2 < 15.1) {
+            logMessage("Gas bottle 2 weight not within target range", "error");
+        }
     }
-*/
 }
 
 function processDataForDisplay(apiData, apiId) {
