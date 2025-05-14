@@ -94,8 +94,29 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         context.term()
 
 
+async def consumer(websocket):
+    try:
+        async for message in websocket:
+            # This will eventually convert payload to bytes and push it to the server over IPC
+            print("received:", message)
+    except websockets.ConnectionClosedOK:
+        pass
+
+
 async def handler(websocket):
-    await zmq_to_websocket(websocket, IPC_ADDRESS)
+    # start both producer and consumer
+    producer_task = asyncio.create_task(
+        zmq_to_websocket(websocket, IPC_ADDRESS))
+    consumer_task = asyncio.create_task(consumer(websocket))
+
+    # wait until one side throws an exception
+    done, pending = await asyncio.wait(
+        [producer_task, consumer_task],
+        return_when=asyncio.FIRST_EXCEPTION
+    )
+
+    for task in pending:
+        task.cancel()
 
 
 async def amain():
