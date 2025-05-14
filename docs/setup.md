@@ -8,10 +8,11 @@ The GCS software is run by using a Python based CLI with a C++ server component.
 For a minimal clean slate installation, you can get away with:
 
 1. Setting up your Linux environment
-2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, (see version below) and `build-essentials` with your package manager
+2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, (see version below) and cpp compilers (`CXX20`) with your package manager
 3. Clone and `cd` in to the repository
 4. Run `bash setup.sh` to check python version and protobuf installation
-5. Run `rocket dev --interface test --nopendant` to install other libraries automatically and build the project
+5. Run `python -m pip install -r requirements.txt`
+6. Run `rocket dev --interface test --nopendant` to install other libraries automatically and build the project
 
 > [!WARNING]
 > Please message @mcloughlan with system and setup details and screenshots if that does not work ^
