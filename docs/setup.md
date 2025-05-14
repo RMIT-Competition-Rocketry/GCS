@@ -45,8 +45,6 @@ For a minimal clean slate installation, you can get away with:
 > [!WARNING]
 > Please let me know if this is wrong. I may have missed some things
 
-Building all from source can be found the `build.yml` action.
-
 ## Setup Instructions
 
 Firstly navigate into this repository directory and ensure you have Python 3 installed
