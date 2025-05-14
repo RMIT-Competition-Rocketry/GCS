@@ -148,10 +148,10 @@ function displaySetActiveFlightState(item) {
 function displayUpdateTime() {
     /// SYSTEM TIME
     if (timestampApi != undefined && timestampApi != 0) {
-        displaySetValue("fs-time-api", timestampApi, 3);
+        displaySetValue("fs-time-api", timestampApi, 1);
     }
     if (timestampLocal != undefined && timestampLocal != 0) {
-        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 3);
+        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
     }
 }
 

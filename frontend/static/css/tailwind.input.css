@@ -179,7 +179,7 @@ and only modify it if you know what you're doing :)
     }
 
     .indicator-flightstate {
-        @apply relative;
+        @apply relative h-12 max-h-12;
 
         &::before, &::after {
             @apply absolute -z-5 w-[calc(50%-1rem)] h-1/3 top-1/3 border-y border-hive bg-green-600;
@@ -199,11 +199,15 @@ and only modify it if you know what you're doing :)
         }
 
         & .indicator-state {
-            @apply z-10 bg-green-400;
-            filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
+            @apply z-10 bg-green-500 w-10 h-10 max-w-10 max-h-10 my-1;
         }
 
         &.active {
+            & .indicator-state {
+                @apply w-12 h-12 max-w-12 max-h-12 my-0 bg-green-400;
+                filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
+            }
+
             &::after {
                 background: black;
                 border-color: var(--color-hive-dark);

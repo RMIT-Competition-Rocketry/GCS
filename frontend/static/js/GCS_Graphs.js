@@ -7,7 +7,7 @@
  */
 
 const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
-const GRAPH_GAP_SIZE = 1; // Amount of seconds between data points before a line isn't drawn between them
+const GRAPH_GAP_SIZE = 1.1; // Amount of seconds between data points before a line isn't drawn between them
 const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
@@ -323,7 +323,7 @@ function graphRender(chart) {
                     .x((d) => chart.x(d.x))
                     .y((d) => chart.y(d.y))
                     .defined((d, i, data) => {
-                        return d.prev;//d.prev && d.next;
+                        return d.prev || d.next;
                     });
 
                 chart.g

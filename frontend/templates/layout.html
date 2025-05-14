@@ -13,24 +13,28 @@
 		<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24">
 			<div class="w-1/6 grow">{% include 'module_info.html' %}</div>
 			<nav
-				class="w-auto grow h-full self-start bg-navbar flex px-[3%] p-2 gap-2 font-medium text-center items-center">
-				<a href="#m-main" class="w-1/5">
+				class="w-auto grow h-full self-start bg-navbar flex px-[3%] p-2 gap-2 font-medium text-center items-center text-sm">
+				<a href="#m-main" class="w-1/6">
 					<div class="icon icon-rocket"></div>
 					<span>Main Interface</span>
 				</a>
-				<a href="#m-lf1" class="w-1/5">
+				<a href="#m-lf2" class="w-1/6">
 					<div class="icon icon-video-camera"></div>
-					<span>Live Feeds 1</span>
+					<span>Live - Launchpad</span>
 				</a>
-				<a href="#m-lf2" class="w-1/5">
+				<a href="#m-lf1" class="w-1/6">
 					<div class="icon icon-video-camera"></div>
-					<span>Live Feeds 2</span>
+					<span>Live - Rocket</span>
 				</a>
-				<a href="#m-password" class="w-1/5">
+				<a href="#m-lf3" class="w-1/6">
+					<div class="icon icon-video-camera"></div>
+					<span>Live - All Feeds</span>
+				</a>
+				<a href="#m-password" class="w-1/6">
 					<div class="icon icon-gamepad"></div>
 					<span>Single Operator</span>
 				</a>
-				<a href="#m-hmi" class="w-1/5">
+				<a href="#m-hmi" class="w-1/6">
 					<div class="icon icon-sitemap"></div>
 					<span>HMI</span>
 				</a>
@@ -50,26 +54,32 @@
 				<div class="module m-main m-lf1 grow basis-1/4 w-full">{% include 'module_position.html' %}</div>
 			</div>
 			<div class="module m-main col-[5/9] row-[1/10]">{% include 'module_rocket.html' %}</div>
-			<div class="module m-main m-lf1 m-lf2 col-[5/9] row-[10/13]">{% include 'module_flightstate.html' %}</div>
-			<div class="module m-main m-lf2 col-[9/13] row-[1/6]">{% include 'module_payload.html' %}</div>
+			<div class="module m-main col-[5/9] row-[10/13]">{% include 'module_flightstate.html' %}</div>
+			<div class="module m-main m-lf2 col-[9/13] row-[1/6]">{% include 'module_errorlog.html' %}</div>
 			<div class="module m-main m-lf2 col-[9/13] row-[6/13]">{% include 'module_auxdata.html' %}</div>
 
-			<!-- Single operator password page-->
+			<!-- Single operator password page and modules -->
 			<div class="module m-password col-[1/13] row-[1/13]">{% include 'module_password.html' %}</div>
 			
-			<!-- Single operator modules -->
 			<div class="module m-ops col-[1/5] row-[1/7]">{% include 'module_continuitycheck.html' %}</div>
 			<div class="module m-ops col-[1/5] row-[7/13]">{% include 'module_poptest.html' %}</div>
 			<div class="module m-ops col-[5/9] row-[7/13]">{% include 'module_auxcontrols.html' %}</div>
 			<div class="module m-ops col-[9/13] row-[1/13]">{% include 'module_flags.html' %}</div>
-			<div class="module m-ops col-[5/9] row-[1/7]">{% include 'module_errorlog.html' %}</div>
+			<div class="module m-ops col-[5/9] row-[1/7]">{% include 'module_futurecontrols.html' %}</div>
 
-			<!-- Video 1 modules -->
-			<div class="module m-lf1 col-[5/13] row-[1/10] items-center justify-center">{% include 'module_video.html' %}</div>
+			<!-- Video 2 modules - Launchpad -->
+			<div class="module m-lf2 col-[1/9] row-[1/10] items-center justify-center">{% include 'module_video_launchpad.html' %}</div>
+			<div class="module m-lf2 col-[2/8] row-[10/13]">{% include 'module_flightstate.html' %}</div>
 
-			<!-- Video 2 modules -->
-			<div class="module m-lf2 col-[1/9] row-[1/10] items-center justify-center">{% include 'module_video.html' %}</div>
-			
+			<!-- Video 1 modules - Rocket -->
+			<div class="module m-lf1 col-[5/13] row-[1/10] items-center justify-center">{% include 'module_video_rocket.html' %}</div>
+			<div class="module m-lf1 col-[6/12] row-[10/13]">{% include 'module_flightstate.html' %}</div>
+
+			<!-- Video 3 modules - Both feeds -->
+			<div class="module m-lf3 col-[1/7] row-[1/10] items-center justify-center">{% include 'module_video_launchpad.html' %}</div>
+			<div class="module m-lf3 col-[7/13] row-[1/10] items-center justify-center">{% include 'module_video_rocket.html' %}</div>
+			<div class="module m-lf3 col-[4/10] row-[10/13]">{% include 'module_flightstate.html' %}</div>
+
 			<!-- HMI modules -->
 			<div class="module m-hmi col-[1/13] row-[1/13]">
 				<p class="text-white text-center w-full">TODO HMI</p>
