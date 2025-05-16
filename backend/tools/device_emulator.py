@@ -210,9 +210,7 @@ class AVtoGCSData1(MockPacket):
         self,
         RSSI: float = 0.0,
         SNR: float = 69,
-        FLIGHT_STATE_MSB=False,
-        FLIGHT_STATE_1=False,
-        FLIGHT_STATE_LSB=False,
+        FLIGHT_STATE_: int = 0,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
         GPS_FIX_FLAG=False,
@@ -246,9 +244,7 @@ class AVtoGCSData1(MockPacket):
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
             metric.Metric.StateFlags3p0(
-                FLIGHT_STATE_MSB,
-                FLIGHT_STATE_1,
-                FLIGHT_STATE_LSB,
+                FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
                 GPS_FIX_FLAG,
@@ -289,9 +285,7 @@ class AVtoGCSData2(MockPacket):
         self,
         RSSI: float = 0.0,
         SNR: float = 69,
-        FLIGHT_STATE_MSB=False,
-        FLIGHT_STATE_1=False,
-        FLIGHT_STATE_LSB=False,
+        FLIGHT_STATE_: int = 0,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
         GPS_FIX_FLAG=False,
@@ -312,9 +306,7 @@ class AVtoGCSData2(MockPacket):
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
             metric.Metric.StateFlags3p0(
-                FLIGHT_STATE_MSB,
-                FLIGHT_STATE_1,
-                FLIGHT_STATE_LSB,
+                FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
                 GPS_FIX_FLAG,
@@ -335,9 +327,7 @@ class AVtoGCSData3(MockPacket):
         self,
         RSSI: float = 0.0,
         SNR: float = 69,
-        FLIGHT_STATE_MSB=False,
-        FLIGHT_STATE_1=False,
-        FLIGHT_STATE_LSB=False,
+        FLIGHT_STATE_: int = 0,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
         GPS_FIX_FLAG=False,
@@ -351,9 +341,7 @@ class AVtoGCSData3(MockPacket):
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
             metric.Metric.StateFlags3p0(
-                FLIGHT_STATE_MSB,
-                FLIGHT_STATE_1,
-                FLIGHT_STATE_LSB,
+                FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
                 GPS_FIX_FLAG,
@@ -557,6 +545,18 @@ def sinusoid(t: float, min: float, max: float, period: float,
     return base
 
 
+def changing_int(t: float, min: int, max: int, wait_time_s: float):
+    """Output an int from `min` to `max` increimenting every `wait_time_s` seconds"""
+    span = max - min + 1
+    step = int(t // wait_time_s) % span
+    return min + step
+
+
+def changing_bool(t: float, wait_time_s: float = 1):
+    """Bool changing every `wait_time_s` seconds"""
+    return t % wait_time_s*2 > wait_time_s
+
+
 def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
     """Just generate packets with sinusoidal values over time.
     Values ranges should cover optimal operating conditions
@@ -573,12 +573,10 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
 
     ARGS_AV_COMMON = {"RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
                       "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
-                      "FLIGHT_STATE_MSB": False,
-                      "FLIGHT_STATE_1": False,
-                      "FLIGHT_STATE_LSB": False,
-                      "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": False,
+                      "FLIGHT_STATE_": changing_int(T, 0, 0b111, 1),
+                      "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": changing_bool(T),
                       "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": False,
-                      "GPS_FIX_FLAG": False,
+                      "GPS_FIX_FLAG": changing_bool(T),
                       "PAYLOAD_CONNECTION_FLAG": True,
                       "CAMERA_CONTROLLER_CONNECTION": True}
 
@@ -606,10 +604,9 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
         "MOVE_TO_BROADCAST": False
     }
 
-    # How long before new nav value? (seconds)
-    VALUE_CACHE_TIME_S = 1
-    index = int(T/VALUE_CACHE_TIME_S % len(Metric.POSSIBLE_NAV_VALUES))
-    nav_status = Metric.POSSIBLE_NAV_VALUES[index]
+    nav_status = Metric.POSSIBLE_NAV_VALUES[
+        int(T/1 % len(Metric.POSSIBLE_NAV_VALUES))
+    ]
 
     ARGS_AVtoGCSData2 = ARGS_AV_COMMON | {
         "LATITUDE": sinusoid(T, min=-37.80808500000-0.1, max=37.80808500000+0.1, period=10, phase=0),

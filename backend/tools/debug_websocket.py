@@ -11,7 +11,9 @@ async def pretty_print_json(uri):
                 message = await websocket.recv()
                 try:
                     json_data = json.loads(message)
-                    print(json.dumps(json_data, indent=4))
+                    # print(json.dumps(json_data, indent=4))
+                    if json_data["id"] == 3:
+                        print(json_data["data"]["flightState"])
                 except json.JSONDecodeError:
                     print("Non-JSON message received:")
                     print(message)
