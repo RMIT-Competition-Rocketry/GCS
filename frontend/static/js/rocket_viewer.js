@@ -3,9 +3,8 @@ import { GLTFLoader } from "./GLTFLoader.js";
 
 let rocket = null;
 let quat = new THREE.Quaternion();
-let lastQuaternion = new THREE.Quaternion(); // backup for packet loss
+let lastQuaternion = new THREE.Quaternion();
 let euler = new THREE.Euler();
-
 let hasReceivedQuaternion = false;
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -70,7 +69,7 @@ window.addEventListener("DOMContentLoaded", () => {
             rocket.add(model);
             scene.add(rocket);
 
-            // Fixed axis arrows in world space (bottom right corner)
+            // Fixed axis arrows in world space (bottom right)
             const axisLength = 1.7;
             const headLength = 0.4;
             const headWidth = 0.2;
@@ -114,11 +113,10 @@ window.addEventListener("DOMContentLoaded", () => {
     // === LIVE ORIENTATION UPDATER ===
     function rocketUpdate(data) {
         if (!rocket || !data) return;
-        
+
         const pitchEl = document.querySelector(".rocket-pitch");
         const yawEl = document.querySelector(".rocket-yaw");
         const rollEl = document.querySelector(".rocket-roll");
-
 
         if (
             data.qx !== undefined &&
@@ -135,23 +133,28 @@ window.addEventListener("DOMContentLoaded", () => {
         } else {
             console.error("No quaternion data has ever been received.");
             if (pitchEl && yawEl && rollEl) {
-                pitchEl.textContent = "Pitch: — (no data)";
-                rollEl.textContent = "Roll:  — (no data)";
-                yawEl.textContent = "Yaw:   — (no data)";
+                pitchEl.value = "—";
+                yawEl.value = "—";
+                rollEl.value = "—";
             }
             return;
         }
 
-        // Apply rotation to rocket model
-        rocket.setRotationFromQuaternion(quat);
+        // Compute rotated body-frame basis vectors 
+        const basisX = new THREE.Vector3(1, 0, 0).applyQuaternion(quat);
+        const basisY = new THREE.Vector3(0, 1, 0).applyQuaternion(quat);
+        const basisZ = new THREE.Vector3(0, 0, 1).applyQuaternion(quat);
 
-        // Update Euler angle HUD
+        // Build rotation matrix and set it on the rocket
+        const rotationMatrix = new THREE.Matrix4().makeBasis(basisX, basisY, basisZ);
+        rocket.setRotationFromMatrix(rotationMatrix);
+
+        // Update Euler angles for HUD
         euler.setFromQuaternion(quat, 'XYZ');
         const pitch = THREE.MathUtils.radToDeg(euler.x);
-        const yaw = THREE.MathUtils.radToDeg(euler.y);
-        const roll = THREE.MathUtils.radToDeg(euler.z);
+        const yaw   = THREE.MathUtils.radToDeg(euler.y);
+        const roll  = THREE.MathUtils.radToDeg(euler.z);
 
-        
         if (pitchEl && yawEl && rollEl) {
             pitchEl.value = pitch.toFixed(1);
             yawEl.value   = yaw.toFixed(1);
