@@ -197,6 +197,14 @@ class GCStoAVStateCMD(MockPacket):
         ]
 
 
+class GCStoGSEManualControl(GCStoGSEStateCMD):
+    """Same command as GCStoGSEStateCMD but with different ID to indicate manual control"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ID = 0x09
+
+
 class AVtoGCSData1(MockPacket):
     def __init__(
         self,

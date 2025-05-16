@@ -1,18 +1,22 @@
+from backend.includes_python.mach import Mach
+import backend.includes_python.process_logging as slogger
+import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
+import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
+import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
+import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
+import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
+import config.config as config
+from google.protobuf.json_format import MessageToDict
 import signal
 import asyncio
 import sys
+import backend.tools.device_emulator as device_emulator
 import json
 import websockets
 import zmq
 import zmq.asyncio
-from google.protobuf.json_format import MessageToDict
-import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
-import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
-import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
-import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
-import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
-import backend.includes_python.process_logging as slogger
-from backend.includes_python.mach import Mach
+import time
+import os
 
 # Global flag for shutdown control
 shutdown_event = asyncio.Event()
@@ -95,12 +99,80 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
 
 
 async def consumer(websocket):
+    context = zmq.asyncio.Context()
     try:
+        push_socket = context.socket(zmq.PUSH)
+        SOCKET_PATH = os.path.abspath(os.path.join(
+            os.path.sep, 'tmp', 'gcs_rocket_web_pull.sock')
+        )
+        LINGER_TIME_MS = 300
+        push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
+        push_socket.connect(f"ipc://{SOCKET_PATH}")
+        EXPECTED_ID = 0x09  # What ID should we relay to the server?
         async for message in websocket:
-            # This will eventually convert payload to bytes and push it to the server over IPC
-            print("received:", message)
+            try:
+                # TODO remove this after bundy testing
+                slogger.debug(f"Received ws message: {message}")
+                try:
+                    message_json = json.loads(message)
+                except json.JSONDecodeError as e:
+                    slogger.error(f"Invalid JSON received: {e}")
+                    continue
+                if message_json.get("id") != EXPECTED_ID:
+                    slogger.error(
+                        f"Invalid packet ID for TX: {message_json.get('id')}. Expected {EXPECTED_ID}")
+                    continue
+                data = message_json.get("data", None)
+                if data is None or len(data.keys()) == 0:
+                    slogger.error("No data found in message")
+                    continue
+                packet = build_packet(data)
+                slogger.debug(
+                    f"Built packet: {packet.get_payload_bytes(EXTERNAL=True)}")
+                await push_socket.send(packet.get_payload_bytes(EXTERNAL=True), flags=zmq.NOBLOCK)
+            except json.JSONDecodeError as e:
+                slogger.error(f"Invalid JSON received: {e}")
+            except KeyError as e:
+                slogger.error(f"Missing required key in message: {e}")
+            except Exception as e:
+                slogger.error(
+                    f"Error processing message: {e}. Socket may be full at HWM")
     except websockets.ConnectionClosedOK:
-        pass
+        slogger.info("WebSocket connection closed in consumer")
+    except Exception as e:
+        slogger.error(f"Consumer error: {e}")
+    finally:
+        slogger.debug("ZMQ socket closing")
+        push_socket.close(linger=LINGER_TIME_MS)
+        context.term()
+        slogger.debug("Consumer ZMQ context terminated")
+
+
+def build_packet(WEBSOCKET_DATA: dict) -> device_emulator.GCStoGSEManualControl:
+    """An adaptor to convert internal websocket payload for manual actuation into lora packet GCS to GSE MANUAL CONTROL
+
+    Args:
+        WEBSOCKET_DATA (dict): Data in the format of post translation packet 0x09
+
+    Returns:
+        device_emulator.GCStoGSEManualControl: Output packet to be written to lora
+    """
+
+    PURGE_HIGH: bool = WEBSOCKET_DATA.get("solendoid1High", True)
+    N2O_HIGH: bool = WEBSOCKET_DATA.get("solendoid2High", False)
+    O2_HIGH: bool = WEBSOCKET_DATA.get("solendoid3High", False)
+    states = {
+        "MANUAL_PURGE": PURGE_HIGH,
+        "O2_FILL_ACTIVATE": O2_HIGH,
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": False,
+        "N2O_FILL_ACTIVATE": N2O_HIGH,
+        "IGNITION_FIRE": False,
+        "IGNITION_SELECTED": True,
+        "GAS_FILL_SELECTED": True,
+        "SYSTEM_ACTIVATE": True,
+    }
+    return device_emulator.GCStoGSEManualControl(**states)
 
 
 async def handler(websocket):
@@ -150,6 +222,9 @@ def main():
     else:
         slogger.error("Missing required --socket-path argument")
         sys.exit(1)
+
+    device_emulator.MockPacket.initialize_settings(
+        config.load_config()['emulation'])
 
     try:
         asyncio.run(amain())
