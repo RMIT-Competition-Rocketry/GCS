@@ -19,6 +19,10 @@ var reconnectTimeout;
 var connected = false;
 var then, now, fpsInterval;
 
+// Logging
+const logSocket = true;
+const logIncomingMessages = false;
+
 // Global display values
 var altitudeMax;
 var packetsAV1 = 0;
@@ -118,8 +122,8 @@ function API_socketConnect() {
     apiSocket.onopen = () => {
         connected = true;
         timestampApiConnect = undefined;
-        console.log(`Successfully connected to server at: - ${api_url}`);
-        logMessage("Connected successfully", "notification");
+        if (logSocket) console.log(`Successfully connected to server at: - ${api_url}`);
+        logMessage("Successfully connected", "notification");
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
     };
@@ -129,14 +133,14 @@ function API_socketConnect() {
     apiSocket.onerror = (error) => {
         connected = false;
         timestampApiConnect = undefined;
-        console.error("websocket error: ", error);
+        console.error("Websocket error: ", error);
     };
 
     apiSocket.onclose = () => {
         connected = false;
         timestampApiConnect = undefined;
-        console.log("Socket closed: attempting to reconnect automatically");
-        logMessage("Connection Lost: Attempting to reconnect", "error");
+        if (logSocket) console.log("Socket closed, attempting to reconnect automatically");
+        logMessage("Connection lost: Attempting to reconnect", "error");
         scheduleReconnect();
     };
 }
@@ -215,7 +219,7 @@ function API_OnMessage(event) {
 }
 
 function checkErrorConditions(apiData) {
-    if (true) {
+    if (false) {
         if (apiData.errorFlags != undefined) {
             Object.entries(apiData.errorFlags).forEach(([key, value]) => {
                 if (value === true) {
@@ -226,32 +230,32 @@ function checkErrorConditions(apiData) {
         }
 
         if (apiData.id === 6) {
-            if (apiData.thermocouple1 > 34.5 && !apiData.errors.includes(thermocouple1Error)) {
+            if (apiData.thermocouple1 > 34.5 && apiData.errors.indexOf("thermocouple1Error") == -1) {
                 logMessage("thermocouple1Error flag raised", "error");
                 apiData.errors.push("thermocouple1Error");
             }
-            if (apiData.thermocouple2 > 34.5 && !apiData.errors.includes(thermocouple2Error)) {
+            if (apiData.thermocouple2 > 34.5 && apiData.errors.indexOf("thermocouple2Error") == -1) {
                 logMessage("thermocouple2Error flag raised", "error");
                 apiData.errors.push("thermocouple2Error");
             }
-            if (apiData.thermocouple3 > 34.5 && !apiData.errors.includes(thermocouple3Error)) {
+            if (apiData.thermocouple3 > 34.5 && apiData.errors.indexOf("thermocouple3Error") == -1) {
                 logMessage("thermocouple3Error flag raised", "error");
                 apiData.errors.push("thermocouple3Error");
             }
-            if (apiData.thermocouple4 > 34.5 && !apiData.errors.includes(thermocouple4Error)) {
+            if (apiData.thermocouple4 > 34.5 && apiData.errors.indexOf("thermocouple4Error") == -1) {
                 logMessage("thermocouple4Error flag raised", "error");
                 apiData.errors.push("thermocouple4Error");
             }
             
-            if (apiData.transducer1 > 34.5 && !apiData.errors.includes(transducer1Error)) {
+            if (apiData.transducer1 > 34.5 && apiData.errors.indexOf("transducer1Error") == -1) {
                 logMessage("transducer1Error flag raised", "error");
                 apiData.errors.push("transducer1Error");
             }
-            if (apiData.transducer2 > 34.5 && !apiData.errors.includes(transducer2Error)) {
+            if (apiData.transducer2 > 34.5 && apiData.errors.indexOf("transducer2Error") == -1) {
                 logMessage("transducer2Error flag raised", "error");
                 apiData.errors.push("transducer2Error");
             }
-            if (apiData.transducer3 > 34.5 && !apiData.errors.includes(transducer3Error)) {
+            if (apiData.transducer3 > 34.5 && apiData.errors.indexOf("transducer3Error") == -1) {
                 logMessage("transducer3Error flag raised", "error");
                 apiData.errors.push("transducer3Error");
             }
@@ -399,7 +403,7 @@ apiSocket.addEventListener('open', () => {
 });
 
 apiSocket.addEventListener('message', (event) => {
-    console.log('Message from server:', event.data);
+    if (logIncomingMessages) console.log('Message from server:', event.data);
 });
 
 // Test function
