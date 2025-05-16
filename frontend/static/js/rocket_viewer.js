@@ -166,3 +166,4 @@ window.addEventListener("DOMContentLoaded", () => {
     // Make rocketUpdate accessible globally
     window.rocketUpdate = rocketUpdate;
 });
+
