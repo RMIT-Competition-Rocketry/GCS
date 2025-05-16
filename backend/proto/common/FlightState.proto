@@ -8,7 +8,7 @@ enum FlightState {
         LAUNCH = 2;
         COAST = 3;
         APOGEE = 4;
-        DECENT = 5;
+        DESCENT = 5;
         LANDED = 6;
         OH_NO = 7; // I'm going with the data sheet ong
     }

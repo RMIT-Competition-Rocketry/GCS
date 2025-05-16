@@ -20,7 +20,7 @@
 UartInterface::UartInterface(const std::string &device_path, int baud_rate)
     : baud_rate_(baud_rate),
       device_path_(device_path),
-      modem_state_(ModemContinuousState::NOT_CONTINUOUS) {}
+      current_modem_state_(ModemContinuousState::NOT_CONTINUOUS) {}
 
 UartInterface::~UartInterface() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
@@ -179,7 +179,8 @@ bool UartInterface::at_send_command(const std::string &command,
   // Optimisation. Do not enter mode if already in it
   switch (modem_state) {
     case ModemContinuousState::RXLRPKT:
-      if (modem_state_ == ModemContinuousState::RXLRPKT) {
+      if (current_modem_state_ == ModemContinuousState::RXLRPKT) {
+        slogger::debug("Already in RXLRPKT mode, skipping command: " + command);
         return true;
       }
       break;
@@ -187,6 +188,8 @@ bool UartInterface::at_send_command(const std::string &command,
       // Other states not currently used
       break;
   }
+
+  current_modem_state_ = modem_state;
 
   // Clear buffer before new command
   response_buffer_.clear();
@@ -283,10 +286,8 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
   // ...
 
   // Start listening
-  if (modem_state_ != ModemContinuousState::RXLRPKT) {
-    at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", AT_TIMEOUT_MS,
-                    ModemContinuousState::RXLRPKT);
-  }
+  at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", AT_TIMEOUT_MS,
+                  ModemContinuousState::RXLRPKT);
 
   // Read new data and append to persistent buffer
   auto raw_data = read_with_timeout(AT_TIMEOUT_MS);

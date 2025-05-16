@@ -31,7 +31,8 @@ class AV_TO_GCS_DATA_2 {
     snr_ = std::bit_cast<float>(meta_parser.extract_unsigned_bits(32));
 
     ByteParser parser(DATA + 8, SIZE, LITTLE_ENDIAN_ORDER);
-    flight_state_ = calc_flight_state(parser.extract_unsigned_bits(3));
+    // IGNORE FLIGHT STATE FROM THIS PACKET
+    parser.extract_unsigned_bits(3);
 
     dual_board_connectivity_state_flag_ =
         static_cast<bool>(parser.extract_unsigned_bits(1));
@@ -101,7 +102,7 @@ class AV_TO_GCS_DATA_2 {
     proto_data.set_allocated_meta(packet_meta);
 
     // Use the macro for simple fields with same name
-    proto_data.set_flightstate(flight_state_);
+    // proto_data.set_flightstate(flight_state_);
 
     common::AVStateFlags *state_flags = new common::AVStateFlags();
     SET_SUB_PROTO_FIELD(state_flags, dual_board_connectivity_state_flag);

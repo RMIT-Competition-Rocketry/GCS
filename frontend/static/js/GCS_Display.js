@@ -90,7 +90,7 @@ function displaySetValue(item, value, precision = 2, error = false) {
 
 function displaySetString(item, string) {
     // Updates the string in a display item
-    
+
     if (string != undefined) {
         if (verboseLogging) console.debug(`new string %c${item}%c ${string}`, 'color:orange', 'color:white');
 
@@ -108,7 +108,7 @@ function displaySetString(item, string) {
 function displaySetState(item, value) {
     // Updates the state of an indicator
     if (verboseLogging) console.debug(`new state %c${item}%c ${value}`, 'color:orange', 'color:white');
-    
+
     // Update all instances of item
     let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
@@ -199,7 +199,7 @@ function displayUpdateAuxData(data) {
     if (data.analogVoltageInput1 != undefined) {
         displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
-    
+
 }
 
 function displayUpdateAvionics(data) {
@@ -299,7 +299,7 @@ function displayUpdateFlightState(data) {
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
 
-        } else if (data.flightState == 5 || data.flightState == "DESCENT" || data.flightState == "DECENT") {
+        } else if (data.flightState == 5 || data.flightState == "DESCENT" || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
             displaySetActiveFlightState("fs-state-descent");
@@ -340,7 +340,7 @@ function displayUpdatePosition(data) {
             displaySetValue("pos-gps-lat", data.GPSLatitude, 6);
         } else {
             // Mark as stale?
-        }   
+        }
     }
 
     if (data.GPSLongitude != undefined) {
@@ -388,7 +388,7 @@ function displayUpdateRadio(data) {
             if (data?.meta?.packets) {
                 // Lost packets calculation
                 let lostPackets = data.meta.totalPacketCountAv - data.meta.packets;
-                
+
                 // Display number of packets
                 displaySetValue("radio-av-packets", data.meta.packets, 0);
             }
@@ -420,7 +420,7 @@ function displayUpdateRadio(data) {
             if (data?.meta?.packets) {
                 // Lost packets calculation
                 let lostPackets = data.meta.totalPacketCountGse - data.meta.packets;
-                
+
                 // Display number of packets
                 displaySetValue("radio-gse-packets", data.meta.packets, 0);
             }
@@ -483,7 +483,7 @@ apogeeSCheckbox.addEventListener("change", () => {
 
 function validateSelection() {
 
-    const checkedCount = 
+    const checkedCount =
         (mainPCheckbox.checked ? 1 : 0) +
         (mainSCheckbox.checked ? 1 : 0) +
         (apogeePCheckbox.checked ? 1 : 0) +
@@ -559,7 +559,7 @@ confirmYes.addEventListener("click", () => {
 
 
 // single operator password page
-window.onload = function() {
+window.onload = function () {
     const password = "HIVE-RMIT";
     const submit = document.getElementById("operatorSubmit");
     const incorrectWarning = document.getElementById("passIncorrect");
@@ -577,13 +577,13 @@ window.onload = function() {
         }
     });
 
-    inputEnter.addEventListener("keypress", function(event) {
+    inputEnter.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
-            
+
             if (inputEnter.value === password) {
                 document.getElementById('m-ops-button').click();
                 incorrectWarning.hidden = true;
-    
+
             }
             else {
                 incorrectWarning.hidden = false;
