@@ -132,8 +132,8 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 
         // Apply Blender +Z correction
-        const correction = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
-        const correctedQuat = quat.clone().premultiply(correction);
+        //const correction = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+        //sconst correctedQuat = quat.clone().premultiply(correction);
 
         // Apply quaternion to model
         rocket.setRotationFromQuaternion(correctedQuat);
