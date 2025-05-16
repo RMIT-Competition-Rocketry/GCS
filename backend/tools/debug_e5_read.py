@@ -22,7 +22,7 @@ def send_at_commands():
             # Send the AT command
             ser.write((command + '\r\n').encode())
             print(f"Sent: {command}")
-            time.sleep(1)
+            time.sleep(0.5)
 
             response = ser.read_all().decode('utf-8', errors='ignore')
             print(f">: {response}")
