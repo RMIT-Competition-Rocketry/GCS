@@ -254,7 +254,86 @@
                 "--port=8008"
             ],
             "icon": {
-                "id": "debug-console"
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend (dev test mode)",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "dev",
+                "--nopendant",
+                "--frontend",
+                "--interface",
+                "TEST"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend (replay simulation mode)",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "simulation",
+                "--simulation",
+                "TEST"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend (replay mission 20250504)",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "20250504"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
             },
             "options": {
                 "env": {
