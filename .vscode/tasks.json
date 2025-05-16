@@ -4,9 +4,9 @@
         {
             "label": "middleware build-dev + generate proto",
             "type": "shell",
-            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j", // VERBOSE = 1
+            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j",
             "options": {
-                "cwd": "${workspaceFolder}" // Default?
+                "cwd": "${workspaceFolder}"
             },
             "group": {
                 "kind": "build",
@@ -24,7 +24,7 @@
         {
             "label": "middleware build-dev + generate proto + build tests",
             "type": "shell",
-            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make -j", // VERBOSE = 1
+            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make -j",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -65,7 +65,7 @@
             "icon": {
                 "id": "check",
                 "color": "terminal.ansiCyan"
-            },
+            }
         },
         {
             "label": "start socat manually",
@@ -108,7 +108,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/python",
             "args": [
-                "backend/tools/debug_websocket.py",
+                "backend/tools/debug_websocket.py"
             ],
             "icon": {
                 "id": "debug-console"
@@ -146,7 +146,7 @@
             "args": [
                 "backend/frontend_api.py",
                 "--socket-path",
-                "gcs_rocket",
+                "gcs_rocket"
             ],
             "icon": {
                 "id": "debug-console"
@@ -163,7 +163,7 @@
             "type": "shell",
             "command": "./venv/bin/python",
             "args": [
-                "backend/tools/pendant_emulator.py",
+                "backend/tools/pendant_emulator.py"
             ],
             "icon": {
                 "id": "debug-console"
@@ -222,7 +222,7 @@
                     ".\\css\\tailwind.css",
                     "--watch",
                     "--optimize"
-                ],
+                ]
             },
             "linux": {
                 "command": "./third_party/tailwindcss",
@@ -234,12 +234,13 @@
                     "-o",
                     "./static/css/tailwind.css",
                     "--watch",
-                    "--optimize",
-                ],
+                    "--optimize"
+                ]
             },
             "icon": {
                 "id": "paintcan"
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "start frontend (no API)",
@@ -250,10 +251,89 @@
                 "frontend.flask_server",
                 "--debug",
                 "run",
-                "--port=8008" 
+                "--port=8008"
             ],
             "icon": {
-                "id": "debug-console"
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend (dev test mode)",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "dev",
+                "--nopendant",
+                "--frontend",
+                "--interface",
+                "TEST"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend (replay simulation mode)",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "simulation",
+                "--simulation",
+                "TEST"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend (replay mission 20250504)",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "20250504"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
             },
             "options": {
                 "env": {
@@ -275,7 +355,7 @@
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}:$PYTHONPATH"
-                },
+                }
             },
             "group": "build",
             "problemMatcher": [],
@@ -299,7 +379,7 @@
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}:$PYTHONPATH"
-                },
+                }
             },
             "group": "build",
             "problemMatcher": [],

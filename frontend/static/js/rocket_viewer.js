@@ -104,25 +104,29 @@ window.addEventListener("DOMContentLoaded", () => {
         if (!rocket || !data) return;
 
         const pitchEl = document.getElementById("pitchDisplay");
-        const rollEl = document.getElementById("rollDisplay");
+        const rollEl = document.getElementById("rollDisplay")
         const yawEl = document.getElementById("yawDisplay");
+        ;
 
         if (
-            data.qx !== undefined &&
-            data.qy !== undefined &&
-            data.qz !== undefined &&
-            data.qw !== undefined
+            data?.qx &&
+            data?.qy &&
+            data?.qz &&
+            data?.qw
         ) {
             quat.set(data.qx, data.qy, data.qz, data.qw).normalize();
             lastQuaternion.copy(quat);
             hasReceivedQuaternion = true;
         } else if (hasReceivedQuaternion) {
+            console.warn(" Quaternion packet missing. Reusing last known orientation.");
             quat.copy(lastQuaternion);
         } else {
+            console.error(" No quaternion data has ever been received.");
             if (pitchEl && yawEl && rollEl) {
                 pitchEl.textContent = "Pitch: — (no data)";
                 rollEl.textContent = "Roll:  — (no data)";
                 yawEl.textContent = "Yaw:   — (no data)";
+                
             }
             return;
         }
@@ -155,6 +159,8 @@ window.addEventListener("DOMContentLoaded", () => {
             yawEl.textContent   = `Yaw:   ${yaw.toFixed(1)}°`;
             rollEl.textContent  = `Roll:  ${roll.toFixed(1)}°`;
         }
+
+        renderScene();
     }
 
     // Make rocketUpdate accessible globally

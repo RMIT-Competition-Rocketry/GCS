@@ -148,10 +148,10 @@ function displaySetActiveFlightState(item) {
 function displayUpdateTime() {
     /// SYSTEM TIME
     if (timestampApi != undefined && timestampApi != 0) {
-        displaySetValue("fs-time-api", timestampApi, 3);
+        displaySetValue("fs-time-api", timestampApi, 1);
     }
     if (timestampLocal != undefined && timestampLocal != 0) {
-        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 3);
+        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
     }
 }
 
@@ -159,40 +159,40 @@ function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
     // Transducers
     if (data.transducer1 != undefined) {
-        displaySetValue("aux-transducer-1", data.transducer1, 2);
+        displaySetValue("aux-transducer-1", data.transducer1, 1);
     }
     if (data.transducer2 != undefined) {
-        displaySetValue("aux-transducer-2", data.transducer2, 2);
+        displaySetValue("aux-transducer-2", data.transducer2, 1);
     }
     if (data.transducer3 != undefined) {
-        displaySetValue("aux-transducer-3", data.transducer3, 2);
+        displaySetValue("aux-transducer-3", data.transducer3, 1);
     }
 
     // Thermocouples
     if (data.thermocouple1 != undefined) {
-        displaySetValue("aux-thermocouple-1", data.thermocouple1, 2);
+        displaySetValue("aux-thermocouple-1", data.thermocouple1, 0);
     }
     if (data.thermocouple2 != undefined) {
-        displaySetValue("aux-thermocouple-2", data.thermocouple2, 2);
+        displaySetValue("aux-thermocouple-2", data.thermocouple2, 0);
     }
     if (data.thermocouple3 != undefined) {
-        displaySetValue("aux-thermocouple-3", data.thermocouple3, 2);
+        displaySetValue("aux-thermocouple-3", data.thermocouple3, 0);
     }
     if (data.thermocouple4 != undefined) {
-        displaySetValue("aux-thermocouple-4", data.thermocouple4, 2);
+        displaySetValue("aux-thermocouple-4", data.thermocouple4, 0);
     }
 
     // Internal temperature
     if (data.internalTemp != undefined) {
-        displaySetValue("aux-internaltemp", data.internalTemp, 2);
+        displaySetValue("aux-internaltemp", data.internalTemp, 1);
     }
 
     // Gas bottle weights
     if (data.gasBottleWeight1 != undefined) {
-        displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 2)
+        displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 1)
     }
     if (data.gasBottleWeight2 != undefined) {
-        displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 2)
+        displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1)
     }
 
     // Rocket load cell weight
@@ -233,33 +233,33 @@ function displayUpdateAvionics(data) {
     // Acceleration (_g_)
     // accelLow has higher resolution, so we use that if the values are within [-16,16]
     if (data.accelX != undefined) {
-        displaySetValue("av-accel-x", data.accelX);
+        displaySetValue("av-accel-x", data.accelX, 1);
     }
 
     if (data.accelY != undefined) {
-        displaySetValue("av-accel-y", data.accelY);
+        displaySetValue("av-accel-y", data.accelY, 1);
     }
 
     if (data.accelZ != undefined) {
-        displaySetValue("av-accel-z", data.accelZ);
+        displaySetValue("av-accel-z", data.accelZ, 1);
     }
 
     // Gyro (deg/s)
     if (data.gyroX != undefined) {
-        displaySetValue("av-gyro-x", data.gyroX);
+        displaySetValue("av-gyro-x", data.gyroX, 1);
     }
 
     if (data.gyroY != undefined) {
-        displaySetValue("av-gyro-y", data.gyroY);
+        displaySetValue("av-gyro-y", data.gyroY, 1);
     }
 
     if (data.gyroZ != undefined) {
-        displaySetValue("av-gyro-z", data.gyroZ);
+        displaySetValue("av-gyro-z", data.gyroZ, 1);
     }
 
     // Velocity
     if (data.velocity != undefined) {
-        displaySetValue("av-velocity", data.velocity, 0);
+        displaySetValue("av-velocity", data.velocity, 1);
         displaySetValue("av-velocity-ft", metresToFeet(data.velocity), 0);
     }
 

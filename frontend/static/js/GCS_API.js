@@ -19,6 +19,10 @@ var reconnectTimeout;
 var connected = false;
 var then, now, fpsInterval;
 
+// Logging
+const logSocket = true;
+const logIncomingMessages = false;
+
 // Global display values
 var altitudeMax;
 var packetsAV1 = 0;
@@ -118,8 +122,8 @@ function API_socketConnect() {
     apiSocket.onopen = () => {
         connected = true;
         timestampApiConnect = undefined;
-        console.log(`Successfully connected to server at: - ${api_url}`);
-        logMessage("Connected successfully", "notification");
+        if (logSocket) console.log(`Successfully connected to server at: - ${api_url}`);
+        logMessage("Successfully connected", "notification");
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
     };
@@ -129,14 +133,14 @@ function API_socketConnect() {
     apiSocket.onerror = (error) => {
         connected = false;
         timestampApiConnect = undefined;
-        console.error("websocket error: ", error);
+        console.error("Websocket error: ", error);
     };
 
     apiSocket.onclose = () => {
         connected = false;
         timestampApiConnect = undefined;
-        console.log("Socket closed: attempting to reconnect automatically");
-        logMessage("Connection Lost: Attempting to reconnect", "error");
+        if (logSocket) console.log("Socket closed, attempting to reconnect automatically");
+        logMessage("Connection lost: Attempting to reconnect", "error");
         scheduleReconnect();
     };
 }
@@ -149,6 +153,7 @@ function API_OnMessage(event) {
         apiLatest = JSON.parse(event.data);
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
 
+        apiData.errors = [];
         // Flag data for errors
         checkErrorConditions(apiData);
 
@@ -214,24 +219,56 @@ function API_OnMessage(event) {
 }
 
 function checkErrorConditions(apiData) {
-    if (apiData.errorFlags != undefined) {
-        Object.entries(apiData.errorFlags).forEach(([key, value]) => {
-            if (value === true) {
-                logMessage(`${key} flag raised`, "error");
+    if (false) {
+        if (apiData.errorFlags != undefined) {
+            Object.entries(apiData.errorFlags).forEach(([key, value]) => {
+                if (value === true) {
+                    logMessage(`${key} flag raised`, "error");
+                    apiData.errors.push(key);
+                }
+            });
+        }
+
+        if (apiData.id === 6) {
+            if (apiData.thermocouple1 > 34.5 && apiData.errors.indexOf("thermocouple1Error") == -1) {
+                logMessage("thermocouple1Error flag raised", "error");
+                apiData.errors.push("thermocouple1Error");
             }
-        });
-    }
-/*
-    if (api_data.id === 6) {
-        if (api_data.thermocouple1 > 34.5) {
-            logMessage("Thermocouple1 too high", "error");
+            if (apiData.thermocouple2 > 34.5 && apiData.errors.indexOf("thermocouple2Error") == -1) {
+                logMessage("thermocouple2Error flag raised", "error");
+                apiData.errors.push("thermocouple2Error");
+            }
+            if (apiData.thermocouple3 > 34.5 && apiData.errors.indexOf("thermocouple3Error") == -1) {
+                logMessage("thermocouple3Error flag raised", "error");
+                apiData.errors.push("thermocouple3Error");
+            }
+            if (apiData.thermocouple4 > 34.5 && apiData.errors.indexOf("thermocouple4Error") == -1) {
+                logMessage("thermocouple4Error flag raised", "error");
+                apiData.errors.push("thermocouple4Error");
+            }
             
+            if (apiData.transducer1 > 34.5 && apiData.errors.indexOf("transducer1Error") == -1) {
+                logMessage("transducer1Error flag raised", "error");
+                apiData.errors.push("transducer1Error");
+            }
+            if (apiData.transducer2 > 34.5 && apiData.errors.indexOf("transducer2Error") == -1) {
+                logMessage("transducer2Error flag raised", "error");
+                apiData.errors.push("transducer2Error");
+            }
+            if (apiData.transducer3 > 34.5 && apiData.errors.indexOf("transducer3Error") == -1) {
+                logMessage("transducer3Error flag raised", "error");
+                apiData.errors.push("transducer3Error");
+            }
+        }
+        if (apiData.id === 7) {
+            if (apiData.gasBottleWeight1 > 19 || apiData.gasBottleWeight1 < 15.1) {
+                logMessage("Gas bottle 1 weight not within target range", "error");
+            }
+            if (apiData.gasBottleWeight2 > 19 || apiData.gasBottleWeight2 < 15.1) {
+                logMessage("Gas bottle 2 weight not within target range", "error");
+            }
         }
     }
-    if (api_data.id === 7) {
-        if (api_data.gasBottleWeight1 > )
-    }
-*/
 }
 
 function processDataForDisplay(apiData, apiId) {
@@ -366,7 +403,7 @@ apiSocket.addEventListener('open', () => {
 });
 
 apiSocket.addEventListener('message', (event) => {
-    console.log('Message from server:', event.data);
+    if (logIncomingMessages) console.log('Message from server:', event.data);
 });
 
 // Test function
@@ -384,7 +421,7 @@ function testJSON() {
 
     if (apiSocket.readyState === WebSocket.OPEN) {
         apiSocket.send(payloadString);
-        console.log('Sent test JSON:', payload);
+        console.log('Sent test JSON:', payloadString);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }

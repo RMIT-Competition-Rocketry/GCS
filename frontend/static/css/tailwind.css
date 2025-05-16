@@ -37,7 +37,7 @@
     --font-weight-medium: 500;
     --font-weight-bold: 700;
     --radius-sm: .25rem;
-    --radius-lg: .5rem;
+    --radius-xl: .75rem;
     --blur-sm: 8px;
     --aspect-video: 16 / 9;
     --default-transition-duration: .15s;
@@ -405,8 +405,8 @@
 
   .icon {
     aspect-ratio: 1;
-    height: calc(var(--spacing) * 16);
-    width: calc(var(--spacing) * 16);
+    height: calc(var(--spacing) * 12);
+    width: calc(var(--spacing) * 12);
     background-color: var(--color-white);
     margin-inline: auto;
     -webkit-mask-size: contain;
@@ -484,6 +484,8 @@
   }
 
   .indicator-flightstate {
+    height: calc(var(--spacing) * 12);
+    max-height: calc(var(--spacing) * 12);
     position: relative;
   }
 
@@ -514,6 +516,20 @@
 
   .indicator-flightstate .indicator-state {
     z-index: 10;
+    margin-block: calc(var(--spacing) * 1);
+    height: calc(var(--spacing) * 10);
+    max-height: calc(var(--spacing) * 10);
+    width: calc(var(--spacing) * 10);
+    max-width: calc(var(--spacing) * 10);
+    background-color: var(--color-green-500);
+  }
+
+  .indicator-flightstate.active .indicator-state {
+    margin-block: calc(var(--spacing) * 0);
+    height: calc(var(--spacing) * 12);
+    max-height: calc(var(--spacing) * 12);
+    width: calc(var(--spacing) * 12);
+    max-width: calc(var(--spacing) * 12);
     background-color: var(--color-green-400);
     filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
   }
@@ -747,6 +763,14 @@
     inset: calc(var(--spacing) * 0);
   }
 
+  .top-0 {
+    top: calc(var(--spacing) * 0);
+  }
+
+  .left-1 {
+    left: calc(var(--spacing) * 1);
+  }
+
   .-z-50 {
     z-index: calc(50 * -1);
   }
@@ -763,12 +787,40 @@
     grid-column: 1 / 5;
   }
 
+  .col-\[1\/7\] {
+    grid-column: 1 / 7;
+  }
+
+  .col-\[1\/9\] {
+    grid-column: 1 / 9;
+  }
+
   .col-\[1\/13\] {
     grid-column: 1 / 13;
   }
 
+  .col-\[2\/8\] {
+    grid-column: 2 / 8;
+  }
+
+  .col-\[4\/10\] {
+    grid-column: 4 / 10;
+  }
+
   .col-\[5\/9\] {
     grid-column: 5 / 9;
+  }
+
+  .col-\[5\/13\] {
+    grid-column: 5 / 13;
+  }
+
+  .col-\[6\/12\] {
+    grid-column: 6 / 12;
+  }
+
+  .col-\[7\/13\] {
+    grid-column: 7 / 13;
   }
 
   .col-\[9\/13\] {
@@ -893,6 +945,10 @@
     }
   }
 
+  .m-0 {
+    margin: calc(var(--spacing) * 0);
+  }
+
   .m-2 {
     margin: calc(var(--spacing) * 2);
   }
@@ -909,8 +965,8 @@
     margin-inline: auto;
   }
 
-  .mt-1 {
-    margin-top: calc(var(--spacing) * 1);
+  .my-auto {
+    margin-block: auto;
   }
 
   .mt-4 {
@@ -977,12 +1033,8 @@
     height: calc(var(--spacing) * 24);
   }
 
-  .h-28 {
-    height: calc(var(--spacing) * 28);
-  }
-
-  .h-\[calc\(100vh-7rem\)\] {
-    height: calc(100vh - 7rem);
+  .h-\[calc\(100vh-6rem\)\] {
+    height: calc(100vh - 6rem);
   }
 
   .h-auto {
@@ -997,24 +1049,32 @@
     height: 100vh;
   }
 
+  .max-h-16 {
+    max-height: calc(var(--spacing) * 16);
+  }
+
   .max-h-20 {
     max-height: calc(var(--spacing) * 20);
   }
 
-  .max-h-28 {
-    max-height: calc(var(--spacing) * 28);
+  .max-h-24 {
+    max-height: calc(var(--spacing) * 24);
   }
 
-  .max-h-\[calc\(100vh-7rem\)\] {
-    max-height: calc(100vh - 7rem);
+  .max-h-\[calc\(100vh-6rem\)\] {
+    max-height: calc(100vh - 6rem);
+  }
+
+  .max-h-full {
+    max-height: 100%;
   }
 
   .max-h-screen {
     max-height: 100vh;
   }
 
-  .min-h-28 {
-    min-height: calc(var(--spacing) * 28);
+  .min-h-24 {
+    min-height: calc(var(--spacing) * 24);
   }
 
   .w-0 {
@@ -1025,8 +1085,8 @@
     width: 33.3333%;
   }
 
-  .w-1\/5 {
-    width: 20%;
+  .w-1\/4 {
+    width: 25%;
   }
 
   .w-1\/6 {
@@ -1103,6 +1163,10 @@
 
   .transform {
     transform: var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y);
+  }
+
+  .animate-\[spin_5s_linear_infinite\] {
+    animation: 5s linear infinite spin;
   }
 
   .cursor-pointer {
@@ -1217,8 +1281,8 @@
     border-radius: .25rem;
   }
 
-  .rounded-lg {
-    border-radius: var(--radius-lg);
+  .rounded-xl {
+    border-radius: var(--radius-xl);
   }
 
   .border {
@@ -1810,4 +1874,10 @@
 @property --tw-backdrop-sepia {
   syntax: "*";
   inherits: false
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

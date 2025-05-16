@@ -7,7 +7,7 @@
  */
 
 const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
-const GRAPH_GAP_SIZE = 1; // Amount of seconds between data points before a line isn't drawn between them
+const GRAPH_GAP_SIZE = 1.1; // Amount of seconds between data points before a line isn't drawn between them
 const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
@@ -17,7 +17,7 @@ const LINE_COLOURS = [
     "var(--color-blue-500)",
     "white",
 ];
-const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 20, left: 50 };
+const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
@@ -323,7 +323,7 @@ function graphRender(chart) {
                     .x((d) => chart.x(d.x))
                     .y((d) => chart.y(d.y))
                     .defined((d, i, data) => {
-                        return d.prev;//d.prev && d.next;
+                        return d.prev || d.next;
                     });
 
                 chart.g
@@ -430,7 +430,6 @@ function graphUpdateAuxData(data) {
     // AUXILLIARY DATA MODULE GRAPHS
     if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountGse) {
         const timestamp = data.meta.timestampS;
-        const packet = data.meta.totalPacketCountGse;
 
         // Transducers
         graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.transducer1);
