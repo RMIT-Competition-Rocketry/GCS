@@ -8,7 +8,6 @@
  */
 
 // DYNAMIC MODULE SWITCHING CODE
-
 function displaySelectModule(selected) {
     document.querySelectorAll(".module").forEach((elem) => {
         if (elem.classList.contains(selected)) {
@@ -59,97 +58,141 @@ document.querySelectorAll("nav a").forEach((elem) => {
     });
 });
 
-// FUNCTIONS FOR UPDATING DISPLAY ITEMS
-function displaySetValue(item, value, precision = 2) {
-    // Updates a floating point value for a display item
-    let elements = document.querySelectorAll(`.${item}`);
 
-    // Use classes instead of IDs since IDs must be unique
-    // and some items occur on multiple pages
-    if (elements && elements.length > 0) {
-        elements.forEach((elem) => {
-            // Update value
-            elem.value = parseFloat(value).toFixed(precision);
-        });
+// FUNCTIONS FOR UPDATING DISPLAY ITEMS
+var verboseLogging = false;
+const indicatorStates = ["off", "on", "idle", "error"];
+const timeouts = {};
+
+function displaySetValue(item, value, precision = 2, error = false) {
+    // Updates a floating point value for a display item
+    if (value != undefined && !Number.isNaN(value)) {
+        if (verboseLogging) console.debug(`new value %c${item}%c ${parseFloat(value).toFixed(precision)}`, 'color:orange', 'color:white');
+
+        // Use classes instead of IDs since IDs must be unique
+        // and some items occur on multiple pages
+        let elements = document.querySelectorAll(`.${item}`);
+        if (elements && elements.length > 0) {
+            elements.forEach((elem) => {
+                // Update value
+                elem.value = parseFloat(value).toFixed(precision);
+
+                // Update error state
+                if (error) {
+                    elem.classList.add("error");
+                } else {
+                    elem.classList.remove("error");
+                }
+            });
+        }
     }
 }
 
 function displaySetString(item, string) {
-    // Updates a string for a display item
-    let elements = document.querySelectorAll(`.${item}`);
-    if (elements && elements.length > 0) {
-        elements.forEach((elem) => {
-            // Update string
-            elem.value = string;
-        });
+    // Updates the string in a display item
+    
+    if (string != undefined) {
+        if (verboseLogging) console.debug(`new string %c${item}%c ${string}`, 'color:orange', 'color:white');
+
+        // Update all instances of item
+        let elements = document.querySelectorAll(`.${item}`);
+        if (elements && elements.length > 0) {
+            elements.forEach((elem) => {
+                // Update string
+                elem.value = string;
+            });
+        }
     }
 }
 
 function displaySetState(item, value) {
     // Updates the state of an indicator
+    if (verboseLogging) console.debug(`new state %c${item}%c ${value}`, 'color:orange', 'color:white');
+    
+    // Update all instances of item
     let elements = document.querySelectorAll(`.${item}`);
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
-            elem.classList.remove("on", "off", "error");
-
-            switch (value) {
-                case "error":
-                    elem.classList.add("error");
-                    break;
-                case "true":
-                case "on":
-                case true:
-                    elem.classList.add("on");
-                    break;
-                case "false":
-                case "off":
-                case false:
-                    elem.classList.add("off");
-                    break;
+            elem.classList.remove(...indicatorStates);
+            if (value >= 0 && value < indicatorStates.length) {
+                elem.classList.add(indicatorStates[value]);
             }
         });
     }
 }
 
+function displaySetActiveFlightState(item) {
+    // Updates active flight state to a specific html element
+    let elements = document.querySelectorAll(`.${item}`);
+
+    if (elements && elements.length > 0) {
+        // Make sure we're actually updating this
+        if (elements[0].classList.contains("active")) return;
+
+        // The active element is different, update active item
+        let active = document.querySelectorAll(`.active`);
+        if (active && active.length > 0) {
+            active.forEach((elem) => {
+                elem.classList.remove("active");
+            });
+        }
+
+        // Update active item
+        elements.forEach((elem) => {
+            elem.classList.add("active");
+        });
+    }
+}
+
 // FUNCTIONS FOR UPDATING MODULES
+function displayUpdateTime() {
+    /// SYSTEM TIME
+    if (timestampApi != undefined && timestampApi != 0) {
+        displaySetValue("fs-time-api", timestampApi, 1);
+    }
+    if (timestampLocal != undefined && timestampLocal != 0) {
+        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
+    }
+}
+
 function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
     // Transducers
     if (data.transducer1 != undefined) {
-        displaySetValue("aux-transducer-1", data.transducer1, 2);
+        displaySetValue("aux-transducer-1", data.transducer1, 1);
     }
     if (data.transducer2 != undefined) {
-        displaySetValue("aux-transducer-2", data.transducer2, 2);
+        displaySetValue("aux-transducer-2", data.transducer2, 1);
     }
     if (data.transducer3 != undefined) {
-        displaySetValue("aux-transducer-3", data.transducer3, 2);
+        displaySetValue("aux-transducer-3", data.transducer3, 1);
     }
 
     // Thermocouples
     if (data.thermocouple1 != undefined) {
-        displaySetValue("aux-thermocouple-1", data.thermocouple1, 2);
+        displaySetValue("aux-thermocouple-1", data.thermocouple1, 0);
     }
     if (data.thermocouple2 != undefined) {
-        displaySetValue("aux-thermocouple-2", data.thermocouple2, 2);
+        displaySetValue("aux-thermocouple-2", data.thermocouple2, 0);
     }
     if (data.thermocouple3 != undefined) {
-        displaySetValue("aux-thermocouple-3", data.thermocouple3, 2);
+        displaySetValue("aux-thermocouple-3", data.thermocouple3, 0);
     }
     if (data.thermocouple4 != undefined) {
-        displaySetValue("aux-thermocouple-4", data.thermocouple4, 2);
+        displaySetValue("aux-thermocouple-4", data.thermocouple4, 0);
     }
 
     // Internal temperature
     if (data.internalTemp != undefined) {
-        displaySetValue("aux-internaltemp", data.internalTemp, 2);
+        displaySetValue("aux-internaltemp", data.internalTemp, 1);
     }
 
     // Gas bottle weights
     if (data.gasBottleWeight1 != undefined) {
-        displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 2)
+        displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 1)
     }
     if (data.gasBottleWeight2 != undefined) {
-        displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 2)
+        displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1)
     }
 
     // Rocket load cell weight
@@ -162,12 +205,22 @@ function displayUpdateAuxData(data) {
 function displayUpdateAvionics(data) {
     /// MODULE AVIONICS
     // Indicators
-    if (data.stateFlags != undefined) {
-        if (data.stateFlags.GPSFixFlag != undefined) {
-            displaySetState("av-state-gpsfix", data.stateFlags.GPSFixFlag);
+    if (data?.navigationStatus) {
+        // Nav state
+        if (["NF"].includes(data.navigationStatus)) {
+            // Red
+            displaySetState("av-state-gpsfix", 3);
+        } else if (["DR", "TT"].includes(data.navigationStatus)) {
+            // Yellow
+            displaySetState("av-state-gpsfix", 2);
+        } else if (["D2", "D3", "G2", "G3", "RK"].includes(data.navigationStatus)) {
+            // Green
+            displaySetState("av-state-gpsfix", 1);
         }
+    }
 
-        if (data.stateFlags.dualBoardConnectivityStateFlag != undefined) {
+    if (data?.stateFlags) {
+        if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "av-state-dualboard",
                 data.stateFlags.dualBoardConnectivityStateFlag
@@ -180,33 +233,34 @@ function displayUpdateAvionics(data) {
     // Acceleration (_g_)
     // accelLow has higher resolution, so we use that if the values are within [-16,16]
     if (data.accelX != undefined) {
-        displaySetValue("av-accel-x", data.accelX);
+        displaySetValue("av-accel-x", data.accelX, 1);
     }
 
     if (data.accelY != undefined) {
-        displaySetValue("av-accel-y", data.accelY);
+        displaySetValue("av-accel-y", data.accelY, 1);
     }
 
     if (data.accelZ != undefined) {
-        displaySetValue("av-accel-z", data.accelZ);
+        displaySetValue("av-accel-z", data.accelZ, 1);
     }
 
     // Gyro (deg/s)
     if (data.gyroX != undefined) {
-        displaySetValue("av-gyro-x", data.gyroX);
+        displaySetValue("av-gyro-x", data.gyroX, 1);
     }
 
     if (data.gyroY != undefined) {
-        displaySetValue("av-gyro-y", data.gyroY);
+        displaySetValue("av-gyro-y", data.gyroY, 1);
     }
 
     if (data.gyroZ != undefined) {
-        displaySetValue("av-gyro-z", data.gyroZ);
+        displaySetValue("av-gyro-z", data.gyroZ, 1);
     }
 
-    // Velocity (m/s)
+    // Velocity
     if (data.velocity != undefined) {
-        displaySetValue("av-velocity", data.velocity);
+        displaySetValue("av-velocity", data.velocity, 1);
+        displaySetValue("av-velocity-ft", metresToFeet(data.velocity), 0);
     }
 
     // Mach speed
@@ -217,13 +271,51 @@ function displayUpdateAvionics(data) {
 
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
+    if (data?.flightState) {
+        let stateName = "";
 
-    // TODO:
-    // - Flight timer
-    // - Human readable flight state values
+        if (data.flightState == 0 || data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
+            // Preflight (not ready)
+            stateName = "Pre-flight (not ready)";
+            displaySetActiveFlightState("fs-state-preflight");
 
-    if (data.flightState != undefined) {
-        displaySetString("fs-flightstate", data.flightState);
+        } else if (data.flightState == 1 || data.flightState == "PRE_FLIGHT_FLIGHT_READY") {
+            // Preflight (ready)
+            stateName = "Pre-flight (flight ready)";
+            displaySetActiveFlightState("fs-state-preflight");
+
+        } else if (data.flightState == 2 || data.flightState == "LAUNCH") {
+            // Launch
+            stateName = "Launch";
+            displaySetActiveFlightState("fs-state-launch");
+
+        } else if (data.flightState == 3 || data.flightState == "COAST") {
+            // Coast
+            stateName = "Coast";
+            displaySetActiveFlightState("fs-state-coast");
+
+        } else if (data.flightState == 4 || data.flightState == "APOGEE") {
+            // Apogee
+            stateName = "Apogee";
+            displaySetActiveFlightState("fs-state-apogee");
+
+        } else if (data.flightState == 5 || data.flightState == "DESCENT" || data.flightState == "DECENT") {
+            // Descent
+            stateName = "Descent";
+            displaySetActiveFlightState("fs-state-descent");
+
+        } else if (data.flightState == 6 || data.flightState == "LANDED") {
+            // Landed successfully
+            stateName = "Landed";
+            displaySetActiveFlightState("fs-state-landed");
+
+        } else if (data.flightState == 7 || data.flightState == "ON_NO") {
+            // Oh shit oh fuck what the heck :(
+            stateName = "Aaaaaaah!!!!";
+
+        }
+
+        displaySetString("fs-flightstate", stateName);
     }
 }
 
@@ -231,13 +323,13 @@ function displayUpdatePosition(data) {
     /// MODULE POSITION
     // Altitude
     if (data.altitude != undefined) {
-        displaySetValue("pos-alt-m", data.altitude);
+        displaySetValue("pos-alt-m", data.altitude, 0);
         displaySetValue("pos-alt-ft", metresToFeet(data.altitude), 0);
     }
 
     // Max altitude
     if (data.altitudeMax != undefined) {
-        displaySetValue("pos-maxalt-m", data.altitudeMax);
+        displaySetValue("pos-maxalt-m", data.altitudeMax, 0);
         displaySetValue("pos-maxalt-ft", metresToFeet(data.altitudeMax), 0);
     }
 
@@ -245,7 +337,7 @@ function displayUpdatePosition(data) {
     if (data.GPSLatitude != undefined) {
         // Only update if reading isn't 0
         if (data.GPSLatitude != 0) {
-            displaySetString("pos-gps-lat", data.GPSLatitude);
+            displaySetValue("pos-gps-lat", data.GPSLatitude, 6);
         } else {
             // Mark as stale?
         }   
@@ -254,42 +346,82 @@ function displayUpdatePosition(data) {
     if (data.GPSLongitude != undefined) {
         // Only update if reading isn't 0
         if (data.GPSLongitude != 0) {
-            displaySetString("pos-gps-lon", data.GPSLongitude);
+            displaySetValue("pos-gps-lon", data.GPSLongitude, 6);
         } else {
             // Mark as stale?
         }
+    }
+
+    // Nav state
+    if (data?.navigationStatus) {
+        displaySetString("pos-navstate", data.navigationStatus);
     }
 }
 
 function displayUpdateRadio(data) {
     /// MODULE RADIO
-    // TODO - Connection indicators
-
-    if (data.meta != undefined) {
-        if (data._radio == "av1") {
+    if (data?.meta?.radio) {
+        if (data.meta.radio == "av1") {
             // AVIONICS DATA
-            if (data.meta.rssi != undefined) {
+            // Connection indicators
+            displaySetState("radio-av-state", 1);
+
+            clearTimeout(timeouts?.radioAv1Idle);
+            timeouts.radioAv1Idle = setTimeout(() => {
+                displaySetState("radio-av-state", 2);
+            }, 1000);
+
+            clearTimeout(timeouts?.radioAv1Error);
+            timeouts.radioAv1Error = setTimeout(() => {
+                displaySetState("radio-av-state", 3);
+            }, 5000);
+
+            // Update avionics radio data
+            if (data?.meta?.rssi) {
                 displaySetValue("radio-av-rssi", data.meta.rssi, 0);
             }
 
-            if (data.meta.snr != undefined) {
+            if (data?.meta?.snr) {
                 displaySetValue("radio-av-snr", data.meta.snr, 0);
             }
 
-            if (data.meta.packets != undefined) {
+            if (data?.meta?.packets) {
+                // Lost packets calculation
+                let lostPackets = data.meta.totalPacketCountAv - data.meta.packets;
+                
+                // Display number of packets
                 displaySetValue("radio-av-packets", data.meta.packets, 0);
             }
-        } else if (data._radio == "gse") {
+
+        } else if (data.meta.radio == "gse") {
             // GSE DATA
-            if (data.meta.rssi != undefined) {
+            // Connection indicators
+            displaySetState("radio-gse-state", 1);
+
+            clearTimeout(timeouts?.radioGseIdle);
+            timeouts.radioGseIdle = setTimeout(() => {
+                displaySetState("radio-gse-state", 2);
+            }, 1000);
+
+            clearTimeout(timeouts?.radioGseError);
+            timeouts.radioGseError = setTimeout(() => {
+                displaySetState("radio-gse-state", 3);
+            }, 5000);
+
+            // Update GSE radio data
+            if (data?.meta?.rssi) {
                 displaySetValue("radio-gse-rssi", data.meta.rssi, 0);
             }
 
-            if (data.meta.snr != undefined) {
+            if (data?.meta?.snr) {
                 displaySetValue("radio-gse-snr", data.meta.snr, 0);
             }
 
-            if (data.meta.packets != undefined) {
+            if (data?.meta?.packets) {
+                // Lost packets calculation
+                let lostPackets = data.meta.totalPacketCountGse - data.meta.packets;
+                
+                // Display number of packets
                 displaySetValue("radio-gse-packets", data.meta.packets, 0);
             }
         }
@@ -361,12 +493,12 @@ function validateSelection() {
         popButton.disabled = false;
         popButton.classList.remove("pop_button_inactive");
         popButton.classList.add("pop_button_active");
-        prompt.hidden = true;
+        prompt.style.visibility = 'hidden';
     } else {
         popButton.disabled = true;
         popButton.classList.remove("pop_button_active");
         popButton.classList.add("pop_button_inactive");
-        prompt.hidden = false;
+        prompt.style.visibility = 'visible';
     }
 }
 
@@ -419,7 +551,44 @@ confirmYes.addEventListener("click", () => {
         solenoid.classList.add("solenoid_button_active");
         document.querySelectorAll(".solSwitch").forEach((el) => {
             el.disabled = false;
+            testJSON();
         });
         isSolenoidActive = true;
     }
 });
+
+
+// single operator password page
+window.onload = function() {
+    const password = "HIVE-RMIT";
+    const submit = document.getElementById("operatorSubmit");
+    const incorrectWarning = document.getElementById("passIncorrect");
+    const inputEnter = document.getElementById("operatorPass");
+
+    submit.addEventListener("click", () => {
+        const input = document.getElementById("operatorPass").value;
+        if (input === password) {
+            document.getElementById('m-ops-button').click();
+            incorrectWarning.hidden = true;
+
+        }
+        else {
+            incorrectWarning.hidden = false;
+        }
+    });
+
+    inputEnter.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            
+            if (inputEnter.value === password) {
+                document.getElementById('m-ops-button').click();
+                incorrectWarning.hidden = true;
+    
+            }
+            else {
+                incorrectWarning.hidden = false;
+            }
+        }
+    });
+
+};

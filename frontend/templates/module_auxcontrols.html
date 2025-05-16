@@ -1,82 +1,89 @@
 <!-- Other controls module -->
-<div class="w-full h-full border-2 border-hive/50 relative">
+<div class="w-full h-full border-2 border-hive-dark relative overflow-hidden">
 
 	<div id="confirmationModal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-50">
-		<div class="aux_modal p-6 rounded shadow-lg w-[300px] text-center">
-		  <p id = "confirmText" class="text-lg font-bold mb-4 font-mono">Are you sure you want to continue?</p>
-		  <div class="flex justify-center gap-4">
-			<button id="confirmYes" class="bg-green-500 text-white px-4 py-1 rounded font-mono">Yes</button>
-			<button id="confirmNo" class="bg-red-500 text-white px-4 py-1 rounded font-mono">No</button>
+		<div class="aux_modal p-4 rounded shadow-lg w-[250px] text-center">
+		  <p id="confirmText" class="text-lg font-bold mb-2 font-mono">Are you sure you want to continue?</p>
+		  <div class="flex justify-center gap-3">
+			<button id="confirmYes" class="bg-green-500 text-white px-3 py-1 rounded font-mono">Yes</button>
+			<button id="confirmNo" class="bg-red-500 text-white px-3 py-1 rounded font-mono">No</button>
 		  </div>
 		</div>
-	  </div>
+	</div>
 
-	<h2 class="text-center p-2">Aux System Controls</h2>
-	
-	<div class = "grid grid-rows-2 items-center w-full h-full">
-		<div class = "grid grid-rows-2 items-center w-full h-full">
+	<h2 class="text-center p-2 text-sm">Aux System Controls</h2>
 
-			<div class = "flex justify-center items-center">
-				<button id = "solenoidButton" class = "solenoid_button_inactive w-55 h-10">
-					<span class = "text-sm font-mono">Manual Solenoid Activation</span>
+
+	<!-- Solenoid buttons-->
+	<div class="grid grid-rows-2 items-center w-full h-full">
+		<div class="grid grid-rows-2 items-center w-full h-full">
+
+			<div class="flex justify-center items-center">
+				<button id="solenoidButton" class="solenoid_button_inactive w-40 h-8 text-xs">
+					<span class="font-mono">Manual Solenoid Activation</span>
 				</button>
 			</div>
 
-			<div class = "grid grid-cols-6 items-center w-full h-full">
+			<div class="grid grid-cols-6 items-center w-full h-full gap-2">
 				
-				<div class = "flex flex-col justify-center items-center">
-					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 1</p>
+				<div class="flex flex-col justify-center items-center">
+					<p class="text-white font-mono opacity-60 text-xs p-1">Solenoid 1</p>
 					<label class="switch">
-						<input class= "solSwitch" type="checkbox" disabled>
+						<input class="solSwitch" type="checkbox" disabled solenoid-id="1">
 						<span class="slider round"></span>
-					  </label>
+					</label>
 				</div>
 
-				<div class = "flex flex-col justify-center items-center">
-					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 2</p>
+				<div class="flex flex-col justify-center items-center">
+					<p class="text-white font-mono opacity-60 text-xs p-1">Solenoid 2</p>
 					<label class="switch">
-						<input class= "solSwitch" type="checkbox" disabled>
+						<input class="solSwitch" type="checkbox" disabled solenoid-id="2">
 						<span class="slider round"></span>
-					  </label>
+					</label>
 				</div>
 
-				<div class = "flex flex-col justify-center items-center">
-					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 3</p>
+				<div class="flex flex-col justify-center items-center">
+					<p class="text-white font-mono opacity-60 text-xs p-1">Solenoid 3</p>
 					<label class="switch">
-						<input class= "solSwitch" type="checkbox" disabled>
+						<input class="solSwitch" type="checkbox" disabled solenoid-id="3">
 						<span class="slider round"></span>
-					  </label>
+					</label>
 				</div>
 
-				<div class = "flex flex-col justify-center items-center">
-					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 4</p>
+				<div class="flex flex-col justify-center items-center">
+					<p class="text-white font-mono opacity-60 text-xs p-1">Solenoid 4</p>
 					<label class="switch">
-						<input class= "solSwitch" type="checkbox" disabled>
+						<input class="solSwitch" type="checkbox" disabled>
 						<span class="slider round"></span>
-					  </label>
+					</label>
 				</div>
 
-				<div class = "flex flex-col justify-center items-center">
-					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 5</p>
+				<div class="flex flex-col justify-center items-center">
+					<p class="text-white font-mono opacity-60 text-xs p-1">Solenoid 5</p>
 					<label class="switch">
-						<input class= "solSwitch" type="checkbox" disabled>
+						<input class="solSwitch" type="checkbox" disabled>
 						<span class="slider round"></span>
-					  </label>
+					</label>
 				</div>
 
-				<div class = "flex flex-col justify-center items-center">
-					<p class = "text-white font-mono opacity-60 text-xs p-2">Solenoid 6</p>
+				<div class="flex flex-col justify-center items-center">
+					<p class="text-white font-mono opacity-60 text-xs p-1">Solenoid 6</p>
 					<label class="switch">
-						<input class= "solSwitch" type="checkbox" disabled>
+						<input class="solSwitch" type="checkbox" disabled>
 						<span class="slider round"></span>
-					  </label>
+					</label>
 				</div>
-
 
 			</div>
 		</div>
 
-		<p>Other controls if needed</p>
+		<div class="flex flex-row gap-2 w-full p-2">
+			<h3 class="text-center p-1 text-sm">Camera Power</h3>
+			<label class="switch">
+				<input type="checkbox">
+				<span class="slider round"></span>
+			</label>
+		</div>
 
 	</div>
 </div>

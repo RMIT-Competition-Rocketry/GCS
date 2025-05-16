@@ -2,63 +2,62 @@
 <section class="m-2 gap-1 font-mono flex flex-col h-full justify-evenly p-0 pr-2 pb-2">
     <div class="w-full flex gap-4 justify-start items-center">
         <p class="font-bold text-hive">&nbsp;AV</p>
-        <div class="indicator-boolean mx-0 radio-av-state"></div>
-        <div class="flex flex-row gap-4 grow justify-between">
-            <p class=>
+        <div class="indicator-state mx-0 radio-av-state"></div>
+        <div class="flex flex-row gap-2 grow justify-between">
+            <label>
                 RSSI:<input
                     readonly
                     autocomplete="off"
-                    class="radio-av-rssi text-center"
-                    size="5"
+                    class="radio-av-rssi text-right"
+                    size="4"
                 />dBm
-            </p>
-            <p>
+            </label>
+            <label>
                 SNR:<input
                     readonly
                     autocomplete="off"
-                    class="radio-av-snr text-center"
-                    size="5"
-                />dB
-            </p>
-            <p>
+                    class="radio-av-snr"
+                    size="4"
+                />
+            </label>
+            <label>
                 Packets:<input
                     readonly
                     autocomplete="off"
-                    class="radio-av-packets text-center"
-                    size="5"
+                    class="radio-av-packets text-right"
+                    size="12"
                 />
-            </p>
+            </label>
         </div>
     </div>
     <div class="w-full flex gap-4 justify-between items-center">
         <p class="font-bold text-hive">GSE</p>
-        <div class="indicator-boolean mx-0 radio-gse-state"></div>
-        
-        <div class="flex flex-row gap-4 grow justify-between">
-            <p>
+        <div class="indicator-state mx-0 radio-gse-state"></div>
+        <div class="flex flex-row gap-2 grow justify-between">
+            <label>
                 RSSI:<input
                     readonly
                     autocomplete="off"
-                    class="radio-gse-rssi text-center"
-                    size="5"
+                    class="radio-gse-rssi text-right"
+                    size="4"
                 />dBm
-            </p>
-            <p>
+            </label>
+            <label>
                 SNR:<input
                     readonly
                     autocomplete="off"
-                    class="radio-gse-snr text-center"
-                    size="5"
-                />dB
-            </p>
-            <p>
+                    class="radio-gse-snr"
+                    size="4"
+                />
+            </label>
+            <label>
                 Packets:<input
                     readonly
                     autocomplete="off"
-                    class="radio-gse-packets text-center"
-                    size="5"
+                    class="radio-gse-packets text-right"
+                    size="12"
                 />
-            </p>
+            </label>
         </div>
     </div>
 </section>

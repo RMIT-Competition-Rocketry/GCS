@@ -1,19 +1,61 @@
 <!-- Flight state module -->
 <!-- Includes time, flight state indicator -->
-<div class="w-full h-full border-t-2 border-hive/50 flex flex-col font-mono">
-	<h2>Flight State</h2>
-	<div class="grow flex flex-col gap-2 mt-4 px-2">
-		<div class="border-2 border-hive/50 bg-hive/20 grow">
+<div class="w-full h-full flex flex-col font-mono border-t-2 border-hive-dark">
+	<h2 class="">Flight Timeline</h2>
+	<div class="grow flex flex-col gap-2 px-2 mt-4">
+		<div class="border-2 border-hive-dark text-center bg-hive/20 grow grid grid-cols-6 p-2 items-center justify-center -z-50">
+			<div class="indicator-flightstate fs-state-preflight">
+				<div class="indicator-state"></div>
+			</div>
+			<div class="indicator-flightstate fs-state-launch">
+				<div class="indicator-state"></div>
+			</div>
+			<div class="indicator-flightstate fs-state-coast">
+				<div class="indicator-state"></div>
+			</div>
+			<div class="indicator-flightstate fs-state-apogee">
+				<div class="indicator-state"></div>
+			</div>
+			<div class="indicator-flightstate fs-state-descent">
+				<div class="indicator-state"></div>
+			</div>
+			<div class="indicator-flightstate fs-state-landed">
+				<div class="indicator-state"></div>
+			</div>
+			<p>
+				PRE-FLIGHT
+			</p>
+			<p>
+				LAUNCH
+			</p>
+			<p>
+				COAST
+			</p>
+			<p>
+				APOGEE
+			</p>
+			<p>
+				DESCENT
+			</p>
+			<p>
+				LANDED
+			</p>
 		</div>
-		<div class="grid grid-cols-3 gap-4">
-			<p class="flex gap-1 items-center col-span-2">
+		<div class="flex flex-row gap-4">
+			<p class="flex gap-1 items-center grow">
 				<span>State:</span>
 				<input readonly autocomplete="off" class="fs-flightstate text-center text-base">
 			</p>
-			<p class="flex gap-1 items-center">
-				<span>Time:</span>
-				<input readonly autocomplete="off" class="fs-time">
-			</p>
+			<div>
+				<p class="flex gap-1 items-center">
+					<span>System Uptime:</span>
+					<input readonly autocomplete="off" class="fs-time-local text-right" size="10">s
+				</p>
+				<!--<p class="flex gap-1 items-center">
+					<span>GSE Time:</span>
+					<input readonly autocomplete="off" class="fs-time-api text-right" size="8">s
+				</p>-->
+			</div>
 		</div>
 	</div>
 </div>
