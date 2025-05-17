@@ -1,95 +1,86 @@
 <!-- Auxilliary data module (GSE) -->
 <!-- Includes transducers, thermocouples, internal temperature, gas bottle weights -->
-<div class="w-full h-full flex flex-col font-mono border-t-2 border-hive/50">
+<div class="w-full h-full flex flex-col font-mono border-t-2 border-hive-dark">
 	<h2>Auxilliary (GSE)</h2>
 	<div class="grid grid-cols-2 grow gap-2 h-full">
 		<!-- Transducers -->
 		<section class="flex flex-col">
-			<h3>Transducers (Bar)</h3>
+			<h3>Transducer Readings</h3>
 			<div class="grow w-full h-full">
 				<svg id="graph-aux-transducers" class="w-full h-full" width="0" height="0"></svg>
 			</div>
-			<div class="grid grid-cols-3 gap-4">
-				<p class="flex gap-1 items-center">
-					<span>1:</span>
-					<input readonly autocomplete="off" class="aux-transducer-1 border-b-red-500 border-b-2 text-center">
-				</p>
-				<p class="flex gap-1 items-center">
-					<span>2:</span>
-					<input readonly autocomplete="off" class="aux-transducer-2 border-b-green-500 border-b-2 text-center">
-				</p>
-				<p class="flex gap-1 items-center">
-					<span>3:</span>
-					<input readonly autocomplete="off" class="aux-transducer-3 border-b-blue-500 border-b-2 text-center">
-				</p>
+			<div class="flex flex-row gap-2 grow justify-evenly text-center">
+				<label class="w-1/3">
+					N<sub>2</sub>O&nbsp;#1:<br><input readonly autocomplete="off" class="aux-transducer-1 border-b-red-500 border-b-2" size="5">bar
+				</label>
+				<label class="w-1/3">
+					N<sub>2</sub>O&nbsp;#2:<br><input readonly autocomplete="off" class="aux-transducer-2 border-b-green-500 border-b-2" size="5">bar
+				</label>
+				<label class="w-1/3">
+					O<sub>2</sub>:<br><input readonly autocomplete="off" class="aux-transducer-3 border-b-blue-500 border-b-2" size="5">bar
+				</label>
 			</div>
 		</section>
 
 		<!-- Thermocouples -->
 		<section class="flex flex-col">
-			<h3>Thermocouples (&deg;C)</h3>
+			<h3>Thermocouple Readings</h3>
 			<div class="grow w-full h-full">
 				<svg id="graph-aux-thermocouples" class="w-full h-full" width="0" height="0"></svg>
 			</div>
-			<div class="grid grid-cols-4 gap-2">
-				<p class="flex gap-1 items-center">
-					<span>1:</span>
-					<input readonly autocomplete="off" class="aux-thermocouple-1 border-b-red-500 border-b-2 text-center">
-				</p>
-				<p class="flex gap-1 items-center">
-					<span>2:</span>
-					<input readonly autocomplete="off" class="aux-thermocouple-2 border-b-green-500 border-b-2 text-center">
-				</p>
-				<p class="flex gap-1 items-center">
-					<span>3:</span>
-					<input readonly autocomplete="off" class="aux-thermocouple-3 border-b-blue-500 border-b-2 text-center">
-				</p>
-				<p class="flex gap-1 items-center">
-					<span>4:</span>
-					<input readonly autocomplete="off" class="aux-thermocouple-4 border-b-white border-b-2 text-center">
-				</p>
+			<div class="flex flex-row gap-2 grow justify-evenly text-center">
+				<label class="w-1/4">
+					N<sub>2</sub>O&nbsp;(int):<br><input readonly autocomplete="off" class="aux-thermocouple-1 border-b-red-500 border-b-2" size="4">&deg;C
+				</label>
+				<label class="w-1/4">
+					N<sub>2</sub>O&nbsp;#1:<br><input readonly autocomplete="off" class="aux-thermocouple-2 border-b-green-500 border-b-2" size="4">&deg;C
+				</label>
+				<label class="w-1/4">
+					N<sub>2</sub>O&nbsp;#2:<br><input readonly autocomplete="off" class="aux-thermocouple-3 border-b-blue-500 border-b-2" size="4">&deg;C
+				</label>
+				<label class="w-1/4">
+					O<sub>2</sub>:<br><input readonly autocomplete="off" class="aux-thermocouple-4 border-b-white border-b-2" size="4">&deg;C
+				</label>
 			</div>
 		</section>
 	</div>
 	<div class="grid grid-cols-2 grow gap-2 h-full">
 		<!-- Internal temperature -->
 		<section class="flex flex-col">
-			<h3>GSE Enclosure Temp (&deg;C)</h3>
+			<h3>GSE-Enclosure Thermocouple</h3>
 			<div class="grow w-full h-full">
 				<svg id="graph-aux-internaltemp" class="w-full h-full" width="0" height="0"></svg>
 			</div>
-			<p class="flex gap-1 items-center">
-				<span>Temp:</span>
-				<input readonly autocomplete="off" class="aux-internaltemp border-b-red-500 border-b-2 text-center">
-				<span>&deg;C</span>
-			</p>
+			<label class="w-full text-center">
+				Temperature:<input readonly autocomplete="off" class="aux-internaltemp border-b-red-500 border-b-2" size="6">&deg;C
+			</label>
 		</section>
 
 		<!-- Gas bottle weights -->
 		<section class="flex flex-col">
-			<h3>Gas Bottles (kg)</h3>
+			<h3>Gas-Bottle Masses</h3>
 			<div class="grow w-full h-full">
 				<svg id="graph-aux-gasbottles" class="w-full h-full" width="0" height="0"></svg>
 			</div>
-			<div class="grid grid-cols-2 gap-4">
-				<p class="flex gap-1 items-center">
-					<span>1:</span>
-					<input readonly autocomplete="off" class="aux-gasbottle-1 border-b-red-500 border-b-2 text-center">
-				</p>
-				<p class="flex gap-1 items-center">
-					<span>2:</span>
-					<input readonly autocomplete="off" class="aux-gasbottle-2 border-b-green-500 border-b-2 text-center">
-				</p>
+			<div class="flex flex-row gap-4 grow justify-evenly">
+				<label>
+					N<sub>2</sub>O&nbsp;#1:<input readonly autocomplete="off" class="aux-gasbottle-1 border-b-red-500 border-b-2" size="5">kg
+				</label>
+				<label>
+					N<sub>2</sub>O&nbsp;#2:<input readonly autocomplete="off" class="aux-gasbottle-2 border-b-green-500 border-b-2" size="5">kg
+				</label>
 			</div>
 		</section>
 	</div>
 
 	<!-- Rocket load cell weight -->
-	<section class="flex flex-col">
-		<p class="flex gap-1 items-center">
-			<span>Rocket Load Cell Weight:</span>
-			<input readonly autocomplete="off" class="aux-loadcell">
-			<span>kg</span>
-		</p>
-	</section>
+	 <div class="grid grid-cols-2 gap-2 grow">
+		<label class="text-center">
+			Rocket Mass:<input readonly autocomplete="off" class="aux-loadcell" size="10">kg
+		</label>
+		<label class="text-center">
+			Gas-Bottle Fill Timer:<input readonly autocomplete="off" class="aux-gasbottle-time" size="4">s
+		</label>
+	 </div>
+	
 </div>

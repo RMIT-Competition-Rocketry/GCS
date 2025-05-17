@@ -3,16 +3,13 @@ import { GLTFLoader } from "./GLTFLoader.js";
 
 let rocket = null;
 let quat = new THREE.Quaternion();
-let lastQuaternion = new THREE.Quaternion(); // backup for packet loss
+let lastQuaternion = new THREE.Quaternion();
 let euler = new THREE.Euler();
-
 let hasReceivedQuaternion = false;
 
-const deltaTime = 0.2;
+let xArrow, yArrow, zArrow;
 
 window.addEventListener("DOMContentLoaded", () => {
-    console.log(" Loaded rocket_viewer.js");
-
     const container = document.getElementById("rocketViewerContainer");
     const canvas = document.getElementById("rocketCanvas");
 
@@ -31,12 +28,11 @@ window.addEventListener("DOMContentLoaded", () => {
     const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 2, 8);
 
-    const lightMultiplier = 3;
     const lights = [
-        new THREE.DirectionalLight(0xffffff, 12 * lightMultiplier),
-        new THREE.DirectionalLight(0xffffff, 8 * lightMultiplier),
-        new THREE.SpotLight(0xffffff, 12 * lightMultiplier),
-        new THREE.HemisphereLight(0xffffff, 0x333333, 2.5 * lightMultiplier)
+        new THREE.DirectionalLight(0xffffff, 36),
+        new THREE.DirectionalLight(0xffffff, 24),
+        new THREE.SpotLight(0xffffff, 36),
+        new THREE.HemisphereLight(0xffffff, 0x333333, 7.5)
     ];
     lights[0].position.set(15, 30, 20);
     lights[1].position.set(-15, 20, -10);
@@ -61,27 +57,40 @@ window.addEventListener("DOMContentLoaded", () => {
     new GLTFLoader().load(
         "/static/models/rocket_model.glb",
         gltf => {
-            rocket = gltf.scene;
-            rocket.rotation.y = Math.PI / 2;
-            rocket.scale.set(2, 2, 2);
+            const model = gltf.scene;
+            model.scale.set(2, 2, 2);
 
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.sub(center);
+
+            rocket = new THREE.Group();
+            rocket.add(model);
             scene.add(rocket);
 
-            const box = new THREE.Box3().setFromObject(rocket);
-            const center = box.getCenter(new THREE.Vector3());
+            // Body-frame axis arrows
+            const origin = new THREE.Vector3(0, 0, 0);
+            xArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), origin, 2, 0xff0000);
+            yArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), origin, 2, 0x00ff00);
+            zArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), origin, 2, 0x0000ff);
+            
+            xArrow.visible = false;
+            yArrow.visible = false;
+            zArrow.visible = false;
+            scene.add(xArrow, yArrow, zArrow);
+
             const size = box.getSize(new THREE.Vector3()).length();
+            camera.position.set(0, 0, size * 1.5);
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-            camera.position.copy(center);
-            camera.position.z += size * 1.3;
-            camera.lookAt(center);
-
-            renderScene();
+            animate();
         },
-        xhr => console.log(` Loading: ${((xhr.loaded / xhr.total) * 100).toFixed(1)}%`),
-        err => console.error(" Error loading model:", err)
+        xhr => console.log(`Loading: ${((xhr.loaded / xhr.total) * 100).toFixed(1)}%`),
+        err => console.error("Error loading model:", err)
     );
 
-    function renderScene() {
+    function animate() {
+        requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
 
@@ -89,58 +98,69 @@ window.addEventListener("DOMContentLoaded", () => {
         renderer.setSize(container.clientWidth, container.clientHeight);
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
-        renderScene();
     }
 
     window.addEventListener("resize", onResize);
 
-    // === LIVE ORIENTATION UPDATER ===
     function rocketUpdate(data) {
         if (!rocket || !data) return;
 
         const pitchEl = document.getElementById("pitchDisplay");
-        const yawEl = document.getElementById("yawDisplay");
         const rollEl = document.getElementById("rollDisplay");
+        const yawEl = document.getElementById("yawDisplay");
 
         if (
-            data.qx !== undefined &&
-            data.qy !== undefined &&
-            data.qz !== undefined &&
-            data.qw !== undefined
+            typeof data.qx === "number" &&
+            typeof data.qy === "number" &&
+            typeof data.qz === "number" &&
+            typeof data.qw === "number"
         ) {
-            //  Valid quaternion received
             quat.set(data.qx, data.qy, data.qz, data.qw).normalize();
             lastQuaternion.copy(quat);
             hasReceivedQuaternion = true;
         } else if (hasReceivedQuaternion) {
-            console.warn(" Quaternion packet missing. Reusing last known orientation.");
             quat.copy(lastQuaternion);
         } else {
-            console.error(" No quaternion data has ever been received.");
+            console.error("No quaternion data has ever been received.");
             if (pitchEl && yawEl && rollEl) {
                 pitchEl.textContent = "Pitch: — (no data)";
-                yawEl.textContent = "Yaw:   — (no data)";
                 rollEl.textContent = "Roll:  — (no data)";
+                yawEl.textContent = "Yaw:   — (no data)";
             }
             return;
         }
 
-        //  Apply rotation
+        // No correction needed: assuming rocket points +Y already
         rocket.setRotationFromQuaternion(quat);
 
-        //  Convert to Euler angles for HUD
+        // Update body-frame axes based on raw quaternion
+        const bodyX = new THREE.Vector3(1, 0, 0).applyQuaternion(quat);
+        const bodyY = new THREE.Vector3(0, 1, 0).applyQuaternion(quat);
+        const bodyZ = new THREE.Vector3(0, 0, 1).applyQuaternion(quat);
+
+        const rocketPosition = new THREE.Vector3();
+        rocket.getWorldPosition(rocketPosition);
+
+        xArrow.position.copy(rocketPosition);
+        xArrow.setDirection(bodyX);
+
+        yArrow.position.copy(rocketPosition);
+        yArrow.setDirection(bodyY);
+
+        zArrow.position.copy(rocketPosition);
+        zArrow.setDirection(bodyZ);
+
+        // Euler angles for HUD
         euler.setFromQuaternion(quat, 'XYZ');
         const pitch = THREE.MathUtils.radToDeg(euler.x);
-        const yaw = THREE.MathUtils.radToDeg(euler.y);
-        const roll = THREE.MathUtils.radToDeg(euler.z);
+        const yaw   = THREE.MathUtils.radToDeg(euler.y);
+        const roll  = THREE.MathUtils.radToDeg(euler.z);
 
         if (pitchEl && yawEl && rollEl) {
             pitchEl.textContent = `Pitch: ${pitch.toFixed(1)}°`;
             yawEl.textContent   = `Yaw:   ${yaw.toFixed(1)}°`;
             rollEl.textContent  = `Roll:  ${roll.toFixed(1)}°`;
         }
-
-        renderScene();
     }
 
     window.rocketUpdate = rocketUpdate;

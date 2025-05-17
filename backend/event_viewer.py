@@ -353,7 +353,7 @@ class AVPacket(Packet):
                         FlightState_pb.FlightState.LAUNCH | \
                         FlightState_pb.FlightState.COAST | \
                         FlightState_pb.FlightState.APOGEE | \
-                        FlightState_pb.FlightState.DECENT | \
+                        FlightState_pb.FlightState.DESCENT | \
                         FlightState_pb.FlightState.LANDED:
                     slogger.info(
                         f"Flight state changed to {flight_state_name}")
@@ -403,7 +403,8 @@ class AVPacket(Packet):
 
         # State Flags
         # Check if the flight state has changed
-        self._process_flight_state(PROTO_DATA)
+        if PROTO_DATA.HasField("flightState"):
+            self._process_flight_state(PROTO_DATA)
 
         # Now list any other changes that could have happened.
         # Info level for 0 -> 1 and warning for 1 -> 0
@@ -660,38 +661,38 @@ class AV_TO_GCS_DATA_2(Packet):
         GPS_longitude = PROTO_DATA.GPS_longitude
         # Add condition for to only work when in state:
         # FlightState_pb.FlightState.LANDED
-        if ((GPS_latitude != self._GPS_latitude_old or
-                GPS_longitude != self._GPS_longitude_old) and
-            PROTO_DATA.state_flags.GPS_fix_flag and
-                PROTO_DATA.flightState == FlightState_pb.FlightState.LANDED):
-            slogger.info(
-                f"GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
-            maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
-            result: Optional[str] = None
-            try:
-                valid = True
-                try:
-                    # GPS Unimplimented
-                    if float(GPS_latitude) == 0.0 or float(GPS_longitude) == 0.0:
-                        valid = False
-                except ValueError:
-                    valid = False
-                if valid:
-                    result = subprocess.run(
-                        ['qrencode', maps_url, '-t', 'ANSI'],
-                        check=True,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        text=True
-                    )
-                self._GPS_latitude_old = GPS_latitude
-                self._GPS_longitude_old = GPS_longitude
-            except Exception as e:
-                slogger.error(
-                    f"Failed to generate QR code for GPS coordinates: {GPS_latitude}, {GPS_longitude}")
-            if result is not None:
-                for line in result.stdout.split("\n"):
-                    slogger.info(line)
+        # if ((GPS_latitude != self._GPS_latitude_old or
+        #         GPS_longitude != self._GPS_longitude_old) and
+        #     PROTO_DATA.state_flags.GPS_fix_flag and
+        #         PROTO_DATA.flightState == FlightState_pb.FlightState.LANDED):
+        #     slogger.info(
+        #         f"GPS coordinates received: {GPS_latitude}, {GPS_longitude}")
+        #     maps_url = f"https://www.google.com/maps/place/{GPS_latitude},{GPS_longitude}"
+        #     result: Optional[str] = None
+        #     try:
+        #         valid = True
+        #         try:
+        #             # GPS Unimplimented
+        #             if float(GPS_latitude) == 0.0 or float(GPS_longitude) == 0.0:
+        #                 valid = False
+        #         except ValueError:
+        #             valid = False
+        #         if valid:
+        #             result = subprocess.run(
+        #                 ['qrencode', maps_url, '-t', 'ANSI'],
+        #                 check=True,
+        #                 stdout=subprocess.PIPE,
+        #                 stderr=subprocess.PIPE,
+        #                 text=True
+        #             )
+        #         self._GPS_latitude_old = GPS_latitude
+        #         self._GPS_longitude_old = GPS_longitude
+        #     except Exception as e:
+        #         slogger.error(
+        #             f"Failed to generate QR code for GPS coordinates: {GPS_latitude}, {GPS_longitude}")
+        #     if result is not None:
+        #         for line in result.stdout.split("\n"):
+        #             slogger.info(line)
 
         # slogger.debug("AV_TO_GCS_DATA_2 packet received")
 

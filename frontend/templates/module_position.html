@@ -1,25 +1,24 @@
 <!-- Position module -->
 <!-- Includes altitude, gps -->
 <div
-    class="w-full h-full flex flex-col font-mono border-t-2 border-hive/50 gap-2"
+    class="w-full h-full flex flex-col font-mono border-t-2 border-hive-dark gap-2"
 >
     <h2>Position</h2>
 
     <!-- GPS -->
-    <section class="p-0 px-2 grow w-full">
-        <div class="flex flex-row gap-4 grow justify-evenly">
-            <p>
-                GPS:
-                <input readonly autocomplete="off" class="pos-gps-lat" size="16" />
-            ,
-                <input readonly autocomplete="off" class="pos-gps-lon" size="16" />
-            </p>
-        </div>
+    <section class="p-0 w-full flex flex-row gap-2 justify-evenly text-sm">
+        <label>
+            Latitude:<input readonly autocomplete="off" class="pos-gps-lat" size="11" />deg
+        </label>
+        <label>
+            Longitude:<input readonly autocomplete="off" class="pos-gps-lon" size="11" />deg
+        </label>
+        <label>Nav State:<input readonly autocomplete="off" class="pos-navstate" size="3"></label>
     </section>
 
     <!-- Altitude -->
-    <section class="flex flex-col grow p-0">
-        <h3>Altitude (ft)</h3>
+    <section class="h-full flex flex-col grow p-0">
+        <h3>Altitude</h3>
         <div class="grow w-full h-full">
             <svg
                 id="graph-pos-alt"
@@ -28,29 +27,21 @@
                 height="0"
             ></svg>
         </div>
-        <div class="flex gap-1 items-center px-2">
-            <p class="text-right">&nbsp;&nbsp;&nbsp;&nbsp;Altitude:</p>
-            <input readonly autocomplete="off" class="pos-alt-ft border-b-red-500 border-b-2" />
-            <p>'</p>
-            <input
+        <div class="flex gap-4 items-center px-2 justify-evenly text-sm">
+            <label>Current Altitude:&nbsp;<input
                 readonly
                 autocomplete="off"
-                class="pos-alt-m"
-            />
-            <p class="mr-4">m</p>
-            
+                class="pos-alt-ft border-b-red-500 border-b-2"
+                size="10"
+            />ft&nbsp;&nbsp;<input
+            readonly
+            autocomplete="off"
+            class="pos-alt-m"
+            size="10"
+        />m</label>
         </div>
-        <div class="flex gap-1 items-center px-2">
-            <p class="text-right">Max&nbsp;Altitude:</p>
-            <input readonly autocomplete="off" class="pos-maxalt-ft" />
-            <p>'</p>
-            <input
-                readonly
-                autocomplete="off"
-                class="pos-maxalt-m"
-            />
-            <p class="mr-4">m</p>
-            
+        <div class="flex gap-4 items-center px-2 justify-evenly font-bold">
+            <label>&nbsp;&nbsp;&nbsp;&nbsp;Max Altitude:&nbsp;<input readonly autocomplete="off" class="pos-maxalt-ft" size="10" />ft&nbsp;&nbsp;<input readonly autocomplete="off" class="pos-maxalt-m" size="10" />m</label>
         </div>
     </section>
 </div>
