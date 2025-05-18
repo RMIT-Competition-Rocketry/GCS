@@ -17,6 +17,7 @@
     --color-emerald-600: oklch(.596 .145 163.225);
     --color-blue-500: oklch(.623 .214 259.815);
     --color-violet-800: oklch(.432 .232 292.759);
+    --color-pink-400: oklch(.718 .202 349.761);
     --color-zinc-200: oklch(.92 .004 286.32);
     --color-zinc-700: oklch(.37 .013 285.805);
     --color-black: #000;
@@ -779,6 +780,10 @@
     top: calc(var(--spacing) * 0);
   }
 
+  .top-10 {
+    top: calc(var(--spacing) * 10);
+  }
+
   .left-1 {
     left: calc(var(--spacing) * 1);
   }
@@ -1001,6 +1006,10 @@
     display: block;
   }
 
+  .contents {
+    display: contents;
+  }
+
   .flex {
     display: flex;
   }
@@ -1011,6 +1020,10 @@
 
   .hidden {
     display: none;
+  }
+
+  .inline {
+    display: inline;
   }
 
   .table {
@@ -1366,6 +1379,10 @@
     background-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
   }
 
+  .bg-pink-400\/40 {
+    background-color: color-mix(in oklab, var(--color-pink-400) 40%, transparent);
+  }
+
   .bg-red-500 {
     background-color: var(--color-red-500);
   }
@@ -1519,6 +1536,10 @@
   .font-medium {
     --tw-font-weight: var(--font-weight-medium);
     font-weight: var(--font-weight-medium);
+  }
+
+  .text-blue-500 {
+    color: var(--color-blue-500);
   }
 
   .text-emerald-300 {
