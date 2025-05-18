@@ -515,7 +515,6 @@ const confirmYes = document.getElementById("confirmYes");
 const confirmNo = document.getElementById("confirmNo");
 const confirmText = document.getElementById("confirmText");
 const solenoidCommand = document.getElementById("solenoidCommand");
-
 let isSolenoidActive = false;
 
 // Modal popup
@@ -542,21 +541,25 @@ confirmYes.addEventListener("click", () => {
 
     // If solenoid is active, deactivate it and reset switches
     if (isSolenoidActive) {
-        solenoidCommand.disabled = true;
+        solenoidCommand.hidden = true;
         solenoid.classList.remove("solenoid_button_active");
+        solenoid.innerHTML = "Enable Manual Solenoid";
         document.querySelectorAll(".solSwitch").forEach((el) => {
+            el.checked = false;
             el.disabled = true;
         });
         isSolenoidActive = false;
     } else {
         // If solenoid is inactive, activate it and switch other items
         solenoid.classList.add("solenoid_button_active");
-        solenoidCommand.disabled = false;
+        solenoid.innerHTML = "Disable Manual Solenoid";
+        solenoidCommand.hidden = false;
         document.querySelectorAll(".solSwitch").forEach((el) => {
             el.disabled = false;
         });
         isSolenoidActive = true;
     }
+    solenoidPayload();
 });
 
 // Send solenoid JSON packets to the websocket when clicked
@@ -570,15 +573,9 @@ solenoidCommand.addEventListener("click", () => {
         solenoidCommand.classList.add("opacity-60");
         
     }, 150);
-    document.querySelectorAll(".solSwitch").forEach((el, index) => {
-        console.log(`Solenoid ${index + 1}: ${el.checked}`);
-        solenoidBools[index] = el.checked;
-    });
 
-    solenoidPayload(solenoidBools);
+    solenoidPayload();
 });
-
-
 
 
 // single operator password page

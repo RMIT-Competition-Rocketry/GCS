@@ -434,14 +434,23 @@ apiSocket.addEventListener('message', (event) => {
 });
 
 // Solenoid payload to websocket
-function solenoidPayload(solenoidBools) {
-    const[s1, s2, s3] = solenoidBools;
+function solenoidPayload() {
+
+    const solenoidPayload = [isSolenoidActive];
+
+    document.querySelectorAll(".solSwitch").forEach((el, index) => {
+        console.log(`Solenoid ${index + 1}: ${el.checked}`);
+        solenoidPayload[index + 1] = el.checked;
+    });
+
+    
     const payload = {
         id: 9,
         data: {
-            solenoid1High: s1,
-            solenoid2High: s2,
-            solenoid3High: s3,
+            manualEnabled: isSolenoidActive,
+            solenoid1High: solenoidPayload[1],
+            solenoid2High: solenoidPayload[2],
+            solenoid3High: solenoidPayload[3],
         }
     }
 
