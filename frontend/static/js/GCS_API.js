@@ -22,6 +22,7 @@ var then, now, fpsInterval;
 // Logging
 const logSocket = true;
 const logIncomingMessages = false;
+var errors = [];
 
 // Global display values
 var altitudeMax;
@@ -153,7 +154,6 @@ function API_OnMessage(event) {
         apiLatest = JSON.parse(event.data);
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
 
-        apiData.errors = [];
         // Flag data for errors
         checkErrorConditions(apiData);
 
@@ -219,54 +219,81 @@ function API_OnMessage(event) {
 }
 
 function checkErrorConditions(apiData) {
-    if (false) {
-        if (apiData.errorFlags != undefined) {
-            Object.entries(apiData.errorFlags).forEach(([key, value]) => {
-                if (value === true) {
-                    logMessage(`${key} flag raised`, "error");
-                    apiData.errors.push(key);
-                }
-            });
-        }
+    if (apiData.errorFlags != undefined) {
+        Object.entries(apiData.errorFlags).forEach(([key, value]) => {
+        if (value === true && !errors.includes(key)) {
+            logMessage(`${key} flag raised`, "error");
+            errors.push(key);
+            }
+        });
+    }
 
-        if (apiData.id === 6) {
-            if (apiData.thermocouple1 > 34.5 && apiData.errors.indexOf("thermocouple1Error") == -1) {
-                logMessage("thermocouple1Error flag raised", "error");
-                apiData.errors.push("thermocouple1Error");
-            }
-            if (apiData.thermocouple2 > 34.5 && apiData.errors.indexOf("thermocouple2Error") == -1) {
-                logMessage("thermocouple2Error flag raised", "error");
-                apiData.errors.push("thermocouple2Error");
-            }
-            if (apiData.thermocouple3 > 34.5 && apiData.errors.indexOf("thermocouple3Error") == -1) {
-                logMessage("thermocouple3Error flag raised", "error");
-                apiData.errors.push("thermocouple3Error");
-            }
-            if (apiData.thermocouple4 > 34.5 && apiData.errors.indexOf("thermocouple4Error") == -1) {
-                logMessage("thermocouple4Error flag raised", "error");
-                apiData.errors.push("thermocouple4Error");
-            }
-            
-            if (apiData.transducer1 > 34.5 && apiData.errors.indexOf("transducer1Error") == -1) {
-                logMessage("transducer1Error flag raised", "error");
-                apiData.errors.push("transducer1Error");
-            }
-            if (apiData.transducer2 > 34.5 && apiData.errors.indexOf("transducer2Error") == -1) {
-                logMessage("transducer2Error flag raised", "error");
-                apiData.errors.push("transducer2Error");
-            }
-            if (apiData.transducer3 > 34.5 && apiData.errors.indexOf("transducer3Error") == -1) {
-                logMessage("transducer3Error flag raised", "error");
-                apiData.errors.push("transducer3Error");
-            }
+    if (apiData.id === 6) {
+        if (apiData.thermocouple1 > 34.5 && errors.indexOf("thermocouple1Error") == -1) {
+            logMessage("thermocouple1Error flag raised", "error");
+            errors.push("thermocouple1Error");
         }
-        if (apiData.id === 7) {
-            if (apiData.gasBottleWeight1 > 19 || apiData.gasBottleWeight1 < 15.1) {
-                logMessage("Gas bottle 1 weight not within target range", "error");
-            }
-            if (apiData.gasBottleWeight2 > 19 || apiData.gasBottleWeight2 < 15.1) {
-                logMessage("Gas bottle 2 weight not within target range", "error");
-            }
+        else if (apiData.thermocouple1 <= 34.5 && errors.includes("thermocouple1Error")) {
+            errors.splice(errors.indexOf("thermocouple1Error"), 1);
+        }
+        if (apiData.thermocouple2 > 34.5 && errors.indexOf("thermocouple2Error") == -1) {
+            logMessage("thermocouple2Error flag raised", "error");
+            errors.push("thermocouple2Error");
+        }
+        else if (apiData.thermocouple2 <= 34.5 && errors.includes("thermocouple2Error")) {
+            errors.splice(errors.indexOf("thermocouple2Error"), 1);
+        }
+        if (apiData.thermocouple3 > 34.5 && errors.indexOf("thermocouple3Error") == -1) {
+            logMessage("thermocouple3Error flag raised", "error");
+            errors.push("thermocouple3Error");
+        }
+        else if (apiData.thermocouple3 <= 34.5 && errors.includes("thermocouple3Error")) {
+            errors.splice(errors.indexOf("thermocouple3Error"), 1);
+        }
+        if (apiData.thermocouple4 > 34.5 && errors.indexOf("thermocouple4Error") == -1) {
+            logMessage("thermocouple4Error flag raised", "error");
+            errors.push("thermocouple4Error");
+        }
+        else if (apiData.thermocouple4 <= 34.5 && errors.includes("thermocouple4Error")) {
+            errors.splice(errors.indexOf("thermocouple4Error"), 1);
+        }
+        
+        if (apiData.transducer1 > 64.5 && errors.indexOf("transducer1Error") == -1) {
+            logMessage("transducer1Error flag raised", "error");
+            errors.push("transducer1Error");
+        }
+        else if (apiData.transducer1 <= 64.5 && errors.includes("transducer1Error")) {
+            errors.splice(errors.indexOf("transducer1Error"), 1);
+        }
+        if (apiData.transducer2 > 64.5 && errors.indexOf("transducer2Error") == -1) {
+            logMessage("transducer2Error flag raised", "error");
+            errors.push("transducer2Error");
+        }
+        else if (apiData.transducer2 <= 64.5 && errors.includes("transducer2Error")) {
+            errors.splice(errors.indexOf("transducer2Error"), 1);
+        }
+        if (apiData.transducer3 > 64.5 && errors.indexOf("transducer3Error") == -1) {
+            logMessage("transducer3Error flag raised", "error");
+            errors.push("transducer3Error");
+        }
+        else if (apiData.transducer3 <= 64.5 && errors.includes("transducer3Error")) {
+            errors.splice(errors.indexOf("transducer3Error"), 1);
+        }
+    }
+    if (apiData.id === 7) {
+        if ((apiData.gasBottleWeight1 > 19 || apiData.gasBottleWeight1 < 15.1) && errors.indexOf("gasBottle1Error") == -1) {
+            logMessage("Gas bottle 1 weight not within target range", "error");
+            errors.push("gasBottle1Error");
+        }
+        else if ((apiData.gasBottleWeight1 <= 19 && apiData.gasBottleWeight1 >= 15.1) && errors.includes("gasBottle1Error")) {
+            errors.splice(errors.indexOf("gasBottle1Error"), 1);
+        }
+        if ((apiData.gasBottleWeight2 > 19 || apiData.gasBottleWeight2 < 15.1) && errors.indexOf("gasBottle2Error") == -1) {
+            logMessage("Gas bottle 2 weight not within target range", "error");
+            errors.push("gasBottle2Error");
+        }
+        else if ((apiData.gasBottleWeight2 <= 19 && apiData.gasBottleWeight2 >= 15.1) && errors.includes("gasBottle2Error")) {
+            errors.splice(errors.indexOf("gasBottle2Error"), 1);
         }
     }
 }
