@@ -47,6 +47,7 @@ The Ground Control Station (GCS) is RMIT HIVE's computer control system for GSE 
 | Anuk Jayasundara (`s3899921`)  | GCS frontend developer | 2025 |
 | Nathan La (`s4003562`)  | GCS data visualisation programmer | 2025 |
 | Jonathan Do (`s4003025`)  | GCS UI/UX Designer | 2025 |
+| Tristan Le (`trist4nl3`) | GCS Simulation Integration | 2025 |
 
 ## Development components
 
