@@ -123,6 +123,7 @@ void post_process_av(Sequence &sequence,
     sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
   }
   switch (FLIGHT_STATE) {
+    case common::FlightState::OH_NO:
     case common::FlightState::PRE_FLIGHT_NO_FLIGHT_READY:
     case common::FlightState::PRE_FLIGHT_FLIGHT_READY:
       break;
@@ -132,6 +133,8 @@ void post_process_av(Sequence &sequence,
     case common::FlightState::DESCENT:
     case common::FlightState::LANDED:
       sequence.set_start_sending_broadcast_flag(true);
+    default:
+      break;
   }
 }
 
