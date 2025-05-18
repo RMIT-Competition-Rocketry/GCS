@@ -332,7 +332,7 @@ and only modify it if you know what you're doing :)
         background-image: url('/img/buttons/solenoid_button_pressed.svg#svgView(preserveAspectRatio(none))');
     }
 
-        /* Solenoid switches */
+    /* Solenoid switches */
     .switch {
         position: relative;
         display: inline-block;
@@ -416,14 +416,14 @@ and only modify it if you know what you're doing :)
     }
 
 
-    .aux_modal {
-        background-image: url('/img/modal.svg#svgView(preserveAspectRatio(none))');
-        background-size: 100% 100%;
-        background-repeat: no-repeat;
-    }
+        .aux_modal {
+            background-image: url('/img/modal.svg#svgView(preserveAspectRatio(none))');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
 
-    /* Placeholders */
-    .placeholder-graph {
-        @apply border-l-2 border-b-2 border-hive bg-black flex-1;
+        /* Placeholders */
+        .placeholder-graph {
+            @apply border-l-2 border-b-2 border-hive bg-black flex-1;
+        }
     }
-}
