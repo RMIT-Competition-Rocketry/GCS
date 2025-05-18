@@ -11,12 +11,12 @@
 		</div>
 	</div>
 
-	<h2 class="text-center p-2 text-sm">Aux System Controls</h2>
+	<h2 class="text-center p-2 pb-7 text-sm">Aux System Controls</h2>
 
 
 	<!-- Solenoid buttons-->
-	<div class="grid grid-rows-2 items-center w-full h-full">
-		<div class="grid grid-rows-2 items-center w-full h-full">
+	<div class="grid grid-rows-3 items-center w-full h-full gap-4">
+		<div class="grid grid-rows-[auto_auto_auto] gap-4 items-center w-full h-full">
 
 			<!--Manual Solenoid Activation button-->
 			<div class="flex justify-center items-center">
@@ -76,14 +76,15 @@
 					</label>
 				</div>
 
-				<!--Button to send JSON packets-->
-			<div class="col-start-3 col-span-2 justify-center items-center gap-2" >
+				
+			
+
+			</div>
+
+			<!--Button to send JSON packets-->
+			<div class="flex justify-center items-center gap-4" >
 				<button class = "peer-checked:opacity-100 pop_selector opacity-60 w-40 h-7 flex items-center justify-center leading-none text-xs font-mono" id = "solenoidCommand" hidden>Send solenoid command</button>
 			</div>
-
-			</div>
-
-			
 
 		</div>
 	</div>
