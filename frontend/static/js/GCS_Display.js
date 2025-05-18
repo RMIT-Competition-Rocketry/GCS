@@ -522,9 +522,9 @@ solenoid.addEventListener("click", () => {
     // If manual activation is active, show a different confirmation text
     if (isSolenoidActive) {
         confirmText.textContent =
-            "Are you sure you want to leave Manual Solenoid Activation?";
+            "Are you sure you want to disable manual solenoid?";
     } else {
-        confirmText.textContent = "Are you sure you want to continue?";
+        confirmText.textContent = "Are you sure you want to enable manual solenoid?";
     }
 
     modal.classList.remove("hidden");
