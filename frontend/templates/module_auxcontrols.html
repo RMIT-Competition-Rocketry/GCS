@@ -18,12 +18,14 @@
 	<div class="grid grid-rows-2 items-center w-full h-full">
 		<div class="grid grid-rows-2 items-center w-full h-full">
 
+			<!--Manual Solenoid Activation button-->
 			<div class="flex justify-center items-center">
 				<button id="solenoidButton" class="solenoid_button_inactive w-40 h-8 text-xs">
 					<span class="font-mono">Manual Solenoid Activation</span>
 				</button>
 			</div>
 
+			<!--Solenoid switches-->
 			<div class="grid grid-cols-6 items-center w-full h-full gap-2">
 				
 				<div class="flex flex-col justify-center items-center">
@@ -74,12 +76,14 @@
 					</label>
 				</div>
 
+				<!--Button to send JSON packets-->
+			<div class="col-start-3 col-span-2 justify-center items-center gap-2" >
+				<button class = "peer-checked:opacity-100 pop_selector opacity-60 w-40 h-7 flex items-center justify-center leading-none text-xs font-mono" id = "solenoidCommand" disabled>Send solenoid command</button>
 			</div>
 
-			<!--Button to send JSON packets-->
-			<div class="col-start-3 col-span-2 justify-center items-center gap-2">
-				<button class = "peer-checked:opacity-100 pop_selector opacity-60 w-40 h-7 flex items-center justify-center leading-none text-xs font-mono" id = "solenoidCommand">Send solenoid command</button>
 			</div>
+
+			
 
 		</div>
 	</div>
