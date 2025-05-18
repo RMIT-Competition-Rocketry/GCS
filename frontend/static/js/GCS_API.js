@@ -433,16 +433,17 @@ apiSocket.addEventListener('message', (event) => {
     if (logIncomingMessages) console.log('Message from server:', event.data);
 });
 
-// Test function
-function testJSON() {
+// Solenoid payload to websocket
+function solenoidPayload(solenoidBools) {
+    const[s1, s2, s3] = solenoidBools;
     const payload = {
         id: 9,
         data: {
-            solenoid1High: false,
-            solenoid2High: false,
-            solenoid3High: false,
+            solenoid1High: s1,
+            solenoid2High: s2,
+            solenoid3High: s3,
         }
-    };
+    }
 
     const payloadString = JSON.stringify(payload);
 
@@ -452,4 +453,4 @@ function testJSON() {
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
-}
+};

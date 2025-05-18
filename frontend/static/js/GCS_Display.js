@@ -514,6 +514,7 @@ const modal = document.getElementById("confirmationModal");
 const confirmYes = document.getElementById("confirmYes");
 const confirmNo = document.getElementById("confirmNo");
 const confirmText = document.getElementById("confirmText");
+const solenoidCommand = document.getElementById("solenoidCommand");
 
 let isSolenoidActive = false;
 
@@ -556,6 +557,27 @@ confirmYes.addEventListener("click", () => {
         isSolenoidActive = true;
     }
 });
+
+// Send solenoid JSON packets to the websocket when clicked
+var solenoidBools = [];
+solenoidCommand.addEventListener("click", () => {
+    solenoidCommand.classList.remove("opacity-60");
+    solenoidCommand.classList.add("opacity-100")
+    
+    setTimeout(() => {
+        solenoidCommand.classList.remove("opacity-100");
+        solenoidCommand.classList.add("opacity-60");
+        
+    }, 150);
+    document.querySelectorAll(".solSwitch").forEach((el, index) => {
+        console.log(`Solenoid ${index + 1}: ${el.checked}`);
+        solenoidBools[index] = el.checked;
+    });
+
+    solenoidPayload(solenoidBools);
+});
+
+
 
 
 // single operator password page
