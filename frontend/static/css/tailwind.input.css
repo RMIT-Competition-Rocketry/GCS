@@ -28,13 +28,29 @@ and only modify it if you know what you're doing :)
 
     body {
         background-color: black;
-        background-image: url('/img/hexagonal_background.svg');
         background-size: cover;
         background-position: center;
         background-repeat: repeat;
         height: 100%;
         width: 100%;
     }
+
+       
+    /* Hexagon background */
+    body::before {
+        /* empty content to allow background image to be visible */
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url('/img/hexagonal_background.svg');
+        background-size: cover;
+        background-repeat: repeat;
+        background-position: center;
+        opacity: 25%;
+        z-index: 0;
+        pointer-events: none;
+    }
+
 
     h2 {
         @apply font-mono font-bold text-hive m-0 -mt-1 -mb-3 uppercase;
