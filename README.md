@@ -11,6 +11,7 @@
 Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Control Station**) data ingestion and visualisation software.
 
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
+
 <p align="center">
   <img src="docs/assets/serp2launchSetup.jpg" height="200px"/>
   <img src="docs/assets/serp2launch.jpg" height="200px">
@@ -35,7 +36,13 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 
 ## Description
 
-The Ground Control Station (GCS) is RMIT HIVE's computer control system for GSE control and avionics communication and visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio hardware peripherals. The SRAD software converts raw serial input from physical radio interfaces into human-readable output for efficient system monitoring for the GCS operator, and aesthetic visualisations for non-technical viewers. The GCS operator will see when any of our systems are having issues with alert and warning readouts so they can make an informed GO/NO-GO call very quickly. Spectators and other team members will have access to several different views detailing all telemetry from both GSE and avionics systems.
+The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, avionics communication, and
+data visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio-hardware
+peripherals. The software converts raw serial input from physical radio interfaces into human-readable output for
+efficient system monitoring by the GCS operator and visualisations for observers. The GCS operator is able to see if
+any system is performing sub-optimally via alert and warning readouts, so they can make an informed GO/NO-GO
+call quickly. Spectators and other team members have access to several different views detailing all telemetry from
+both the GSE and avionics systems
 
 ## Credit
 
