@@ -1,5 +1,13 @@
-import * as THREE from "./three.module.js";
-import { GLTFLoader } from "./GLTFLoader.js";
+/**
+ * GCS Rocket Viewer
+ * 
+ * Uses three.js to animate a 6DOF 3D model of the rocket
+ * 
+ * Functions and constants should be prefixed with "rocket_" 
+ */
+
+import * as THREE from "./libraries/three.module.js";
+import { GLTFLoader } from "./libraries/GLTFLoader.js";
 
 let rocket = null;
 let quat = new THREE.Quaternion();
@@ -105,10 +113,6 @@ window.addEventListener("DOMContentLoaded", () => {
     function rocketUpdate(data) {
         if (!rocket || !data) return;
 
-        const pitchEl = document.getElementById("pitchDisplay");
-        const rollEl = document.getElementById("rollDisplay");
-        const yawEl = document.getElementById("yawDisplay");
-
         if (
             typeof data.qx === "number" &&
             typeof data.qy === "number" &&
@@ -122,11 +126,6 @@ window.addEventListener("DOMContentLoaded", () => {
             quat.copy(lastQuaternion);
         } else {
             console.error("No quaternion data has ever been received.");
-            if (pitchEl && yawEl && rollEl) {
-                pitchEl.textContent = "Pitch: — (no data)";
-                rollEl.textContent = "Roll:  — (no data)";
-                yawEl.textContent = "Yaw:   — (no data)";
-            }
             return;
         }
 
@@ -152,15 +151,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
         // Euler angles for HUD
         euler.setFromQuaternion(quat, 'XYZ');
-        const pitch = THREE.MathUtils.radToDeg(euler.x);
-        const yaw   = THREE.MathUtils.radToDeg(euler.y);
-        const roll  = THREE.MathUtils.radToDeg(euler.z);
-
-        if (pitchEl && yawEl && rollEl) {
-            pitchEl.textContent = `Pitch: ${pitch.toFixed(1)}°`;
-            yawEl.textContent   = `Yaw:   ${yaw.toFixed(1)}°`;
-            rollEl.textContent  = `Roll:  ${roll.toFixed(1)}°`;
-        }
+        displaySetValue("rocket-pitch", THREE.MathUtils.radToDeg(euler.x), 1);
+        displaySetValue("rocket-yaw", THREE.MathUtils.radToDeg(euler.y), 1);
+        displaySetValue("rocket-roll", THREE.MathUtils.radToDeg(euler.z), 1);
     }
 
     window.rocketUpdate = rocketUpdate;

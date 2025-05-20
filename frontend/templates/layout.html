@@ -9,7 +9,7 @@
 	</head>
 
 	
-	<body class="w-screen h-screen max-w-screen max-h-screen bg-hexagonal_background text-white border-hive border-2 flex flex-col">
+	<body class="w-screen h-screen max-w-screen max-h-screen bg-hexagonal_background text-white border-hive border-2 flex flex-col overflow-hidden">
 		<div class = "background-pattern">
 		<!-- Header, consistent on all pages -->
 		<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24">
@@ -94,11 +94,11 @@
 		<script src="js/GCS_API.js"></script>
 
 		<!-- Data visualisation code -->
-		<script src="js/d3.min.js"></script>
+		<script src="js/libraries/d3.min.js"></script>
         <script src="js/GCS_Graphs.js"></script>
 
 		<!-- 6DOF Rocket code -->
-		<script type="module" src="js/rocket_viewer.js"></script>
+		<script type="module" src="js/GCS_RocketViewer.js"></script>
 
 		<!-- Debug/testing code -->
 		<script src="js/GCS_Testing.js"></script>
