@@ -171,15 +171,19 @@ function displayUpdateAuxData(data) {
     // Thermocouples
     if (data.thermocouple1 != undefined) {
         displaySetValue("aux-thermocouple-1", data.thermocouple1, 0);
+        hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
     }
     if (data.thermocouple2 != undefined) {
         displaySetValue("aux-thermocouple-2", data.thermocouple2, 0);
+        hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
     }
     if (data.thermocouple3 != undefined) {
         displaySetValue("aux-thermocouple-3", data.thermocouple3, 0);
+        hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
     }
     if (data.thermocouple4 != undefined) {
         displaySetValue("aux-thermocouple-4", data.thermocouple4, 0);
+        hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
     }
 
     // Internal temperature
