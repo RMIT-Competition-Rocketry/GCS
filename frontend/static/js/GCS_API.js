@@ -488,7 +488,7 @@ function popPayload() {
             mainPrimary: mainPCheckbox.checked,
             mainSecondary: mainSCheckbox.checked,
             apogeePrimary: apogeePCheckbox.checked,
-            apogeeSecondary: apogeePCheckbox.checked,
+            apogeeSecondary: apogeeSCheckbox.checked,
         }
     }
 
