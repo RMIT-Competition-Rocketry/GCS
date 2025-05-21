@@ -1,7 +1,7 @@
 <!-- HMI module -->
 <div class="flex w-full h-full justify-center items-center font-mono">
 <script>
-const color = ["red","#00FF4D"];
+const color = ["red","#00FF4D","FFF600"];
 let counter = 0;
 function changecolor(objectid){
     const objectchange = document.getElementById(objectid);
@@ -12,12 +12,40 @@ function changecolor(objectid){
 }
 
 function hmiUpdateValue(id, value) {
-    if (value != undefined && !Number.isNaN(value)) {
-        let elem = document.getElementById(id).firstElementChild;
-        if (elem) {
-            elem.innerHTML = value.toFixed(1);
+    const gauge_1 = document.getElementById(gauge_1_fill);
+    const gauge_2 = document.getElementById(gauge_2_fill);
+    const gauge_3 = document.getElementById(gauge_3_fill);
+
+    setInterval(() => {
+
+        if (value != undefined && !Number.isNaN(value)) {
+            let elem = document.getElementById(id).firstElementChild;
+            if (elem) {
+                elem.innerHTML = value.toFixed(1);
+            }
         }
-    }
+
+        if (value < 30) {
+            gauge_1.setAttribute("fill",color[1]);
+            gauge_2.setAttribute("fill",color[1]);
+            gauge_3.setAttribute("fill",color[1]);
+        } else if (value < 60) {
+            gauge_1.setAttribute("fill",color[2]);
+            gauge_1.setAttribute("fill",color[2]);
+            gauge_1.setAttribute("fill",color[2]);
+        }
+        else{
+            gauge_1.setAttribute("fill",color[0]);
+            gauge_1.setAttribute("fill",color[0]);
+            gauge_1.setAttribute("fill",color[0]);
+        }
+        let gauge_height = 69 - (69/value);
+        gauge_1.setAttribute("height", gauge_height);
+        gauge_2.setAttribute("height", gauge_height);
+        gauge_3.setAttribute("height", gauge_height);
+    }, 800);
+
+    
 }
 </script>
 <svg width="1294" height="887" viewBox="0 0 1294 887" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -281,19 +309,19 @@ function hmiUpdateValue(id, value) {
 <g id="HMI_guagesN2O-1">
 <g id="gauge_low" onclick="">
 <rect id="Rectangle 4" x="39.5" y="43.5" width="11" height="69" fill="white" stroke="black"/>
-<rect id="Rectangle 3" x="39.5" y="75.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
+<rect id="gauge_1_fill" x="39.5" y="75.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
 </g>
 </g>
 <g id="HMI_guage-N2O-2">
 <g id="gauge_low_2">
 <rect id="Rectangle 4_2" x="183.5" y="43.5" width="11" height="69" fill="white" stroke="black"/>
-<rect id="Rectangle 3_2" x="183.5" y="75.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
+<rect id="gauge_2_Fill" x="183.5" y="75.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
 </g>
 </g>
 <g id="HMI_gauges_O2">
 <g id="gauge_low_3">
 <rect id="Rectangle 4_3" x="118.5" y="414.5" width="11" height="69" fill="white" stroke="black"/>
-<rect id="Rectangle 3_3" x="118.5" y="446.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
+<rect id="gauge_3_fill" x="118.5" y="446.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
 </g>
 </g>
 </g>
