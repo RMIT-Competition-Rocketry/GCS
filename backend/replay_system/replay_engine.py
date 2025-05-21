@@ -174,9 +174,7 @@ def _handle_av_to_gcs_data_1(packet: Packet) -> None:
     item = AVtoGCSData1(
         RSSI=float(data["rssi"]),
         SNR=float(data["snr"]),
-        FLIGHT_STATE_MSB=bool((flight_state >> 2) & 1),
-        FLIGHT_STATE_1=bool((flight_state >> 1) & 1),
-        FLIGHT_STATE_LSB=bool((flight_state >> 0) & 1),
+        FLIGHT_STATE_=flight_state,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
             data["dual_board_connectivity_state_flag"]),
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
