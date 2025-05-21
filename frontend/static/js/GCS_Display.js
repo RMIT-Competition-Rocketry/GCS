@@ -154,16 +154,19 @@ function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
     // Transducers (Bar)
     if (data?.transducer1) {
-        // n2o in pressure
+        // N2O in pressure
         displaySetValue("aux-transducer-1", data.transducer1, 1);
+        hmiUpdateValue("hmi-pressure-1", data.transducer1);
     }
     if (data?.transducer2) {
-        // n2o out pressure
+        // N2O out pressure
         displaySetValue("aux-transducer-2", data.transducer2, 1);
+        hmiUpdateValue("hmi-pressure-2", data.transducer2);
     }
     if (data?.transducer3) {
-        // o2 pressure
+        // O2 pressure
         displaySetValue("aux-transducer-3", data.transducer3, 1);
+        hmiUpdateValue("hmi-pressure-3", data.transducer3);
     }
 
     // Thermocouples (degrees Celsius)
