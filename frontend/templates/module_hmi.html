@@ -12,41 +12,36 @@ function changecolor(objectid){
 }
 
 function hmiUpdateValue(id, value) {
-    const gauge_1 = document.getElementById(gauge_1_fill);
-    const gauge_2 = document.getElementById(gauge_2_fill);
-    const gauge_3 = document.getElementById(gauge_3_fill);
-
-    setInterval(() => {
-
-        if (value != undefined && !Number.isNaN(value)) {
-            let elem = document.getElementById(id).firstElementChild;
-            if (elem) {
-                elem.innerHTML = value.toFixed(1);
-            }
+    if (value != undefined && !Number.isNaN(value)) {
+        let elem = document.getElementById(id).firstElementChild;
+        if (elem) {
+            elem.innerHTML = value.toFixed(1);
         }
-
-        if (value < 30) {
-            gauge_1.setAttribute("fill",color[1]);
-            gauge_2.setAttribute("fill",color[1]);
-            gauge_3.setAttribute("fill",color[1]);
-        } else if (value < 60) {
-            gauge_1.setAttribute("fill",color[2]);
-            gauge_1.setAttribute("fill",color[2]);
-            gauge_1.setAttribute("fill",color[2]);
-        }
-        else{
-            gauge_1.setAttribute("fill",color[0]);
-            gauge_1.setAttribute("fill",color[0]);
-            gauge_1.setAttribute("fill",color[0]);
-        }
-        let gauge_height = 69 - (69/value);
-        gauge_1.setAttribute("height", gauge_height);
-        gauge_2.setAttribute("height", gauge_height);
-        gauge_3.setAttribute("height", gauge_height);
-    }, 800);
-
-    
+    }
 }
+
+function hmiUpdateTemperature(id, value) {
+    const gauge = document.getElementById(id);
+    if (value < 30) {
+        gauge.setAttribute("fill", color[1]);
+    } else if (value < 60) {
+        gauge.setAttribute("fill", color[2]);
+    } else {
+        gauge.setAttribute("fill", color[0]);
+    }
+    gauge.setAttribute("height", 69 - (69/value));
+}
+
+function hmiTestColours() {
+    setInterval(() => {
+        hmiUpdateTemperature("gauge_1_fill", Math.random() * 100);
+        hmiUpdateTemperature("gauge_2_fill", Math.random() * 100);
+        hmiUpdateTemperature("gauge_3_fill", Math.random() * 100);
+    }, 800);
+}
+hmiTestColours();
+
+
 </script>
 <svg width="1294" height="887" viewBox="0 0 1294 887" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="HMI">
