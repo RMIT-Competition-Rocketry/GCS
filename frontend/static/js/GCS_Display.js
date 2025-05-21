@@ -161,16 +161,19 @@ function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
     // Transducers (Bar)
     if (data?.transducer1) {
-        // n2o in pressure
+        // N2O in pressure
         displaySetValue("aux-transducer-1", data.transducer1, 1);
+        hmiUpdateValue("hmi-pressure-1", data.transducer1);
     }
     if (data?.transducer2) {
-        // n2o out pressure
+        // N2O out pressure
         displaySetValue("aux-transducer-2", data.transducer2, 1);
+        hmiUpdateValue("hmi-pressure-2", data.transducer2);
     }
     if (data?.transducer3) {
-        // o2 pressure
+        // O2 pressure
         displaySetValue("aux-transducer-3", data.transducer3, 1);
+        hmiUpdateValue("hmi-pressure-3", data.transducer3);
     }
 
     // Thermocouples (degrees Celsius)
@@ -283,6 +286,23 @@ function displayUpdateAvionics(data) {
     if (data.mach_number != undefined) {
         displaySetValue("av-mach", data.mach_number);
     }
+}
+
+function displayUpdateSystemFlags(data) {
+	if (data?.stateFlags) {
+		if (data.stateFlags?.dualBoardConnectivityStateFlag) {
+			displaySetState("sysflags-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0);
+		}
+		if (data.stateFlags?.recoveryChecksCompleteAndFlightReady) {
+			displaySetState("sysflags-state-recovery", data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0);
+		}
+		if (data.stateFlags?.payloadConnectionFlag) {
+			displaySetState("sysflags-state-payload", data.stateFlags.payloadConnectionFlag ? 1 : 0);
+		}
+		if (data.stateFlags?.cameraControllerConnectionFlag) {
+			displaySetState("sysflags-state-camera", data.stateFlags.cameraControllerConnectionFlag ? 1 : 0);
+		}
+	}
 }
 
 function displayUpdateFlightState(data) {
