@@ -113,6 +113,13 @@ function displaySetState(item, value) {
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
+
+            // Convert true/false boolean values to on/error
+            if (typeof value == "boolean") {
+                value = value ? 1 : 3;
+            }
+
+            // Get indicator state from value
             if (value >= 0 && value < indicatorStates.length) {
                 elem.classList.add(indicatorStates[value]);
             }
@@ -232,7 +239,7 @@ function displayUpdateAvionics(data) {
         if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "av-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag
+                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 3
             );
         }
 
