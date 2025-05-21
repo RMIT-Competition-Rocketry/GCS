@@ -35,6 +35,10 @@ var timestampLocal = 0; // Local timekeeping (for page to keep updating even if 
 var timestampApi = 0; // Timestamp sent by the API
 var timestampApiConnect; // First API timestamp sent upon connection with API
 var timeDrift;
+const timers = {
+    gasFillTimer: 0,
+    launchTimestamp: 0,
+}
 
 // Reconnecting code
 function scheduleReconnect() {
@@ -177,6 +181,9 @@ function API_OnMessage(event) {
             if (typeof displayUpdateFlightState === "function") {
                 displayUpdateFlightState(apiData);
             }
+			if (typeof displayUpdateSystemFlags === "function") {
+				displayUpdateSystemFlags(apiData);
+			}
 
             // Graphs
             if (typeof graphUpdateAvionics === "function") {

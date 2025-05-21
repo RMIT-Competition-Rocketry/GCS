@@ -200,30 +200,6 @@ def start_services(COMMAND: Command,
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
 
-    # Verification for the replay mode
-    if COMMAND == Command.REPLAY:
-        if not replay_mode:
-            raise click.UsageError("--mode is required for the replay engine")
-
-        if replay_mode == 'mission':
-            if not MISSION_ARG:
-                raise click.UsageError(
-                    "--mission is required to run a specified mission")
-            elif MISSION_ARG == 'TEST':
-                raise NotImplementedError(
-                    f"{MISSION_ARG} has not been implemented yet")
-
-            logger.info(f"Using mission data:{MISSION_ARG}")
-
-        elif replay_mode == 'simulation':
-            if not SIMULATION_ARG:
-                raise click.UsageError(
-                    "--simulation is required to run a specified scenario")
-            elif SIMULATION_ARG != 'TEST':
-                raise NotImplementedError(
-                    f"{SIMULATION_ARG} has not been implemented yet")
-            logger.info(f"Running simulation: {SIMULATION_ARG}")
-
     # 3. Run C++ middleware
     # Note that `devices` are paired pseudo-ttys
     try:
@@ -344,6 +320,27 @@ def simulation(docker, nobuild, logpkt):
 @cli_decorator_factory(DecoratorSelector.REPLAY)
 def replay(docker, nobuild, mode, mission, simulation):
     """Start software in simulation mode"""
+    if not mode:
+        raise click.UsageError("--mode is required for the replay engine")
+
+    if mode == 'mission':
+        if not mission:
+            raise click.UsageError(
+                "--mission is required to run a specified mission")
+        elif mission == 'TEST':
+            raise NotImplementedError(
+                f"{mission} has not been implemented yet")
+
+        logger.info(f"Using mission data:{mission}")
+
+    elif mode == 'simulation':
+        if not simulation:
+            raise click.UsageError(
+                "--simulation is required to run a specified scenario")
+        elif simulation != 'TEST':
+            raise NotImplementedError(
+                f"{simulation} has not been implemented yet")
+        logger.info(f"Running simulation: {simulation}")
     start_services(Command.REPLAY,
                    DOCKER=docker,
                    INTERFACE_ARG="TEST",

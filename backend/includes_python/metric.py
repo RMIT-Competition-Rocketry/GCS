@@ -160,6 +160,13 @@ class Metric:
         return value.to_bytes(NUM_BYTES, byteorder='big', signed=True)
 
     @staticmethod
+    def is_valid_int3_(VALUE: int) -> bool:
+        """Check if a value is within the valid range of an unsinged 3-bit integer."""
+        if not isinstance(VALUE, int):
+            return False
+        return 0b000 <= VALUE <= 0b111
+
+    @staticmethod
     def is_valid_int16_signed(VALUE: int) -> bool:
         """Check if a value is within the valid range of a signed 2-byte integer (int16)."""
         if not isinstance(VALUE, int):
@@ -439,9 +446,7 @@ class Metric:
 
     @staticmethod
     def StateFlags3p0(
-        FLIGHT_STATE_MSB: bool,
-        FLIGHT_STATE_1: bool,
-        FLIGHT_STATE_LSB: bool,
+        FLIGHT_STATE_: int,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG: bool,
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY: bool,
         GPS_FIX_FLAG: bool,
@@ -455,15 +460,8 @@ class Metric:
         Flight state is a 3 bit number. 
         Pass it bit by bit. #lol
 
-        Note A:
-        0b000 = Pre-flight - No Flight Ready
-        0b001 = Pre-Flight - Flight Ready
-        0b010 = Launch	0b011 = Coast	0b100 = Apogee
-
         Args:
-            FLIGHT_STATE_MSB (bool): See note A
-            FLIGHT_STATE_1 (bool): See note A
-            FLIGHT_STATE_LSB (bool): See note A
+            FLIGHT_STATE_ (int): See note A
             DUAL_BOARD_CONNECTIVITY_STATE_FLAG (bool): (0 = Only 1 Board Connected, 1 = 2x Australis Boards Connected)
             RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY (bool): (0 = not flight ready, 1 = flight ready)
             GPS_FIX_FLAG (bool): (0 = No Fix, 1 = Fixed)
@@ -474,10 +472,12 @@ class Metric:
             bytes: _description_
         """
 
+        if not Metric.is_valid_int3_(FLIGHT_STATE_):
+            raise ValueError(
+                f"Value must be between 0 and 7 (3-bit unsigned range). Got: {FLIGHT_STATE_}")
+
         result = 0
-        result = (result << 1) | FLIGHT_STATE_MSB
-        result = (result << 1) | FLIGHT_STATE_1
-        result = (result << 1) | FLIGHT_STATE_LSB
+        result = (result << 3) | (FLIGHT_STATE_ & 0b111)
         result = (result << 1) | DUAL_BOARD_CONNECTIVITY_STATE_FLAG
         result = (result << 1) | RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY
         result = (result << 1) | GPS_FIX_FLAG

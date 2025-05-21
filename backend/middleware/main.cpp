@@ -280,7 +280,7 @@ std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg) {
 // Packet creator for GCS -> AV
 std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST) {
   // DEBUG
-  // For debug only, just send garbage
+  // For debug only, just send default values
   std::vector<uint8_t> data;
   data.push_back(0x01);        // ID
   data.push_back(0b10100000);  // From excel sheet here and below

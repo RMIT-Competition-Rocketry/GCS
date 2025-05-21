@@ -113,6 +113,13 @@ function displaySetState(item, value) {
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
+
+            // Convert true/false boolean values to on/error
+            if (typeof value == "boolean") {
+                value = value ? 1 : 3;
+            }
+
+            // Get indicator state from value
             if (value >= 0 && value < indicatorStates.length) {
                 elem.classList.add(indicatorStates[value]);
             }
@@ -141,13 +148,28 @@ function displaySetActiveFlightState(item) {
             elem.classList.add("active");
         });
     }
+
+    // Launch timer
+    if (item == "fs-state-launch" && timers?.launchTimestamp != 0) {
+        timers.launchTimestamp = timestampApi;
+    }
 }
 
 // FUNCTIONS FOR UPDATING MODULES
 function displayUpdateTime() {
     /// SYSTEM TIME
-    if (timestampApi != 0) displaySetValue("fs-time-api", timestampApi, 1);
-    if (timestampLocal != 0) displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
+    if (timestampApi != 0) {
+        displaySetValue("fs-time-api", timestampApi, 1);
+
+        // Rocket launch time 
+        // TODO: Find somewhere nicer to put this in the code, this is so jank
+        if (timers?.launchTimestamp != 0) {
+            displaySetString("fs-launch-time", `T+ ${(timestampApi - timers.launchTimestamp).toFixed(1)}`);
+        }
+    }
+    if (timestampLocal != 0) {
+        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
+    }
 }
 
 function displayUpdateAuxData(data) {
@@ -235,7 +257,7 @@ function displayUpdateAvionics(data) {
         if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "av-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag
+                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 3
             );
         }
 
@@ -281,6 +303,23 @@ function displayUpdateAvionics(data) {
     }
 }
 
+function displayUpdateSystemFlags(data) {
+	if (data?.stateFlags) {
+		if (data.stateFlags?.dualBoardConnectivityStateFlag) {
+			displaySetState("sysflags-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0);
+		}
+		if (data.stateFlags?.recoveryChecksCompleteAndFlightReady) {
+			displaySetState("sysflags-state-recovery", data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0);
+		}
+		if (data.stateFlags?.payloadConnectionFlag) {
+			displaySetState("sysflags-state-payload", data.stateFlags.payloadConnectionFlag ? 1 : 0);
+		}
+		if (data.stateFlags?.cameraControllerConnectionFlag) {
+			displaySetState("sysflags-state-camera", data.stateFlags.cameraControllerConnectionFlag ? 1 : 0);
+		}
+	}
+}
+
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data?.flightState) {
@@ -291,37 +330,32 @@ function displayUpdateFlightState(data) {
             stateName = "Pre-flight (not ready)";
             displaySetActiveFlightState("fs-state-preflight");
 
-        } else if (data.flightState == 1 || data.flightState == "PRE_FLIGHT_FLIGHT_READY") {
-            // Preflight (ready)
-            stateName = "Pre-flight (flight ready)";
-            displaySetActiveFlightState("fs-state-preflight");
-
-        } else if (data.flightState == 2 || data.flightState == "LAUNCH") {
+        } else if (data.flightState == 1 || data.flightState == "LAUNCH") {
             // Launch
             stateName = "Launch";
             displaySetActiveFlightState("fs-state-launch");
 
-        } else if (data.flightState == 3 || data.flightState == "COAST") {
+        } else if (data.flightState == 2 || data.flightState == "COAST") {
             // Coast
             stateName = "Coast";
             displaySetActiveFlightState("fs-state-coast");
 
-        } else if (data.flightState == 4 || data.flightState == "APOGEE") {
+        } else if (data.flightState == 3 || data.flightState == "APOGEE") {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
 
-        } else if (data.flightState == 5 || data.flightState == "DESCENT" || data.flightState == "DESCENT") {
+        } else if (data.flightState == 4 || data.flightState == "DESCENT" || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
             displaySetActiveFlightState("fs-state-descent");
 
-        } else if (data.flightState == 6 || data.flightState == "LANDED") {
+        } else if (data.flightState == 5 || data.flightState == "LANDED") {
             // Landed successfully
             stateName = "Landed";
             displaySetActiveFlightState("fs-state-landed");
 
-        } else if (data.flightState == 7 || data.flightState == "ON_NO") {
+        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "ON_NO") {
             // Oh shit oh fuck what the heck :(
             stateName = "Aaaaaaah!!!!";
 
