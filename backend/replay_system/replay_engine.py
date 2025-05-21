@@ -45,7 +45,6 @@ def process_csv_packets(min_timestamp_ms: int, mission_path: str) -> List[Packet
                 for row in reader:
                     timestamp_ms = float(row['timestamp_ms'])
                     if timestamp_ms > min_timestamp_ms:
-                        slogger.info(packet_type)
                         packet = Packet(
                             timestamp_ms=timestamp_ms,
                             packet_type=packet_type,
