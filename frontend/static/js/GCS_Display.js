@@ -281,6 +281,23 @@ function displayUpdateAvionics(data) {
     }
 }
 
+function displayUpdateSystemFlags(data) {
+	if (data?.stateFlags) {
+		if (data.stateFlags?.dualBoardConnectivityStateFlag) {
+			displaySetState("sysflags-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0);
+		}
+		if (data.stateFlags?.recoveryChecksCompleteAndFlightReady) {
+			displaySetState("sysflags-state-recovery", data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0);
+		}
+		if (data.stateFlags?.payloadConnectionFlag) {
+			displaySetState("sysflags-state-payload", data.stateFlags.payloadConnectionFlag ? 1 : 0);
+		}
+		if (data.stateFlags?.cameraControllerConnectionFlag) {
+			displaySetState("sysflags-state-camera", data.stateFlags.cameraControllerConnectionFlag ? 1 : 0);
+		}
+	}
+}
+
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data?.flightState) {

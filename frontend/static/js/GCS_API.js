@@ -177,6 +177,9 @@ function API_OnMessage(event) {
             if (typeof displayUpdateFlightState === "function") {
                 displayUpdateFlightState(apiData);
             }
+			if (typeof displayUpdateSystemFlags === "function") {
+				displayUpdateSystemFlags(apiData);
+			}
 
             // Graphs
             if (typeof graphUpdateAvionics === "function") {
