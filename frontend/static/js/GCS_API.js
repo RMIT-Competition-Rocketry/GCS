@@ -471,7 +471,7 @@ function solenoidPayload() {
     }
 };
 
-
+// Pop test payload to websocket
 function popPayload() {
 
     const popPayload = [];
@@ -489,6 +489,33 @@ function popPayload() {
             mainSecondary: mainSCheckbox.checked,
             apogeePrimary: apogeePCheckbox.checked,
             apogeeSecondary: apogeeSCheckbox.checked,
+        }
+    }
+
+    const payloadString = JSON.stringify(payload);
+
+    if (apiSocket.readyState === WebSocket.OPEN) {
+        apiSocket.send(payloadString);
+        console.log('Sent test JSON:', payloadString);
+    } else {
+        console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
+    }
+};
+
+
+function continuityPayload(payload) {
+
+    const popPayload = payload;
+
+
+    
+    const payload = {
+        id: 254,
+        data: {
+            continuityA: popPayload[0],
+            continuityB: popPayload[1],
+            continuityC: popPayload[2],
+            continuityD: popPayload[3],
         }
     }
 

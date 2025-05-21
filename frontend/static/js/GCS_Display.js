@@ -486,8 +486,37 @@ function displayUpdateRadio(data) {
     }
 }
 
-// Buttons
+// SINGLE OPERATOR PAGE
 
+// Continuity buttons
+function continuityActivate() {
+    const continuityA = document.getElementById("continuityA");
+    const continuityB = document.getElementById("continuityB");
+    const continuityC = document.getElementById("continuityC");
+    const continuityD = document.getElementById("continuityD");
+
+    continuityA.addEventListener("change", continuityA)
+}
+
+function continuityA() {
+    const payload = [true, false, false, false];
+    continuityPayload(payload);
+}
+
+function continuityB() {
+    const payload = [false, true, false, false];
+    continuityPayload(payload);
+}
+
+function continuityC() {
+    const payload = [false, false, true, false];
+    continuityPayload(payload);
+}
+
+function continuityD() {
+    const payload = [false, false,false, true];
+    continuityPayload(payload);
+}
 
 // Pop test buttons
 const mainPCheckbox = document.getElementById("optionMainP");
