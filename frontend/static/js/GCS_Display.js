@@ -419,15 +419,17 @@ function displayUpdateRadio(data) {
             // Connection indicators
             displaySetState("radio-av-state", 1);
 
-            clearTimeout(timeouts?.radioAv1Idle);
-            timeouts.radioAv1Idle = setTimeout(() => {
-                displaySetState("radio-av-state", 2);
-            }, 1000);
+            if (timeouts != undefined) {
+                clearTimeout(timeouts?.radioAv1Idle);
+                timeouts.radioAv1Idle = setTimeout(() => {
+                    displaySetState("radio-av-state", 2);
+                }, 1000);
 
-            clearTimeout(timeouts?.radioAv1Error);
-            timeouts.radioAv1Error = setTimeout(() => {
-                displaySetState("radio-av-state", 3);
-            }, 5000);
+                clearTimeout(timeouts?.radioAv1Error);
+                timeouts.radioAv1Error = setTimeout(() => {
+                    displaySetState("radio-av-state", 3);
+                }, 5000);
+            }
 
             // Update avionics radio data
             if (data?.meta?.rssi) {
@@ -451,15 +453,18 @@ function displayUpdateRadio(data) {
             // Connection indicators
             displaySetState("radio-gse-state", 1);
 
-            clearTimeout(timeouts?.radioGseIdle);
-            timeouts.radioGseIdle = setTimeout(() => {
-                displaySetState("radio-gse-state", 2);
-            }, 1000);
+            if (timeouts != undefined) {
+                clearTimeout(timeouts?.radioGseIdle);
+                timeouts.radioGseIdle = setTimeout(() => {
+                    displaySetState("radio-gse-state", 2);
+                }, 1000);
 
-            clearTimeout(timeouts?.radioGseError);
-            timeouts.radioGseError = setTimeout(() => {
-                displaySetState("radio-gse-state", 3);
-            }, 5000);
+                clearTimeout(timeouts?.radioGseError);
+                timeouts.radioGseError = setTimeout(() => {
+                    displaySetState("radio-gse-state", 3);
+                }, 5000);
+            }
+            
 
             // Update GSE radio data
             if (data?.meta?.rssi) {
