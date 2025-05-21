@@ -150,8 +150,12 @@ function displaySetActiveFlightState(item) {
     }
 
     // Launch timer
-    if (item == "fs-state-launch" && timers?.launchTimestamp != 0) {
-        timers.launchTimestamp = timestampApi;
+    if (item == "fs-state-launch") {
+        console.log("LUNCH");
+        if (timers.launchTimestamp == 0) {
+            console.log("LUNCH TIME");
+            timers.launchTimestamp = timestampApi;
+        }
     }
 }
 

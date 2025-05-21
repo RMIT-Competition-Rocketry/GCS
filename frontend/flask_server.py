@@ -43,7 +43,7 @@ def create_app(logger=None):
         return render_template("layout.html")
 
 
-    # Serve static files
+    # Serve static files and HTML pages
     @app.route('/<path:filename>')
     def serve_html(filename):
         # Absolute filepath of request
