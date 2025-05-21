@@ -90,7 +90,6 @@ function displaySetValue(item, value, precision = 2, error = false) {
 
 function displaySetString(item, string) {
     // Updates the string in a display item
-
     if (string != undefined) {
         if (verboseLogging) console.debug(`new string %c${item}%c ${string}`, 'color:orange', 'color:white');
 
@@ -147,60 +146,66 @@ function displaySetActiveFlightState(item) {
 // FUNCTIONS FOR UPDATING MODULES
 function displayUpdateTime() {
     /// SYSTEM TIME
-    if (timestampApi != undefined && timestampApi != 0) {
-        displaySetValue("fs-time-api", timestampApi, 1);
-    }
-    if (timestampLocal != undefined && timestampLocal != 0) {
-        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
-    }
+    if (timestampApi != 0) displaySetValue("fs-time-api", timestampApi, 1);
+    if (timestampLocal != 0) displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
 }
 
 function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
-    // Transducers
-    if (data.transducer1 != undefined) {
+    // Transducers (Bar)
+    if (data?.transducer1) {
+        // n2o in pressure
         displaySetValue("aux-transducer-1", data.transducer1, 1);
     }
-    if (data.transducer2 != undefined) {
+    if (data?.transducer2) {
+        // n2o out pressure
         displaySetValue("aux-transducer-2", data.transducer2, 1);
     }
-    if (data.transducer3 != undefined) {
+    if (data?.transducer3) {
+        // o2 pressure
         displaySetValue("aux-transducer-3", data.transducer3, 1);
     }
 
-    // Thermocouples
-    if (data.thermocouple1 != undefined) {
+    // Thermocouples (degrees Celsius)
+    if (data?.thermocouple1) {
+        // n2o (int) temperature
         displaySetValue("aux-thermocouple-1", data.thermocouple1, 0);
         hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
     }
-    if (data.thermocouple2 != undefined) {
+    if (data?.thermocouple2) {
+        // n2o #1 pressure
         displaySetValue("aux-thermocouple-2", data.thermocouple2, 0);
         hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
     }
-    if (data.thermocouple3 != undefined) {
+    if (data?.thermocouple3) {
+        // n2o #2 pressure
         displaySetValue("aux-thermocouple-3", data.thermocouple3, 0);
         hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
     }
-    if (data.thermocouple4 != undefined) {
+    if (data?.thermocouple4) {
+        // o2 pressure
         displaySetValue("aux-thermocouple-4", data.thermocouple4, 0);
         hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
     }
 
-    // Internal temperature
-    if (data.internalTemp != undefined) {
+    // GSE enclosure thermocouple
+    if (data?.internalTemp) {
+        // internal temperature
         displaySetValue("aux-internaltemp", data.internalTemp, 1);
     }
 
     // Gas bottle weights
-    if (data.gasBottleWeight1 != undefined) {
+    if (data?.gasBottleWeight1) {
+        // n2o #1 weight
         displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 1)
     }
-    if (data.gasBottleWeight2 != undefined) {
+    if (data?.gasBottleWeight2) {
+        // n2o #2 weight
         displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1)
     }
 
-    // Rocket load cell weight
-    if (data.analogVoltageInput1 != undefined) {
+    // Rocket mass
+    if (data?.analogVoltageInput1) {
         displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
 
