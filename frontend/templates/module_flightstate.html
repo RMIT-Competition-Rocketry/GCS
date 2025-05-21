@@ -2,7 +2,11 @@
 <!-- Includes time, flight state indicator -->
 <div class="w-full h-full flex flex-col font-mono border-t-2 border-hive-dark">
 	<h2 class="">Flight Timeline</h2>
-	<div class="grow flex flex-col gap-2 px-2 mt-4">
+	<p class="flex gap-1 justify-end font-bold mb-1">
+		<span>Lunch Time:</span>
+		<input readonly autocomplete="off" class="fs-launch-time text-right max-w-24" size="8">
+	</p>
+	<div class="grow flex flex-col gap-2 px-2">
 		<div class="border-2 border-hive-dark text-center bg-hive/20 grow grid grid-cols-6 p-2 items-center justify-center -z-50">
 			<div class="indicator-flightstate fs-state-preflight">
 				<div class="indicator-state"></div>
@@ -46,16 +50,14 @@
 				<span>State:</span>
 				<input readonly autocomplete="off" class="fs-flightstate text-center text-base">
 			</p>
-			<div>
-				<p class="flex gap-1 items-center">
-					<span>System Uptime:</span>
-					<input readonly autocomplete="off" class="fs-time-local text-right" size="10">s
-				</p>
-				<!--<p class="flex gap-1 items-center">
+			<p class="flex gap-1 items-center">
+				<span>System Uptime:</span>
+				<input readonly autocomplete="off" class="fs-time-local text-right" size="10">s
+			</p>
+			<!--<p class="flex gap-1 items-center">
 					<span>GSE Time:</span>
 					<input readonly autocomplete="off" class="fs-time-api text-right" size="8">s
 				</p>-->
-			</div>
 		</div>
 	</div>
 </div>
