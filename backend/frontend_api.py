@@ -59,38 +59,40 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         }
 
         while not shutdown_event.is_set():
-            events = await sub_socket.poll(timeout=100)
-            if events:
-                packet_id = int.from_bytes(await sub_socket.recv(), 'big')
-                message = await sub_socket.recv()
+            try:
+                events = await sub_socket.poll(timeout=100)
+                if events:
+                    packet_id = int.from_bytes(await sub_socket.recv(), 'big')
+                    message = await sub_socket.recv()
 
-                if len(message) == 1:
-                    new_id = int.from_bytes(message, 'big')
-                    slogger.error(f"Message mismatch: {packet_id} vs {new_id}")
-                    continue
+                    if len(message) == 1:
+                        new_id = int.from_bytes(message, 'big')
+                        slogger.error(
+                            f"Message mismatch: {packet_id} vs {new_id}")
+                        continue
 
-                if packet_id in packet_handlers:
-                    proto_object = packet_handlers[packet_id]()
-                    proto_object.ParseFromString(message)
-                    data = MessageToDict(proto_object)
-                    data = append_data(data, packet_id)
-                    output = {
-                        "id": packet_id,
-                        "data": data
-                    }
-                    try:
-                        await websocket.send(json.dumps(output))
-                    except websockets.ConnectionClosedOK:
-                        pass
-                else:
-                    slogger.error(f"Unexpected packet ID: {packet_id}")
-            # Give event handler time to check shutdown event
-            await asyncio.sleep(0.01)
+                    if packet_id in packet_handlers:
+                        proto_object = packet_handlers[packet_id]()
+                        proto_object.ParseFromString(message)
+                        data = MessageToDict(proto_object)
+                        data = append_data(data, packet_id)
+                        output = {
+                            "id": packet_id,
+                            "data": data
+                        }
+                        try:
+                            await websocket.send(json.dumps(output))
+                        except websockets.ConnectionClosedOK:
+                            pass
+                    else:
+                        slogger.error(f"Unexpected packet ID: {packet_id}")
+                # Give event handler time to check shutdown event
+                await asyncio.sleep(0.01)
+            except Exception as e:
+                slogger.error(f"Error fowarding data to websocket: {e}")
 
     except websockets.ConnectionClosed:
         slogger.info("WebSocket connection closed")
-    except Exception as e:
-        slogger.error(f"ZMQ error: {e}")
     finally:
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300

@@ -10,17 +10,16 @@ common::FlightState calc_flight_state(unsigned int val) {
     case 0b000:
       return common::FlightState::PRE_FLIGHT_NO_FLIGHT_READY;
     case 0b001:
-      return common::FlightState::PRE_FLIGHT_FLIGHT_READY;
-    case 0b010:
       return common::FlightState::LAUNCH;
-    case 0b011:
+    case 0b010:
       return common::FlightState::COAST;
-    case 0b100:
+    case 0b011:
       return common::FlightState::APOGEE;
+    case 0b100:
+      return common::FlightState::DESCENT;
     case 0b101:
-      return common::FlightState::DECENT;
-    case 0b110:
       return common::FlightState::LANDED;
+    case 0b110:
     case 0b111:
       return common::FlightState::OH_NO;
     default:

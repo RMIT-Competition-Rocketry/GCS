@@ -42,6 +42,18 @@ class Sequence {
   void increment_packet_count_av() { packet_count_av_++; }
   void increment_packet_count_gse() { packet_count_gse_++; }
 
+  bool start_sending_broadcast_flag() const {
+    return start_sending_broadcast_flag_;
+  }
+  void set_start_sending_broadcast_flag(bool flag) {
+    start_sending_broadcast_flag_ = flag;
+  }
+
+  bool have_received_broadcast_flag() const { return broadcast_flag_recieved_; }
+  void set_broadcast_flag_recieved(bool flag) {
+    broadcast_flag_recieved_ = flag;
+  }
+
  private:
   SequenceLock gse_write_lock_{"GSE"};
   SequenceLock av_write_lock_{"AV"};
@@ -51,4 +63,6 @@ class Sequence {
   bool singleton_created_ = false;
   long packet_count_av_ = 0;
   long packet_count_gse_ = 0;
+  bool start_sending_broadcast_flag_ = false;
+  bool broadcast_flag_recieved_ = false;
 };

@@ -39,7 +39,7 @@ class UartInterface : public LoraInterface {
     RXLRPKT,  // Basic RX
   };
   // Keep track if you're currently in a continuous mode
-  ModemContinuousState modem_state_;
+  ModemContinuousState current_modem_state_;
 
   bool at_send_command(
       const std::string &command, const std::string &expected_response,
