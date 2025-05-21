@@ -34,6 +34,30 @@ function hmiUpdateTemperature(id, value) {
     }
 }
 
+function solenoidupdate(solenoid1_N2O, solenoid2_purge, solenoid3_oxygen){
+    const solenoid1 = document.getElementById('solenoidsV5');
+    const solenoid2 = document.getElementById('solenoidsV7');
+    const solenoid3 = document.getElementById('solenoidV6');
+    if (solenoid1_N2O == true){
+        solenoid1.setAttribute("fill","#00FF4D");
+    } else{
+        solenoid1.setAttribute("fill","red");
+    }
+    
+     if (solenoid2_purge == true){
+        solenoid2.setAttribute("fill","#00FF4D");
+    } else{
+        solenoid2.setAttribute("fill","red");
+    }
+
+    if (solenoid3_oxygen == true){
+        solenoid3.setAttribute("fill","#00FF4D");
+    } else{
+        solenoid3.setAttribute("fill","red");
+    }
+
+} 
+
 function hmiTestColours() {
     setInterval(() => {
         hmiUpdateTemperature("gauge_1_fill", Math.random() * 100);
