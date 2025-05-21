@@ -503,6 +503,7 @@ mainSCheckbox.addEventListener("change", validateSelection);
 apogeePCheckbox.addEventListener("change", validateSelection);
 apogeeSCheckbox.addEventListener("change", validateSelection);
 
+// Only one selection at a time
 mainPCheckbox.addEventListener("change", () => {
     if (mainPCheckbox.checked) {
         mainSCheckbox.checked = false;
@@ -562,7 +563,7 @@ function validateSelection() {
 
 
 popButton.addEventListener("click", function () {
-    //some sort of action
+    popPayload();
 });
 
 

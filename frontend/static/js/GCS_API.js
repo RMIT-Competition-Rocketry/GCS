@@ -470,3 +470,34 @@ function solenoidPayload() {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
 };
+
+
+function popPayload() {
+
+    const popPayload = [];
+
+    document.querySelectorAll(".solSwitch").forEach((el, index) => {
+        console.log(`Solenoid ${index + 1}: ${el.checked}`);
+        solenoidPayload[index + 1] = el.checked;
+    });
+
+    
+    const payload = {
+        id: 255,
+        data: {
+            mainPrimary: mainPCheckbox.checked,
+            mainSecondary: mainSCheckbox.checked,
+            apogeePrimary: apogeePCheckbox.checked,
+            apogeeSecondary: apogeePCheckbox.checked,
+        }
+    }
+
+    const payloadString = JSON.stringify(payload);
+
+    if (apiSocket.readyState === WebSocket.OPEN) {
+        apiSocket.send(payloadString);
+        console.log('Sent test JSON:', payloadString);
+    } else {
+        console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
+    }
+};
