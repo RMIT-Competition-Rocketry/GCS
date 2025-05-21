@@ -40,6 +40,7 @@
     --font-weight-medium: 500;
     --font-weight-bold: 700;
     --radius-sm: .25rem;
+    --radius-md: .375rem;
     --radius-xl: .75rem;
     --blur-sm: 8px;
     --aspect-video: 16 / 9;
@@ -1362,6 +1363,10 @@
 
   .rounded {
     border-radius: .25rem;
+  }
+
+  .rounded-md {
+    border-radius: var(--radius-md);
   }
 
   .rounded-xl {

@@ -50,6 +50,11 @@ document.querySelectorAll("nav a").forEach((elem) => {
             .querySelector(`a[href='#${selected}']`)
             .classList.add(...selectedClasses);
 
+        if (selected == "m-ops") {
+            // Single operator icon fix
+            document.querySelector(`a[href='#m-password']`).classList.add(...selectedClasses);
+        }
+
         // Update URL
         history.replaceState(null, "", `#${selected}`);
 
@@ -151,9 +156,7 @@ function displaySetActiveFlightState(item) {
 
     // Launch timer
     if (item == "fs-state-launch") {
-        console.log("LUNCH");
         if (timers.launchTimestamp == 0) {
-            console.log("LUNCH TIME");
             timers.launchTimestamp = timestampApi;
         }
     }
