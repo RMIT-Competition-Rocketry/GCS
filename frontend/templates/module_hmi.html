@@ -22,14 +22,16 @@ function hmiUpdateValue(id, value) {
 
 function hmiUpdateTemperature(id, value) {
     const gauge = document.getElementById(id);
-    if (value < 30) {
-        gauge.setAttribute("fill", color[1]);
-    } else if (value < 60) {
-        gauge.setAttribute("fill", color[2]);
-    } else {
-        gauge.setAttribute("fill", color[0]);
+    if (gauge) {
+        if (value < 30) {
+            gauge.setAttribute("fill", color[1]);
+        } else if (value < 60) {
+            gauge.setAttribute("fill", color[2]);
+        } else {
+            gauge.setAttribute("fill", color[0]);
+        }
+        gauge.setAttribute("height", 69 - (69/value));
     }
-    gauge.setAttribute("height", 69 - (69/value));
 }
 
 function hmiTestColours() {
