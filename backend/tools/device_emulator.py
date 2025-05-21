@@ -557,12 +557,13 @@ def changing_bool(t: float, wait_time_s: float = 1):
     return t % wait_time_s*2 > wait_time_s
 
 
-def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
+def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPacket]:
     """Just generate packets with sinusoidal values over time.
-    Values ranges should cover optimal operating conditions
+    Values ranges should cover optimal operating conditions unless specified otherwise
 
     Args:
         START_TIME (float): A constant monotonic time value in seconds since the start of the program.
+        EXPERIMENTAL (bool): If True, use values that indicate erroneous operation
 
     Returns:
         List[MockPacket]: A list of all simulated packet types
@@ -574,11 +575,11 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
     ARGS_AV_COMMON = {"RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
                       "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
                       "FLIGHT_STATE_": changing_int(T, 0, 0b111, 1),
-                      "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": changing_bool(T),
-                      "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": False,
+                      "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": changing_bool(T) if EXPERIMENTAL else True,
+                      "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": changing_bool(T) if EXPERIMENTAL else False,
                       "GPS_FIX_FLAG": changing_bool(T),
-                      "PAYLOAD_CONNECTION_FLAG": True,
-                      "CAMERA_CONTROLLER_CONNECTION": True}
+                      "PAYLOAD_CONNECTION_FLAG": changing_bool(T) if EXPERIMENTAL else True,
+                      "CAMERA_CONTROLLER_CONNECTION": changing_bool(T) if EXPERIMENTAL else True}
 
     ARGS_AVtoGCSData1 = ARGS_AV_COMMON | {
         "ACCEL_LOW_X": int(2048*sinusoid(T, min=-16, max=16, period=5, phase=2*math.pi/3)),
@@ -593,15 +594,15 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
         "GYRO_Z": int(sinusoid(T, min=-245, max=245, period=5, phase=6*math.pi/3)/0.00875),
         "ALTITUDE": sinusoid(T, min=0, max=3000, period=40, phase=0),
         "VELOCITY": sinusoid(T, min=0, max=350, period=20, phase=0),
-        "APOGEE_PRIMARY_TEST_COMPETE": False,
-        "APOGEE_SECONDARY_TEST_COMPETE": False,
-        "APOGEE_PRIMARY_TEST_RESULTS": False,
-        "APOGEE_SECONDARY_TEST_RESULTS": False,
-        "MAIN_PRIMARY_TEST_COMPETE": False,
-        "MAIN_SECONDARY_TEST_COMPETE": False,
-        "MAIN_PRIMARY_TEST_RESULTS": False,
-        "MAIN_SECONDARY_TEST_RESULTS": False,
-        "MOVE_TO_BROADCAST": False
+        "APOGEE_PRIMARY_TEST_COMPETE": changing_bool(T) if EXPERIMENTAL else False,
+        "APOGEE_SECONDARY_TEST_COMPETE": changing_bool(T) if EXPERIMENTAL else False,
+        "APOGEE_PRIMARY_TEST_RESULTS": changing_bool(T) if EXPERIMENTAL else False,
+        "APOGEE_SECONDARY_TEST_RESULTS": changing_bool(T) if EXPERIMENTAL else False,
+        "MAIN_PRIMARY_TEST_COMPETE": changing_bool(T) if EXPERIMENTAL else False,
+        "MAIN_SECONDARY_TEST_COMPETE": changing_bool(T) if EXPERIMENTAL else False,
+        "MAIN_PRIMARY_TEST_RESULTS": changing_bool(T) if EXPERIMENTAL else False,
+        "MAIN_SECONDARY_TEST_RESULTS": changing_bool(T) if EXPERIMENTAL else False,
+        "MOVE_TO_BROADCAST": changing_bool(T) if EXPERIMENTAL else False
     }
 
     nav_status = Metric.POSSIBLE_NAV_VALUES[
@@ -623,30 +624,30 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
     ARGS_GSE_COMMON = {
         "RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
         "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
-        "MANUAL_PURGED": False,
-        "O2_FILL_ACTIVATED": False,
-        "SELECTOR_SWITCH_NEUTRAL_POSITION": False,
-        "N2O_FILL_ACTIVATED": False,
-        "IGNITION_FIRED": False,
-        "IGNITION_SELECTED": False,
-        "GAS_FILL_SELECTED": False,
-        "SYSTEM_ACTIVATED": False,
-        "IGNITION_ERROR": False,
-        "RELAY3_ERROR": False,
-        "RELAY2_ERROR": False,
-        "RELAY1_ERROR": False,
-        "THERMOCOUPLE_4_ERROR": False,
-        "THERMOCOUPLE_3_ERROR": False,
-        "THERMOCOUPLE_2_ERROR": False,
-        "THERMOCOUPLE_1_ERROR": False,
-        "LOAD_CELL_4_ERROR": False,
-        "LOAD_CELL_3_ERROR": False,
-        "LOAD_CELL_2_ERROR": False,
-        "LOAD_CELL_1_ERROR": False,
-        "TRANSDUCER_4_ERROR": False,
-        "TRANSDUCER_3_ERROR": False,
-        "TRANSDUCER_2_ERROR": False,
-        "TRANSDUCER_1_ERROR": False,
+        "MANUAL_PURGED": changing_bool(T) if EXPERIMENTAL else False,
+        "O2_FILL_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": changing_bool(T) if EXPERIMENTAL else False,
+        "N2O_FILL_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
+        "IGNITION_FIRED": changing_bool(T) if EXPERIMENTAL else False,
+        "IGNITION_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
+        "GAS_FILL_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
+        "SYSTEM_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
+        "IGNITION_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "RELAY3_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "RELAY2_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "RELAY1_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "THERMOCOUPLE_4_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "THERMOCOUPLE_3_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "THERMOCOUPLE_2_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "THERMOCOUPLE_1_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "LOAD_CELL_4_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "LOAD_CELL_3_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "LOAD_CELL_2_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "LOAD_CELL_1_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "TRANSDUCER_4_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "TRANSDUCER_3_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "TRANSDUCER_2_ERROR": changing_bool(T) if EXPERIMENTAL else False,
+        "TRANSDUCER_1_ERROR": changing_bool(T) if EXPERIMENTAL else False,
     }
 
     ARGS_GSEtoGCSData1 = ARGS_GSE_COMMON | {
@@ -665,9 +666,9 @@ def get_sinusoid_packets(START_TIME: float) -> List[MockPacket]:
         "GAS_BOTTLE_WEIGHT_1": int(sinusoid(T, min=12, max=18, period=30, phase=0)),
         "GAS_BOTTLE_WEIGHT_2": int(sinusoid(T, min=12, max=18, period=30, phase=math.pi/2)),
         "ADDITIONAL_VA_1": sinusoid(T, min=15, max=60, period=30, phase=0),
-        "ADDITIONAL_VA_2": 0,
-        "ADDITIONAL_CURRENT_1": 0,
-        "ADDITIONAL_CURRENT_2": 0,
+        "ADDITIONAL_VA_2": sinusoid(T, min=2, max=5, period=10, phase=0),
+        "ADDITIONAL_CURRENT_1": sinusoid(T, min=1, max=5, period=10, phase=0),
+        "ADDITIONAL_CURRENT_2": sinusoid(T, min=2, max=5, period=10, phase=0),
     }
 
     return [
@@ -700,10 +701,9 @@ def main():
     # They are not recieved by the GCS
 
     # Used for the sequence lock class GSE debugging
-    GSE_LOCK_PATH = config.load_config(
-    )['locks']['lock_file_gse_response_path']
-    AV_LOCK_PATH = config.load_config(
-    )['locks']['lock_file_av_response_path']
+    CONFIG_LOADED = config.load_config()
+    GSE_LOCK_PATH = CONFIG_LOADED['locks']['lock_file_gse_response_path']
+    AV_LOCK_PATH = CONFIG_LOADED['locks']['lock_file_av_response_path']
 
     START_TIME = time.monotonic()
     last_time_gse_written = START_TIME
@@ -713,8 +713,10 @@ def main():
     LOCK_WARNING_TIME = 5
     TIME_INBETWEEN_PACKETS = 0.01
 
+    EXPERIMENTAL = CONFIG_LOADED['emulation']['experimental'].lower() == 'true'
+
     while not service_helper.time_to_stop():
-        for packet in get_sinusoid_packets(START_TIME):
+        for packet in get_sinusoid_packets(START_TIME, EXPERIMENTAL):
             device = packet.ORIGIN_DEVICE
             # As a cheeky sequence emulation, only write when the lock file is PRESENT
             if random.random() < MockPacket._PACKET_LOSS:
