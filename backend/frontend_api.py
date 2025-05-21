@@ -15,7 +15,6 @@ import json
 import websockets
 import zmq
 import zmq.asyncio
-import time
 import os
 
 # Global flag for shutdown control
