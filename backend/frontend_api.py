@@ -206,8 +206,7 @@ async def handler(websocket):
         )
 
         if shutdown_event.is_set():
-            # Close the websocket connection explicitly
-            await websocket.close(code=1000, reason="Server shutting down")
+            await websocket.close(code=1001, reason="Server shutting down")
     except Exception as e:
         slogger.error(f"Handler error: {e}")
     finally:
