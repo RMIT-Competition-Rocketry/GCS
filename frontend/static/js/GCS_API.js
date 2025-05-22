@@ -97,6 +97,7 @@ function logError(message) {
 }
 */
 function logMessage(message, type = "notification") {
+    /*
     const logArea = document.getElementById('errorLogBox');
     if (!logArea) {
         console.error('Log area not found.');
@@ -105,7 +106,7 @@ function logMessage(message, type = "notification") {
 
     const timestamp = new Date().toLocaleTimeString();
     logArea.textContent += `[${timestamp}] ${type === "error" ? "Error" : "Notice"}: ${message}\n`;
-    logArea.scrollTop = logArea.scrollHeight;
+    logArea.scrollTop = logArea.scrollHeight;*/
 }
 
 document.addEventListener('visibilitychange', function() {
