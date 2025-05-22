@@ -169,6 +169,27 @@ class TestDevStartups(CliStartup):
 @pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
 class TestReplayMissionStartups(CliStartup):
     def get_rocket_args(self) -> List[str]:
+        return ["replay", "--mode", "simulation", "--simulation", "test", "--nobuild"]
+
+    def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
+        proc, scanner = process_and_scanner
+        fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
+        success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
+            "replay system: [STDOUT] Starting simulation replay for TEST",
+            "event viewer: [STDOUT] Flight state changed to COAST"
+        ]
+        success, output_lines = scanner.scan_for_patterns(
+            fail_any=fail_patterns,
+            success_all=success_patterns,
+            timeout=30.0
+        )
+        assert success, f"System failed to match patterns"
+        print(f"System ran successfully. Captured {len(output_lines)} lines")
+
+
+@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
+class TestReplaySimulationStartups(CliStartup):
+    def get_rocket_args(self) -> List[str]:
         return ["replay", "--mode", "mission", "--mission", "20250504", "--nobuild"]
 
     def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
