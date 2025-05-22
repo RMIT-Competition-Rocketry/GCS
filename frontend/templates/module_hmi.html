@@ -1,7 +1,7 @@
 <!-- HMI module -->
 <div class="flex w-full h-full justify-center items-center font-mono">
 <script>
-const color = ["red","#00FF4D","FFF600"];
+const color = ["red","#00FF4D","#FFF600"];
 let counter = 0;
 function changecolor(objectid){
     const objectchange = document.getElementById(objectid);
@@ -20,17 +20,33 @@ function hmiUpdateValue(id, value) {
     }
 }
 
-function hmiUpdateTemperature(id, value) {
-    const gauge = document.getElementById(id);
-    if (gauge) {
-        if (value < 30) {
-            gauge.setAttribute("fill", color[1]);
-        } else if (value < 60) {
-            gauge.setAttribute("fill", color[2]);
-        } else {
-            gauge.setAttribute("fill", color[0]);
+function hmiUpdateTemperature(id, value,id2) {
+    const guage = document.getElementById(id);
+    const guagesize = document.getElementById(id2);
+    if (guage) {
+        if (value >= 15 && value<=25) {
+            guage.setAttribute("fill", color[2]);
+        } else if (value > 25) {
+            guage.setAttribute("fill", color[0]);
+        } else if(value<15){
+            guage.setAttribute("fill", color[1]);
         }
-        gauge.setAttribute("height", 69 - (69/value));
+        if (value>=15 && value <=25){
+            guagesize.setAttribute("height", 40);
+            
+        }
+        else if (value>25 && value<=35){
+            guagesize.setAttribute("height", 10);
+            
+        }
+        else if(value >36){
+            guagesize.setAttribute("height", 0);
+        }
+        else if (value<15){
+            guagesize.setAttribute("height", 60);
+            
+        }
+        
     }
 }
 
@@ -60,9 +76,9 @@ function solenoidupdate(solenoid1_N2O, solenoid2_purge, solenoid3_oxygen){
 
 function hmiTestColours() {
     setInterval(() => {
-        hmiUpdateTemperature("gauge_1_fill", Math.random() * 100);
-        hmiUpdateTemperature("gauge_2_fill", Math.random() * 100);
-        hmiUpdateTemperature("gauge_3_fill", Math.random() * 100);
+        hmiUpdateTemperature("gauge_1_fill", Math.random() * 100,"guage_1_bar");
+        hmiUpdateTemperature("gauge_2_fill", Math.random() * 100,"guage_2_bar");
+        hmiUpdateTemperature("gauge_3_fill", Math.random() * 100,"guage_3_bar");
     }, 800);
 }
 hmiTestColours();
@@ -329,20 +345,21 @@ hmiTestColours();
 <g id="HMI_gauges">
 <g id="HMI_guagesN2O-1">
 <g id="gauge_low" onclick="">
-<rect id="Rectangle 4" x="39.5" y="43.5" width="11" height="69" fill="white" stroke="black"/>
-<rect id="gauge_1_fill" x="39.5" y="75.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
+<rect id="gauge_1_fill" x="39.5" y="43.5" width="11" height="69" fill="#00FF4D" stroke="black"/>
+<rect id="guage_1_bar" x="39.5" y="43.5" width="11" height="69" fill="white" stroke="black"/>
 </g>
 </g>
 <g id="HMI_guage-N2O-2">
 <g id="gauge_low_2">
-<rect id="Rectangle 4_2" x="183.5" y="43.5" width="11" height="69" fill="white" stroke="black"/>
-<rect id="gauge_2_Fill" x="183.5" y="75.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
+<rect id="gauge_2_fill" x="183.5" y="43.5" width="11" height="69" fill="#00FF4D" stroke="black"/>
+<rect id="guage_2_bar" x="183.5" y="43.5" width="11" height="69" fill="white" stroke="black"/>
+
 </g>
 </g>
 <g id="HMI_gauges_O2">
 <g id="gauge_low_3">
-<rect id="Rectangle 4_3" x="118.5" y="414.5" width="11" height="69" fill="white" stroke="black"/>
-<rect id="gauge_3_fill" x="118.5" y="446.5" width="11" height="37" fill="#00FF4D" stroke="black"/>
+<rect id="gauge_3_fill" x="118.5" y="414.5" width="11" height="69" fill="#00FF4D" stroke="black"/>
+<rect id="guage_3_bar" x="118.5" y="414.5" width="11" height="69" fill="white" stroke="black"/>
 </g>
 </g>
 </g>
