@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import os
-from typing import List, Tuple, Generator
+from typing import List, Tuple
 import time
 import threading
 import queue
