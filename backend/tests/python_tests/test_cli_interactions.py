@@ -1,7 +1,9 @@
 from click.testing import CliRunner
 import rocket
+import pytest
 
 
+@pytest.mark.dependency(name="test_cli_help")
 def test_cli_help():
     runner = CliRunner()
     result = runner.invoke(rocket.cli, ["--help"])
@@ -9,6 +11,8 @@ def test_cli_help():
     assert "Usage:" in result.output
 
 
+@pytest.mark.dependency(depends=["test_cli_help"])
+@pytest.mark.dependency(name="test_cli_dev_help")
 def test_cli_dev_help():
     runner = CliRunner()
     result = runner.invoke(rocket.dev, ["--help"])
@@ -16,6 +20,8 @@ def test_cli_dev_help():
     assert "Usage:" in result.output
 
 
+@pytest.mark.dependency(depends=["test_cli_help"])
+@pytest.mark.dependency(name="test_cli_run_help")
 def test_cli_run_help():
     runner = CliRunner()
     result = runner.invoke(rocket.run, ["--help"])
@@ -23,6 +29,8 @@ def test_cli_run_help():
     assert "Usage:" in result.output
 
 
+@pytest.mark.dependency(depends=["test_cli_help"])
+@pytest.mark.dependency(name="test_cli_sim_help")
 def test_cli_sim_help():
     runner = CliRunner()
     result = runner.invoke(rocket.simulation, ["--help"])

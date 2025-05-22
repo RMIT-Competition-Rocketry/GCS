@@ -52,7 +52,12 @@
             },
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "options": {
+                "env": {
+                    "CI_BUILD_ENV": "Debug"
+                }
+            },
         },
         {
             "label": "python test",
