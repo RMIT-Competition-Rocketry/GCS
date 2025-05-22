@@ -471,7 +471,7 @@ function solenoidPayload() {
     }
 };
 
-// Pop test payload to websocket
+// Pop test packet to websocket
 function popPayload() {
 
     const popPayload = [];
@@ -502,7 +502,7 @@ function popPayload() {
     }
 };
 
-
+// Continuity packet
 function continuityPayload(payload) {
 
 
@@ -525,3 +525,32 @@ function continuityPayload(payload) {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
 };
+
+// Camera switch packet
+function cameraSwitch() {
+    const camera = document.getElementById("cameraSwitch");
+    var status = false;
+
+    if (camera.checked == true) {
+        status = true;
+    }
+    else {
+        status = false;
+    }
+
+    const payload = {
+        id: 253,
+        data: {
+            cameraStatus: status,
+        }
+    }
+
+    const payloadString = JSON.stringify(payload);
+
+    if (apiSocket.readyState === WebSocket.OPEN) {
+        apiSocket.send(payloadString);
+        console.log('Sent camera status:', payloadString);
+    } else {
+        console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
+    }
+}

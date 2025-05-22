@@ -502,6 +502,7 @@ function displayUpdateRadio(data) {
 
 // }
 
+// Continuity payload functions
 function sendContinuityA() {
     const payload = [true, false, false, false];
     continuityPayload(payload);
