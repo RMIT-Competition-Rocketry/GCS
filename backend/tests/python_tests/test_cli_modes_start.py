@@ -47,6 +47,12 @@ class ProcessOutputScanner:
                 for fail_regex in fail_regexes:
                     if fail_regex.search(line):
                         print("Failure pattern matched:", line)
+                        failure_time = time.time()
+                        while time.time() - failure_time < 1:
+                            # Print traceback for 1 second
+                            line = self.output_queue.get(timeout=0.1)
+                            self.captured_lines.append(line)
+                            print(line)
                         return False, self.captured_lines
 
                 for success_pattern in list(success_targets):
