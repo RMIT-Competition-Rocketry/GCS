@@ -489,31 +489,35 @@ function displayUpdateRadio(data) {
 // SINGLE OPERATOR PAGE
 
 // Continuity buttons
-function continuityActivate() {
-    const continuityA = document.getElementById("continuityA");
-    const continuityB = document.getElementById("continuityB");
-    const continuityC = document.getElementById("continuityC");
-    const continuityD = document.getElementById("continuityD");
+// function continuityActivate() {
+//     const continuityA = document.getElementById("continuityA");
+//     const continuityB = document.getElementById("continuityB");
+//     const continuityC = document.getElementById("continuityC");
+//     const continuityD = document.getElementById("continuityD");
 
-    continuityA.addEventListener("change", continuityA)
-}
+//     continuityA.addEventListener("click", sendContinuityA)
+//     continuityB.addEventListener("click", sendContinuityB)
+//     continuityC.addEventListener("click", sendContinuityC)
+//     continuityD.addEventListener("click", sendContinuityD)
 
-function continuityA() {
+// }
+
+function sendContinuityA() {
     const payload = [true, false, false, false];
     continuityPayload(payload);
 }
 
-function continuityB() {
+function sendContinuityB() {
     const payload = [false, true, false, false];
     continuityPayload(payload);
 }
 
-function continuityC() {
+function sendContinuityC() {
     const payload = [false, false, true, false];
     continuityPayload(payload);
 }
 
-function continuityD() {
+function sendContinuityD() {
     const payload = [false, false,false, true];
     continuityPayload(payload);
 }
@@ -527,10 +531,10 @@ const popButton = document.getElementById("popButton");
 const prompt = document.getElementById("prompt");
 
 
-mainPCheckbox.addEventListener("change", validateSelection);
-mainSCheckbox.addEventListener("change", validateSelection);
-apogeePCheckbox.addEventListener("change", validateSelection);
-apogeeSCheckbox.addEventListener("change", validateSelection);
+mainPCheckbox.addEventListener("click", validateSelection);
+mainSCheckbox.addEventListener("click", validateSelection);
+apogeePCheckbox.addEventListener("click", validateSelection);
+apogeeSCheckbox.addEventListener("click", validateSelection);
 
 // Only one selection at a time
 mainPCheckbox.addEventListener("change", () => {

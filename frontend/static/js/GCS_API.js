@@ -465,7 +465,7 @@ function solenoidPayload() {
 
     if (apiSocket.readyState === WebSocket.OPEN) {
         apiSocket.send(payloadString);
-        console.log('Sent test JSON:', payloadString);
+        console.log('Sent solenoid JSON:', payloadString);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
@@ -496,7 +496,7 @@ function popPayload() {
 
     if (apiSocket.readyState === WebSocket.OPEN) {
         apiSocket.send(payloadString);
-        console.log('Sent test JSON:', payloadString);
+        console.log('Sent pop test JSON:', payloadString);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
@@ -505,17 +505,14 @@ function popPayload() {
 
 function continuityPayload(payload) {
 
-    const popPayload = payload;
 
-
-    
-    const payload = {
+    const contPayload = {
         id: 254,
         data: {
-            continuityA: popPayload[0],
-            continuityB: popPayload[1],
-            continuityC: popPayload[2],
-            continuityD: popPayload[3],
+            continuityA: payload[0],
+            continuityB: payload[1],
+            continuityC: payload[2],
+            continuityD: payload[3],
         }
     }
 
@@ -523,7 +520,7 @@ function continuityPayload(payload) {
 
     if (apiSocket.readyState === WebSocket.OPEN) {
         apiSocket.send(payloadString);
-        console.log('Sent test JSON:', payloadString);
+        console.log('Sent continuity JSON:', payloadString);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
