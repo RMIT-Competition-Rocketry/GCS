@@ -16,6 +16,14 @@ function hmiUpdateValue(id, value) {
         let elem = document.getElementById(id).firstElementChild;
         if (elem) {
             elem.innerHTML = value.toFixed(1);
+            if (id=="HMI_N2O-1TEMP"){
+            hmiUpdateTemperature("gauge_1_fill", value,"guage_1_bar");
+            } else if(id =="HMI_N2O-2TEMP"){
+            hmiUpdateTemperature("gauge_2_fill", value,"guage_2_bar");
+            } else if(id =="HMI_O2TEMP"){
+            hmiUpdateTemperature("gauge_3_fill", value,"guage_3_bar");
+            }
+            
         }
     }
 }
@@ -74,14 +82,7 @@ function solenoidupdate(solenoid1_N2O, solenoid2_purge, solenoid3_oxygen){
 
 } 
 
-function hmiTestColours() {
-    setInterval(() => {
-        hmiUpdateTemperature("gauge_1_fill", Math.random() * 100,"guage_1_bar");
-        hmiUpdateTemperature("gauge_2_fill", Math.random() * 100,"guage_2_bar");
-        hmiUpdateTemperature("gauge_3_fill", Math.random() * 100,"guage_3_bar");
-    }, 800);
-}
-hmiTestColours();
+
 
 
 </script>
