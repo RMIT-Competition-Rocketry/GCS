@@ -1,7 +1,7 @@
 <!-- HMI module -->
 <div class="flex w-full h-full justify-center items-center font-mono">
 <script>
-const color = ["red","#00FF4D","#FFF600"];
+const color = ["#FF0000","#00FF4D","#FFF600"];
 let counter = 0;
 function changecolor(objectid){
     const objectchange = document.getElementById(objectid);
@@ -58,29 +58,15 @@ function hmiUpdateTemperature(id, value,id2) {
     }
 }
 
-function solenoidupdate(solenoid1_N2O, solenoid2_purge, solenoid3_oxygen){
-    const solenoid1 = document.getElementById('solenoidsV5');
-    const solenoid2 = document.getElementById('solenoidsV7');
-    const solenoid3 = document.getElementById('solenoidV6');
-    if (solenoid1_N2O == true){
+function solenoidupdate(solenoidbool, id){
+    const solenoid1 =document.getElementById(id);
+    if (solenoidbool == true){
         solenoid1.setAttribute("fill","#00FF4D");
-    } else{
-        solenoid1.setAttribute("fill","red");
+    } else if(solenoidbool == false){
+        solenoid1.setAttribute("fill","#FF0000");
     }
-    
-     if (solenoid2_purge == true){
-        solenoid2.setAttribute("fill","#00FF4D");
-    } else{
-        solenoid2.setAttribute("fill","red");
-    }
-
-    if (solenoid3_oxygen == true){
-        solenoid3.setAttribute("fill","#00FF4D");
-    } else{
-        solenoid3.setAttribute("fill","red");
-    }
-
 } 
+
 
 
 
