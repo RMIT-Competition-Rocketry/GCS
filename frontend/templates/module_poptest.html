@@ -13,10 +13,6 @@
       <button id="popButton" class="pop_button_inactive w-24 h-24" disabled></button>
     </div>
 
-    <!-- Vector Image -->
-    <!-- <div class="col-start-3 row-start-1 flex justify-center items-center">
-      <img src="img/selector_vector.svg" class="w-20 h-20 object-contain" />
-    </div> -->
 
     <!-- Pop test options -->
 	<div class="col-start-4 row-start-1 row-span-4 flex flex-col justify-center gap-1">
@@ -60,12 +56,14 @@
       <div class="indicator-state"></div>
     </div>
 
+	<!-- Camera switch -->
 	<div class="col-span-2 flex items-center gap-2 font-mono text-sm p-4">
 		<h3 class="text-center p-1 text-sm">Camera Power</h3>
 		<label class="switch">
-			<input type="checkbox">
+			<input onclick = "cameraSwitch()" id = "cameraSwitch" type="checkbox">
 			<span class="slider round"></span>
 		</label>
 	</div>
+	
   </div>
 </div>

@@ -1,9 +1,9 @@
 # -------------------- LINGUIST --------------------
 
 # Exclude libraries from linguist analysis
-frontend/static/js/d3.min.js linguist-vendored
-frontend/static/js/three.module.js linguist-vendored
-frontend/static/js/GLTFLoader.js linguist-vendored
+frontend/static/js/libraries/d3.min.js linguist-vendored
+frontend/static/js/libraries/three.module.js linguist-vendored
+frontend/static/js/libraries/GLTFLoader.js linguist-vendored
 
 frontend/static/css/tailwind.css linguist-generated
 
