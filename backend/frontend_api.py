@@ -116,8 +116,10 @@ async def consumer(websocket):
         LINGER_TIME_MS = 300
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
+        push_socket.setsockopt(zmq.CONFLATE, 1)  # Replace old messages
         push_socket.connect(f"ipc://{SOCKET_PATH}")
         EXPECTED_ID = 0x09  # What ID should we relay to the server?
+        slogger.debug("New websocket consumer started")
         try:
             async for message in websocket:
                 if shutdown_event.is_set():
@@ -141,7 +143,7 @@ async def consumer(websocket):
                     packet = build_packet(data)
                     packet_bytes = packet.get_payload_bytes(EXTERNAL=True)
                     # Prepend the manual control bool as a byte to tell server
-                    manual_control = data.get("manualControl", False)
+                    manual_control = data.get("manualEnabled", False)
                     if isinstance(manual_control, bool):
                         prefix = bytes([0xFF if manual_control else 0x00])
                     else:
@@ -183,9 +185,9 @@ def build_packet(WEBSOCKET_DATA: dict) -> device_emulator.GCStoGSEManualControl:
         device_emulator.GCStoGSEManualControl: Output packet to be written to lora
     """
 
-    PURGE_HIGH: bool = WEBSOCKET_DATA.get("solendoid1High", False)
-    N2O_HIGH: bool = WEBSOCKET_DATA.get("solendoid2High", False)
-    O2_HIGH: bool = WEBSOCKET_DATA.get("solendoid3High", False)
+    PURGE_HIGH: bool = WEBSOCKET_DATA.get("solenoid1High", False)
+    N2O_HIGH: bool = WEBSOCKET_DATA.get("solenoid2High", False)
+    O2_HIGH: bool = WEBSOCKET_DATA.get("solenoid3High", False)
     states = {
         "MANUAL_PURGE": PURGE_HIGH,
         "O2_FILL_ACTIVATE": O2_HIGH,

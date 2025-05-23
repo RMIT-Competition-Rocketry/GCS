@@ -448,7 +448,7 @@ class GSEtoGCSData2(MockPacket):
         SYSTEM_ACTIVATED: bool = False,
         INTERNAL_TEMPERATURE: float = 30.123,
         WIND_SPEED: float = 20.123,
-        GAS_BOTTLE_WEIGHT_1: int = 2,  # Error because almost empty
+        GAS_BOTTLE_WEIGHT_1: int = 2,  # Error because alsmost empty
         GAS_BOTTLE_WEIGHT_2: int = 8,  # Impossible value for 6.5 ltr tank
         ADDITIONAL_VA_1: float = 5.123,
         ADDITIONAL_VA_2: float = 6.123,

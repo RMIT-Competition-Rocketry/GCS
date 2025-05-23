@@ -19,6 +19,7 @@
 #include "FlightState.pb.h"
 #include "GSE_TO_GCS_DATA_1.hpp"
 #include "GSE_TO_GCS_DATA_2.hpp"
+#include "debug_functions.hpp"
 #include "sequence.hpp"
 #include "subprocess_logging.hpp"
 #include "test_interface.hpp"
@@ -37,26 +38,6 @@ inline void set_thread_name([[maybe_unused]] const char *name) {
 #ifdef __APPLE__
   pthread_setname_np(name);
 #endif
-}
-
-std::string vectorToHexString(const std::vector<uint8_t> &data,
-                              const ssize_t BUFFER_BYTE_COUNT) {
-  std::ostringstream oss;
-  oss << std::uppercase << std::hex << std::setfill('0');
-  if (BUFFER_BYTE_COUNT == 0) {
-    return "Empty vector";
-  }
-  if (BUFFER_BYTE_COUNT > 255) {
-    return "Vector too long: " + std::to_string(BUFFER_BYTE_COUNT);
-  }
-  if (BUFFER_BYTE_COUNT < 0) {
-    return "Vector too short: " + std::to_string(BUFFER_BYTE_COUNT);
-  }
-  for (ssize_t i = 0; i < BUFFER_BYTE_COUNT; ++i) {
-    oss << std::setw(2) << static_cast<int>(data[i]);
-    if (i != BUFFER_BYTE_COUNT - 1) oss << " ";
-  }
-  return oss.str();
 }
 
 template <typename PacketType>
@@ -111,7 +92,7 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
                    std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
                    std::to_string(BUFFER_BYTE_COUNT) + " bytes");
     slogger::debug("Buffer contents: " +
-                   vectorToHexString(buffer, BUFFER_BYTE_COUNT));
+                   debug::vectorToHexString(buffer, BUFFER_BYTE_COUNT));
   }
   return nullptr;
 }
@@ -311,7 +292,7 @@ int main(int argc, char *argv[]) {
     // Throw error silenced by main
     throw std::runtime_error("Error: Not enough arugments provided");
     return EXIT_FAILURE;
-  } else if (argc > 5) {
+  } else if (argc > 6) {
     slogger::warning("Too many arugments provided: " + std::to_string(argc));
   }
 
@@ -334,7 +315,7 @@ int main(int argc, char *argv[]) {
   Sequence sequence;
 
   if (argc == 6) {
-    std::string mode = std::string(argv[4]);
+    std::string mode = std::string(argv[5]);
     sequence.set_gse_only_mode(mode == "--GSE_ONLY");
   }
 
@@ -444,10 +425,20 @@ int main(int argc, char *argv[]) {
         } while (web_control_socket_more_intbool);
         // Get rid of this shit when you refactor all IPC comms
         if (!web_control_data.empty()) {
+          slogger::debug("server got values from web control: " +
+                         debug::vectorToHexString(web_control_data,
+                                                  web_control_data.size()));
           uint8_t manual_control_val = web_control_data.front();
           web_control_data.erase(
               web_control_data.begin());  // remove that first byte
           bool manual_control = manual_control_val == 0xFF;
+          if (manual_control != sequence.manual_control_mode()) {
+            if (manual_control) {
+              slogger::warning("Manual control ENABLED");
+            } else {
+              slogger::warning("Manual control DISABLED");
+            }
+          }
           sequence.set_manual_control_mode(manual_control);
         }
       }
