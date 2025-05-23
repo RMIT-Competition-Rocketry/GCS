@@ -110,7 +110,6 @@ def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
     for _, row in FLIGHT_DATA.iterrows():
         row_time_ms = row['# Time (s)'] * MS_PER_SECOND
         importance = packet_importance(row, trailer_data)
-
         if not current_window:
             # Start first window
             current_window.append((row, importance))

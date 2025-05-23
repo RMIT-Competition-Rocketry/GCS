@@ -574,10 +574,10 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
 
     ARGS_AV_COMMON = {"RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
                       "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
-                      "FLIGHT_STATE_": changing_int(T, 0, 0b111, 1),
+                      "FLIGHT_STATE_": changing_int(T, 0, 0b111, 1) if EXPERIMENTAL else 0b000,
                       "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": changing_bool(T) if EXPERIMENTAL else True,
                       "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": changing_bool(T) if EXPERIMENTAL else False,
-                      "GPS_FIX_FLAG": changing_bool(T),
+                      "GPS_FIX_FLAG": changing_bool(T) if EXPERIMENTAL else True,
                       "PAYLOAD_CONNECTION_FLAG": changing_bool(T) if EXPERIMENTAL else True,
                       "CAMERA_CONTROLLER_CONNECTION": changing_bool(T) if EXPERIMENTAL else True}
 
@@ -605,9 +605,13 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
         "MOVE_TO_BROADCAST": changing_bool(T) if EXPERIMENTAL else False
     }
 
-    nav_status = Metric.POSSIBLE_NAV_VALUES[
-        int(T/1 % len(Metric.POSSIBLE_NAV_VALUES))
-    ]
+    if EXPERIMENTAL:
+        nav_status = Metric.POSSIBLE_NAV_VALUES[
+            int(T/1 % len(Metric.POSSIBLE_NAV_VALUES))
+        ]
+    else:
+        nav_status = "G2"
+        assert nav_status in Metric.POSSIBLE_NAV_VALUES, f"Invalid NAV_STATUS: {nav_status}"
 
     ARGS_AVtoGCSData2 = ARGS_AV_COMMON | {
         "LATITUDE": sinusoid(T, min=-37.80808500000-0.1, max=37.80808500000+0.1, period=10, phase=0),

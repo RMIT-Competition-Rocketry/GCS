@@ -15,7 +15,6 @@ import json
 import websockets
 import zmq
 import zmq.asyncio
-import time
 import os
 
 # Global flag for shutdown control
@@ -88,11 +87,18 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         slogger.error(f"Unexpected packet ID: {packet_id}")
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
+            except websockets.ConnectionClosed:
+                if not shutdown_event.is_set():
+                    slogger.info(
+                        "WebSocket connection closed from manager trigger")
+                else:
+                    slogger.info(
+                        "WebSocket connection closed from ws client")
+                break
             except Exception as e:
                 slogger.error(f"Error fowarding data to websocket: {e}")
-
-    except websockets.ConnectionClosed:
-        slogger.info("WebSocket connection closed")
+                if shutdown_event.is_set():
+                    break
     finally:
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
@@ -199,14 +205,21 @@ async def handler(websocket):
         zmq_to_websocket(websocket, IPC_ADDRESS))
     consumer_task = asyncio.create_task(consumer(websocket))
 
-    # wait until one side throws an exception
-    done, pending = await asyncio.wait(
-        [producer_task, consumer_task],
-        return_when=asyncio.FIRST_EXCEPTION
-    )
+    try:
+        # wait until one side throws an exception or shutdown is requested
+        done, pending = await asyncio.wait(
+            [producer_task, consumer_task],
+            return_when=asyncio.FIRST_EXCEPTION
+        )
 
-    for task in pending:
-        task.cancel()
+        if shutdown_event.is_set():
+            await websocket.close(code=1001, reason="Server shutting down")
+    except Exception as e:
+        slogger.error(f"Handler error: {e}")
+    finally:
+        for task in pending:
+            task.cancel()
+        await websocket.close()
 
 
 async def amain():
@@ -223,6 +236,8 @@ async def amain():
         await shutdown_event.wait()
     finally:
         slogger.info("Shutting down server...")
+        for ws in server.connections:
+            await ws.close(code=1001, reason="Server shutdown")
         server.close()
         await server.wait_closed()
         slogger.info("Server shutdown complete")
