@@ -532,6 +532,7 @@ int main(int argc, char *argv[]) {
     reader.join();
     pub_socket.close();
     pendant_pull_socket.close();
+    web_control_pull_socket.close();
     context.close();
     google::protobuf::ShutdownProtobufLibrary();
   } catch (const std::exception &e) {

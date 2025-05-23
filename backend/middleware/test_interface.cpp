@@ -72,8 +72,8 @@ ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer) {
 
 ssize_t TestInterface::write_data(const std::vector<uint8_t> &data) {
   // Write to the Aether. This doesn't actually do anything
-  slogger::info(
-      "TEST write data: " +
-      debug::vectorToHexString(data, static_cast<ssize_t>(data.size())));
+  // slogger::info(
+  //     "TEST write data: " +
+  //     debug::vectorToHexString(data, static_cast<ssize_t>(data.size())));
   return static_cast<ssize_t>(data.size());
 }
