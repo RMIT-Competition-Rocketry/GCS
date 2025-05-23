@@ -4,11 +4,13 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>RMIT HIVE-IREC</title>
-		<link rel="stylesheet" type="text/css" href="css/tailwind.css" media="screen" />
+		<link rel="stylesheet" type="text/css" href="/css/tailwind.css" media="screen" />
 		<link rel="preload" href="/font/fauna-thin.ttf" as="font" type="font/ttf" crossorigin="anonymous" />
 	</head>
 
-	<body class="w-screen h-screen max-w-screen max-h-screen bg-hexagonal_background text-white border-hive border-2 flex flex-col">
+	
+	<body class="w-screen h-screen max-w-screen max-h-screen bg-hexagonal_background text-white border-hive border-2 flex flex-col overflow-hidden">
+		<div class = "background-pattern">
 		<!-- Header, consistent on all pages -->
 		<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24">
 			<div class="w-1/6 grow">{% include 'module_info.html' %}</div>
@@ -55,8 +57,8 @@
 			</div>
 			<div class="module m-main col-[5/9] row-[1/10]">{% include 'module_rocket.html' %}</div>
 			<div class="module m-main col-[5/9] row-[10/13]">{% include 'module_flightstate.html' %}</div>
-			<div class="module m-main m-lf2 col-[9/13] row-[1/6]">{% include 'module_errorlog.html' %}</div>
-			<div class="module m-main m-lf2 col-[9/13] row-[6/13]">{% include 'module_auxdata.html' %}</div>
+			<div class="module m-main m-lf2 col-[9/13] row-[1/5]">{% include 'module_errorlog.html' %}</div>
+			<div class="module m-main m-lf2 col-[9/13] row-[5/13]">{% include 'module_auxdata.html' %}</div>
 
 			<!-- Single operator password page and modules -->
 			<div class="module m-password col-[1/13] row-[1/13]">{% include 'module_password.html' %}</div>
@@ -82,23 +84,25 @@
 
 			<!-- HMI modules -->
 			<div class="module m-hmi col-[1/13] row-[1/13]">
-				<p class="text-white text-center w-full">TODO HMI</p>
+				{% include 'module_hmi.html' %}
 			</div>
 
 		</main>
-
-		<!-- Javascript should generally go below, not in individual modules -->
-		<script src="js/GCS_Display.js"></script>
-		<script src="js/GCS_API.js"></script>
-
-		<!-- Data visualisation code -->
-		<script src="js/d3.min.js"></script>
-        <script src="js/GCS_Graphs.js"></script>
-
-		<!-- 6DOF Rocket code -->
-		<script type="module" src="js/rocket_viewer.js"></script>
-
-		<!-- Debug/testing code -->
-		<script src="js/GCS_Testing.js"></script>
+		</div>
 	</body>
+
+	<!-- Javascript should generally go below, not in individual modules -->
+	<script src="/js/GCS_Display.js"></script>
+	<script src="/js/GCS_API.js"></script>
+
+	<!-- Data visualisation code -->
+	<script src="/js/libraries/d3.min.js"></script>
+	<script src="/js/GCS_Graphs.js"></script>
+
+	<!-- 6DOF Rocket code -->
+	<script type="module" src="/js/GCS_RocketViewer.js" defer></script>
+
+	<!-- Debug/testing code -->
+	<script src="/js/GCS_Testing.js"></script>
+
 </html>

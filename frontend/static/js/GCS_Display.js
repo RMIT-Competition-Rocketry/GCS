@@ -50,6 +50,11 @@ document.querySelectorAll("nav a").forEach((elem) => {
             .querySelector(`a[href='#${selected}']`)
             .classList.add(...selectedClasses);
 
+        if (selected == "m-ops") {
+            // Single operator icon fix
+            document.querySelector(`a[href='#m-password']`).classList.add(...selectedClasses);
+        }
+
         // Update URL
         history.replaceState(null, "", `#${selected}`);
 
@@ -90,7 +95,6 @@ function displaySetValue(item, value, precision = 2, error = false) {
 
 function displaySetString(item, string) {
     // Updates the string in a display item
-
     if (string != undefined) {
         if (verboseLogging) console.debug(`new string %c${item}%c ${string}`, 'color:orange', 'color:white');
 
@@ -114,6 +118,13 @@ function displaySetState(item, value) {
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
+
+            // Convert true/false boolean values to on/error
+            if (typeof value == "boolean") {
+                value = value ? 1 : 3;
+            }
+
+            // Get indicator state from value
             if (value >= 0 && value < indicatorStates.length) {
                 elem.classList.add(indicatorStates[value]);
             }
@@ -142,63 +153,111 @@ function displaySetActiveFlightState(item) {
             elem.classList.add("active");
         });
     }
+
+    // Launch timer
+    if (item == "fs-state-preflight") {
+        timers.launchTimestamp = 0;
+    } else if (item == "fs-state-launch") {
+        if (timers.launchTimestamp == undefined || timers.launchTimestamp == 0) {
+            timers.launchTimestamp = timestampApi;
+        }
+    }
 }
 
 // FUNCTIONS FOR UPDATING MODULES
 function displayUpdateTime() {
     /// SYSTEM TIME
-    if (timestampApi != undefined && timestampApi != 0) {
+    if (timestampApi != 0) {
         displaySetValue("fs-time-api", timestampApi, 1);
+
+        // Rocket launch time 
+        // TODO: Find somewhere nicer to put this in the code, this is so jank
+        if (timers?.launchTimestamp != undefined) {
+            const launchTime = timers.launchTimestamp == 0 ? 0 : timestampApi - timers.launchTimestamp;
+            displaySetString("fs-launch-time", `T+${launchTime.toFixed(1)}`);
+        }
     }
-    if (timestampLocal != undefined && timestampLocal != 0) {
+    if (timestampLocal != 0) {
         displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
     }
 }
 
 function displayUpdateAuxData(data) {
     /// MODULE AUXDATA
-    // Transducers
-    if (data.transducer1 != undefined) {
+    // Transducers (Bar)
+    if (data?.transducer1) {
+        // N2O in pressure
         displaySetValue("aux-transducer-1", data.transducer1, 1);
+        hmiUpdateValue("hmi-pressure-1", data.transducer1);
     }
-    if (data.transducer2 != undefined) {
+    if (data?.transducer2) {
+        // N2O out pressure
         displaySetValue("aux-transducer-2", data.transducer2, 1);
+        hmiUpdateValue("hmi-pressure-2", data.transducer2);
     }
-    if (data.transducer3 != undefined) {
+    if (data?.transducer3) {
+        // O2 pressure
         displaySetValue("aux-transducer-3", data.transducer3, 1);
+        hmiUpdateValue("hmi-pressure-3", data.transducer3);
     }
 
-    // Thermocouples
-    if (data.thermocouple1 != undefined) {
+    // Thermocouples (degrees Celsius)
+    if (data?.thermocouple1) {
+        // n2o (int) temperature
         displaySetValue("aux-thermocouple-1", data.thermocouple1, 0);
+        hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
     }
-    if (data.thermocouple2 != undefined) {
+    if (data?.thermocouple2) {
+        // n2o #1 pressure
         displaySetValue("aux-thermocouple-2", data.thermocouple2, 0);
+        hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
     }
-    if (data.thermocouple3 != undefined) {
+    if (data?.thermocouple3) {
+        // n2o #2 pressure
         displaySetValue("aux-thermocouple-3", data.thermocouple3, 0);
+        hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
     }
-    if (data.thermocouple4 != undefined) {
+    if (data?.thermocouple4) {
+        // o2 pressure
         displaySetValue("aux-thermocouple-4", data.thermocouple4, 0);
+        hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
     }
 
-    // Internal temperature
-    if (data.internalTemp != undefined) {
+    // GSE enclosure thermocouple
+    if (data?.internalTemp) {
+        // internal temperature
         displaySetValue("aux-internaltemp", data.internalTemp, 1);
     }
 
     // Gas bottle weights
-    if (data.gasBottleWeight1 != undefined) {
+    if (data?.gasBottleWeight1) {
+        // n2o #1 weight
         displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 1)
     }
-    if (data.gasBottleWeight2 != undefined) {
+    if (data?.gasBottleWeight2) {
+        // n2o #2 weight
         displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1)
     }
 
-    // Rocket load cell weight
-    if (data.analogVoltageInput1 != undefined) {
+    // Rocket mass
+    if (data?.analogVoltageInput1) {
         displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
+    // should be the solenoids
+   if (data?.stateFlags){
+    //purge / solenoid1
+    if (data.stateFlags?.manualPurgeActivated || data.stateFlags.manualPurgeActivated == true || data.stateFlags.manualPurgeActivated == false){
+         solenoidupdate(data.stateFlags.manualPurgeActivated,'solenoidsV7');
+    }
+    // n2O fill / solenoid2
+    if (data.stateFlags?.o2FillActivated || data.stateFlags.o2FillActivated == true || data.stateFlags.o2FillActivated == false){
+         solenoidupdate(data.stateFlags.o2FillActivated,'solenoidsV6');
+    }
+    // O2 fill / solenoid3
+    if (data.stateFlags?.n20FillActivated || data.stateFlags.n20FillActivated == true || data.stateFlags.n20FillActivated == false ){
+         solenoidupdate(data.stateFlags.n20FillActivated,'solenoidsV5');
+    }
+   }
 
 }
 
@@ -223,7 +282,7 @@ function displayUpdateAvionics(data) {
         if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "av-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag
+                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 3
             );
         }
 
@@ -269,9 +328,27 @@ function displayUpdateAvionics(data) {
     }
 }
 
+function displayUpdateSystemFlags(data) {
+	if (data?.stateFlags) {
+		if (data.stateFlags?.dualBoardConnectivityStateFlag) {
+			displaySetState("sysflags-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0);
+		}
+		if (data.stateFlags?.recoveryChecksCompleteAndFlightReady) {
+			displaySetState("sysflags-state-recovery", data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0);
+		}
+		if (data.stateFlags?.payloadConnectionFlag) {
+			displaySetState("sysflags-state-payload", data.stateFlags.payloadConnectionFlag ? 1 : 0);
+		}
+		if (data.stateFlags?.cameraControllerConnectionFlag) {
+			displaySetState("sysflags-state-camera", data.stateFlags.cameraControllerConnectionFlag ? 1 : 0);
+		}
+	}
+}
+
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data?.flightState) {
+
         let stateName = "";
 
         if (data.flightState == 0 || data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
@@ -279,40 +356,34 @@ function displayUpdateFlightState(data) {
             stateName = "Pre-flight (not ready)";
             displaySetActiveFlightState("fs-state-preflight");
 
-        } else if (data.flightState == 1 || data.flightState == "PRE_FLIGHT_FLIGHT_READY") {
-            // Preflight (ready)
-            stateName = "Pre-flight (flight ready)";
-            displaySetActiveFlightState("fs-state-preflight");
-
-        } else if (data.flightState == 2 || data.flightState == "LAUNCH") {
+        } else if (data.flightState == 1 || data.flightState == "LAUNCH") {
             // Launch
             stateName = "Launch";
             displaySetActiveFlightState("fs-state-launch");
 
-        } else if (data.flightState == 3 || data.flightState == "COAST") {
+        } else if (data.flightState == 2 || data.flightState == "COAST") {
             // Coast
             stateName = "Coast";
             displaySetActiveFlightState("fs-state-coast");
 
-        } else if (data.flightState == 4 || data.flightState == "APOGEE") {
+        } else if (data.flightState == 3 || data.flightState == "APOGEE") {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
 
-        } else if (data.flightState == 5 || data.flightState == "DESCENT" || data.flightState == "DESCENT") {
+        } else if (data.flightState == 4 || data.flightState == "DESCENT" || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
             displaySetActiveFlightState("fs-state-descent");
 
-        } else if (data.flightState == 6 || data.flightState == "LANDED") {
+        } else if (data.flightState == 5 || data.flightState == "LANDED") {
             // Landed successfully
             stateName = "Landed";
             displaySetActiveFlightState("fs-state-landed");
 
-        } else if (data.flightState == 7 || data.flightState == "ON_NO") {
-            // Oh shit oh fuck what the heck :(
-            stateName = "Aaaaaaah!!!!";
-
+        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "ON_NO" || data.flightState == "OH_NO") {
+            // Oh no oh no what the oh no :(
+            stateName = "ERROR !!!";
         }
 
         displaySetString("fs-flightstate", stateName);
@@ -366,15 +437,17 @@ function displayUpdateRadio(data) {
             // Connection indicators
             displaySetState("radio-av-state", 1);
 
-            clearTimeout(timeouts?.radioAv1Idle);
-            timeouts.radioAv1Idle = setTimeout(() => {
-                displaySetState("radio-av-state", 2);
-            }, 1000);
+            if (timeouts != undefined) {
+                clearTimeout(timeouts?.radioAv1Idle);
+                timeouts.radioAv1Idle = setTimeout(() => {
+                    displaySetState("radio-av-state", 2);
+                }, 1000);
 
-            clearTimeout(timeouts?.radioAv1Error);
-            timeouts.radioAv1Error = setTimeout(() => {
-                displaySetState("radio-av-state", 3);
-            }, 5000);
+                clearTimeout(timeouts?.radioAv1Error);
+                timeouts.radioAv1Error = setTimeout(() => {
+                    displaySetState("radio-av-state", 3);
+                }, 5000);
+            }
 
             // Update avionics radio data
             if (data?.meta?.rssi) {
@@ -398,15 +471,18 @@ function displayUpdateRadio(data) {
             // Connection indicators
             displaySetState("radio-gse-state", 1);
 
-            clearTimeout(timeouts?.radioGseIdle);
-            timeouts.radioGseIdle = setTimeout(() => {
-                displaySetState("radio-gse-state", 2);
-            }, 1000);
+            if (timeouts != undefined) {
+                clearTimeout(timeouts?.radioGseIdle);
+                timeouts.radioGseIdle = setTimeout(() => {
+                    displaySetState("radio-gse-state", 2);
+                }, 1000);
 
-            clearTimeout(timeouts?.radioGseError);
-            timeouts.radioGseError = setTimeout(() => {
-                displaySetState("radio-gse-state", 3);
-            }, 5000);
+                clearTimeout(timeouts?.radioGseError);
+                timeouts.radioGseError = setTimeout(() => {
+                    displaySetState("radio-gse-state", 3);
+                }, 5000);
+            }
+            
 
             // Update GSE radio data
             if (data?.meta?.rssi) {
@@ -428,8 +504,42 @@ function displayUpdateRadio(data) {
     }
 }
 
-// Buttons
+// SINGLE OPERATOR PAGE
 
+// Continuity buttons
+// function continuityActivate() {
+//     const continuityA = document.getElementById("continuityA");
+//     const continuityB = document.getElementById("continuityB");
+//     const continuityC = document.getElementById("continuityC");
+//     const continuityD = document.getElementById("continuityD");
+
+//     continuityA.addEventListener("click", sendContinuityA)
+//     continuityB.addEventListener("click", sendContinuityB)
+//     continuityC.addEventListener("click", sendContinuityC)
+//     continuityD.addEventListener("click", sendContinuityD)
+
+// }
+
+// Continuity payload functions
+function sendContinuityA() {
+    const payload = [true, false, false, false];
+    continuityPayload(payload);
+}
+
+function sendContinuityB() {
+    const payload = [false, true, false, false];
+    continuityPayload(payload);
+}
+
+function sendContinuityC() {
+    const payload = [false, false, true, false];
+    continuityPayload(payload);
+}
+
+function sendContinuityD() {
+    const payload = [false, false,false, true];
+    continuityPayload(payload);
+}
 
 // Pop test buttons
 const mainPCheckbox = document.getElementById("optionMainP");
@@ -440,11 +550,12 @@ const popButton = document.getElementById("popButton");
 const prompt = document.getElementById("prompt");
 
 
-mainPCheckbox.addEventListener("change", validateSelection);
-mainSCheckbox.addEventListener("change", validateSelection);
-apogeePCheckbox.addEventListener("change", validateSelection);
-apogeeSCheckbox.addEventListener("change", validateSelection);
+mainPCheckbox.addEventListener("click", validateSelection);
+mainSCheckbox.addEventListener("click", validateSelection);
+apogeePCheckbox.addEventListener("click", validateSelection);
+apogeeSCheckbox.addEventListener("click", validateSelection);
 
+// Only one selection at a time
 mainPCheckbox.addEventListener("change", () => {
     if (mainPCheckbox.checked) {
         mainSCheckbox.checked = false;
@@ -504,7 +615,7 @@ function validateSelection() {
 
 
 popButton.addEventListener("click", function () {
-    //some sort of action
+    popPayload();
 });
 
 
@@ -514,7 +625,7 @@ const modal = document.getElementById("confirmationModal");
 const confirmYes = document.getElementById("confirmYes");
 const confirmNo = document.getElementById("confirmNo");
 const confirmText = document.getElementById("confirmText");
-
+const solenoidCommand = document.getElementById("solenoidCommand");
 let isSolenoidActive = false;
 
 // Modal popup
@@ -522,9 +633,9 @@ solenoid.addEventListener("click", () => {
     // If manual activation is active, show a different confirmation text
     if (isSolenoidActive) {
         confirmText.textContent =
-            "Are you sure you want to leave Manual Solenoid Activation?";
+            "Are you sure you want to disable manual solenoid?";
     } else {
-        confirmText.textContent = "Are you sure you want to continue?";
+        confirmText.textContent = "Are you sure you want to enable manual solenoid?";
     }
 
     modal.classList.remove("hidden");
@@ -541,20 +652,40 @@ confirmYes.addEventListener("click", () => {
 
     // If solenoid is active, deactivate it and reset switches
     if (isSolenoidActive) {
+        solenoidCommand.hidden = true;
         solenoid.classList.remove("solenoid_button_active");
+        solenoid.innerHTML = "Enable Manual Solenoid";
         document.querySelectorAll(".solSwitch").forEach((el) => {
+            el.checked = false;
             el.disabled = true;
         });
         isSolenoidActive = false;
     } else {
         // If solenoid is inactive, activate it and switch other items
         solenoid.classList.add("solenoid_button_active");
+        solenoid.innerHTML = "Disable Manual Solenoid";
+        solenoidCommand.hidden = false;
         document.querySelectorAll(".solSwitch").forEach((el) => {
             el.disabled = false;
-            testJSON();
         });
         isSolenoidActive = true;
     }
+    solenoidPayload();
+});
+
+// Send solenoid JSON packets to the websocket when clicked
+var solenoidBools = [];
+solenoidCommand.addEventListener("click", () => {
+    solenoidCommand.classList.remove("opacity-60");
+    solenoidCommand.classList.add("opacity-100")
+    
+    setTimeout(() => {
+        solenoidCommand.classList.remove("opacity-100");
+        solenoidCommand.classList.add("opacity-60");
+        
+    }, 150);
+
+    solenoidPayload();
 });
 
 

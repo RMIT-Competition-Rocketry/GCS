@@ -6,7 +6,7 @@
 	<h2 class = "flex flex-row items-center text-center justify-center">Continuity check result</h2>
 
 	<div class = "col-start-1 row-start-2 flex items-center justify-center border-r border-hive-dark">
-		<button class="continuity-button items-center w-35 h-10 font-mono">Continuity A</button>
+		<button onclick = "sendContinuityA()" id = "continuityA" class="continuity-button items-center w-35 h-10 font-mono">Continuity A</button>
 	</div>
 	<div class = "continuity-variables-middle" >
 		<p class = "font-mono text-center">Continuity A </p> 
@@ -18,7 +18,7 @@
 	</div>
 
 	<div class = "col-start-1 row-start-3 flex items-center justify-center border-r-1 border-hive-dark">
-		<button class="continuity-button items-center w-35 h-10 font-mono">Continuity B</button>
+		<button onclick = "sendContinuityB()" id = "continuityB" class="continuity-button items-center w-35 h-10 font-mono">Continuity B</button>
 	</div>
 	<div class = "continuity-variables-middle">
 		<p class = "font-mono text-center">Continuity B </p> 
@@ -26,12 +26,12 @@
 	</div>
 	<div class = "continuity-variables-right">
 		<p class = "font-mono text-center">Continuity B </p> 
-		<div class = "indicator-state"></div> 
+		<div class = "indicator-state"></div>  
 	</div>
 
 
 	<div class = "col-start-1 row-start-4 flex items-center justify-center border-r-1 border-hive-dark">
-		<button class="continuity-button items-center w-35 h-10 font-mono">Continuity C</button>
+		<button onclick = "sendContinuityC()" id = "continuityC" class="continuity-button items-center w-35 h-10 font-mono">Continuity C</button>
 	</div>
 	<div class = "continuity-variables-middle">
 		<p class = "font-mono text-center">Continuity C </p> 
@@ -44,7 +44,7 @@
 
 
 	<div class = "col-start-1 row-start-5 flex items-center justify-center border-r-1 border-hive-dark">
-		<button class="continuity-button items-center w-35 h-10 font-mono">Continuity D</button>
+		<button onclick = "sendContinuityD()" id = "continuityD" class="continuity-button items-center w-35 h-10 font-mono">Continuity D</button>
 	</div>
 	<div class = "continuity-variables-middle">
 		<p class = "font-mono text-center">Continuity D </p> 
