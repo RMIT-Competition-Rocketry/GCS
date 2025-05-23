@@ -506,19 +506,7 @@ function displayUpdateRadio(data) {
 
 // SINGLE OPERATOR PAGE
 
-// Continuity buttons
-// function continuityActivate() {
-//     const continuityA = document.getElementById("continuityA");
-//     const continuityB = document.getElementById("continuityB");
-//     const continuityC = document.getElementById("continuityC");
-//     const continuityD = document.getElementById("continuityD");
 
-//     continuityA.addEventListener("click", sendContinuityA)
-//     continuityB.addEventListener("click", sendContinuityB)
-//     continuityC.addEventListener("click", sendContinuityC)
-//     continuityD.addEventListener("click", sendContinuityD)
-
-// }
 
 // Continuity payload functions
 function sendContinuityA() {
@@ -542,55 +530,57 @@ function sendContinuityD() {
 }
 
 // Pop test buttons
-const mainPCheckbox = document.getElementById("optionMainP");
-const mainSCheckbox = document.getElementById("optionMainS");
-const apogeePCheckbox = document.getElementById("optionApogeeP");
-const apogeeSCheckbox = document.getElementById("optionApogeeS");
-const popButton = document.getElementById("popButton");
-const prompt = document.getElementById("prompt");
+document.addEventListener("DOMContentLoaded", () => {
+    const mainPCheckbox = document.getElementById("optionMainP");
+    const mainSCheckbox = document.getElementById("optionMainS");
+    const apogeePCheckbox = document.getElementById("optionApogeeP");
+    const apogeeSCheckbox = document.getElementById("optionApogeeS");
+    const popButton = document.getElementById("popButton");
+    const prompt = document.getElementById("prompt");
 
 
-mainPCheckbox.addEventListener("click", validateSelection);
-mainSCheckbox.addEventListener("click", validateSelection);
-apogeePCheckbox.addEventListener("click", validateSelection);
-apogeeSCheckbox.addEventListener("click", validateSelection);
+    mainPCheckbox.addEventListener("click", validateSelection);
+    mainSCheckbox.addEventListener("click", validateSelection);
+    apogeePCheckbox.addEventListener("click", validateSelection);
+    apogeeSCheckbox.addEventListener("click", validateSelection);
 
-// Only one selection at a time
-mainPCheckbox.addEventListener("change", () => {
-    if (mainPCheckbox.checked) {
-        mainSCheckbox.checked = false;
-        apogeePCheckbox.checked = false;
-        apogeeSCheckbox.checked = false;
-    }
-    validateSelection();
-});
+    // Only one selection at a time
+    mainPCheckbox.addEventListener("change", () => {
+        if (mainPCheckbox.checked) {
+            mainSCheckbox.checked = false;
+            apogeePCheckbox.checked = false;
+            apogeeSCheckbox.checked = false;
+        }
+        validateSelection();
+    });
 
-mainSCheckbox.addEventListener("change", () => {
-    if (mainSCheckbox.checked) {
-        mainPCheckbox.checked = false;
-        apogeePCheckbox.checked = false;
-        apogeeSCheckbox.checked = false;
-    }
-    validateSelection();
-});
+    mainSCheckbox.addEventListener("change", () => {
+        if (mainSCheckbox.checked) {
+            mainPCheckbox.checked = false;
+            apogeePCheckbox.checked = false;
+            apogeeSCheckbox.checked = false;
+        }
+        validateSelection();
+    });
 
-apogeePCheckbox.addEventListener("change", () => {
-    if (apogeePCheckbox.checked) {
-        mainPCheckbox.checked = false;
-        mainSCheckbox.checked = false;
-        apogeeSCheckbox.checked = false;
-    }
-    validateSelection();
-});
+    apogeePCheckbox.addEventListener("change", () => {
+        if (apogeePCheckbox.checked) {
+            mainPCheckbox.checked = false;
+            mainSCheckbox.checked = false;
+            apogeeSCheckbox.checked = false;
+        }
+        validateSelection();
+    });
 
-apogeeSCheckbox.addEventListener("change", () => {
-    if (apogeeSCheckbox.checked) {
-        mainPCheckbox.checked = false;
-        mainSCheckbox.checked = false;
-        apogeePCheckbox.checked = false;
-    }
-    validateSelection();
-});
+    apogeeSCheckbox.addEventListener("change", () => {
+        if (apogeeSCheckbox.checked) {
+            mainPCheckbox.checked = false;
+            mainSCheckbox.checked = false;
+            apogeePCheckbox.checked = false;
+        }
+        validateSelection();
+    });
+})
 
 function validateSelection() {
 
