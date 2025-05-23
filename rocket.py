@@ -210,7 +210,10 @@ def start_services(COMMAND: Command,
                          release=COMMAND == Command.RUN,
                          INTERFACE_TYPE=INTERFACE_TYPE,
                          DEVICE_PATH=devices[0],
-                         SOCKET_PATH="gcs_rocket",
+                         PENDANT_SOCKET_PATH="gcs_rocket",
+                         WEB_CONTROL_SOCKET_PATH=os.path.abspath(os.path.join(
+                             os.path.sep, 'tmp', 'gcs_rocket_web_pull.sock')
+                         ),
                          opt_arg=optional_arg)
     except Exception as e:
         logger.error(

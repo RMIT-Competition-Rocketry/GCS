@@ -36,6 +36,9 @@ class Sequence {
   void set_gse_only_mode(bool mode) { gse_only_mode_ = mode; }
   bool gse_only_mode() const { return gse_only_mode_; }
 
+  void set_manual_control_mode(bool mode) { manual_control_solenoids_ = mode; }
+  bool manual_control_mode() const { return manual_control_solenoids_; }
+
   long get_packet_count_av() const { return packet_count_av_; }
   long get_packet_count_gse() const { return packet_count_gse_; }
 
@@ -59,6 +62,7 @@ class Sequence {
   SequenceLock av_write_lock_{"AV"};
   static constexpr std::chrono::milliseconds TIMEOUT = SequenceLock::TIMEOUT;
   bool gse_only_mode_ = false;  // GSE only mode. This is an option from CLI
+  bool manual_control_solenoids_ = false;  // Changes based on web data
   // Singleton assertion helper for constructor assertion
   bool singleton_created_ = false;
   long packet_count_av_ = 0;
