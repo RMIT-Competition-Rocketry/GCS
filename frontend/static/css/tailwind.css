@@ -10,11 +10,10 @@
     --color-amber-600: oklch(.666 .179 58.318);
     --color-yellow-300: oklch(.905 .182 98.111);
     --color-yellow-600: oklch(.681 .162 75.834);
-    --color-green-200: oklch(.925 .084 155.995);
+    --color-green-300: oklch(.871 .15 154.449);
     --color-green-400: oklch(.792 .209 151.711);
     --color-green-500: oklch(.723 .219 149.579);
     --color-green-600: oklch(.627 .194 149.214);
-    --color-green-700: oklch(.527 .154 150.069);
     --color-emerald-300: oklch(.845 .143 164.978);
     --color-emerald-600: oklch(.596 .145 163.225);
     --color-blue-500: oklch(.623 .214 259.815);
@@ -318,7 +317,7 @@
 
   h2 {
     margin: calc(var(--spacing) * 0);
-    margin-top: calc(var(--spacing) * -1);
+    margin-top: calc(var(--spacing) * -.5);
     margin-bottom: calc(var(--spacing) * -3);
     font-family: var(--font-mono);
     --tw-font-weight: var(--font-weight-bold);
@@ -504,28 +503,21 @@
     position: relative;
   }
 
-  .indicator-flightstate:before, .indicator-flightstate:after {
+  .indicator-flightstate:before {
     z-index: 10;
     border-block-style: var(--tw-border-style);
     border-block-width: 1px;
-    border-color: var(--color-green-500);
-    background-color: var(--color-green-700);
+    border-color: var(--color-green-400);
+    background-color: var(--color-green-600);
     content: "";
-    width: calc(50% - 1rem);
+    width: calc(100% - 2.25rem);
     height: 33.3333%;
     position: absolute;
     top: 33.3333%;
+    left: calc(1.125rem - 50%);
   }
 
-  .indicator-flightstate:before {
-    left: calc(var(--spacing) * 0);
-  }
-
-  .indicator-flightstate:after {
-    right: calc(var(--spacing) * 0);
-  }
-
-  .indicator-flightstate:first-of-type:before, .indicator-flightstate:last-of-type:after {
+  .indicator-flightstate:first-of-type:before, .indicator-flightstate.hidden + .indicator-flightstate:before {
     display: none;
   }
 
@@ -535,8 +527,8 @@
     max-height: calc(var(--spacing) * 10);
     width: calc(var(--spacing) * 10);
     max-width: calc(var(--spacing) * 10);
-    border-color: var(--color-green-500);
-    background-color: var(--color-green-700);
+    border-color: var(--color-green-400);
+    background-color: var(--color-green-600);
     position: relative;
   }
 
@@ -547,18 +539,13 @@
     max-height: calc(var(--spacing) * 12);
     width: calc(var(--spacing) * 12);
     max-width: calc(var(--spacing) * 12);
-    border-color: var(--color-green-200);
+    border-color: var(--color-green-300);
     background-color: var(--color-green-400);
-    filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
+    filter: drop-shadow(0 0 5px var(--color-green-400)) drop-shadow(0 0 10px var(--color-green-400));
   }
 
   .indicator-flightstate.active:before {
-    background: linear-gradient(90deg, var(--color-green-500) 0%, var(--color-green-400) 100%);
-  }
-
-  .indicator-flightstate.active:after {
-    border-color: var(--color-hive-dark);
-    background: #000;
+    background: linear-gradient(90deg, var(--color-green-600) 10%, var(--color-green-400) 100%);
   }
 
   .indicator-flightstate.active ~ .indicator-flightstate .indicator-state {
@@ -568,7 +555,7 @@
     background: #000;
   }
 
-  .indicator-flightstate.active ~ .indicator-flightstate:before, .indicator-flightstate.active ~ .indicator-flightstate:after {
+  .indicator-flightstate.active ~ .indicator-flightstate:before {
     border-color: var(--color-hive-dark);
     background: #000;
   }
@@ -879,8 +866,8 @@
     grid-column-start: 4;
   }
 
-  .row-\[1\/6\] {
-    grid-row: 1 / 6;
+  .row-\[1\/5\] {
+    grid-row: 1 / 5;
   }
 
   .row-\[1\/7\] {
@@ -895,8 +882,8 @@
     grid-row: 1 / 13;
   }
 
-  .row-\[6\/13\] {
-    grid-row: 6 / 13;
+  .row-\[5\/13\] {
+    grid-row: 5 / 13;
   }
 
   .row-\[7\/13\] {
@@ -1353,6 +1340,11 @@
   .border-2 {
     border-style: var(--tw-border-style);
     border-width: 2px;
+  }
+
+  .border-y-2 {
+    border-block-style: var(--tw-border-style);
+    border-block-width: 2px;
   }
 
   .border-t-2 {

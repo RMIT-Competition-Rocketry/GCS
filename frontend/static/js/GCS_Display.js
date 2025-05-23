@@ -155,8 +155,10 @@ function displaySetActiveFlightState(item) {
     }
 
     // Launch timer
-    if (item == "fs-state-launch") {
-        if (timers.launchTimestamp == 0) {
+    if (item == "fs-state-preflight") {
+        timers.launchTimestamp = 0;
+    } else if (item == "fs-state-launch") {
+        if (timers.launchTimestamp == undefined || timers.launchTimestamp == 0) {
             timers.launchTimestamp = timestampApi;
         }
     }
@@ -170,8 +172,9 @@ function displayUpdateTime() {
 
         // Rocket launch time 
         // TODO: Find somewhere nicer to put this in the code, this is so jank
-        if (timers?.launchTimestamp != 0) {
-            displaySetString("fs-launch-time", `T+ ${(timestampApi - timers.launchTimestamp).toFixed(1)}`);
+        if (timers?.launchTimestamp != undefined) {
+            const launchTime = timers.launchTimestamp == 0 ? 0 : timestampApi - timers.launchTimestamp;
+            displaySetString("fs-launch-time", `T+${launchTime.toFixed(1)}`);
         }
     }
     if (timestampLocal != 0) {
@@ -345,6 +348,7 @@ function displayUpdateSystemFlags(data) {
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data?.flightState) {
+
         let stateName = "";
 
         if (data.flightState == 0 || data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
@@ -377,10 +381,9 @@ function displayUpdateFlightState(data) {
             stateName = "Landed";
             displaySetActiveFlightState("fs-state-landed");
 
-        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "ON_NO") {
-            // Oh shit oh fuck what the heck :(
-            stateName = "Aaaaaaah!!!!";
-
+        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "ON_NO" || data.flightState == "OH_NO") {
+            // Oh no oh no what the oh no :(
+            stateName = "ERROR !!!";
         }
 
         displaySetString("fs-flightstate", stateName);
