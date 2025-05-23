@@ -10,9 +10,11 @@
     --color-amber-600: oklch(.666 .179 58.318);
     --color-yellow-300: oklch(.905 .182 98.111);
     --color-yellow-600: oklch(.681 .162 75.834);
+    --color-green-200: oklch(.925 .084 155.995);
     --color-green-400: oklch(.792 .209 151.711);
     --color-green-500: oklch(.723 .219 149.579);
     --color-green-600: oklch(.627 .194 149.214);
+    --color-green-700: oklch(.527 .154 150.069);
     --color-emerald-300: oklch(.845 .143 164.978);
     --color-emerald-600: oklch(.596 .145 163.225);
     --color-blue-500: oklch(.623 .214 259.815);
@@ -304,7 +306,7 @@
   body:before {
     content: "";
     opacity: .25;
-    z-index: 0;
+    z-index: -1000;
     pointer-events: none;
     background-image: url("/img/hexagonal_background.svg");
     background-position: center;
@@ -503,11 +505,11 @@
   }
 
   .indicator-flightstate:before, .indicator-flightstate:after {
-    z-index: calc(5 * -1);
+    z-index: 10;
     border-block-style: var(--tw-border-style);
     border-block-width: 1px;
-    border-color: var(--color-hive);
-    background-color: var(--color-green-600);
+    border-color: var(--color-green-500);
+    background-color: var(--color-green-700);
     content: "";
     width: calc(50% - 1rem);
     height: 33.3333%;
@@ -528,23 +530,30 @@
   }
 
   .indicator-flightstate .indicator-state {
-    z-index: 10;
     margin-block: calc(var(--spacing) * 1);
     height: calc(var(--spacing) * 10);
     max-height: calc(var(--spacing) * 10);
     width: calc(var(--spacing) * 10);
     max-width: calc(var(--spacing) * 10);
-    background-color: var(--color-green-500);
+    border-color: var(--color-green-500);
+    background-color: var(--color-green-700);
+    position: relative;
   }
 
   .indicator-flightstate.active .indicator-state {
+    z-index: 20;
     margin-block: calc(var(--spacing) * 0);
     height: calc(var(--spacing) * 12);
     max-height: calc(var(--spacing) * 12);
     width: calc(var(--spacing) * 12);
     max-width: calc(var(--spacing) * 12);
+    border-color: var(--color-green-200);
     background-color: var(--color-green-400);
     filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
+  }
+
+  .indicator-flightstate.active:before {
+    background: linear-gradient(90deg, var(--color-green-500) 0%, var(--color-green-400) 100%);
   }
 
   .indicator-flightstate.active:after {
@@ -552,8 +561,14 @@
     background: #000;
   }
 
-  .indicator-flightstate.active ~ .indicator-flightstate .indicator-state, .indicator-flightstate.active ~ .indicator-flightstate:before, .indicator-flightstate.active ~ .indicator-flightstate:after {
+  .indicator-flightstate.active ~ .indicator-flightstate .indicator-state {
+    z-index: 5;
     filter: none;
+    border-color: var(--color-hive-dark);
+    background: #000;
+  }
+
+  .indicator-flightstate.active ~ .indicator-flightstate:before, .indicator-flightstate.active ~ .indicator-flightstate:after {
     border-color: var(--color-hive-dark);
     background: #000;
   }
@@ -786,10 +801,6 @@
 
   .left-1 {
     left: calc(var(--spacing) * 1);
-  }
-
-  .-z-50 {
-    z-index: calc(50 * -1);
   }
 
   .z-10 {

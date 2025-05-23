@@ -47,7 +47,7 @@ and only modify it if you know what you're doing :)
         background-repeat: repeat;
         background-position: center;
         opacity: 25%;
-        z-index: 0;
+        z-index: -1000;
         pointer-events: none;
     }
 
@@ -198,7 +198,7 @@ and only modify it if you know what you're doing :)
         @apply relative h-12 max-h-12;
 
         &::before, &::after {
-            @apply absolute -z-5 w-[calc(50%-1rem)] h-1/3 top-1/3 border-y border-hive bg-green-600;
+            @apply absolute z-10 w-[calc(50%-1rem)] h-1/3 top-1/3 border-y border-green-500 bg-green-700;
             content: '';
         }
 
@@ -215,13 +215,17 @@ and only modify it if you know what you're doing :)
         }
 
         & .indicator-state {
-            @apply z-10 bg-green-500 w-10 h-10 max-w-10 max-h-10 my-1;
+            @apply relative bg-green-700 border-green-500 w-10 h-10 max-w-10 max-h-10 my-1;
         }
 
         &.active {
             & .indicator-state {
-                @apply w-12 h-12 max-w-12 max-h-12 my-0 bg-green-400;
+                @apply w-12 h-12 max-w-12 max-h-12 my-0 bg-green-400 border-green-200 z-20;
                 filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
+            }
+
+            &::before {
+                background: linear-gradient(90deg, var(--color-green-500) 0%, var(--color-green-400) 100%);
             }
 
             &::after {
@@ -231,10 +235,16 @@ and only modify it if you know what you're doing :)
         }
 
         &.active ~ .indicator-flightstate {
-            & .indicator-state, &::before, &::after {
-                background: black;
+            & .indicator-state {
+                @apply z-5;
                 filter: none;
                 border-color: var(--color-hive-dark);
+                background: black;
+            }
+
+            &::before, &::after {
+                border-color: var(--color-hive-dark);
+                background: black;
             }
         }
     }
