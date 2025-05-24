@@ -49,10 +49,11 @@ window.addEventListener("DOMContentLoaded", () => {
     lights[2].penumbra = 0.4;
     lights[2].decay = 1;
     lights[2].distance = 200;
-    lights[3].position.set(0, 50, 0);
+    lights[3].position.set(50, 0, 0);
     lights.forEach(light => scene.add(light));
 
     const envTextureLoader = new THREE.CubeTextureLoader();
+    const origin = new THREE.Vector3(3, -3.75, 0);
     scene.environment = envTextureLoader.load([
         "/img/textures/posx.jpg",
         "/img/textures/negx.jpg",
@@ -77,14 +78,10 @@ window.addEventListener("DOMContentLoaded", () => {
             scene.add(rocket);
 
             // Body-frame axis arrows
-            const origin = new THREE.Vector3(0, 0, 0);
             xArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), origin, 2, 0xff0000);
             yArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), origin, 2, 0x00ff00);
             zArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), origin, 2, 0x0000ff);
             
-            xArrow.visible = false;
-            yArrow.visible = false;
-            zArrow.visible = false;
             scene.add(xArrow, yArrow, zArrow);
 
             const size = box.getSize(new THREE.Vector3()).length();
@@ -140,13 +137,13 @@ window.addEventListener("DOMContentLoaded", () => {
         const rocketPosition = new THREE.Vector3();
         rocket.getWorldPosition(rocketPosition);
 
-        xArrow.position.copy(rocketPosition);
+        xArrow.position.copy(origin);
         xArrow.setDirection(bodyX);
 
-        yArrow.position.copy(rocketPosition);
+        yArrow.position.copy(origin);
         yArrow.setDirection(bodyY);
 
-        zArrow.position.copy(rocketPosition);
+        zArrow.position.copy(origin);
         zArrow.setDirection(bodyZ);
 
         // Euler angles for HUD
