@@ -58,8 +58,8 @@ class Sequence {
   }
 
  private:
-  SequenceLock gse_write_lock_{"GSE"};
-  SequenceLock av_write_lock_{"AV"};
+  SequenceLock gse_write_lock_{"GSE", "\033[38;5;10m"};
+  SequenceLock av_write_lock_{"AV", "\033[38;5;205m"};
   static constexpr std::chrono::milliseconds TIMEOUT = SequenceLock::TIMEOUT;
   bool gse_only_mode_ = false;  // GSE only mode. This is an option from CLI
   bool manual_control_solenoids_ = false;  // Changes based on web data
