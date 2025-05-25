@@ -1,5 +1,5 @@
 from backend.simulation.rocket_sim import flight_simulation
-from backend.tools.device_emulator import AVtoGCSData1, AVtoGCSData2, MockPacket
+from backend.device_emulator import AVtoGCSData1, AVtoGCSData2, MockPacket
 from itertools import count
 from enum import Enum
 import math

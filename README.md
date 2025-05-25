@@ -4,6 +4,7 @@
     <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">
     <img alt="Static Badge" src="https://img.shields.io/badge/status-work_in_progress-black">
     <img src="https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem">
+    <!-- <img src="https://img.shields.io/github/v/release/RMIT-Competition-Rocketry/GCS?label=version" height="20rem"> -->
 </p>
 
 ![banner](docs/assets/banner.png)

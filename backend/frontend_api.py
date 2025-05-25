@@ -10,7 +10,7 @@ from google.protobuf.json_format import MessageToDict
 import signal
 import asyncio
 import sys
-import backend.tools.device_emulator as device_emulator
+import backend.device_emulator as device_emulator
 import json
 import websockets
 import zmq

@@ -84,7 +84,7 @@
         {
             "label": "start emulator manually",
             "type": "shell",
-            "command": "./venv/bin/python -u -Xfrozen_modules=off -m backend.tools.device_emulator --device-rocket ${input:terminalPath}",
+            "command": "./venv/bin/python -u -Xfrozen_modules=off -m backend.device_emulator --device-rocket ${input:terminalPath}",
             "icon": {
                 "id": "debug-console"
             },
@@ -95,7 +95,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/python",
             "args": [
-                "backend/tools/zeromq_debug_sub_raw.py",
+                "backend/tools/debug_zeromq_sub_raw.py",
                 "gcs_rocket"
             ],
             "icon": {
@@ -168,7 +168,7 @@
             "type": "shell",
             "command": "./venv/bin/python",
             "args": [
-                "backend/tools/pendant_emulator.py"
+                "backend/pendant_emulator.py"
             ],
             "icon": {
                 "id": "debug-console"
