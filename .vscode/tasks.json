@@ -216,6 +216,7 @@
         {
             "label": "Tailwind Dev",
             "type": "shell",
+            "command": "echo \"failed to find OS specific command\"",
             "windows": {
                 "command": ".\\third_party\\tailwindcss.exe",
                 "args": [
