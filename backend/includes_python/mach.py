@@ -2,7 +2,7 @@ from numbers import Number
 import backend.includes_python.process_logging as slogger
 import math
 
-# Provides methods to generate accurate mach values
+# Provides methods to generate accurate Mach values
 
 
 class Mach:
@@ -34,7 +34,7 @@ class Mach:
         """
         if ALTITUDE_M < -20:
             slogger.error(
-                f"Altitude should be above ground for accurate mach calculation: {ALTITUDE_M}")
+                f"Altitude should be above ground for accurate Mach calculation: {ALTITUDE_M}")
 
         if ALTITUDE_M < 11000:
             # Legacy won't go past 3km anyway
