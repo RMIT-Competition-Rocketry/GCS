@@ -505,40 +505,32 @@ function displayUpdateRadio(data) {
 }
 
 // SINGLE OPERATOR PAGE
-
-
+const mainPCheckbox = document.getElementById("optionMainP");
+const mainSCheckbox = document.getElementById("optionMainS");
+const apogeePCheckbox = document.getElementById("optionApogeeP");
+const apogeeSCheckbox = document.getElementById("optionApogeeS");
+const popButton = document.getElementById("popButton");
+const prompt = document.getElementById("prompt");
 
 // Continuity payload functions
 function sendContinuityA() {
-    const payload = [true, false, false, false];
-    continuityPayload(payload);
+    apiSendContinuityCheck([1, 0, 0, 0]);
 }
 
 function sendContinuityB() {
-    const payload = [false, true, false, false];
-    continuityPayload(payload);
+    apiSendContinuityCheck([0, 1, 0, 0]);
 }
 
 function sendContinuityC() {
-    const payload = [false, false, true, false];
-    continuityPayload(payload);
+    apiSendContinuityCheck([0, 0, 1, 0]);
 }
 
 function sendContinuityD() {
-    const payload = [false, false,false, true];
-    continuityPayload(payload);
+    apiSendContinuityCheck([0, 0, 0, 1]);
 }
 
 // Pop test buttons
 document.addEventListener("DOMContentLoaded", () => {
-    const mainPCheckbox = document.getElementById("optionMainP");
-    const mainSCheckbox = document.getElementById("optionMainS");
-    const apogeePCheckbox = document.getElementById("optionApogeeP");
-    const apogeeSCheckbox = document.getElementById("optionApogeeS");
-    const popButton = document.getElementById("popButton");
-    const prompt = document.getElementById("prompt");
-
-
     mainPCheckbox.addEventListener("click", validateSelection);
     mainSCheckbox.addEventListener("click", validateSelection);
     apogeePCheckbox.addEventListener("click", validateSelection);
@@ -605,7 +597,7 @@ function validateSelection() {
 
 
 popButton.addEventListener("click", function () {
-    popPayload();
+    apiSendPopTest();
 });
 
 
@@ -660,7 +652,7 @@ confirmYes.addEventListener("click", () => {
         });
         isSolenoidActive = true;
     }
-    solenoidPayload();
+    apiSendSolenoids();
 });
 
 // Send solenoid JSON packets to the websocket when clicked
@@ -675,7 +667,7 @@ solenoidCommand.addEventListener("click", () => {
         
     }, 150);
 
-    solenoidPayload();
+    apiSendSolenoids();
 });
 
 
