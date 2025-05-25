@@ -19,6 +19,7 @@
 #include "FlightState.pb.h"
 #include "GSE_TO_GCS_DATA_1.hpp"
 #include "GSE_TO_GCS_DATA_2.hpp"
+#include "debug_functions.hpp"
 #include "sequence.hpp"
 #include "subprocess_logging.hpp"
 #include "test_interface.hpp"
@@ -37,26 +38,6 @@ inline void set_thread_name([[maybe_unused]] const char *name) {
 #ifdef __APPLE__
   pthread_setname_np(name);
 #endif
-}
-
-std::string vectorToHexString(const std::vector<uint8_t> &data,
-                              const ssize_t BUFFER_BYTE_COUNT) {
-  std::ostringstream oss;
-  oss << std::uppercase << std::hex << std::setfill('0');
-  if (BUFFER_BYTE_COUNT == 0) {
-    return "Empty vector";
-  }
-  if (BUFFER_BYTE_COUNT > 255) {
-    return "Vector too long: " + std::to_string(BUFFER_BYTE_COUNT);
-  }
-  if (BUFFER_BYTE_COUNT < 0) {
-    return "Vector too short: " + std::to_string(BUFFER_BYTE_COUNT);
-  }
-  for (ssize_t i = 0; i < BUFFER_BYTE_COUNT; ++i) {
-    oss << std::setw(2) << static_cast<int>(data[i]);
-    if (i != BUFFER_BYTE_COUNT - 1) oss << " ";
-  }
-  return oss.str();
 }
 
 template <typename PacketType>
@@ -111,7 +92,7 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
                    std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
                    std::to_string(BUFFER_BYTE_COUNT) + " bytes");
     slogger::debug("Buffer contents: " +
-                   vectorToHexString(buffer, BUFFER_BYTE_COUNT));
+                   debug::vectorToHexString(buffer, BUFFER_BYTE_COUNT));
   }
   return nullptr;
 }
@@ -295,24 +276,23 @@ std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST) {
   return data;
 }
 
-// ./file <interface type> <device path> <socket path> <optional mode>
-// Optional modes (string):
-// -  --GSE_ONLY
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   slogger::info("Starting middleware server");
 
   // Pick interface based on the first argument
-  if (argc < 4) {
+  if (argc < 5) {
     slogger::error("Not enough arugments provided.");
+    // Optional modes (string):
+    // -  --GSE_ONLY
     slogger::error(
-        "Usage: ./file <socket type> <device path> <socket path> <optional "
-        "mode>");
+        "Usage: ./file <interface type> <device path> <pendent socket path> "
+        "<web control socket path> <optional mode>");
     // Throw error silenced by main
     throw std::runtime_error("Error: Not enough arugments provided");
     return EXIT_FAILURE;
-  } else if (argc > 5) {
+  } else if (argc > 6) {
     slogger::warning("Too many arugments provided: " + std::to_string(argc));
   }
 
@@ -321,7 +301,8 @@ int main(int argc, char *argv[]) {
 
   // Create an interface
   const std::string DEVICE_PATH = std::string(argv[2]);
-  const std::string SOCKET_PATH = std::string(argv[3]);
+  const std::string PENDANT_SOCKET_PATH = std::string(argv[3]);
+  const std::string WEB_CONTROL_SOCKET_PATH = std::string(argv[4]);
   // One per device object. If you're using 2 devices, best to have 2
   // interfaces
   std::shared_ptr<LoraInterface> interface =
@@ -333,8 +314,8 @@ int main(int argc, char *argv[]) {
   // Create sequence handler singleton
   Sequence sequence;
 
-  if (argc == 5) {
-    std::string mode = std::string(argv[4]);
+  if (argc == 6) {
+    std::string mode = std::string(argv[5]);
     sequence.set_gse_only_mode(mode == "--GSE_ONLY");
   }
 
@@ -342,15 +323,23 @@ int main(int argc, char *argv[]) {
 
   // PUB socket for broadcasting incoming data
   zmq::socket_t pub_socket(context, ZMQ_PUB);
-  pub_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pub.sock");
+  pub_socket.bind("ipc:///tmp/" + PENDANT_SOCKET_PATH + "_pub.sock");
 
   // PULL socket for fowarding commands to LoRa
   zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
   constexpr int PENDANT_HWM = 1;  // Only keep 1 message in buffer
   pendant_pull_socket.set(zmq::sockopt::rcvhwm, PENDANT_HWM);
-  pendant_pull_socket.set(zmq::sockopt::conflate,
-                          1);  // Only keep last message
-  pendant_pull_socket.bind("ipc:///tmp/" + SOCKET_PATH + "_pendant_pull.sock");
+  // Only keep last message
+  pendant_pull_socket.set(zmq::sockopt::conflate, 1);
+  pendant_pull_socket.bind("ipc:///tmp/" + PENDANT_SOCKET_PATH +
+                           "_pendant_pull.sock");
+
+  zmq::socket_t web_control_pull_socket(context, ZMQ_PULL);
+  constexpr int WEB_CONTROL_HWM = 1;  // Only keep 1 message in buffer
+  web_control_pull_socket.set(zmq::sockopt::rcvhwm, WEB_CONTROL_HWM);
+  // Only keep last message
+  web_control_pull_socket.set(zmq::sockopt::conflate, 1);
+  web_control_pull_socket.bind("ipc://" + WEB_CONTROL_SOCKET_PATH);
 
   // Start interface reading thread
   std::thread reader(input_read_loop, interface, std::ref(pub_socket),
@@ -359,8 +348,11 @@ int main(int argc, char *argv[]) {
   // http://api.zeromq.org/3-0:zmq-poll
   // Can add multiple push pull sockets here. Useful for when front end is
   // integrated
-  zmq::pollitem_t items[] = {{pendant_pull_socket, 0, ZMQ_POLLIN, 0}};
+  std::vector<zmq::pollitem_t> items = {
+      {static_cast<void *>(pendant_pull_socket), 0, ZMQ_POLLIN, 0},
+      {static_cast<void *>(web_control_pull_socket), 0, ZMQ_POLLIN, 0}};
   std::vector<uint8_t> pendant_data;
+  std::vector<uint8_t> web_control_data;
 
   const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
   auto last_pendant_receival = std::chrono::steady_clock::now();
@@ -371,12 +363,11 @@ int main(int argc, char *argv[]) {
   slogger::info("Middleware server started successfully");
   try {
     while (running) {
-      zmq::poll(items, 1, std::chrono::milliseconds(300));  // 300ms timeout
+      zmq::poll(items, std::chrono::milliseconds(300));  // 300ms timeout
 
-      int socket_more_intbool = 1;  // http://api.zeromq.org/2-2:zmq-getsockopt
+      int pendant_socket_more_intbool =
+          1;  // http://api.zeromq.org/2-2:zmq-getsockopt
       // items[0].revents represents items[0] which is the pendant data
-      // In future with multiple polls, just copy this block with a different
-      // items index
       if (items[0].revents & ZMQ_POLLIN) {
         do {  // Data to be dequeued
           last_pendant_receival = std::chrono::steady_clock::now();
@@ -385,10 +376,10 @@ int main(int argc, char *argv[]) {
               pendant_pull_socket.recv(pendant_msg, zmq::recv_flags::none);
           if (pendant_result) {
             pendant_data = collect_pull_data(pendant_msg);
-            socket_more_intbool =
+            pendant_socket_more_intbool =
                 pendant_pull_socket.get(zmq::sockopt::rcvmore);
           }
-        } while (socket_more_intbool);
+        } while (pendant_socket_more_intbool);
       } else {
         auto now = std::chrono::steady_clock::now();
         int seconds_waited = std::chrono::duration_cast<std::chrono::seconds>(
@@ -415,11 +406,55 @@ int main(int argc, char *argv[]) {
       if (pendant_data.empty()) {
         // No data to send, continue and try polling again
         // This will only be empty while the pendant software boots
+        // Fallback data should be present anyway
         continue;
       }
 
+      // http://api.zeromq.org/2-2:zmq-getsockopt
+      int web_control_socket_more_intbool = 1;
+      if (items[1].revents & ZMQ_POLLIN) {
+        do {  // Data to be dequeued
+          zmq::message_t web_control_msg;
+          zmq::recv_result_t web_control_result = web_control_pull_socket.recv(
+              web_control_msg, zmq::recv_flags::none);
+          if (web_control_result) {
+            web_control_data = collect_pull_data(web_control_msg);
+            web_control_socket_more_intbool =
+                web_control_pull_socket.get(zmq::sockopt::rcvmore);
+          }
+        } while (web_control_socket_more_intbool);
+        // Get rid of this shit when you refactor all IPC comms
+        if (!web_control_data.empty()) {
+          slogger::debug("server got values from web control: " +
+                         debug::vectorToHexString(web_control_data,
+                                                  web_control_data.size()));
+          uint8_t manual_control_val = web_control_data.front();
+          web_control_data.erase(
+              web_control_data.begin());  // remove that first byte
+          bool manual_control = manual_control_val == 0xFF;
+          if (manual_control != sequence.manual_control_mode()) {
+            if (manual_control) {
+              slogger::warning("Manual control ENABLED");
+            } else {
+              slogger::warning("Manual control DISABLED");
+            }
+          }
+          sequence.set_manual_control_mode(manual_control);
+        }
+      }
+
+      // Are we sending manual packets or pendant controlled packets?
+      // You have to pick something to continue the networking sequence and not
+      // timeout the GSE
+      std::vector<uint8_t> gse_data;
+      if (sequence.manual_control_mode()) {
+        gse_data = web_control_data;  // Last updated value
+      } else {
+        gse_data = pendant_data;
+      }
+
       if (sequence.gse_only_mode()) {
-        interface->write_data(pendant_data);
+        interface->write_data(gse_data);
         sequence.start_await_gse();
         sequence.sit_and_wait_for_gse();
         continue;
@@ -432,7 +467,7 @@ int main(int argc, char *argv[]) {
       switch (sequence.get_state()) {
         case Sequence::State::LOOP_PRE_LAUNCH:
           // Send data to GSE
-          interface->write_data(pendant_data);
+          interface->write_data(gse_data);
           sequence.start_await_gse();
           // Wait for data from GSE (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_gse();  // Let read thread unlock this
@@ -450,7 +485,7 @@ int main(int argc, char *argv[]) {
           break;
         // It says once, but it's a conditional loop anyway.
         case Sequence::State::ONCE_AV_DETERMINING_LAUNCH:
-          interface->write_data(pendant_data);
+          interface->write_data(gse_data);
           sequence.start_await_gse();
           sequence.sit_and_wait_for_gse();
           interface->write_data(create_GCS_TO_AV_data(broadcast));
@@ -497,6 +532,7 @@ int main(int argc, char *argv[]) {
     reader.join();
     pub_socket.close();
     pendant_pull_socket.close();
+    web_control_pull_socket.close();
     context.close();
     google::protobuf::ShutdownProtobufLibrary();
   } catch (const std::exception &e) {

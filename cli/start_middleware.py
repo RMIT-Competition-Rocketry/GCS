@@ -98,7 +98,8 @@ def start_middleware(logger: logging.Logger,
                      release: bool,
                      INTERFACE_TYPE: InterfaceType,
                      DEVICE_PATH: str,
-                     SOCKET_PATH: str,
+                     PENDANT_SOCKET_PATH: str,
+                     WEB_CONTROL_SOCKET_PATH: str,
                      opt_arg: Optional[str] = None,
                      ):
 
@@ -119,11 +120,12 @@ def start_middleware(logger: logging.Logger,
         middleware_command = [
             # Should always be relative to cwd. Just use the (.):
             # ./middleware/build/middleware_server {args}
+            # See args in main.cpp
             MIDDLEWARE_BINARY_PATH,
-            # <interface type> <device path> <socket path>
             INTERFACE_TYPE.value,
             DEVICE_PATH,
-            SOCKET_PATH,
+            PENDANT_SOCKET_PATH,
+            WEB_CONTROL_SOCKET_PATH,
         ]
 
         if opt_arg is not None:

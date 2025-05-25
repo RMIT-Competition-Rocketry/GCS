@@ -9,8 +9,8 @@
 // This file hosts locking mechanisms to orchestrate the packet sequence
 
 /// @brief Thread save mutex lock with timeout features for sequence diagram
-SequenceLock::SequenceLock(const std::string NAME)
-    : LOCK_NAME(NAME) {  // Initialize LOCK_NAME using initializer list
+SequenceLock::SequenceLock(const std::string NAME, const std::string ANS_COLOR)
+    : LOCK_NAME(NAME), ANS_COLOR(ANS_COLOR) {
   // Set last lock time as little as possible so timeout initially works
   // instantly
   last_lock_time_ = std::chrono::steady_clock::time_point::min();
@@ -48,7 +48,9 @@ bool SequenceLock::unlock_if_timed_out_() {
   // If lock is timed out for more than TIMEOUT ms, unlock it
   if (std::chrono::steady_clock::now() - getLastLockTime() > TIMEOUT) {
     unlock();
-    slogger::warning("Timeout on " + LOCK_NAME + " sequence lock");
+    slogger::warning("(NO SIGNAL: " + ANS_COLOR + "\033[1m" + LOCK_NAME +
+                     "\033[0m" + slogger::WARNING_COLOUR + ") Timeout on " +
+                     LOCK_NAME + " sequence lock");
     return true;
   } else {
     return false;

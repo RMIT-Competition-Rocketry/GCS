@@ -1,97 +1,213 @@
 import subprocess
 import sys
 import os
-import signal
+from typing import List, Tuple
 import time
 import threading
 import queue
 import pytest
+from abc import abstractmethod, ABC
+import re
 
 
-# NOTE PLEASE READ DEV NOTES FOR UPGRADES
-# --------------------
-# Just whipped this up out of procrastination. Got a few ideas on how to make this better
-# For a whole entire CLI system test like this, make a test fixure than can reuse the cli process
-# Make some developer friendly methods to load in success and failure lines that can be read during operation from the reader thread
-# Make sure to run with nobuild because it would already be there from the CMAKE test build
-# Try and do black box tests for corrupt packets as just running the binary and not the CLI. Test the CLI at least once though
-# Also maybe add a couple more lines to check for from each individual service in case one of them fails.
-# --------------------
+class ProcessOutputScanner:
+    """Handles scanning process output for success/failure patterns."""
 
-@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
-def test_cli_dev():
-    print(sys.executable)
-    cmd = [sys.executable, "-u", "rocket.py",
-           "dev", "--interface", "test", "--nopendant", "--nobuild"]
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(current_dir, "../../.."))
-    print(
-        f"Expected rocket.py path: {os.path.join(project_root, 'rocket.py')}")
+    def __init__(self, output_queue: queue.Queue):
+        self.output_queue = output_queue
+        self.captured_lines = []
 
-    proc = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        bufsize=1,
-        text=True,
-        cwd=project_root
-    )
+    def scan_for_patterns(self, fail_any: List[str], success_all: List[str],
+                          timeout: float = 10.0) -> Tuple[bool, List[str]]:
+        """
+        Scans output for failure/success patterns using regex.
 
-    assert proc.pid and proc.pid > 0
+        Args:
+            fail_any: List of regex patterns - if any match, test fails
+            success_all: List of regex patterns - all must match to succeed  
+            timeout: How long to wait for patterns
 
-    q = queue.Queue()
+        Returns:
+            Tuple of (success: bool, captured_lines: List[str])
+        """
+        start_time = time.time()
+        success_targets = set(success_all)
 
-    def reader():
-        for line in proc.stdout:
-            q.put(line)
-        q.put(None)
+        # Compile regex patterns for better performance
+        fail_regexes = [re.compile(pattern) for pattern in fail_any]
+        success_regexes = {pattern: re.compile(
+            pattern) for pattern in success_all}
 
-    t = threading.Thread(target=reader, daemon=True)
-    t.start()
-
-    found_ws = False
-    found_ev = False
-    error_found = False
-    lines = []
-    start = time.monotonic()
-    timeout = 10
-    event_reading = False
-
-    try:
-        while time.monotonic() - start < timeout:
+        while time.time() - start_time < timeout:
             try:
-                line = q.get(timeout=timeout - (time.monotonic() - start))
+                line = self.output_queue.get(timeout=0.1)
+                self.captured_lines.append(line)
+                print(line)  # debugging / action logs. Prints on fail only
+
+                for fail_regex in fail_regexes:
+                    if fail_regex.search(line):
+                        print("Failure pattern matched:", line)
+                        failure_time = time.time()
+                        while time.time() - failure_time < 1:
+                            # Print traceback for 1 second
+                            line = self.output_queue.get(timeout=0.1)
+                            self.captured_lines.append(line)
+                            print(line)
+                        return False, self.captured_lines
+
+                for success_pattern in list(success_targets):
+                    if success_regexes[success_pattern].search(line):
+                        success_targets.remove(success_pattern)
+
+                if len(success_targets) == 0:
+                    return True, self.captured_lines
+
             except queue.Empty:
-                break
-            if line is None:
-                break
-            lines.append(line)
-            print(line, end='')
-            if "WebSocket server started" in line:
-                found_ws = True
-            if "event viewer started successfully" in line:
-                found_ev = True
-            if "Supersonic flight detected" in line:
-                event_reading = True
-            if "Traceback (most recent call last)" in line:
-                error_found = True
-                # Close in 1 second
-                timeout = time.monotonic() - start + 1
-            if found_ws and found_ev and event_reading:
-                proc.send_signal(signal.SIGINT)
-                proc.wait(timeout=5)
-                break
-    finally:
+                continue
+
+        print("Remaining success patterns:", success_targets)
+        return len(success_targets) == 0, self.captured_lines
+
+
+class CliStartup(ABC):
+    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "../../.."))
+    DEFAULT_FAIL_PATTERNS = [r"\[STDERR\](?!.*(?:This is a development server|Running on|Press CTRL\+C to quit)).*",
+                             r"Traceback \(most recent call last\)",]
+    DEFAULT_SUCCESS_PATTERNS = ["Starting development mode",
+                                "socat: Stopping socat callbacks",  # found devices
+                                r"middleware_server: \[STDOUT] Starting middleware server",
+                                r"middleware_server: \[STDOUT] Interface initialised for type: TEST",
+                                r"event viewer: \[STDOUT] Listening for messages\.\.\.",
+                                "WebSocket server started at"]
+
+    # Protected
+    def _start_process(self, ROCKET_ARGS: list):
+        if ROCKET_ARGS is None:
+            raise NotImplementedError(
+                "ROCKET_ARGS must be provided for your test class")
+
+        cmd = [sys.executable, "-u", "rocket.py"]
+        cmd.extend(ROCKET_ARGS)
+
+        if "--nobuild" not in cmd:
+            print(f"ROCKET_ARGS: {ROCKET_ARGS}")
+            raise ValueError(
+                "ROCKET_ARGS must include --nobuild for your test class")
+
+        CLI_FILE_PATH = os.path.join(CliStartup.PROJECT_ROOT, 'rocket.py')
+        print(f"Expected rocket.py path: {CLI_FILE_PATH}")
+
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            bufsize=1,
+            text=True,
+            cwd=CliStartup.PROJECT_ROOT
+        )
+
+        assert proc.pid and proc.pid > 0
+
+        output_queue = queue.Queue()
+
+        def _monitor_stream(stream, q):
+            for line in iter(stream.readline, ''):
+                q.put(line.strip())
+            stream.close()
+
+        thread = threading.Thread(target=_monitor_stream, args=(
+            proc.stdout, output_queue), daemon=True)
+        thread.start()
+
+        # Send test the process and the output queue after fixture setup
+        scanner = ProcessOutputScanner(output_queue)
+        yield proc, scanner
+
+        # Automatic cleanup (if test didn't already kill it)
         if proc.poll() is None:
-            proc.send_signal(signal.SIGINT)
+            proc.terminate()
             try:
                 proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 proc.kill()
-                proc.wait()
 
-    output = "".join(lines)
-    assert not error_found, f"Error found in output:\n{output}"
-    assert found_ws, f"WebSocket server did not start. Output:\n{output}"
-    assert found_ev, f"Event viewer did not start. Output:\n{output}"
-    assert event_reading, f"Event reading probably did not start. Output:\n{output}"
+        thread.join(timeout=1)
+
+    @pytest.fixture(scope="class")
+    def process_and_scanner(self, request):
+        """Call `_start_process` with appropriate args and return the process and scanner"""
+        rocket_args = self.get_rocket_args()
+        gen = self._start_process(rocket_args)
+        proc, scanner = next(gen)
+        yield proc, scanner
+        try:
+            next(gen)
+        except StopIteration:
+            pass
+
+    @abstractmethod
+    def get_rocket_args(self) -> List[str]:
+        """Return the rocket.py arguments for this test class."""
+        pass
+
+
+@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
+class TestDevStartups(CliStartup):
+    def get_rocket_args(self) -> List[str]:
+        return ["dev", "--interface", "test", "--nopendant", "--nobuild"]
+
+    def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
+        proc, scanner = process_and_scanner
+        fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
+        success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
+            r"device emulator: \[STDOUT] Emulator starting",
+        ]
+        success, output_lines = scanner.scan_for_patterns(
+            fail_any=fail_patterns,
+            success_all=success_patterns,
+            timeout=30.0
+        )
+        assert success, f"System failed to match patterns"
+        print(f"System ran successfully. Captured {len(output_lines)} lines")
+
+
+@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
+class TestReplaySimulationStartups(CliStartup):
+    def get_rocket_args(self) -> List[str]:
+        return ["replay", "--mode", "simulation", "--simulation", "test", "--nobuild"]
+
+    def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
+        proc, scanner = process_and_scanner
+        fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
+        success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
+            r"replay system: \[STDOUT] Starting simulation replay for TEST",
+            r"event viewer: \[STDOUT] Flight state changed to COAST"
+        ]
+        success, output_lines = scanner.scan_for_patterns(
+            fail_any=fail_patterns,
+            success_all=success_patterns,
+            timeout=30.0
+        )
+        assert success, f"System failed to match patterns"
+        print(f"System ran successfully. Captured {len(output_lines)} lines")
+
+
+@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
+class TestReplayMissionStartups(CliStartup):
+    def get_rocket_args(self) -> List[str]:
+        return ["replay", "--mode", "mission", "--mission", "20250504", "--nobuild"]
+
+    def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
+        proc, scanner = process_and_scanner
+        fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
+        success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
+            "Starting mission replay for 20250504",
+        ]
+        success, output_lines = scanner.scan_for_patterns(
+            fail_any=fail_patterns,
+            success_all=success_patterns,
+            timeout=30.0
+        )
+        assert success, f"System failed to match patterns"
+        print(f"System ran successfully. Captured {len(output_lines)} lines")
