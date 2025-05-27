@@ -7,6 +7,7 @@ from typing import Optional
 
 class SimulationType(enum.Enum):
     TEST = "TEST"
+    DEMO = "DEMO"
     LEGACY = "legacy"
     FAIL = "fail"
 

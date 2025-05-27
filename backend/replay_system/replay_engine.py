@@ -111,6 +111,7 @@ def send_packet(packet: Packet) -> None:
     """Send packet based on the appropriate handler"""
     if service_helper.time_to_stop():
         return
+    time.sleep(0.01)
     handle_packets(packet)
 
 
@@ -363,7 +364,8 @@ def main():
     parser.add_argument(
         '--mode', choices=['simulation', 'mission'], required=True)
     parser.add_argument('--mission', help="Check the mission directory names")
-    parser.add_argument('--simulation', choices=['TEST', 'legacy', 'FAIL'])
+    parser.add_argument(
+        '--simulation', choices=['TEST', 'legacy', 'FAIL', 'DEMO'])
     args = parser.parse_args()
 
     # mission_path = get_mission_path()
@@ -386,7 +388,7 @@ def main():
             if not args.simulation:
                 raise ValueError(
                     "No simulation was selected, required for simulation mode")
-            if args.simulation != "TEST":
+            if args.simulation != "TEST" and args.simulation != "DEMO":
                 raise NotImplementedError(
                     f"The simulation mode: {args.simulation} has not been implemented yet")
 
@@ -406,10 +408,13 @@ def main():
         # When replaying the packets the delay will cause an error when trying to shut down
         valid_timeout = validate_timeout_skip(
             processed_packets, MIN_TIMESTAMP_MS)
-
-        replay_packets(processed_packets, valid_timeout)
-        slogger.info("FINISHED SENDING PACKETS")
-
+        if (args.simulation == "DEMO"):
+            while not service_helper.time_to_stop():
+                replay_packets(processed_packets, valid_timeout)
+                slogger.info("FINISHED SENDING PACKETS")
+        else:
+            replay_packets(processed_packets, valid_timeout)
+            slogger.info("FINISHED SENDING PACKETS")
     except ValueError as ve:
         slogger.error(
             f"Value Error in replay system: {str(ve)}")

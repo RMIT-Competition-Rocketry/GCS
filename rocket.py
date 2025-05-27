@@ -90,6 +90,8 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                      help="Run in Docker"),
         click.option('--nobuild', is_flag=True,
                      help="Do not build binaries. Search for pre-built binaries"),
+        click.option('--logpkt', is_flag=True,
+                     help="Log packet data to csv"),
         click.option('--mode', type=_REPLAY_MODES,
                      help="Select the replay mode"),
         click.option('--mission', type=_MISSION_CHOICES,
@@ -321,7 +323,7 @@ def simulation(docker, nobuild, logpkt):
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.REPLAY)
-def replay(docker, nobuild, mode, mission, simulation):
+def replay(docker, nobuild, logpkt, mode, mission, simulation):
     """Start software in simulation mode"""
     if not mode:
         raise click.UsageError("--mode is required for the replay engine")
@@ -340,7 +342,7 @@ def replay(docker, nobuild, mode, mission, simulation):
         if not simulation:
             raise click.UsageError(
                 "--simulation is required to run a specified scenario")
-        elif simulation != 'TEST':
+        elif simulation != 'TEST' and simulation != 'DEMO':
             raise NotImplementedError(
                 f"{simulation} has not been implemented yet")
         logger.info(f"Running simulation: {simulation}")
@@ -348,6 +350,7 @@ def replay(docker, nobuild, mode, mission, simulation):
                    DOCKER=docker,
                    INTERFACE_ARG="TEST",
                    nobuild=nobuild,
+                   logpkt=logpkt,
                    nopendant=True,
                    gse_only=False,
                    frontend=True,
