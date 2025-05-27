@@ -723,6 +723,10 @@ def main():
         experimental_cli_override or \
         CONFIG_LOADED['emulation']['experimental'].lower() == 'true'
 
+    if EXPERIMENTAL:
+        slogger.warning(
+            "Experimental mode enabled. Values may appear nonsensical.")
+
     while not service_helper.time_to_stop():
         for packet in get_sinusoid_packets(START_TIME, EXPERIMENTAL):
             device = packet.ORIGIN_DEVICE
