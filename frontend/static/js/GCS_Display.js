@@ -246,15 +246,15 @@ function displayUpdateAuxData(data) {
     // should be the solenoids
    if (data?.stateFlags){
     //purge / solenoid1
-    if (data.stateFlags?.manualPurgeActivated || data.stateFlags.manualPurgeActivated == true || data.stateFlags.manualPurgeActivated == false){
+    if (data.stateFlags?.manualPurgeActivated && (data.stateFlags.manualPurgeActivated == true || data.stateFlags.manualPurgeActivated == false)){
          solenoidupdate(data.stateFlags.manualPurgeActivated,'solenoidsV7');
     }
     // n2O fill / solenoid2
-    if (data.stateFlags?.o2FillActivated || data.stateFlags.o2FillActivated == true || data.stateFlags.o2FillActivated == false){
+    if (data.stateFlags?.o2FillActivated && (data.stateFlags.o2FillActivated == true || data.stateFlags.o2FillActivated == false)){
          solenoidupdate(data.stateFlags.o2FillActivated,'solenoidsV6');
     }
     // O2 fill / solenoid3
-    if (data.stateFlags?.n20FillActivated || data.stateFlags.n20FillActivated == true || data.stateFlags.n20FillActivated == false ){
+    if (data.stateFlags?.n20FillActivated && (data.stateFlags.n20FillActivated == true || data.stateFlags.n20FillActivated == false)){
          solenoidupdate(data.stateFlags.n20FillActivated,'solenoidsV5');
     }
    }

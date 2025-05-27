@@ -1,15 +1,18 @@
 <!-- HMI module -->
 <div class="flex w-full h-full justify-center items-center font-mono">
 <script>
+
 const color = ["#FF0000","#00FF4D","#FFF600"];
+const color1 = ["#FF0000","#00FF4D"];       // for valves only (on/off)
 let counter = 0;
 function changecolor(objectid){
     const objectchange = document.getElementById(objectid);
     if (objectchange){
-        objectchange.setAttribute("fill",color[counter % color.length]);
+        objectchange.setAttribute("fill",color1[counter % color1.length]);
         counter ++;
     }
 }
+
 
 function hmiUpdateValue(id, value) {
     if (value != undefined && !Number.isNaN(value)) {
@@ -28,31 +31,29 @@ function hmiUpdateValue(id, value) {
     }
 }
 
+
 function hmiUpdateTemperature(id, value,id2) {
     const guage = document.getElementById(id);
     const guagesize = document.getElementById(id2);
+    
     if (guage) {
         if (value >= 15 && value<=25) {
             guage.setAttribute("fill", color[2]);
         } else if (value > 25) {
             guage.setAttribute("fill", color[0]);
-        } else if(value<15){
+        } else if(value < 15){
             guage.setAttribute("fill", color[1]);
         }
-        if (value>=15 && value <=25){
-            guagesize.setAttribute("height", 40);
-            
+        
+        if (value >= 0 && value <= 36) {
+            let height = 69 - ((value / 36) * 69);
+            guagesize.setAttribute("height", height);
         }
-        else if (value>25 && value<=35){
-            guagesize.setAttribute("height", 10);
-            
+        else if (value < 0) {
+            guagesize.setAttribute("height", 69);
         }
-        else if(value >36){
+        else if (value > 36) {
             guagesize.setAttribute("height", 0);
-        }
-        else if (value<15){
-            guagesize.setAttribute("height", 60);
-            
         }
         
     }
