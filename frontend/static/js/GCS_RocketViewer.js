@@ -33,8 +33,20 @@ window.addEventListener("DOMContentLoaded", () => {
     const scene = new THREE.Scene();
     scene.background = null;
 
-    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(0, 2, 8);
+    const aspect = container.clientWidth / container.clientHeight;
+    const viewSize = 10;
+
+    const camera = new THREE.OrthographicCamera(
+        -aspect * viewSize / 2,  // left
+        aspect * viewSize / 2,   // right
+        viewSize / 2,            // top
+        -viewSize / 2,           // bottom
+        0.1,
+        1000
+    );
+    camera.position.set(0, 0, 20); // Move back far enough for a full view
+    camera.lookAt(0, 0, 0);
+
 
     const lights = [
         new THREE.DirectionalLight(0xffffff, 36),
@@ -101,8 +113,13 @@ window.addEventListener("DOMContentLoaded", () => {
 
     function onResize() {
         renderer.setSize(container.clientWidth, container.clientHeight);
-        camera.aspect = container.clientWidth / container.clientHeight;
+        const aspect = container.clientWidth / container.clientHeight;
+        camera.left = -aspect * viewSize / 2;
+        camera.right = aspect * viewSize / 2;
+        camera.top = viewSize / 2;
+        camera.bottom = -viewSize / 2;
         camera.updateProjectionMatrix();
+
     }
 
     window.addEventListener("resize", onResize);
