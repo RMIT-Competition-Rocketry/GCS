@@ -21,7 +21,7 @@ var then, now, fpsInterval;
 // Logging
 const logSocket = true;
 const logIncomingMessages = false;
-var errors = [];
+const errors = [];
 
 // Global display values
 var altitudeMax;
@@ -96,16 +96,31 @@ function logError(message) {
 }
 */
 function logMessage(message, type = "notification") {
-    /*
+    // Log to browser console
+    console.log(type, message);
+
+    // Make sure log area exists
     const logArea = document.getElementById('errorLogBox');
     if (!logArea) {
         console.error('Log area not found.');
         return;
     }
 
+    // Add new error to log
     const timestamp = new Date().toLocaleTimeString();
     logArea.textContent += `[${timestamp}] ${type === "error" ? "Error" : "Notice"}: ${message}\n`;
-    logArea.scrollTop = logArea.scrollHeight;*/
+    
+    // Remove old errors if more than a certain amount
+    const lines = logArea.textContent.split("\n");
+    const maxlines = 16;
+    if (lines.length > maxlines) {
+        // Remove the first line
+        lines.shift();
+        logArea.textContent = lines.join("\n");
+    }
+
+    // Scroll to bottom of log
+    logArea.scrollTop = logArea.scrollHeight;
 }
 
 document.addEventListener('visibilitychange', function() {
@@ -263,87 +278,113 @@ function API_OnMessage(event) {
 
 // Check data for error conditions
 // As defined in spreadsheet
+const errorConditions = [
+    // Thermocouples
+    {
+        ids: ["thermocouple1", "thermocouple2", "thermocouple3", "thermocouple4"],
+        message: "flag raised",
+        error: {
+            max: 34.5,
+        },
+        discard: {
+            min: -100,
+            max: 500,
+        },
+    },
+    // Transducers
+    {
+        ids: ["transducer1", "transducer2", "transducer3"],
+        message: "flag raised",
+        error: {
+            max: 64.5
+        },
+        discard: {
+            min: -100,
+            max: 500
+        },
+    },
+    // Gas bottles
+    {
+        ids: ["gasBottleWeight1", "gasBottleWeight2"],
+        message: "out of range",
+        error: {
+            min: 15.1,
+            max: 19
+        },
+        discard: {
+            min: -1,
+            max: 100
+        }
+    }
+];
+
 function checkErrorConditions(apiData) {
     if (apiData.errorFlags != undefined) {
         Object.entries(apiData.errorFlags).forEach(([key, value]) => {
-        if (value === true && !errors.includes(key)) {
-            logMessage(`${key} flag raised`, "error");
-            errors.push(key);
+            if (value === true && !errors.includes(key)) {
+                logMessage(`${key} flag raised`, "error");
+                errors.push(key);
             }
         });
     }
 
-    if (apiData.id === 6) {
-        // Thermocouple ranges
-        if (apiData.thermocouple1 > 34.5 && errors.indexOf("thermocouple1Error") == -1) {
-            logMessage("thermocouple1Error flag raised", "error");
-            errors.push("thermocouple1Error");
-        }
-        else if (apiData.thermocouple1 <= 34.5 && errors.includes("thermocouple1Error")) {
-            errors.splice(errors.indexOf("thermocouple1Error"), 1);
-        }
-        if (apiData.thermocouple2 > 34.5 && errors.indexOf("thermocouple2Error") == -1) {
-            logMessage("thermocouple2Error flag raised", "error");
-            errors.push("thermocouple2Error");
-        }
-        else if (apiData.thermocouple2 <= 34.5 && errors.includes("thermocouple2Error")) {
-            errors.splice(errors.indexOf("thermocouple2Error"), 1);
-        }
-        if (apiData.thermocouple3 > 34.5 && errors.indexOf("thermocouple3Error") == -1) {
-            logMessage("thermocouple3Error flag raised", "error");
-            errors.push("thermocouple3Error");
-        }
-        else if (apiData.thermocouple3 <= 34.5 && errors.includes("thermocouple3Error")) {
-            errors.splice(errors.indexOf("thermocouple3Error"), 1);
-        }
-        if (apiData.thermocouple4 > 34.5 && errors.indexOf("thermocouple4Error") == -1) {
-            logMessage("thermocouple4Error flag raised", "error");
-            errors.push("thermocouple4Error");
-        }
-        else if (apiData.thermocouple4 <= 34.5 && errors.includes("thermocouple4Error")) {
-            errors.splice(errors.indexOf("thermocouple4Error"), 1);
-        }
-        
-        // Transducer ranges
-        if (apiData.transducer1 > 64.5 && errors.indexOf("transducer1Error") == -1) {
-            logMessage("transducer1Error flag raised", "error");
-            errors.push("transducer1Error");
-        }
-        else if (apiData.transducer1 <= 64.5 && errors.includes("transducer1Error")) {
-            errors.splice(errors.indexOf("transducer1Error"), 1);
-        }
-        if (apiData.transducer2 > 64.5 && errors.indexOf("transducer2Error") == -1) {
-            logMessage("transducer2Error flag raised", "error");
-            errors.push("transducer2Error");
-        }
-        else if (apiData.transducer2 <= 64.5 && errors.includes("transducer2Error")) {
-            errors.splice(errors.indexOf("transducer2Error"), 1);
-        }
-        if (apiData.transducer3 > 64.5 && errors.indexOf("transducer3Error") == -1) {
-            logMessage("transducer3Error flag raised", "error");
-            errors.push("transducer3Error");
-        }
-        else if (apiData.transducer3 <= 64.5 && errors.includes("transducer3Error")) {
-            errors.splice(errors.indexOf("transducer3Error"), 1);
-        }
-    }
-    if (apiData.id === 7) {
-        // Gas bottle weight ranges
-        if ((apiData.gasBottleWeight1 > 19 || apiData.gasBottleWeight1 < 15.1) && errors.indexOf("gasBottle1Error") == -1) {
-            logMessage("Gas bottle 1 weight not within target range", "error");
-            errors.push("gasBottle1Error");
-        }
-        else if ((apiData.gasBottleWeight1 <= 19 && apiData.gasBottleWeight1 >= 15.1) && errors.includes("gasBottle1Error")) {
-            errors.splice(errors.indexOf("gasBottle1Error"), 1);
-        }
-        if ((apiData.gasBottleWeight2 > 19 || apiData.gasBottleWeight2 < 15.1) && errors.indexOf("gasBottle2Error") == -1) {
-            logMessage("Gas bottle 2 weight not within target range", "error");
-            errors.push("gasBottle2Error");
-        }
-        else if ((apiData.gasBottleWeight2 <= 19 && apiData.gasBottleWeight2 >= 15.1) && errors.includes("gasBottle2Error")) {
-            errors.splice(errors.indexOf("gasBottle2Error"), 1);
-        }
-    }
+    // Iterate over all error conditions
+    errorConditions.forEach((errorCondition) => {
+        // Error conditions may apply equivalently to multiple data IDs
+        errorCondition.ids.forEach((id) => {
+
+            // Make sure the ID is defined within the current packet
+            if (Object.keys(apiData).indexOf(id) != -1 && apiData[id] != undefined) {
+                const apiDataValue = apiData[id];
+                if (apiDataValue != undefined) {
+                    
+                    // Define error key
+                    const errorKey = `${id}Error`;
+                    let isError = false;
+                    let isDiscard = false;
+
+                    // Check error ranges if the value is a number
+                    if (typeof apiDataValue == "number") {
+                        // Check against error ranges
+                        if (errorCondition?.error) {
+                            if (errorCondition.error?.min && apiDataValue < errorCondition.error.min) {
+                                isError = true;
+                            }
+                            if (errorCondition.error?.max && apiDataValue > errorCondition.error.max) {
+                                isError = true;
+                            }
+                        }
+
+                        // Check against discard ranges (corrupted data)
+                        if (errorCondition?.discard) {
+                            if (errorCondition.discard?.min && apiDataValue < errorCondition.discard.min) {
+                                isDiscard = true;
+                            }
+                            if (errorCondition.discard?.max && apiDataValue > errorCondition.discard.max) {
+                                isDiscard = true;
+                            }
+                        }
+                    }
+
+                    // Check errors against current system status
+                    if (isError && errors.indexOf(errorKey) == -1) {
+                        // If error, log error and raise flag
+                        logMessage(`${errorKey} ${errorCondition.message}`, "error");
+                        errors.push(errorKey);
+                    } else if (!isError && errors.indexOf(errorKey) != -1) {
+                        // If not error, remove from errors flags
+                        logMessage((`${errorKey} resolved`));
+                        errors.splice(errors.indexOf(errorKey), 1);
+                    }
+
+                    // Check for discards
+                    if (isDiscard) {
+                        apiData[id] = NaN; // Flag invalid value with NaN
+                    }
+                }
+            }
+        });
+    });
 }
 
 function processDataForDisplay(apiData, apiId) {
