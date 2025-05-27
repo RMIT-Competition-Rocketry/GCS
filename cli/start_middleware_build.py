@@ -51,9 +51,14 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
         logger.debug(
             f"Starting {SERVICE_NAME} build [cmake] with: {MIDDLEWARE_BUILD_COMMAND_CMAKE}")
 
+        env = os.environ.copy()
+        env["CLICOLOR_FORCE"] = "1"
+        env["TERM"] = "xterm-256color"
+
         middleware_build_process_cmake = MiddlewareBuildSubprocess(
             MIDDLEWARE_BUILD_COMMAND_CMAKE,
             name="middleware-build-cmake",
+            env=env
         )
         middleware_build_process_cmake.register_callback(
             successful_cmake_build_callback)
