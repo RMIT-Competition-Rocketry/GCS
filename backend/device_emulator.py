@@ -628,11 +628,11 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
     ARGS_GSE_COMMON = {
         "RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
         "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
-        "MANUAL_PURGED": changing_bool(T) if EXPERIMENTAL else False,
-        "O2_FILL_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
+        "MANUAL_PURGED": changing_bool(T+1/4) if EXPERIMENTAL else False,
+        "O2_FILL_ACTIVATED": changing_bool(T+2/4) if EXPERIMENTAL else False,
         "SELECTOR_SWITCH_NEUTRAL_POSITION": changing_bool(T) if EXPERIMENTAL else False,
-        "N2O_FILL_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
-        "IGNITION_FIRED": changing_bool(T) if EXPERIMENTAL else False,
+        "N2O_FILL_ACTIVATED": changing_bool(T+3/4) if EXPERIMENTAL else False,
+        "IGNITION_FIRED": changing_bool(T+4/4) if EXPERIMENTAL else False,
         "IGNITION_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
         "GAS_FILL_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
         "SYSTEM_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
@@ -695,6 +695,8 @@ def main():
         slogger.error("Failed to find device names in arguments for emulator")
         raise
 
+    experimental_cli_override = "--experimental" in sys.argv
+
     MockPacket.initialize_settings(
         config.load_config()['emulation'],
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
@@ -717,7 +719,13 @@ def main():
     LOCK_WARNING_TIME = 5
     TIME_INBETWEEN_PACKETS = 0.01
 
-    EXPERIMENTAL = CONFIG_LOADED['emulation']['experimental'].lower() == 'true'
+    EXPERIMENTAL = \
+        experimental_cli_override or \
+        CONFIG_LOADED['emulation']['experimental'].lower() == 'true'
+
+    if EXPERIMENTAL:
+        slogger.warning(
+            "Experimental mode enabled. Values may appear nonsensical.")
 
     while not service_helper.time_to_stop():
         for packet in get_sinusoid_packets(START_TIME, EXPERIMENTAL):

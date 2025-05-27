@@ -599,7 +599,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
             MACH_NUMBER = Mach.mach_from_alt_estimate(
                 PROTO_DATA.velocity, PROTO_DATA.altitude)
             slogger.info(
-                f"New max velocity: {MACH_NUMBER:<3.3f} mach")
+                f"New max velocity: {MACH_NUMBER:<3.3f} Mach")
             self._max_velocity_updated = False
 
         self._last_information_display_time = time.monotonic()
@@ -620,7 +620,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
             slogger.info("Supersonic flight ended")
             self._supersonic = False
 
-        # Yeah technically mach is not proportionate to velocity. ik.
+        # Yeah technically Mach is not proportionate to velocity. ik.
         if (PROTO_DATA.velocity > self._max_velocity):
             self._max_velocity = PROTO_DATA.velocity
             self._max_velocity_updated = True

@@ -1,5 +1,5 @@
 import threading
-import backend.tools.device_emulator as device_emulator
+import backend.device_emulator as device_emulator
 import backend.includes_python.process_logging as slogger
 import config.config as config
 import backend.includes_python.ansci as ansci

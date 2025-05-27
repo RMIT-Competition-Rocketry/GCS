@@ -119,7 +119,7 @@
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "module": "backend.tools.device_emulator",
+            "module": "backend.device_emulator",
             "console": "integratedTerminal",
             "args": []
         },
@@ -127,7 +127,7 @@
             "name": "Python Debugger: pendant emulator",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/backend/tools/pendant_emulator.py",
+            "program": "${workspaceFolder}/backend/pendant_emulator.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"

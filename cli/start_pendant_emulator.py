@@ -37,7 +37,7 @@ class PendantEmulatorSubprocess(process.LoggedSubProcess):
         try:
             while time.monotonic() - START_TIME < TIMEOUT_S:
                 result = subprocess.run(
-                    ['pgrep', '-f', "\/backend\/tools\/pendant_emulator\.py -u"],
+                    ['pgrep', '-f', "\/backend\/pendant_emulator\.py -u"],
                     capture_output=True,
                     text=True
                 )
@@ -84,7 +84,7 @@ def get_command() -> List[str]:
     system = platform.system()
     project_root = os.path.abspath(os.getcwd())
     script_path = os.path.join(
-        project_root, "backend", "tools", "pendant_emulator.py")
+        project_root, "backend", "pendant_emulator.py")
 
     if system == 'Darwin':
         # Use single quotes to handle spaces in paths

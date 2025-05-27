@@ -4,11 +4,12 @@
     <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">
     <img alt="Static Badge" src="https://img.shields.io/badge/status-work_in_progress-black">
     <img src="https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem">
+    <!-- <img src="https://img.shields.io/github/v/release/RMIT-Competition-Rocketry/GCS?label=version" height="20rem"> -->
 </p>
 
 ![banner](docs/assets/banner.png)
 
-Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Control Station**) data ingestion and visualisation software.
+Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**). 
 
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
 
@@ -36,13 +37,7 @@ Code repository for RMIT HIVE's IREC competition team rocket GCS (**Ground Contr
 
 ## Description
 
-The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, avionics communication, and
-data visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio-hardware
-peripherals. The software converts raw serial input from physical radio interfaces into human-readable output for
-efficient system monitoring by the GCS operator and visualisations for observers. The GCS operator is able to see if
-any system is performing sub-optimally via alert and warning readouts, so they can make an informed GO/NO-GO
-call quickly. Spectators and other team members have access to several different views detailing all telemetry from
-both the GSE and avionics systems
+The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, avionics communication, and data visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio hardware peripherals. All OSI layers in our networking stack above the physical protocol are SRAD for use with our Australis (avionics) ecosystem. The software converts raw serial input from physical radio interfaces into human-readable output for efficient system monitoring by the GCS operator and visualisations for observers. We use a WebSocket and proto IPC API to communicate with our GCS services. Our web frontend is fully SRAD aside from industry-standard libraries. The GCS operator can see if any system is performing sub-optimally via alert and warning readouts, so they can make an informed GO/NO-GO call quickly. Spectators and other team members have access to several different views detailing all telemetry from both the GSE and avionics systems
 
 ## Credit
 
@@ -56,7 +51,7 @@ both the GSE and avionics systems
 | Jonathan Do (`s4003025`)  | GCS UI/UX designer | 2025 |
 | Tristan Le (`trist4nl3`) | GCS simulation integration | 2025 |
 
-## Development components
+## Software Development Components
 
 This project was built using the following tools, languages and systems.
 
