@@ -84,7 +84,8 @@ def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
             PREVIOUS_WINDOW_TRAILER (type): Last packet in previous window
     """
     importance = 0
-
+    if PREVIOUS_WINDOW_TRAILER is None:
+        return importance + 1
     last_window_state = PREVIOUS_WINDOW_TRAILER["flight_state"]
     current_packet_state = PACKET["flight_state"]
 
@@ -107,7 +108,7 @@ def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
     windows = []
     current_window = []
     group_start_time = None
-    trailer_data = FLIGHT_DATA.iloc[0]  # The last packet in the last window
+    trailer_data = None  # The last packet in the last window
 
     for _, row in FLIGHT_DATA.iterrows():
         row_time_ms = row['# Time (s)'] * MS_PER_SECOND
@@ -123,9 +124,9 @@ def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
             else:
                 # Finalize current group and start new one
                 windows.append(current_window)
-                current_window = [(row, importance)]
+                trailer_data = windows[-1][-1][0] if windows else None
+                current_window = [(row, packet_importance(row, trailer_data))]
                 group_start_time = row_time_ms
-                trailer_data = windows[-1][-1][0]
 
     # Add the final group if any rows remain
     if current_window:
@@ -313,12 +314,7 @@ def simulation_to_replay_data(flight_data: pd.DataFrame):
 def get_replay_sim_data():
     """flightType enum will be used later on when rebuilding the sim for now its just an unused variable"""
     FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
-    # Log this data
     processed_data = post_process_simulation_data(FLIGHT_DATA)
-    df = pd.DataFrame(processed_data)
-    log_file_path = os.path.join(
-        "backend", "simulation", "cache", "sim_data.csv")
-    df.to_csv(log_file_path, index=False)
 
     replay_processed = simulation_to_replay_data(processed_data)
 
