@@ -53,8 +53,8 @@ both the GSE and avionics systems
 | Caspar O'Neill (`s3899921`)  | GCS QA engineer & API integration | 2025 |
 | Anuk Jayasundara (`s3899921`)  | GCS frontend developer | 2025 |
 | Nathan La (`s4003562`)  | GCS data visualisation programmer | 2025 |
-| Jonathan Do (`s4003025`)  | GCS UI/UX Designer | 2025 |
-| Tristan Le (`trist4nl3`) | GCS Simulation Integration | 2025 |
+| Jonathan Do (`s4003025`)  | GCS UI/UX designer | 2025 |
+| Tristan Le (`trist4nl3`) | GCS simulation integration | 2025 |
 
 ## Development components
 
@@ -68,7 +68,7 @@ This project was built using the following tools, languages and systems.
     - IPC Data serialisation with [Google's Protocol Buffers](https://protobuf.dev/)
 - Multithreaded CLI based process manager
     - Written in Python
-    - Includes a device emulator for internal unit tests that attaches from the hardware layer to create a fake unix device file at `/dev/`
+    - Includes a device emulator for internal system tests that attaches from the hardware layer to create a fake unix device file at `/dev/`
 
 ## Screenshots
 

@@ -15,7 +15,6 @@ import json
 import websockets
 import zmq
 import zmq.asyncio
-import time
 import os
 
 # Global flag for shutdown control
@@ -88,11 +87,18 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         slogger.error(f"Unexpected packet ID: {packet_id}")
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
+            except websockets.ConnectionClosed:
+                if not shutdown_event.is_set():
+                    slogger.info(
+                        "WebSocket connection closed from manager trigger")
+                else:
+                    slogger.info(
+                        "WebSocket connection closed from ws client")
+                break
             except Exception as e:
                 slogger.error(f"Error fowarding data to websocket: {e}")
-
-    except websockets.ConnectionClosed:
-        slogger.info("WebSocket connection closed")
+                if shutdown_event.is_set():
+                    break
     finally:
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
@@ -110,40 +116,58 @@ async def consumer(websocket):
         LINGER_TIME_MS = 300
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
+        push_socket.setsockopt(zmq.CONFLATE, 1)  # Replace old messages
         push_socket.connect(f"ipc://{SOCKET_PATH}")
         EXPECTED_ID = 0x09  # What ID should we relay to the server?
-        async for message in websocket:
-            try:
-                # TODO remove this after bundy testing
-                slogger.debug(f"Received ws message: {message}")
+        slogger.debug("New websocket consumer started")
+        try:
+            async for message in websocket:
+                if shutdown_event.is_set():
+                    break
                 try:
-                    message_json = json.loads(message)
+                    # TODO remove this after bundy testing
+                    slogger.debug(f"Received ws message: {message}")
+                    try:
+                        message_json = json.loads(message)
+                    except json.JSONDecodeError as e:
+                        slogger.error(f"Invalid JSON received: {e}")
+                        continue
+                    if message_json.get("id") != EXPECTED_ID:
+                        slogger.error(
+                            f"Invalid packet ID for TX: {message_json.get('id')}. Expected {EXPECTED_ID}")
+                        continue
+                    data = message_json.get("data", None)
+                    if data is None or len(data.keys()) == 0:
+                        slogger.error("No data found in message")
+                        continue
+                    packet = build_packet(data)
+                    packet_bytes = packet.get_payload_bytes(EXTERNAL=True)
+                    # Prepend the manual control bool as a byte to tell server
+                    manual_control = data.get("manualEnabled", False)
+                    if isinstance(manual_control, bool):
+                        prefix = bytes([0xFF if manual_control else 0x00])
+                    else:
+                        slogger.error(
+                            f"Manual control field contains non-bool {manual_control}")
+                        continue
+                    packet_bytes = bytes(prefix) + packet_bytes
+                    await push_socket.send(packet_bytes, flags=zmq.NOBLOCK)
                 except json.JSONDecodeError as e:
                     slogger.error(f"Invalid JSON received: {e}")
-                    continue
-                if message_json.get("id") != EXPECTED_ID:
+                except KeyError as e:
+                    slogger.error(f"Missing required key in message: {e}")
+                except Exception as e:
                     slogger.error(
-                        f"Invalid packet ID for TX: {message_json.get('id')}. Expected {EXPECTED_ID}")
-                    continue
-                data = message_json.get("data", None)
-                if data is None or len(data.keys()) == 0:
-                    slogger.error("No data found in message")
-                    continue
-                packet = build_packet(data)
-                slogger.debug(
-                    f"Built packet: {packet.get_payload_bytes(EXTERNAL=True)}")
-                await push_socket.send(packet.get_payload_bytes(EXTERNAL=True), flags=zmq.NOBLOCK)
-            except json.JSONDecodeError as e:
-                slogger.error(f"Invalid JSON received: {e}")
-            except KeyError as e:
-                slogger.error(f"Missing required key in message: {e}")
-            except Exception as e:
-                slogger.error(
-                    f"Error processing message: {e}. Socket may be full at HWM")
-    except websockets.ConnectionClosedOK:
-        slogger.info("WebSocket connection closed in consumer")
-    except Exception as e:
-        slogger.error(f"Consumer error: {e}")
+                        f"Error processing message: {e}. Socket may be full at HWM")
+        except websockets.ConnectionClosedOK:
+            if not shutdown_event.is_set():
+                slogger.info(
+                    "WebSocket connection closed in consumer from web side")
+            else:
+                slogger.info(
+                    "WebSocket connection closed in consumer from manager trigger")
+        except Exception as e:
+            slogger.error(f"Consumer error: {e}")
     finally:
         slogger.debug("ZMQ socket closing")
         push_socket.close(linger=LINGER_TIME_MS)
@@ -161,9 +185,9 @@ def build_packet(WEBSOCKET_DATA: dict) -> device_emulator.GCStoGSEManualControl:
         device_emulator.GCStoGSEManualControl: Output packet to be written to lora
     """
 
-    PURGE_HIGH: bool = WEBSOCKET_DATA.get("solendoid1High", True)
-    N2O_HIGH: bool = WEBSOCKET_DATA.get("solendoid2High", False)
-    O2_HIGH: bool = WEBSOCKET_DATA.get("solendoid3High", False)
+    PURGE_HIGH: bool = WEBSOCKET_DATA.get("solenoid1High", False)
+    N2O_HIGH: bool = WEBSOCKET_DATA.get("solenoid2High", False)
+    O2_HIGH: bool = WEBSOCKET_DATA.get("solenoid3High", False)
     states = {
         "MANUAL_PURGE": PURGE_HIGH,
         "O2_FILL_ACTIVATE": O2_HIGH,
@@ -183,14 +207,21 @@ async def handler(websocket):
         zmq_to_websocket(websocket, IPC_ADDRESS))
     consumer_task = asyncio.create_task(consumer(websocket))
 
-    # wait until one side throws an exception
-    done, pending = await asyncio.wait(
-        [producer_task, consumer_task],
-        return_when=asyncio.FIRST_EXCEPTION
-    )
+    try:
+        # wait until one side throws an exception or shutdown is requested
+        done, pending = await asyncio.wait(
+            [producer_task, consumer_task],
+            return_when=asyncio.FIRST_EXCEPTION
+        )
 
-    for task in pending:
-        task.cancel()
+        if shutdown_event.is_set():
+            await websocket.close(code=1001, reason="Server shutting down")
+    except Exception as e:
+        slogger.error(f"Handler error: {e}")
+    finally:
+        for task in pending:
+            task.cancel()
+        await websocket.close()
 
 
 async def amain():
@@ -207,6 +238,8 @@ async def amain():
         await shutdown_event.wait()
     finally:
         slogger.info("Shutting down server...")
+        for ws in server.connections:
+            await ws.close(code=1001, reason="Server shutdown")
         server.close()
         await server.wait_closed()
         slogger.info("Server shutdown complete")

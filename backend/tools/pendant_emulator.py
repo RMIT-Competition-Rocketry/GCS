@@ -560,7 +560,7 @@ def safety_fallback_state():
     return states
 
 
-def send_packet() -> device_emulator.GCStoGSEStateCMD:
+def send_packet():
     context = zmq.Context()
     try:
         push_socket = context.socket(zmq.PUSH)

@@ -10,7 +10,6 @@
 const initialReconnectInterval = 200;   // Initial reconnection wait time
 const maxReconnectInterval = 5000;      // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20;     // FPS for rendering graphs
-const maxDesync = 1/graphRenderRate;  // Max desync (s) before local time realigns itself with GSE 
 
 // API connection
 var apiSocket;
@@ -123,36 +122,72 @@ document.addEventListener('visibilitychange', function() {
 
 function API_socketConnect() {
     const api_url = window.location.host.split(":")[0];
-    apiSocket = new WebSocket(`ws://${api_url}:1887`);
+    const ws_url = `ws://${api_url}:1887`;
+    apiSocket = new WebSocket(ws_url);
 
+    console.log(
+        "Attempting to open WebSocket connection to",
+        ws_url,
+        "\nInitial WebSocket readyState:",
+        apiSocket.readyState
+    ); // 0 = CONNECTING
+
+    // Socket connected
     apiSocket.onopen = () => {
         connected = true;
         timestampApiConnect = undefined;
-        if (logSocket) console.log(`Successfully connected to server at: - ${api_url}`);
+        if (logSocket)
+            console.log(`Successfully connected to server at: - ${api_url}`);
         logMessage("Successfully connected", "notification");
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
     };
 
+    // Socket received message
     apiSocket.onmessage = API_OnMessage;
 
+    // Socket error
     apiSocket.onerror = (error) => {
         connected = false;
         timestampApiConnect = undefined;
         console.error("Websocket error: ", error);
     };
 
+    // Socket closed
     apiSocket.onclose = () => {
         connected = false;
         timestampApiConnect = undefined;
-        if (logSocket) console.log("Socket closed, attempting to reconnect automatically");
+
+        // Log on browser console
+        console.warn(
+            "Socket closed",
+            {
+                wasClean: event.wasClean,
+                code: event.code,
+                reason: event.reason,
+            },
+            "Attempting to reconnect automatically"
+        );
+
+        // Log on page
         logMessage("Connection lost: Attempting to reconnect", "error");
+
+        // Attempt reconnecting
         scheduleReconnect();
     };
+
+    // Monitor readystate every 10 seconds
+    setInterval(() => {
+        if (apiSocket)
+            console.info("WebSocket readyState:", apiSocket.readyState);
+    }, 10000);
 }
 API_socketConnect();
 
+// Handle incoming data through the API socket
 function API_OnMessage(event) {
+    if (logIncomingMessages) console.log('Message from server:', event.data);
+
     let apiLatest, apiData;
     try {
         // Handle incoming data
@@ -162,7 +197,7 @@ function API_OnMessage(event) {
         // Flag data for errors
         checkErrorConditions(apiData);
 
-        
+        // Handle different packet types
         if (apiData.id == 2) {
             ///// ----- SINGLE OPERATOR PACKETS ----- /////
             //
@@ -226,6 +261,8 @@ function API_OnMessage(event) {
     }
 }
 
+// Check data for error conditions
+// As defined in spreadsheet
 function checkErrorConditions(apiData) {
     if (apiData.errorFlags != undefined) {
         Object.entries(apiData.errorFlags).forEach(([key, value]) => {
@@ -237,6 +274,7 @@ function checkErrorConditions(apiData) {
     }
 
     if (apiData.id === 6) {
+        // Thermocouple ranges
         if (apiData.thermocouple1 > 34.5 && errors.indexOf("thermocouple1Error") == -1) {
             logMessage("thermocouple1Error flag raised", "error");
             errors.push("thermocouple1Error");
@@ -266,6 +304,7 @@ function checkErrorConditions(apiData) {
             errors.splice(errors.indexOf("thermocouple4Error"), 1);
         }
         
+        // Transducer ranges
         if (apiData.transducer1 > 64.5 && errors.indexOf("transducer1Error") == -1) {
             logMessage("transducer1Error flag raised", "error");
             errors.push("transducer1Error");
@@ -289,6 +328,7 @@ function checkErrorConditions(apiData) {
         }
     }
     if (apiData.id === 7) {
+        // Gas bottle weight ranges
         if ((apiData.gasBottleWeight1 > 19 || apiData.gasBottleWeight1 < 15.1) && errors.indexOf("gasBottle1Error") == -1) {
             logMessage("Gas bottle 1 weight not within target range", "error");
             errors.push("gasBottle1Error");
@@ -418,6 +458,9 @@ function gpsToDecimal(gps) {
 
     // Split string into parts
     let [intPart, decPart] = gps.toString().split('.');
+    if (decPart == undefined) {
+        decPart = 0;
+    }
     
     // Get sign (positive or negative)
     let sign = intPart >= 0 ? 1 : -1;
@@ -432,58 +475,36 @@ function gpsToDecimal(gps) {
     return sign * (degrees + minutes/60 + seconds/3600);
 }
 
-// Test function
-apiSocket.addEventListener('open', () => {
-    console.log('Socket connection opened');
-});
-
-apiSocket.addEventListener('message', (event) => {
-    if (logIncomingMessages) console.log('Message from server:', event.data);
-});
-
-// Solenoid payload to websocket
-function solenoidPayload() {
-
-    const solenoidPayload = [isSolenoidActive];
-
+// Single Operator Functionality
+function apiSendSolenoids() {
+    // Sends a Solenoid request to the WebSocket
+    const solenoidPayloadData = [isSolenoidActive];
     document.querySelectorAll(".solSwitch").forEach((el, index) => {
         console.log(`Solenoid ${index + 1}: ${el.checked}`);
-        solenoidPayload[index + 1] = el.checked;
+        solenoidPayloadData[index + 1] = el.checked;
     });
 
-    
-    const payload = {
+    const packet = JSON.stringify({
         id: 9,
         data: {
             manualEnabled: isSolenoidActive,
-            solenoid1High: solenoidPayload[1],
-            solenoid2High: solenoidPayload[2],
-            solenoid3High: solenoidPayload[3],
+            solenoid1High: solenoidPayloadData[1],
+            solenoid2High: solenoidPayloadData[2],
+            solenoid3High: solenoidPayloadData[3],
         }
-    }
-
-    const payloadString = JSON.stringify(payload);
+    });
 
     if (apiSocket.readyState === WebSocket.OPEN) {
-        apiSocket.send(payloadString);
-        console.log('Sent solenoid JSON:', payloadString);
+        apiSocket.send(packet);
+        console.log('Sent solenoid JSON:', packet);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
 };
 
-// Pop test packet to websocket
-function popPayload() {
-
-    const popPayload = [];
-
-    document.querySelectorAll(".solSwitch").forEach((el, index) => {
-        console.log(`Solenoid ${index + 1}: ${el.checked}`);
-        solenoidPayload[index + 1] = el.checked;
-    });
-
-    
-    const payload = {
+function apiSendPopTest() {
+    // Sends a Pop Test request to the websocket
+    const packet = JSON.stringify({
         id: 255,
         data: {
             mainPrimary: mainPCheckbox.checked,
@@ -491,66 +512,54 @@ function popPayload() {
             apogeePrimary: apogeePCheckbox.checked,
             apogeeSecondary: apogeeSCheckbox.checked,
         }
-    }
-
-    const payloadString = JSON.stringify(payload);
+    });
 
     if (apiSocket.readyState === WebSocket.OPEN) {
-        apiSocket.send(payloadString);
-        console.log('Sent pop test JSON:', payloadString);
+        apiSocket.send(packet);
+        console.log('Sent pop test JSON:', packet);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
 };
 
-// Continuity packet
-function continuityPayload(payload) {
-
-
-    const contPayload = {
+function apiSendContinuityCheck(payload) {
+    // Sends a Continuity Check request to the WebSocket
+    const packet = JSON.stringify({
         id: 254,
         data: {
-            continuityA: payload[0],
-            continuityB: payload[1],
-            continuityC: payload[2],
-            continuityD: payload[3],
+            continuityA: payload[0] == 1,
+            continuityB: payload[1] == 1,
+            continuityC: payload[2] == 1,
+            continuityD: payload[3] == 1,
         }
-    }
-
-    const payloadString = JSON.stringify(payload);
+    });
 
     if (apiSocket.readyState === WebSocket.OPEN) {
-        apiSocket.send(payloadString);
-        console.log('Sent continuity JSON:', payloadString);
+        apiSocket.send(packet);
+        console.log('Sent continuity JSON:', packet);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
 };
 
-// Camera switch packet
-function cameraSwitch() {
+function apiSendCameraSwitch() {
+    // Send a Camera Switch request to the WebSocket
     const camera = document.getElementById("cameraSwitch");
-    var status = false;
-
-    if (camera.checked == true) {
-        status = true;
-    }
-    else {
-        status = false;
+    if (camera == undefined) {
+        console.error("cameraSwitch element not found");
+        return;
     }
 
-    const payload = {
+    const packet = JSON.stringify({
         id: 253,
         data: {
-            cameraStatus: status,
+            cameraStatus: camera.checked == true,
         }
-    }
-
-    const payloadString = JSON.stringify(payload);
+    });
 
     if (apiSocket.readyState === WebSocket.OPEN) {
-        apiSocket.send(payloadString);
-        console.log('Sent camera status:', payloadString);
+        apiSocket.send(packet);
+        console.log('Sent camera status:', packet);
     } else {
         console.warn('WebSocket not open. ReadyState:', apiSocket.readyState);
     }
