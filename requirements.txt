@@ -2,7 +2,7 @@
 click>=8.1.7
 pyzmq>=25.1.1
 zmq>=0.0.0
-protobuf>=6.30.2
+protobuf==6.31.0
 pygame>=2.5.1
 flask>=3.1
 rocketpy>=1.9.0
