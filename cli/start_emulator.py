@@ -4,13 +4,14 @@ import cli.start_middleware as start_middleware
 
 
 def start_fake_serial_device_emulator(logger: logging.Logger, DEVICE: str,
-                                      INTERFACE_TYPE: start_middleware.InterfaceType) -> None:
+                                      INTERFACE_TYPE: start_middleware.InterfaceType,
+                                      experimental: bool) -> None:
     SERVICE_NAME = "device emulator"
     try:
 
         EMULATOR_COMMAND = [
-            "python3", "-u", "-Xfrozen_modules=off", "-m", "backend.device_emulator",
-            "--device-rocket", DEVICE, "--interface-type", INTERFACE_TYPE.value,
+            "python3", "-u", "-Xfrozen_modules=off", "-m", "backend.tools.device_emulator",
+            "--device-rocket", DEVICE, "--interface-type", INTERFACE_TYPE.value, "--experimental"
         ]
 
         logger.debug(
