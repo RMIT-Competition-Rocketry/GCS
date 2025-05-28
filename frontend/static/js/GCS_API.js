@@ -58,8 +58,6 @@ function startAnimating() {
 }
 startAnimating();
 function animate(newtime) {
-    requestAnimationFrame(animate);
-
     // Calculate time since last loop
     let now = newtime;
     let elapsed = now - then;
@@ -79,6 +77,9 @@ function animate(newtime) {
             displayUpdateTime();
         }
     }
+
+    // Request next animation frame
+    requestAnimationFrame(animate);
 }
 
 // Logging code
@@ -93,12 +94,22 @@ function logMessage(message, type = "notification") {
         return;
     }
 
-    // Add new error to log
+    // Handle different message types
+    let errorName = "Notice";
+    let className = "block text-white m-0";
+    if (type == "error") {
+        errorName = "Error";
+        className = "block text-red-400 m-0";
+    } else if (type == "warning") {
+        errorName = "Warning";
+        className = "block text-yellow-400 m-0";
+    }
+
+    // Add message to log
     const timestamp = new Date().toLocaleTimeString();
     const line = document.createElement('span');
-    line.className = type === "error" ? "text-red-400 block" : "text-white block";
-    line.textContent = `[${timestamp}] ${type === "error" ? "Error" : "Notice"}: ${message}`;
-
+    line.className = className;
+    line.textContent = `[${timestamp}] ${errorName}: ${message}`;
     logArea.appendChild(line);
 
     // Limit lines
@@ -141,7 +152,7 @@ function API_socketConnect() {
         timestampApiConnect = undefined;
         if (logSocket)
             console.log(`Successfully connected to server at: - ${api_url}`);
-        logMessage("Successfully connected", "notification");
+        logMessage("Successfully connected");
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
     };
@@ -371,6 +382,7 @@ function checkErrorConditions(apiData) {
 
                     // Check for discards
                     if (isDiscard) {
+                        logMessage(`Invalid ${id} value discarded: ${apiData[id]}`, "warning");
                         apiData[id] = NaN; // Flag invalid value with NaN
                     }
                 }
