@@ -66,7 +66,7 @@ document.querySelectorAll("nav a").forEach((elem) => {
 
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
 var verboseLogging = false;
-const indicatorStates = ["off", "on", "idle", "error"];
+const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 const timeouts = {};
 
 function displaySetValue(item, value, precision = 2, error = false) {
@@ -282,7 +282,7 @@ function displayUpdateAvionics(data) {
         if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "av-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 3
+                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 5 // green / error
             );
         }
 
@@ -329,6 +329,7 @@ function displayUpdateAvionics(data) {
 }
 
 function displayUpdateSystemFlags(data) {
+    // green : off
 	if (data?.stateFlags) {
 		if (data.stateFlags?.dualBoardConnectivityStateFlag) {
 			displaySetState("sysflags-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0);
@@ -435,18 +436,20 @@ function displayUpdateRadio(data) {
         if (data.meta.radio == "av1") {
             // AVIONICS DATA
             // Connection indicators
-            displaySetState("radio-av-state", 1);
+            displaySetState("radio-av-state", 1); // green
 
             if (timeouts != undefined) {
+                // Show idle timeout error after 3 seconds
                 clearTimeout(timeouts?.radioAv1Idle);
                 timeouts.radioAv1Idle = setTimeout(() => {
-                    displaySetState("radio-av-state", 2);
-                }, 1000);
+                    displaySetState("radio-av-state", 4); // timeout
+                }, 3000);
 
+                // Show error after 10 seconds
                 clearTimeout(timeouts?.radioAv1Error);
                 timeouts.radioAv1Error = setTimeout(() => {
-                    displaySetState("radio-av-state", 3);
-                }, 5000);
+                    displaySetState("radio-av-state", 5); // error
+                }, 10000);
             }
 
             // Update avionics radio data
@@ -472,15 +475,17 @@ function displayUpdateRadio(data) {
             displaySetState("radio-gse-state", 1);
 
             if (timeouts != undefined) {
+                // Show idle timeout error after 3 seconds
                 clearTimeout(timeouts?.radioGseIdle);
                 timeouts.radioGseIdle = setTimeout(() => {
-                    displaySetState("radio-gse-state", 2);
-                }, 1000);
+                    displaySetState("radio-gse-state", 4); // timeout
+                }, 3000);
 
+                // Show error after 10 seconds
                 clearTimeout(timeouts?.radioGseError);
                 timeouts.radioGseError = setTimeout(() => {
-                    displaySetState("radio-gse-state", 3);
-                }, 5000);
+                    displaySetState("radio-gse-state", 5); // error
+                }, 10000);
             }
             
 

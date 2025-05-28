@@ -57,7 +57,6 @@ function startAnimating() {
     animate();
 }
 startAnimating();
-
 function animate(newtime) {
     requestAnimationFrame(animate);
 
@@ -83,18 +82,6 @@ function animate(newtime) {
 }
 
 // Logging code
-/*
-function logError(message) {
-    const logArea = document.getElementById('errorLogBox');
-    if (logArea) {
-        const timestamp = new Date().toLocaleTimeString();
-        logArea.textContent += `[${timestamp}] Error: ${message}\n`;
-        logArea.scrollTop = logArea.scrollHeight; // Auto scroll to bottom
-    } else {
-        console.error('Log area not found.');
-    }
-}
-*/
 function logMessage(message, type = "notification") {
     // Log to browser console
     console.log(type, message);

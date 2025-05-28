@@ -21,6 +21,23 @@ Only modify if you know what you're doing :-)
     --color-legacy: #f5e570;
 }
 
+@keyframes pulseError {
+  0%, 100% {
+    /* Darker colour */
+    background-color: var(--color-red-800);
+    border-color: var(--color-red-600);
+    /*background-size: 80% 80%;*/
+    filter: drop-shadow(0 0 2px var(--color-red-700)) drop-shadow(0 0 5px var(--color-red-800));
+  }
+  50% {
+    /* Lighter colour */
+    background-color: var(--color-red-600);
+    border-color: var(--color-white);
+    /*background-size: 120% 120%;*/
+    filter: drop-shadow(0 0 5px var(--color-red-500)) drop-shadow(0 0 10px var(--color-red-600));
+  }
+}
+
 @layer base {
     * {
         box-sizing: border-box;
@@ -91,6 +108,10 @@ Only modify if you know what you're doing :-)
 
 @layer components {
 
+    .logo-legacy {
+        @apply text-transparent font-fauna text-4xl bg-gradient-to-b from-amber-100 via-legacy to-amber-600 bg-clip-text
+    }
+
     /* Main layout components */
     .module {
         @apply flex justify-center items-center overflow-y-auto;
@@ -157,23 +178,37 @@ Only modify if you know what you're doing :-)
             @apply bg-hive/20;
         }
 
-        &.on, &.green {
-            @apply bg-green-400;
+        &.green {
+            @apply bg-green-400 border-green-800;
             filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
         }
 
-        &.idle, &.amber {
-            @apply bg-yellow-300;
-            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));
+        &.yellow {
+            @apply bg-yellow-400 border-yellow-800;
+            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));   
         }
 
-        &.error, &.red {
-            @apply bg-red-600;
+        &.red {
+            @apply bg-red-600 border-red-900;
             filter: drop-shadow(0 0 5px var(--color-red-600)) drop-shadow(0 0 10px var(--color-red-600));
+        }
+
+        &.timeout {
+            @apply bg-yellow-700 border-yellow-500 border-2 animate-[spin_5s_linear_infinite];
+            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));
+            background-image: url("/img/icons/hourglass.svg");
+            background-size: 50% 50%;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+
+        &.error {
+            @apply bg-red-600 border-white border-2;
             background-image: url("/img/icons/exclamation.svg");
             background-size: 100% 100%;
             background-position: center center;
-            background-repeat: none;
+            background-repeat: no-repeat;
+            animation: pulseError 2s linear infinite;
         }
     }
 
