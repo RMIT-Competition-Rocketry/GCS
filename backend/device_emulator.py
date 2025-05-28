@@ -582,9 +582,9 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
                       "CAMERA_CONTROLLER_CONNECTION": changing_bool(T) if EXPERIMENTAL else True}
 
     ARGS_AVtoGCSData1 = ARGS_AV_COMMON | {
-        "ACCEL_LOW_X": int(2048*sinusoid(T, min=-16, max=16, period=5, phase=2*math.pi/3)),
-        "ACCEL_LOW_Y": int(2048*sinusoid(T, min=-16, max=16, period=5, phase=4*math.pi/3)),
-        "ACCEL_LOW_Z": -int(2048*sinusoid(T, min=-16, max=16, period=5, phase=6*math.pi/3)),
+        "ACCEL_LOW_X": int(2048*sinusoid(T, min=-15.9, max=15.9, period=5, phase=2*math.pi/3)),
+        "ACCEL_LOW_Y": int(2048*sinusoid(T, min=-15.9, max=15.9, period=5, phase=4*math.pi/3)),
+        "ACCEL_LOW_Z": -int(2048*sinusoid(T, min=-15.9, max=15.9, period=5, phase=6*math.pi/3)),
         "ACCEL_HIGH_X": -int(1024*sinusoid(T, min=-32, max=32, period=5, phase=2*math.pi/3)),
         "ACCEL_HIGH_Y": -int(1024*sinusoid(T, min=-32, max=32, period=5, phase=4*math.pi/3)),
         "ACCEL_HIGH_Z": int(1024*sinusoid(T, min=-32, max=32, period=5, phase=6*math.pi/3)),
