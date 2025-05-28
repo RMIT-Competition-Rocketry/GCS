@@ -95,15 +95,16 @@ function logMessage(message, type = "notification") {
 
     // Add new error to log
     const timestamp = new Date().toLocaleTimeString();
-    logArea.textContent += `[${timestamp}] ${type === "error" ? "Error" : "Notice"}: ${message}\n`;
-    
-    // Remove old errors if more than a certain amount
-    const lines = logArea.textContent.split("\n");
+    const line = document.createElement('span');
+    line.className = type === "error" ? "text-red-400 block" : "text-white block";
+    line.textContent = `[${timestamp}] ${type === "error" ? "Error" : "Notice"}: ${message}`;
+
+    logArea.appendChild(line);
+
+    // Limit lines
     const maxlines = 16;
-    if (lines.length > maxlines) {
-        // Remove the first line
-        lines.shift();
-        logArea.textContent = lines.join("\n");
+    while (logArea.children.length > maxlines) {
+        logArea.removeChild(logArea.firstChild);
     }
 
     // Scroll to bottom of log
