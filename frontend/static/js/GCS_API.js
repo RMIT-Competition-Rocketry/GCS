@@ -306,11 +306,12 @@ const errorConditions = [
 ];
 
 function checkErrorConditions(apiData) {
+    // Get error flags from the API and use as overrides
+    const errorOverrides = [];
     if (apiData.errorFlags != undefined) {
         Object.entries(apiData.errorFlags).forEach(([key, value]) => {
-            if (value === true && !errors.includes(key)) {
-                logMessage(`${key} flag raised`, "error");
-                errors.push(key);
+            if (value === true) {
+                errorOverrides.push(key);
             }
         });
     }
@@ -328,6 +329,7 @@ function checkErrorConditions(apiData) {
                     // Define error key
                     const errorKey = `${id}Error`;
                     let isError = false;
+                    let isErrorApi = errorOverrides.indexOf(errorKey) != -1;
                     let isDiscard = false;
 
                     // Check error ranges if the value is a number
@@ -352,6 +354,8 @@ function checkErrorConditions(apiData) {
                             }
                         }
                     }
+
+                    isError ||= isErrorApi;
 
                     // Check errors against current system status
                     if (isError && errors.indexOf(errorKey) == -1) {

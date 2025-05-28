@@ -157,7 +157,7 @@ function displaySetActiveFlightState(item) {
     // Launch timer
     if (item == "fs-state-preflight") {
         timers.launchTimestamp = 0;
-    } else if (item == "fs-state-launch") {
+    } else {
         if (timers.launchTimestamp == undefined || timers.launchTimestamp == 0) {
             timers.launchTimestamp = timestampApi;
         }
