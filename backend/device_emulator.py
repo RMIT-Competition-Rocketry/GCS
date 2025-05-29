@@ -557,6 +557,46 @@ def changing_bool(t: float, wait_time_s: float = 1):
     return t % wait_time_s*2 > wait_time_s
 
 
+def corrupt_packet(MockPacket, chance: float, corruption: float):
+    """Corrupts data inside a packet with random bit flips
+    
+    Args:
+        MocketPacket (dict)
+        corruption (float): A float between 0 and 1 representing the % of random flips
+    """
+    if random.random() < chance:
+        corruption *= random.random()
+
+        for key, value in MockPacket.items():
+            # Randomly flip bits and change values
+
+            # Quaternions
+            if key in ["QW", "QX", "QY", "QZ"]:
+                MockPacket[key] = 1 - (2 * random.random())
+                continue
+            
+            # Booleans
+            if isinstance(value, bool):
+                if random.random() < corruption:
+                    MockPacket[key] = not value
+
+            # Integers
+            if isinstance(value, int):
+                bit_length = max(value.bit_length(), 1)
+                for _ in range(int(bit_length * corruption)):
+                    value ^= 1 << random.randint(0, bit_length - 1)
+                MockPacket[key] = value
+
+            # Floats
+            if isinstance(value, float):
+                frac = value % 1
+                value = int(value)
+                bit_length = 32
+                for _ in range(int(bit_length * corruption)):
+                    value ^= 1 << random.randint(0, bit_length - 1)
+                MockPacket[key] = value + frac - 1
+
+
 def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPacket]:
     """Just generate packets with sinusoidal values over time.
     Values ranges should cover optimal operating conditions unless specified otherwise
@@ -674,6 +714,15 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
         "ADDITIONAL_CURRENT_1": sinusoid(T, min=1, max=5, period=10, phase=0),
         "ADDITIONAL_CURRENT_2": sinusoid(T, min=2, max=5, period=10, phase=0),
     }
+
+    if EXPERIMENTAL:
+        chance = 0.1
+        corruption = 0.1
+        corrupt_packet(ARGS_AVtoGCSData1, chance, corruption)
+        corrupt_packet(ARGS_AVtoGCSData2, chance, corruption)
+        corrupt_packet(ARGS_AVtoGCSData3, chance, corruption)
+        corrupt_packet(ARGS_GSEtoGCSData1, chance, corruption)
+        corrupt_packet(ARGS_GSEtoGCSData2, chance, corruption)
 
     return [
         AVtoGCSData1(**ARGS_AVtoGCSData1),
