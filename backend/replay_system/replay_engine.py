@@ -410,9 +410,12 @@ def main():
             processed_packets, MIN_TIMESTAMP_MS)
         if (args.simulation == "DEMO"):
             while not service_helper.time_to_stop():
+                slogger.warning(
+                    "STARTING UP DEMO MODE, THIS WILL RUN UNTIL STOPPED")
                 replay_packets(processed_packets, valid_timeout)
-                slogger.info("FINISHED SENDING PACKETS")
+                slogger.info("FINISHED SENDING PACKETS FOR DEMO")
         else:
+            slogger.warning("Running the replay a single time")
             replay_packets(processed_packets, valid_timeout)
             slogger.info("FINISHED SENDING PACKETS")
     except ValueError as ve:
