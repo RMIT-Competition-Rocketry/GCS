@@ -177,7 +177,7 @@ function displayUpdateTime() {
             displaySetString("fs-launch-time", `T+${launchTime.toFixed(1)}`);
         }
     }
-    if (timestampLocal != 0) {
+    if (timestampLocal != undefined && timestampLocal != 0) {
         displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
     }
 }
