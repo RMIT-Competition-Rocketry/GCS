@@ -64,6 +64,9 @@ class ProcessOutputScanner:
 
             except queue.Empty:
                 continue
+        else:
+            print("Timeout reached without matching all success patterns.")
+            return False, self.captured_lines
 
         print("Remaining success patterns:", success_targets)
         return len(success_targets) == 0, self.captured_lines
