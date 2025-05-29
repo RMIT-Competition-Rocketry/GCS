@@ -270,7 +270,7 @@ function API_socketConnect() {
         );
 
         // Log on page
-        logMessage("Connection lost: Attempting to reconnect", "error");
+        logMessage("Connection lost error, attempting to reconnect", "ws");
 
         // Attempt reconnecting
         scheduleReconnect();
@@ -529,13 +529,13 @@ function processDataForDisplay(apiData, apiId) {
             const altitudeThreshold = Math.max(altitudeMean * 0.20, 200); // 20% difference or < 200 whichever is greater
             const altitudeDeviation = Math.abs(apiData.altitude - altitudeMean);
 
-            console.log(altitudeMean, altitudeThreshold, altitudeDeviation);
-
             // Calculate max altitude
             if (altitudeDeviation <= altitudeThreshold) {
                 if (altitudeMax == undefined || apiData.altitude > altitudeMax) {
                     altitudeMax = apiData.altitude;
                 }
+            } else {
+                logMessage(`Discard max altitude (${altitudeMax})`, "warning");
             }
         }
         if (altitudeMax != undefined && altitudeMax > 0) {
