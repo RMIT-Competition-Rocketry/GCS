@@ -716,7 +716,7 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
     }
 
     if EXPERIMENTAL:
-        chance = 0.1
+        chance = 0.001
         corruption = 0.1
         corrupt_packet(ARGS_AVtoGCSData1, chance, corruption)
         corrupt_packet(ARGS_AVtoGCSData2, chance, corruption)
