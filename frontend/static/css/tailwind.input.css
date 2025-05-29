@@ -92,8 +92,7 @@ Only modify if you know what you're doing :-)
         @apply text-base text-center text-white font-mono border border-zinc-700 rounded-sm max-w-full mx-0.5;
 
         &.error {
-            @apply bg-red-600;
-            filter: drop-shadow(0 0 5px var(--color-red-600)) drop-shadow(0 0 10px var(--color-red-600));
+            @apply font-bold text-red-500 outline-2 outline-red-700;
         }
     }
 
@@ -258,6 +257,22 @@ Only modify if you know what you're doing :-)
             &::before {
                 border-color: var(--color-hive-dark);
                 background: black;
+            }
+        }
+
+        &.error {
+            & .indicator-state {
+                @apply bg-red-600 border-white border-2;
+                background-image: url("/img/icons/exclamation.svg");
+                background-size: 100% 100%;
+                background-position: center center;
+                background-repeat: no-repeat;
+                animation: pulseError 2s linear infinite;
+            }
+
+            &::before {
+                @apply bg-red-600 border-white border-y-2;
+                animation: pulseError 2s linear infinite;
             }
         }
     }

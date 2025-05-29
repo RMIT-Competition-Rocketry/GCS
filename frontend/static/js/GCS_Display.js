@@ -109,6 +109,20 @@ function displaySetString(item, string) {
     }
 }
 
+function displaySetError(item, error) {
+    // Adds/removed error class from element
+    let elements = document.querySelectorAll(`.${item}`);
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            if (error) {
+                elem.classList.add("error");
+            } else {
+                elem.classList.remove("error");
+            }
+        });
+    }
+}
+
 function displaySetState(item, value) {
     // Updates the state of an indicator
     if (verboseLogging) console.debug(`new state %c${item}%c ${value}`, 'color:orange', 'color:white');
@@ -135,6 +149,14 @@ function displaySetState(item, value) {
 function displaySetActiveFlightState(item) {
     // Updates active flight state to a specific html element
     let elements = document.querySelectorAll(`.${item}`);
+
+    // Remove error state
+    let fsElements = document.querySelectorAll(`.indicator-flightstate`);
+    if (fsElements && fsElements.length > 0) {
+        fsElements.forEach((elem) => {
+            elem.classList.remove("error");
+        });
+    }
 
     if (elements && elements.length > 0) {
         // Make sure we're actually updating this
@@ -164,6 +186,17 @@ function displaySetActiveFlightState(item) {
     }
 }
 
+function displaySetErrorFlightState() {
+    // Add error state
+    let elements = document.querySelectorAll(`.indicator-flightstate`);
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            elem.classList.remove("active");
+            elem.classList.add("error");
+        });
+    }
+}
+
 // FUNCTIONS FOR UPDATING MODULES
 function displayUpdateTime() {
     /// SYSTEM TIME
@@ -178,7 +211,7 @@ function displayUpdateTime() {
         }
     }
     if (timestampLocal != undefined && timestampLocal != 0) {
-        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
+        displaySetString("fs-time-local", `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`);
     }
 }
 
@@ -239,24 +272,42 @@ function displayUpdateAuxData(data) {
         displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1)
     }
 
+    // Gas fill timer
+    if (timers.gasFillTimer != undefined && timers.gasFillTimer != 0) {
+        displaySetString("aux-gasbottle-time", `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`);
+    }
+
     // Rocket mass
     if (data?.analogVoltageInput1) {
         displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
-    // should be the solenoids
-   if (data?.stateFlags){
-    //purge / solenoid1
-    if (data.stateFlags?.manualPurgeActivated || data.stateFlags.manualPurgeActivated == true || data.stateFlags.manualPurgeActivated == false){
-         solenoidupdate(data.stateFlags.manualPurgeActivated,'solenoidsV7');
-    }
-    // n2O fill / solenoid2
-    if (data.stateFlags?.o2FillActivated || data.stateFlags.o2FillActivated == true || data.stateFlags.o2FillActivated == false){
-         solenoidupdate(data.stateFlags.o2FillActivated,'solenoidsV6');
-    }
-    // O2 fill / solenoid3
-    if (data.stateFlags?.n20FillActivated || data.stateFlags.n20FillActivated == true || data.stateFlags.n20FillActivated == false){
-         solenoidupdate(data.stateFlags.n20FillActivated,'solenoidsV5');
-    }
+    
+    // Solenoids
+    if (data?.stateFlags) {
+        //purge / solenoid1
+        if (
+            data.stateFlags?.manualPurgeActivated ||
+            data.stateFlags.manualPurgeActivated == true ||
+            data.stateFlags.manualPurgeActivated == false
+        ) {
+            solenoidupdate(data.stateFlags.manualPurgeActivated, "solenoidsV7");
+        }
+        // n2O fill / solenoid2
+        if (
+            data.stateFlags?.o2FillActivated ||
+            data.stateFlags.o2FillActivated == true ||
+            data.stateFlags.o2FillActivated == false
+        ) {
+            solenoidupdate(data.stateFlags.o2FillActivated, "solenoidsV6");
+        }
+        // O2 fill / solenoid3
+        if (
+            data.stateFlags?.n20FillActivated ||
+            data.stateFlags.n20FillActivated == true ||
+            data.stateFlags.n20FillActivated == false
+        ) {
+            solenoidupdate(data.stateFlags.n20FillActivated, "solenoidsV5");
+        }
    }
 
 }
@@ -349,42 +400,38 @@ function displayUpdateSystemFlags(data) {
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data?.flightState) {
+        displaySetError("fs-flightstate", false);
 
         let stateName = "";
-
         if (data.flightState == 0 || data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
             // Preflight (not ready)
             stateName = "Pre-flight (not ready)";
             displaySetActiveFlightState("fs-state-preflight");
-
         } else if (data.flightState == 1 || data.flightState == "LAUNCH") {
             // Launch
             stateName = "Launch";
             displaySetActiveFlightState("fs-state-launch");
-
         } else if (data.flightState == 2 || data.flightState == "COAST") {
             // Coast
             stateName = "Coast";
             displaySetActiveFlightState("fs-state-coast");
-
         } else if (data.flightState == 3 || data.flightState == "APOGEE") {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
-
         } else if (data.flightState == 4 || data.flightState == "DESCENT" || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
             displaySetActiveFlightState("fs-state-descent");
-
         } else if (data.flightState == 5 || data.flightState == "LANDED") {
             // Landed successfully
             stateName = "Landed";
             displaySetActiveFlightState("fs-state-landed");
-
         } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "ON_NO" || data.flightState == "OH_NO") {
             // Oh no oh no what the oh no :(
-            stateName = "ERROR !!!";
+            stateName = "OH NO!";
+            displaySetErrorFlightState();
+            displaySetError("fs-flightstate", true);
         }
 
         displaySetString("fs-flightstate", stateName);

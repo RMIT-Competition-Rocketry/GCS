@@ -373,8 +373,12 @@
   }
 
   input.error {
-    background-color: var(--color-red-600);
-    filter: drop-shadow(0 0 5px var(--color-red-600)) drop-shadow(0 0 10px var(--color-red-600));
+    --tw-font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-red-500);
+    outline-style: var(--tw-outline-style);
+    outline-width: 2px;
+    outline-color: var(--color-red-700);
   }
 
   .flex input {
@@ -594,6 +598,26 @@
   .indicator-flightstate.active ~ .indicator-flightstate:before {
     border-color: var(--color-hive-dark);
     background: #000;
+  }
+
+  .indicator-flightstate.error .indicator-state {
+    border-style: var(--tw-border-style);
+    border-width: 2px;
+    border-color: var(--color-white);
+    background-color: var(--color-red-600);
+    background-image: url("/img/icons/exclamation.svg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    animation: 2s linear infinite pulseError;
+  }
+
+  .indicator-flightstate.error:before {
+    border-block-style: var(--tw-border-style);
+    border-block-width: 2px;
+    border-color: var(--color-white);
+    background-color: var(--color-red-600);
+    animation: 2s linear infinite pulseError;
   }
 
   .rocket_frame {

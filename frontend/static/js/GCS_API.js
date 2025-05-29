@@ -39,6 +39,8 @@ var timestampApiConnect; // First API timestamp sent upon connection with API
 var timeDrift;
 const timers = {
     gasFillTimer: 0,
+    gasFillTimerTotal: 0,
+    gasTimestamp: 0,
     launchTimestamp: 0,
 }
 
@@ -542,7 +544,6 @@ function processDataForDisplay(apiData, apiId) {
             processedData.altitudeMax = altitudeMax;
         }
     }
-    
 
     // GPS position
     if (apiData.GPSLatitude != undefined) {
@@ -550,6 +551,25 @@ function processDataForDisplay(apiData, apiId) {
     }
     if (apiData.GPSLongitude != undefined) {
         processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude);
+    }
+
+    // Gas fill timer
+    if ([6, 7].includes(apiId) && apiData?.stateFlags) {
+        const systemActivated = apiData.stateFlags?.systemActivated;
+        const gasFillSelected = apiData.stateFlags?.gasFillSelected;
+        const n20FillActivated = apiData.stateFlags?.n20FillActivated;
+
+        if (systemActivated && gasFillSelected && n20FillActivated) {
+            // Increase gas fill timer
+            if (timers.gasTimestamp == 0) {
+                timers.gasTimestamp = timestampApi;
+            }
+            timers.gasFillTimer = timers.gasTimestamp == 0 ? 0 : timestampApi - timers.gasTimestamp;
+        } else {
+            timers.gasTimestamp = 0;
+            timers.gasFillTimerTotal += timers.gasFillTimer;
+            timers.gasFillTimer = 0;
+        }
     }
 
     // Return processed data
