@@ -12,7 +12,9 @@ const maxReconnectInterval = 5000;      // Maximum amount of time between reconn
 const graphRenderRate = 20;     // FPS for rendering graphs
 
 // API connection
-var apiSocket;
+const api_url = window.location.host.split(":")[0];
+const ws_url = `ws://${api_url}:1887`;
+const apiSocket = new WebSocket(ws_url);
 var reconnectInterval = initialReconnectInterval;
 var reconnectTimeout;
 var connected = false;
@@ -25,6 +27,7 @@ const errors = [];
 
 // Global display values
 var altitudeMax;
+var altitudeHistory = [];
 var packetsAV1 = 0;
 var packetsAV1offset = 0;
 var packetsGSE = 0;
@@ -39,14 +42,94 @@ const timers = {
     launchTimestamp: 0,
 }
 
+// Error conditions for data
+const errorConditions = [
+    {
+        ids: ["accelLowX", "accelLowY", "accelLowZ", "accelHighX", "accelHighY", "accelHighZ"],
+        discard: {
+            min: -128,
+            max: 128
+        }
+    },
+    {
+        ids: ["altitude"],
+        discard: {
+            min: -128,
+            max: 4096
+        }
+    },
+    {
+        ids: ["velocity"],
+        discard: {
+            min: -128,
+            max: 1024
+        }
+    },
+    {
+        ids: ["gyroX", "gyroY", "gyroZ"],
+        discard: {
+            min: -360,
+            max: 360
+        }
+    },
+    {
+        ids: ["mach_speed"],
+        discard: {
+            min: -1,
+            max: 16
+        }
+    },
+    {
+        ids: ["internalTemp"],
+        discard: {
+            min: -1,
+            max: 128
+        }
+    },
+    {
+        ids: ["gasBottleWeight1", "gasBottleWeight2"],
+        message: "out of range",
+        error: {
+            min: 15.1,
+            max: 19
+        },
+        discard: {
+            min: -1,
+            max: 128
+        }
+    },
+    {
+        ids: ["thermocouple1", "thermocouple2", "thermocouple3", "thermocouple4"],
+        message: "flag raised",
+        error: {
+            max: 34.5,
+        },
+        discard: {
+            min: -128,
+            max: 128,
+        },
+    },
+    {
+        ids: ["transducer1", "transducer2", "transducer3"],
+        message: "flag raised",
+        error: {
+            max: 64.5
+        },
+        discard: {
+            min: -1,
+            max: 128
+        },
+    },
+];
+
 // Reconnecting code
 function scheduleReconnect() {
     reconnectTimeout = setTimeout(() => {
+        API_socketConnect();
         reconnectInterval = Math.min(
             reconnectInterval * 2,
             maxReconnectInterval
         );
-        API_socketConnect();
     }, reconnectInterval);
 }
 
@@ -83,10 +166,7 @@ function animate(newtime) {
 }
 
 // Logging code
-function logMessage(message, type = "notification") {
-    // Log to browser console
-    console.log(type, message);
-
+function logMessage(message, type = "") {
     // Make sure log area exists
     const logArea = document.getElementById('errorLogBox');
     if (!logArea) {
@@ -94,22 +174,36 @@ function logMessage(message, type = "notification") {
         return;
     }
 
+    // Calculate timestamp
+    let timestamp = "?";
+    if (timestampLocal != undefined && timestampApiConnect != undefined) {
+        timestamp = (timestampLocal + timestampApiConnect - timeDrift).toFixed(1) + "s";
+    }
+
     // Handle different message types
-    let errorName = "Notice";
-    let className = "block text-white m-0";
+    let logName = "Notice";
+    let textColor = "text-white";
+
     if (type == "error") {
-        errorName = "Error";
-        className = "block text-red-400 m-0";
+        logName = "Error";
+        textColor = "text-red-400";
+        console.error(timestamp, message);
     } else if (type == "warning") {
-        errorName = "Warning";
-        className = "block text-yellow-400 m-0";
+        logName = "Warning";
+        textColor = "text-yellow-300";
+        console.warn(timestamp, message);
+    } else if (type == "ws") {
+        logName = "WebSocket";
+        textColor = "text-emerald-300";
+        console.debug(timestamp, message);
+    } else {
+        console.log(timestamp, message);
     }
 
     // Add message to log
-    const timestamp = new Date().toLocaleTimeString();
     const line = document.createElement('span');
-    line.className = className;
-    line.textContent = `[${timestamp}] ${errorName}: ${message}`;
+    line.classList.add("block", "m-0", textColor);
+    line.textContent = `[${timestamp}] ${logName}: ${message}`;
     logArea.appendChild(line);
 
     // Limit lines
@@ -135,16 +229,8 @@ document.addEventListener('visibilitychange', function() {
 });
 
 function API_socketConnect() {
-    const api_url = window.location.host.split(":")[0];
-    const ws_url = `ws://${api_url}:1887`;
-    apiSocket = new WebSocket(ws_url);
-
-    console.log(
-        "Attempting to open WebSocket connection to",
-        ws_url,
-        "\nInitial WebSocket readyState:",
-        apiSocket.readyState
-    ); // 0 = CONNECTING
+    // Log connecting and readystate
+    logMessage(`Connecting to ${ws_url} (${apiSocket.readyState})`, "ws");
 
     // Socket connected
     apiSocket.onopen = () => {
@@ -152,7 +238,7 @@ function API_socketConnect() {
         timestampApiConnect = undefined;
         if (logSocket)
             console.log(`Successfully connected to server at: - ${api_url}`);
-        logMessage("Successfully connected");
+        logMessage("Successfully connected", "ws");
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
     };
@@ -164,7 +250,7 @@ function API_socketConnect() {
     apiSocket.onerror = (error) => {
         connected = false;
         timestampApiConnect = undefined;
-        console.error("Websocket error: ", error);
+        logMessage(`Websocket error: ${error}`, "ws");
     };
 
     // Socket closed
@@ -206,10 +292,12 @@ function API_OnMessage(event) {
     try {
         // Handle incoming data
         apiLatest = JSON.parse(event.data);
-        apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
 
         // Flag data for errors
-        checkErrorConditions(apiData);
+        checkErrorConditions(apiLatest.data);
+
+        // Process data for display
+        apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
 
         // Handle different packet types
         if (apiData.id == 2) {
@@ -276,47 +364,6 @@ function API_OnMessage(event) {
 }
 
 // Check data for error conditions
-// As defined in spreadsheet
-const errorConditions = [
-    // Thermocouples
-    {
-        ids: ["thermocouple1", "thermocouple2", "thermocouple3", "thermocouple4"],
-        message: "flag raised",
-        error: {
-            max: 34.5,
-        },
-        discard: {
-            min: -100,
-            max: 500,
-        },
-    },
-    // Transducers
-    {
-        ids: ["transducer1", "transducer2", "transducer3"],
-        message: "flag raised",
-        error: {
-            max: 64.5
-        },
-        discard: {
-            min: -100,
-            max: 500
-        },
-    },
-    // Gas bottles
-    {
-        ids: ["gasBottleWeight1", "gasBottleWeight2"],
-        message: "out of range",
-        error: {
-            min: 15.1,
-            max: 19
-        },
-        discard: {
-            min: -1,
-            max: 100
-        }
-    }
-];
-
 function checkErrorConditions(apiData) {
     // Get error flags from the API and use as overrides
     const errorOverrides = [];
@@ -369,21 +416,23 @@ function checkErrorConditions(apiData) {
 
                     isError ||= isErrorApi;
 
-                    // Check errors against current system status
-                    if (isError && errors.indexOf(errorKey) == -1) {
-                        // If error, log error and raise flag
-                        logMessage(`${errorKey} ${errorCondition.message}`, "error");
-                        errors.push(errorKey);
-                    } else if (!isError && errors.indexOf(errorKey) != -1) {
-                        // If not error, remove from errors flags
-                        logMessage((`${errorKey} resolved`));
-                        errors.splice(errors.indexOf(errorKey), 1);
-                    }
-
-                    // Check for discards
                     if (isDiscard) {
-                        logMessage(`Invalid ${id} value discarded: ${apiData[id]}`, "warning");
+                        // Check for discards
+                        logMessage(`Discarded ${id} (${apiData[id]})`, "warning");
                         apiData[id] = NaN; // Flag invalid value with NaN
+                    }
+                    
+                    if (!isDiscard || isErrorApi) {
+                        // Check errors against current system status
+                        if (isError && errors.indexOf(errorKey) == -1) {
+                            // If error, log error and raise flag
+                            logMessage(`${errorKey} ${errorCondition.message}`, "error");
+                            errors.push(errorKey);
+                        } else if (!isError && errors.indexOf(errorKey) != -1) {
+                            // If not error, remove from errors flags
+                            logMessage((`${errorKey} resolved`));
+                            errors.splice(errors.indexOf(errorKey), 1);
+                        }
                     }
                 }
             }
@@ -468,11 +517,32 @@ function processDataForDisplay(apiData, apiId) {
     }
     
     // Altitude
-    // Track maximum altitude
-    if (altitudeMax == undefined || apiData.altitude > altitudeMax) {
-        altitudeMax = apiData.altitude;
+    // Track previous altitudes
+    if (apiData.altitude != undefined) {
+        altitudeHistory.push(apiData.altitude);
+        if (altitudeHistory.length > 5) {
+            altitudeHistory.shift();
+        }
+        if (altitudeHistory.length === 5) {
+            // Calculate mean of last 5 altitudes, then determine deviation and threshold
+            const altitudeMean = altitudeHistory.reduce((acc, val) => acc + val, 0) / altitudeHistory.length;
+            const altitudeThreshold = Math.max(altitudeMean * 0.20, 200); // 20% difference or < 200 whichever is greater
+            const altitudeDeviation = Math.abs(apiData.altitude - altitudeMean);
+
+            console.log(altitudeMean, altitudeThreshold, altitudeDeviation);
+
+            // Calculate max altitude
+            if (altitudeDeviation <= altitudeThreshold) {
+                if (altitudeMax == undefined || apiData.altitude > altitudeMax) {
+                    altitudeMax = apiData.altitude;
+                }
+            }
+        }
+        if (altitudeMax != undefined && altitudeMax > 0) {
+            processedData.altitudeMax = altitudeMax;
+        }
     }
-    processedData.altitudeMax = altitudeMax;
+    
 
     // GPS position
     if (apiData.GPSLatitude != undefined) {
@@ -503,9 +573,6 @@ function gpsToDecimal(gps) {
 
     // Split string into parts
     let [intPart, decPart] = gps.toString().split('.');
-    if (decPart == undefined) {
-        decPart = 0;
-    }
     
     // Get sign (positive or negative)
     let sign = intPart >= 0 ? 1 : -1;
@@ -514,7 +581,10 @@ function gpsToDecimal(gps) {
     intPart = Math.abs(intPart);
     let degrees = parseInt(intPart / 100);
     let minutes = parseInt(intPart % 100);
-    let seconds = parseFloat(decPart.slice(0, 2) + '.' + decPart.slice(2));
+    let seconds = 0;
+    if (decPart != undefined) {
+        seconds = parseFloat(decPart.slice(0, 2) + '.' + decPart.slice(2));
+    }
 
     // Convert to decimal
     return sign * (degrees + minutes/60 + seconds/3600);
