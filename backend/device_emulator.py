@@ -4,6 +4,7 @@ import config.config as config
 from typing import Optional, List
 import sys
 import random
+import struct
 from backend.includes_python import metric
 import os
 import time
@@ -557,44 +558,56 @@ def changing_bool(t: float, wait_time_s: float = 1):
     return t % wait_time_s*2 > wait_time_s
 
 
-def corrupt_packet(MockPacket, chance: float, corruption: float):
+def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption: float = 0.3):
     """Corrupts data inside a packet with random bit flips
     
     Args:
-        MocketPacket (dict)
-        corruption (float): A float between 0 and 1 representing the % of random flips
+        packet (dict): Packet data to be corrupted
+        corruption_chance (float): Chance of packet being corrupted [0, 1]
+        max_corruption (float): Max percentage of bits flipped [0, 1]
     """
-    if random.random() < chance:
-        corruption *= random.random()
+    if random.random() <= corruption_chance:
+        corruption = max_corruption * random.random()
 
-        for key, value in MockPacket.items():
-            # Randomly flip bits and change values
+        for key, value in packet.items():
+            data_type = type(value)
 
-            # Quaternions
-            if key in ["QW", "QX", "QY", "QZ"]:
-                MockPacket[key] = 1 - (2 * random.random())
-                continue
-            
-            # Booleans
+            # Get packed bits of value
+            packed = None
             if isinstance(value, bool):
-                if random.random() < corruption:
-                    MockPacket[key] = not value
+                packed = struct.pack('?', value)
+            elif isinstance(value, int):
+                packed = struct.pack('i', value)
+            elif isinstance(value, float):
+                packed = struct.pack('f', value)
 
-            # Integers
-            if isinstance(value, int):
-                bit_length = max(value.bit_length(), 1)
-                for _ in range(int(bit_length * corruption)):
-                    value ^= 1 << random.randint(0, bit_length - 1)
-                MockPacket[key] = value
+            # Only flip bits of supported value types
+            if packed != None:
+                binary_str = ''.join(f'{byte:08b}' for byte in packed)
+                bytes_str = bytes(int(binary_str[i:i+8], 2) for i in range(0, len(binary_str), 8))
+                
+                # Generate corruption mask to flip bits based on corruption % chance
+                binary_corrupt = ''.join(random.choices(['1', '0'], weights=[corruption, 1 - corruption], k=len(binary_str)))
+                bytes_corrupt = bytes(int(binary_corrupt[i:i+8], 2) for i in range(0, len(binary_corrupt), 8))
+                byte_data = bytes(a ^ b for a, b in zip(bytes_str, bytes_corrupt))
 
-            # Floats
-            if isinstance(value, float):
-                frac = value % 1
-                value = int(value)
-                bit_length = 32
-                for _ in range(int(bit_length * corruption)):
-                    value ^= 1 << random.randint(0, bit_length - 1)
-                MockPacket[key] = value + frac - 1
+                # Pack bits back into a value
+                if data_type == bool:
+                    value_corrupt = struct.unpack('?', byte_data)[0]
+                elif data_type == int:
+                    value_corrupt = struct.unpack('i', byte_data)[0]
+                    value_corrupt &= (1 << value.bit_length()) - 1
+                elif data_type == float:
+                    value_corrupt = struct.unpack('f', byte_data)[0]
+                    if not Metric.is_valid_float32(value_corrupt):
+                        value_corrupt = 3.4028235e+38
+
+                # Limit range of quaternion values
+                if key in ['QW', 'QX', 'QY', 'QZ']:
+                    value_corrupt = min(max(-1.0, value_corrupt), 1.0)
+
+                # Add corrupt value to packet
+                packet[key] = value_corrupt
 
 
 def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPacket]:
@@ -715,14 +728,12 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
         "ADDITIONAL_CURRENT_2": sinusoid(T, min=2, max=5, period=10, phase=0),
     }
 
-    if EXPERIMENTAL:
-        chance = 0.001
-        corruption = 0.1
-        corrupt_packet(ARGS_AVtoGCSData1, chance, corruption)
-        corrupt_packet(ARGS_AVtoGCSData2, chance, corruption)
-        corrupt_packet(ARGS_AVtoGCSData3, chance, corruption)
-        corrupt_packet(ARGS_GSEtoGCSData1, chance, corruption)
-        corrupt_packet(ARGS_GSEtoGCSData2, chance, corruption)
+    # Simulate random data corruption on packet
+    corrupt_packet(ARGS_AVtoGCSData1)
+    corrupt_packet(ARGS_AVtoGCSData2)
+    corrupt_packet(ARGS_AVtoGCSData3)
+    corrupt_packet(ARGS_GSEtoGCSData1)
+    corrupt_packet(ARGS_GSEtoGCSData2)
 
     return [
         AVtoGCSData1(**ARGS_AVtoGCSData1),
