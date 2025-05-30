@@ -205,7 +205,7 @@ class TestReplayMissionStartups(CliStartup):
         proc, scanner = process_and_scanner
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
-            r"event viewer: [STDOUT] Flight state changed to PRE_FLIGHT_NO_FLIGHT_READY",
+            r"replay system: \[STDOUT] BAD GYRO_Y=400.80500000715256 ENTRY DETECTED CAPPING VALUE",
         ]
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,
