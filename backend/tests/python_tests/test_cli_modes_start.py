@@ -64,6 +64,9 @@ class ProcessOutputScanner:
 
             except queue.Empty:
                 continue
+        else:
+            print("Timeout reached without matching all success patterns.")
+            return False, self.captured_lines
 
         print("Remaining success patterns:", success_targets)
         return len(success_targets) == 0, self.captured_lines
@@ -78,8 +81,7 @@ class CliStartup(ABC):
                                 "socat: Stopping socat callbacks",  # found devices
                                 r"middleware_server: \[STDOUT] Starting middleware server",
                                 r"middleware_server: \[STDOUT] Interface initialised for type: TEST",
-                                r"event viewer: \[STDOUT] Listening for messages\.\.\.",
-                                "WebSocket server started at"]
+                                r"event viewer: \[STDOUT] Listening for messages\.\.\."]
 
     # Protected
     def _start_process(self, ROCKET_ARGS: list):
@@ -155,13 +157,15 @@ class CliStartup(ABC):
 @pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
 class TestDevStartups(CliStartup):
     def get_rocket_args(self) -> List[str]:
-        return ["dev", "--interface", "test", "--nopendant", "--nobuild"]
+        return ["dev", "--interface", "test", "--nopendant", "--nobuild", "--frontend"]
 
     def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
         proc, scanner = process_and_scanner
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
             r"device emulator: \[STDOUT] Emulator starting",
+            r"WebSocket server started at",
+            r"\* Serving Flask app 'frontend\.flask_server'"
         ]
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,

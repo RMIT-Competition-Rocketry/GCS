@@ -106,7 +106,11 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         click.option('--nopendant', is_flag=True,
                      help="Do not run the pendant emulator"),
         click.option('--frontend', is_flag=True,
-                     help="Run GSC front end server")
+                     help="Run GSC front end server"),
+        click.option('--experimental', is_flag=True,
+                     help="Simulate ALL values over all possible domains"),
+        click.option('--corruption', is_flag=True,
+                     help="Simulate heavy bit corruption"),
     ]
 
     if SELECTOR == DecoratorSelector.ALL_DEV:
@@ -154,11 +158,29 @@ def start_services(COMMAND: Command,
                    frontend: bool = False,
                    replay_mode: Optional[str] = None,
                    MISSION_ARG: Optional[str] = None,
-                   SIMULATION_ARG: Optional[str] = None):
+                   SIMULATION_ARG: Optional[str] = None,
+                   experimental: bool = False,
+                   corruption: bool = False):
     """Starts all services required for the given command.
 
     Args:
-        COMMAND (Command): What mode are you running in?
+        COMMAND (Command): Summoning command for context.
+        DOCKER (bool, optional): Start in docker?. Defaults to False.
+        INTERFACE_ARG (Optional[InterfaceType], optional): Hardware interface to use. Defaults to None.
+        nobuild (bool, optional): Skip cmake build?. Defaults to False.
+        logpkt (bool, optional): Log recieved packets?. Defaults to False.
+        nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
+        gse_only (bool, optional): Only communicate with GSE?. Defaults to False.
+        frontend (bool, optional): Start the frontend server?. Defaults to False.
+        replay_mode (Optional[str], optional): _description_. Defaults to None.
+        MISSION_ARG (Optional[str], optional): _description_. Defaults to None.
+        SIMULATION_ARG (Optional[str], optional): _description_. Defaults to None.
+        experimental (bool, optional): Simulate all possible values over the entire domain. Defaults to False.
+        corruption (bool, optional): Corrupt data packets to simulate heavy bit corruption. Defaults to False.
+
+    Raises:
+        NotImplementedError: _description_
+        ValueError: _description_
     """
     global running_services
     running_services = True
@@ -227,7 +249,10 @@ def start_services(COMMAND: Command,
     # Would only be for convienece though. It isn't really required or critical
     if INTERFACE_TYPE in [InterfaceType.TEST, InterfaceType.TEST_UART] \
             and COMMAND == Command.DEV:
-        start_fake_serial_device_emulator(logger, devices[1], INTERFACE_TYPE)
+        start_fake_serial_device_emulator(logger, devices[1],
+                                          INTERFACE_TYPE,
+                                          experimental=experimental,
+                                          corruption=corruption)
     elif COMMAND == Command.SIMULATION:
         start_simulator(logger, devices[1])
     elif COMMAND == Command.REPLAY:
@@ -245,11 +270,10 @@ def start_services(COMMAND: Command,
     if not nopendant:
         start_pendant_emulator(logger)
 
-    # 7. Start the websocket / frontend API
-    start_frontend_api(logger, "gcs_rocket")
-
-    # 8. Start the frontend web server
     if frontend:
+        # 7. Start the websocket / frontend API
+        start_frontend_api(logger, "gcs_rocket")
+        # 8. Start the frontend web server
         start_frontend_webserver(logger)
 
 
@@ -293,7 +317,7 @@ def run(gse_only):
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
-def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend):
+def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend, experimental, corruption):
     """Start software in development mode"""
     start_services(Command.DEV,
                    DOCKER=docker,
@@ -302,7 +326,9 @@ def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend):
                    logpkt=logpkt,
                    nopendant=nopendant,
                    gse_only=gse_only,
-                   frontend=frontend
+                   frontend=frontend,
+                   experimental=experimental,
+                   corruption=corruption,
                    )
 
 

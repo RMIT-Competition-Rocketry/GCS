@@ -1,6 +1,7 @@
 from typing import Annotated, Literal
 import math
 import struct
+import backend.includes_python.process_logging as slogger
 
 
 class Metric:
@@ -888,11 +889,13 @@ class Metric:
     @staticmethod
     def QUATERNION(
         VALUE: float,
+        override: bool = False,
     ) -> bytes:
         """_summary_
 
         Args:
             VALUE (float): 32bit float. [-1,1]
+            override (bool, optional): If True, allow values outside [-1, 1]. Defaults to False.
 
         Returns:
             bytes: _description_
@@ -902,7 +905,7 @@ class Metric:
             raise ValueError("Value must be a valid 32-bit float.")
 
         if not (-1 <= VALUE <= 1):
-            raise ValueError(
+            slogger.warning(
                 f"Quaternion is not normalised. You had {VALUE}, need [-1,1]")
 
         return Metric._float32_to_bytes(VALUE, LITTLE_ENDIAN=True)
@@ -920,7 +923,7 @@ class Metric:
             raise ValueError("Navigation status must be a string")
 
         if VALUE not in Metric.POSSIBLE_NAV_VALUES:
-            raise ValueError(
+            slogger.warning(
                 f'Navigation status must be one of: {" ".join(Metric.POSSIBLE_NAV_VALUES)}. Got: {VALUE}')
 
         if len(VALUE) != 2:

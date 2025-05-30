@@ -4,6 +4,7 @@ import config.config as config
 from typing import Optional, List
 import sys
 import random
+import struct
 from backend.includes_python import metric
 import os
 import time
@@ -557,7 +558,69 @@ def changing_bool(t: float, wait_time_s: float = 1):
     return t % wait_time_s*2 > wait_time_s
 
 
-def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPacket]:
+def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption: float = 0.3):
+    """Corrupts data inside a packet with random bit flips
+
+    Args:
+        packet (dict): Packet data to be corrupted
+        corruption_chance (float): Chance of packet being corrupted [0, 1]
+        max_corruption (float): Max percentage of bits flipped [0, 1]
+    """
+    assert 0 <= corruption_chance <= 1, "Corruption chance must be between 0 and 1"
+    assert 0 <= max_corruption <= 1, "Max corruption must be between 0 and 1"
+
+    if random.random() <= corruption_chance:
+        corruption = max_corruption * random.random()
+
+        for key, value in packet.items():
+            data_type = type(value)
+
+            # Get packed bits of value
+            packed = None
+            if isinstance(value, bool):
+                packed = struct.pack('?', value)
+            elif isinstance(value, int):
+                packed = struct.pack('i', value)
+            elif isinstance(value, float):
+                packed = struct.pack('f', value)
+
+            # Only flip bits of supported value types
+            if packed != None:
+                binary_str = ''.join(f'{byte:08b}' for byte in packed)
+                bytes_str = bytes(int(binary_str[i:i+8], 2)
+                                  for i in range(0, len(binary_str), 8))
+
+                # Generate corruption mask to flip bits based on corruption % chance
+                binary_corrupt = ''.join(
+                    random.choices(['1', '0'],
+                                   weights=[corruption, 1 - corruption],
+                                   k=len(binary_str))
+                )
+                bytes_corrupt = bytes(
+                    int(binary_corrupt[i:i+8], 2) for i in range(0, len(binary_corrupt), 8)
+                )
+                byte_data = bytes(
+                    a ^ b for a, b in zip(bytes_str, bytes_corrupt)
+                )
+
+                # Pack bits back into a value
+                if data_type == bool:
+                    value_corrupt = struct.unpack('?', byte_data)[0]
+                elif data_type == int:
+                    value_corrupt = struct.unpack('i', byte_data)[0]
+                    value_corrupt &= (1 << value.bit_length()) - 1
+                elif data_type == float:
+                    value_corrupt = struct.unpack('f', byte_data)[0]
+                    if not Metric.is_valid_float32(value_corrupt):
+                        value_corrupt = 3.4028235e+38
+
+                # Add corrupt value to packet
+                packet[key] = value_corrupt
+
+
+def get_sinusoid_packets(START_TIME: float,
+                         EXPERIMENTAL: bool,
+                         CORRUPTION: bool) -> List[MockPacket]:
     """Just generate packets with sinusoidal values over time.
     Values ranges should cover optimal operating conditions unless specified otherwise
 
@@ -628,11 +691,11 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
     ARGS_GSE_COMMON = {
         "RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
         "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
-        "MANUAL_PURGED": changing_bool(T) if EXPERIMENTAL else False,
-        "O2_FILL_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
+        "MANUAL_PURGED": changing_bool(T+1/4) if EXPERIMENTAL else False,
+        "O2_FILL_ACTIVATED": changing_bool(T+2/4) if EXPERIMENTAL else False,
         "SELECTOR_SWITCH_NEUTRAL_POSITION": changing_bool(T) if EXPERIMENTAL else False,
-        "N2O_FILL_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
-        "IGNITION_FIRED": changing_bool(T) if EXPERIMENTAL else False,
+        "N2O_FILL_ACTIVATED": changing_bool(T+3/4) if EXPERIMENTAL else False,
+        "IGNITION_FIRED": changing_bool(T+4/4) if EXPERIMENTAL else False,
         "IGNITION_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
         "GAS_FILL_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
         "SYSTEM_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
@@ -675,6 +738,14 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
         "ADDITIONAL_CURRENT_2": sinusoid(T, min=2, max=5, period=10, phase=0),
     }
 
+    # Simulate random data corruption on packet
+    if CORRUPTION:
+        corrupt_packet(ARGS_AVtoGCSData1)
+        corrupt_packet(ARGS_AVtoGCSData2)
+        corrupt_packet(ARGS_AVtoGCSData3)
+        corrupt_packet(ARGS_GSEtoGCSData1)
+        corrupt_packet(ARGS_GSEtoGCSData2)
+
     return [
         AVtoGCSData1(**ARGS_AVtoGCSData1),
         AVtoGCSData2(**ARGS_AVtoGCSData2),
@@ -694,6 +765,9 @@ def main():
     except ValueError:
         slogger.error("Failed to find device names in arguments for emulator")
         raise
+
+    experimental_cli_override = "--experimental" in sys.argv
+    corruption_cli_override = "--corruption" in sys.argv
 
     MockPacket.initialize_settings(
         config.load_config()['emulation'],
@@ -717,10 +791,18 @@ def main():
     LOCK_WARNING_TIME = 5
     TIME_INBETWEEN_PACKETS = 0.01
 
-    EXPERIMENTAL = CONFIG_LOADED['emulation']['experimental'].lower() == 'true'
+    EXPERIMENTAL = \
+        experimental_cli_override or \
+        CONFIG_LOADED['emulation']['experimental'].lower() == 'true'
+
+    CORRUPTION = corruption_cli_override
+
+    if EXPERIMENTAL:
+        slogger.warning(
+            "Experimental mode enabled. Values may appear nonsensical.")
 
     while not service_helper.time_to_stop():
-        for packet in get_sinusoid_packets(START_TIME, EXPERIMENTAL):
+        for packet in get_sinusoid_packets(START_TIME, EXPERIMENTAL, CORRUPTION):
             device = packet.ORIGIN_DEVICE
             # As a cheeky sequence emulation, only write when the lock file is PRESENT
             if random.random() < MockPacket._PACKET_LOSS:

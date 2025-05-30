@@ -46,7 +46,9 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
         os.makedirs("build", exist_ok=True)
         os.chdir("build")
         MIDDLEWARE_BUILD_COMMAND_CMAKE = [
-            "cmake", f"-DCMAKE_BUILD_TYPE={build_flag_string}", ".."]
+            "cmake",
+            f"-DCMAKE_BUILD_TYPE={build_flag_string}",
+            ".."]
 
         logger.debug(
             f"Starting {SERVICE_NAME} build [cmake] with: {MIDDLEWARE_BUILD_COMMAND_CMAKE}")
