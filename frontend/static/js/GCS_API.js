@@ -47,6 +47,13 @@ const timers = {
 // Error conditions for data
 const errorConditions = [
     {
+        IDs: ["analogVoltageInput1"], // Rocket weight
+        discard: {
+            min: -1,
+            max: 128
+        }
+    },
+    {
         IDs: ["accelLowX", "accelLowY", "accelLowZ", "accelHighX", "accelHighY", "accelHighZ"],
         discard: {
             min: -128,
