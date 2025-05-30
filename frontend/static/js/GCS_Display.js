@@ -419,7 +419,7 @@ function displayUpdateFlightState(data) {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
-        } else if (data.flightState == 4 || data.flightState == "DESCENT" || data.flightState == "DESCENT") {
+        } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
             displaySetActiveFlightState("fs-state-descent");
@@ -427,7 +427,7 @@ function displayUpdateFlightState(data) {
             // Landed successfully
             stateName = "Landed";
             displaySetActiveFlightState("fs-state-landed");
-        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "ON_NO" || data.flightState == "OH_NO") {
+        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "OH_NO") {
             // Oh no oh no what the oh no :(
             stateName = "OH NO!";
             displaySetErrorFlightState();

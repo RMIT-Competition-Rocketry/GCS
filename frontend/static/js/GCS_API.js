@@ -47,76 +47,98 @@ const timers = {
 // Error conditions for data
 const errorConditions = [
     {
-        ids: ["accelLowX", "accelLowY", "accelLowZ", "accelHighX", "accelHighY", "accelHighZ"],
+        IDs: ["accelLowX", "accelLowY", "accelLowZ", "accelHighX", "accelHighY", "accelHighZ"],
         discard: {
             min: -128,
             max: 128
         }
     },
     {
-        ids: ["altitude"],
+        IDs: ["altitude"],
         discard: {
             min: -128,
             max: 4096
         }
     },
     {
-        ids: ["velocity"],
+        IDs: ["velocity"],
         discard: {
             min: -128,
             max: 1024
         }
     },
     {
-        ids: ["gyroX", "gyroY", "gyroZ"],
+        IDs: ["GPSLatitude", "GPSLongitude"],
+        discard: {
+            min: -18000,
+            max: 18000
+        }
+    },
+    {
+        IDs: ["gyroX", "gyroY", "gyroZ"],
         discard: {
             min: -360,
             max: 360
         }
     },
     {
-        ids: ["mach_speed"],
+        IDs: ["internalTemp"],
+        discard: {
+            min: -1,
+            max: 128
+        }
+    },
+    {
+        IDs: ["mach_speed"],
         discard: {
             min: -1,
             max: 16
         }
     },
     {
-        ids: ["internalTemp"],
+        IDs: ["qw", "qx", "qy", "qz"],
         discard: {
             min: -1,
-            max: 128
+            max: 1
         }
     },
     {
-        ids: ["gasBottleWeight1", "gasBottleWeight2"],
-        message: "out of range",
+        IDs: ["navigationStatus"],
+        accept: ["NF", "DR", "G2", "G3", "D2", "D3", "RK", "TT"]
+    },
+    {
+        IDs: ["flightState"],
+        accept: ["PRE_FLIGHT_NO_FLIGHT_READY", "LAUNCH", "COAST", "APOGEE", "DESCENT", "LANDED", "OH_NO"]
+    },
+    {
+        IDs: ["gasBottleWeight1", "gasBottleWeight2"],
         error: {
             min: 15.1,
             max: 19
         },
+        errorMessage: "out of range",
         discard: {
             min: -1,
             max: 128
         }
     },
     {
-        ids: ["thermocouple1", "thermocouple2", "thermocouple3", "thermocouple4"],
-        message: "flag raised",
+        IDs: ["thermocouple1", "thermocouple2", "thermocouple3", "thermocouple4"],
         error: {
             max: 34.5,
         },
+        errorMessage: "flag raised",
         discard: {
             min: -128,
             max: 128,
         },
     },
     {
-        ids: ["transducer1", "transducer2", "transducer3"],
-        message: "flag raised",
+        IDs: ["transducer1", "transducer2", "transducer3"],
         error: {
             max: 64.5
         },
+        errorMessage: "flag raised",
         discard: {
             min: -1,
             max: 128
@@ -380,7 +402,7 @@ function checkErrorConditions(apiData) {
     // Iterate over all error conditions
     errorConditions.forEach((errorCondition) => {
         // Error conditions may apply equivalently to multiple data IDs
-        errorCondition.ids.forEach((id) => {
+        errorCondition.IDs.forEach((id) => {
 
             // Make sure the ID is defined within the current packet
             if (Object.keys(apiData).indexOf(id) != -1 && apiData[id] != undefined) {
@@ -414,6 +436,11 @@ function checkErrorConditions(apiData) {
                                 isDiscard = true;
                             }
                         }
+                    } else if (typeof apiDataValue == "string") {
+                        // Check strings against whitelist
+                        if (errorCondition?.accept && !errorCondition.accept.includes(apiDataValue)) {
+                            isDiscard = true;
+                        }
                     }
 
                     isError ||= isErrorApi;
@@ -428,7 +455,7 @@ function checkErrorConditions(apiData) {
                         // Check errors against current system status
                         if (isError && errors.indexOf(errorKey) == -1) {
                             // If error, log error and raise flag
-                            logMessage(`${errorKey} ${errorCondition.message}`, "error");
+                            logMessage(`${errorKey} ${errorCondition.errorMessage}`, "error");
                             errors.push(errorKey);
                         } else if (!isError && errors.indexOf(errorKey) != -1) {
                             // If not error, remove from errors flags
