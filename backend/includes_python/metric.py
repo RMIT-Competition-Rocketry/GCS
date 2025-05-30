@@ -15,6 +15,26 @@ class Metric:
     POSSIBLE_NAV_VALUES = ["NF", "DR", "G2", "G3", "D2", "D3", "RK", "TT"]
 
     @staticmethod
+    def to_visible_repr(s):
+        """Print a string in a visible representation, escaping non-printable characters."""
+        if len(s) <= 0:
+            return "<empty>"
+        out = []
+        for c in s:
+            codepoint = ord(c)
+            # Printable ASCII or extended ASCII (0x00-0xFF) only, and printable
+            if codepoint <= 0xFF and c.isprintable():
+                out.append(c)
+            else:
+                if codepoint <= 0xFF:
+                    out.append(f"\\x{codepoint:02x}")
+                elif codepoint <= 0xFFFF:
+                    out.append(f"\\u{codepoint:04x}")
+                else:
+                    out.append(f"\\U{codepoint:08x}")
+        return ''.join(out)
+
+    @staticmethod
     def _invert_bits(num: int) -> int:
         num_bits = num.bit_length()  # Get the number of bits required to represent num
         # Create a bitmask of the same length (all 1s)
@@ -924,9 +944,10 @@ class Metric:
 
         if VALUE not in Metric.POSSIBLE_NAV_VALUES:
             slogger.warning(
-                f'Navigation status must be one of: {" ".join(Metric.POSSIBLE_NAV_VALUES)}. Got: {VALUE}')
+                f'Navigation status must be one of: {" ".join(Metric.POSSIBLE_NAV_VALUES)}. Got: {Metric.to_visible_repr(VALUE)}')
 
         if len(VALUE) != 2:
             raise ValueError("Navigation status must be 2 characters")
 
+        # Encode as UTF-8 because protobuf requires it. Otherwise it will drop packet
         return bytes(VALUE, "utf-8")
