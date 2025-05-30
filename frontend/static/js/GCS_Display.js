@@ -284,12 +284,9 @@ function displayUpdateAuxData(data) {
     
     // Solenoids
     if (data?.stateFlags) {
-        // Closed by default
         hmiUpdateSolenoid("solenoidsV5", data.stateFlags.n20FillActivated);
         hmiUpdateSolenoid("solenoidsV6", data.stateFlags.o2FillActivated);
-        
-        // Invert purge valve since it's normally open
-        hmiUpdateSolenoid("solenoidsV7", !data.stateFlags.manualPurgeActivated);
+        hmiUpdateSolenoid("solenoidsV7", data.stateFlags.manualPurgeActivated); // Normally open
     }
 }
 
