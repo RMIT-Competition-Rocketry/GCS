@@ -7,7 +7,7 @@
  */
 
 const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
-const GRAPH_GAP_SIZE = 2.5; // Max time between data points where line is drawn
+const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
 const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
