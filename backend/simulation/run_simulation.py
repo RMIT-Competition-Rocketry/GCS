@@ -2,6 +2,8 @@ from backend.simulation.rocket_sim import flight_simulation
 from backend.device_emulator import AVtoGCSData1, AVtoGCSData2, MockPacket
 from itertools import count
 from enum import Enum
+import numpy as np
+import os
 import math
 import sys
 import pandas as pd
@@ -82,7 +84,8 @@ def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
             PREVIOUS_WINDOW_TRAILER (type): Last packet in previous window
     """
     importance = 0
-
+    if PREVIOUS_WINDOW_TRAILER is None:
+        return importance + 1
     last_window_state = PREVIOUS_WINDOW_TRAILER["flight_state"]
     current_packet_state = PACKET["flight_state"]
 
@@ -105,7 +108,7 @@ def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
     windows = []
     current_window = []
     group_start_time = None
-    trailer_data = FLIGHT_DATA.iloc[0]  # The last packet in the last window
+    trailer_data = None  # The last packet in the last window
 
     for _, row in FLIGHT_DATA.iterrows():
         row_time_ms = row['# Time (s)'] * MS_PER_SECOND
@@ -121,9 +124,9 @@ def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
             else:
                 # Finalize current group and start new one
                 windows.append(current_window)
-                current_window = [(row, importance)]
+                trailer_data = windows[-1][-1][0] if windows else None
+                current_window = [(row, packet_importance(row, trailer_data))]
                 group_start_time = row_time_ms
-                trailer_data = windows[-1][-1][0]
 
     # Add the final group if any rows remain
     if current_window:
@@ -142,8 +145,39 @@ def remove_extra_packets(flight_data) -> list:
 def post_process_simulation_data(flight_data: pd.DataFrame) -> list:
     # Cull extra packets so there's only one packet per interval
     flight_data = flight_data.sort_values('# Time (s)').reset_index(drop=True)
+    flight_data = inject_data(flight_data)
     flight_data = partition_into_windows(flight_data)
     flight_data = remove_extra_packets(flight_data)
+    return flight_data
+
+
+def inject_data(flight_data: pd.DataFrame) -> pd.DataFrame:
+    INJECTION_DELAY_S = 10.0
+    SAMPLING_RATE_S = 0.01
+
+    # Shift all timestamps by the injection delay
+    flight_data["# Time (s)"] = flight_data["# Time (s)"] + INJECTION_DELAY_S
+
+    # Get the first row's data (excluding time column)
+    first_data = flight_data.iloc[0, 1:].to_dict()
+
+    start_time = 0
+    end_time = start_time + INJECTION_DELAY_S
+    new_times = np.arange(start_time, end_time, SAMPLING_RATE_S)
+
+    # Create new rows with repeated first data point
+    new_rows = []
+    for t in new_times:
+        new_row = {"# Time (s)": float(round(t, 2))}
+        new_row.update(first_data)
+        new_rows.append(new_row)
+
+    # Create DataFrame from the new rows
+    injected_data = pd.DataFrame(new_rows)
+
+    flight_data = pd.concat([flight_data, injected_data]
+                            ).sort_values("# Time (s)")
+    flight_data["# Time (s)"] = flight_data['# Time (s)']
     return flight_data
 
 
@@ -265,10 +299,10 @@ def simulation_to_replay_data(flight_data: pd.DataFrame):
                 "camera_controller_connection_flag": False,
                 "GPS_latitude": float(packet[" Latitude (°)"]),
                 "GPS_longitude": float(packet[" Longitude (°)"]),
-                "qw": float(qw / qm),
-                "qx": float(qx / qm),
-                "qy": float(qy / qm),
-                "qz": float(qz / qm)
+                "qw": float(qw),
+                "qx": float(qx),
+                "qy": float(qy),
+                "qz": float(qz)
             }
         )
         packets.append(AV2_PACKET)
@@ -281,7 +315,9 @@ def get_replay_sim_data():
     """flightType enum will be used later on when rebuilding the sim for now its just an unused variable"""
     FLIGHT_DATA = flight_simulation.get_simulated_flight_data()
     processed_data = post_process_simulation_data(FLIGHT_DATA)
+
     replay_processed = simulation_to_replay_data(processed_data)
+
     return replay_processed
 
 

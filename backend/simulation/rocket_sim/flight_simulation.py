@@ -12,16 +12,16 @@ def determine_flight_state(t: int, max_speed_time: int, apogee_time: int, landin
     # 0.1% tolerance for the apogee
     tolerance_amount = 0.00001
     if t <= 0:
-        return 1  # Pre-launch or invalid time
+        return 0  # Pre-launch or invalid time
     if t < max_speed_time:
-        return 2  # Launch
+        return 1  # Launch
     if t < apogee_time * (1 - tolerance_amount):
-        return 3  # Coast
+        return 2  # Coast
     if t < apogee_time * (1 + tolerance_amount):
-        return 4  # Apogee
+        return 3  # Apogee
     if t < landing_time:
-        return 5  # Descent
-    return 6  # Landed
+        return 4  # Descent
+    return 5  # Landed
 
 
 def get_simulated_flight_data() -> pd.DataFrame:

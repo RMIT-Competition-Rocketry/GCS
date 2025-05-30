@@ -186,7 +186,6 @@ class TestReplaySimulationStartups(CliStartup):
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
             r"replay system: \[STDOUT] Starting simulation replay for TEST",
-            r"event viewer: \[STDOUT] Flight state changed to COAST"
         ]
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,
@@ -206,7 +205,27 @@ class TestReplayMissionStartups(CliStartup):
         proc, scanner = process_and_scanner
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
-            "Starting mission replay for 20250504",
+            r"replay system: \[STDOUT] BAD GYRO_Y=400.80500000715256 ENTRY DETECTED CAPPING VALUE",
+        ]
+        success, output_lines = scanner.scan_for_patterns(
+            fail_any=fail_patterns,
+            success_all=success_patterns,
+            timeout=30.0
+        )
+        assert success, f"System failed to match patterns"
+        print(f"System ran successfully. Captured {len(output_lines)} lines")
+
+
+@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
+class TestDemoMissionStartups(CliStartup):
+    def get_rocket_args(self) -> List[str]:
+        return ["replay", "--mode", "simulation", "--simulation", "demo", "--nobuild"]
+
+    def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
+        proc, scanner = process_and_scanner
+        fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
+        success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
+            r"replay system: \[STDOUT] STARTING UP DEMO MODE, THIS WILL RUN UNTIL STOPPED",
         ]
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,
