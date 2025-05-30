@@ -32,6 +32,9 @@ if(APPLE)
 endif()
 
 add_test(NAME RunAllC++Tests COMMAND runC++Tests)
+set_tests_properties(RunAllC++Tests PROPERTIES
+    ENVIRONMENT "GTEST_COLOR=1"
+)
 set(PYTHON_TEST_SCRIPT_PATH "${CMAKE_SOURCE_DIR}/scripts/test_manual_python.sh")
 execute_process(COMMAND chmod +x ${PYTHON_TEST_SCRIPT_PATH})
 add_test(NAME PythonTests COMMAND ${PYTHON_TEST_SCRIPT_PATH})

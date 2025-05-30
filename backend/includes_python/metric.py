@@ -22,8 +22,8 @@ class Metric:
         out = []
         for c in s:
             codepoint = ord(c)
-            # Printable ASCII or Unicode (includes most visible characters)
-            if c.isprintable() and not c.isspace():
+            # Printable ASCII or extended ASCII (0x00-0xFF) only, and printable
+            if codepoint <= 0xFF and c.isprintable():
                 out.append(c)
             else:
                 if codepoint <= 0xFF:
