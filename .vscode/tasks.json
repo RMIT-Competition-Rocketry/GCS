@@ -308,6 +308,7 @@
                 "dev",
                 "--nopendant",
                 "--experimental",
+                "--corruption",
                 "--frontend",
                 "--interface",
                 "TEST"

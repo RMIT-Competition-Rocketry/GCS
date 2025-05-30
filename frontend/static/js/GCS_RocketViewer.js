@@ -128,10 +128,10 @@ window.addEventListener("DOMContentLoaded", () => {
         if (!rocket || !data) return;
 
         if (
-            typeof data.qx === "number" &&
-            typeof data.qy === "number" &&
-            typeof data.qz === "number" &&
-            typeof data.qw === "number"
+            typeof data.qw === "number" && !isNaN(data.qw) &&
+            typeof data.qx === "number" && !isNaN(data.qx) &&
+            typeof data.qy === "number" && !isNaN(data.qy) &&
+            typeof data.qz === "number" && !isNaN(data.qz)
         ) {
             quat.set(data.qx, data.qy, data.qz, data.qw).normalize();
             lastQuaternion.copy(quat);
@@ -139,7 +139,6 @@ window.addEventListener("DOMContentLoaded", () => {
         } else if (hasReceivedQuaternion) {
             quat.copy(lastQuaternion);
         } else {
-            console.error("No quaternion data has ever been received.");
             return;
         }
 

@@ -414,6 +414,7 @@ function checkErrorConditions(apiData) {
             // Make sure the ID is defined within the current packet
             if (Object.keys(apiData).indexOf(id) != -1 && apiData[id] != undefined) {
                 const apiDataValue = apiData[id];
+                const apiDataType = typeof apiDataValue;
                 if (apiDataValue != undefined) {
                     
                     // Define error key
@@ -423,7 +424,7 @@ function checkErrorConditions(apiData) {
                     let isDiscard = false;
 
                     // Check error ranges if the value is a number
-                    if (typeof apiDataValue == "number") {
+                    if (apiDataType == "number") {
                         // Check against error ranges
                         if (errorCondition?.error) {
                             if (errorCondition.error?.min && apiDataValue < errorCondition.error.min) {
@@ -443,7 +444,7 @@ function checkErrorConditions(apiData) {
                                 isDiscard = true;
                             }
                         }
-                    } else if (typeof apiDataValue == "string") {
+                    } else if (apiDataType == "string") {
                         // Check strings against whitelist
                         if (errorCondition?.accept && !errorCondition.accept.includes(apiDataValue)) {
                             isDiscard = true;
@@ -455,7 +456,7 @@ function checkErrorConditions(apiData) {
                     if (isDiscard) {
                         // Check for discards
                         logMessage(`Discarded ${id} (${apiData[id]})`, "warning");
-                        apiData[id] = NaN; // Flag invalid value with NaN
+                        apiData[id] = apiDataType == "number" ? NaN : ""; // Flag invalid value
                     }
                     
                     if (!isDiscard || isErrorApi) {
