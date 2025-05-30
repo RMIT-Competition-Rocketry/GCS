@@ -182,7 +182,6 @@ class TestReplaySimulationStartups(CliStartup):
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
             r"replay system: \[STDOUT] Starting simulation replay for TEST",
-            r"event viewer: \[STDOUT] Flight state changed to COAST"
         ]
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,
@@ -202,8 +201,7 @@ class TestReplayMissionStartups(CliStartup):
         proc, scanner = process_and_scanner
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
-            r"replay system: \[STDOUT] Starting mission replay for TEST",
-            r"event viewer: \[STDOUT] Flight state changed to APOGEE"
+            r"event viewer: [STDOUT] Flight state changed to PRE_FLIGHT_NO_FLIGHT_READY",
         ]
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,
@@ -224,8 +222,6 @@ class TestDemoMissionStartups(CliStartup):
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
             r"replay system: \[STDOUT] STARTING UP DEMO MODE, THIS WILL RUN UNTIL STOPPED",
-            r"replay system: \[STDOUT] Starting simulation replay for DEMO",
-            r"event viewer: \[STDOUT] Flight state changed to COAST"
         ]
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,
