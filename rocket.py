@@ -106,7 +106,9 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         click.option('--frontend', is_flag=True,
                      help="Run GSC front end server"),
         click.option('--experimental', is_flag=True,
-                     help="Simulate ALL values over all possible domains")
+                     help="Simulate ALL values over all possible domains"),
+        click.option('--corruption', is_flag=True,
+                     help="Simulate heavy bit corruption"),
     ]
 
     if SELECTOR == DecoratorSelector.ALL_DEV:
@@ -155,7 +157,8 @@ def start_services(COMMAND: Command,
                    replay_mode: Optional[str] = None,
                    MISSION_ARG: Optional[str] = None,
                    SIMULATION_ARG: Optional[str] = None,
-                   experimental: bool = False):
+                   experimental: bool = False,
+                   corruption: bool = False):
     """Starts all services required for the given command.
 
     Args:
@@ -171,6 +174,7 @@ def start_services(COMMAND: Command,
         MISSION_ARG (Optional[str], optional): _description_. Defaults to None.
         SIMULATION_ARG (Optional[str], optional): _description_. Defaults to None.
         experimental (bool, optional): Simulate all possible values over the entire domain. Defaults to False.
+        corruption (bool, optional): Corrupt data packets to simulate heavy bit corruption. Defaults to False.
 
     Raises:
         NotImplementedError: _description_
@@ -245,7 +249,8 @@ def start_services(COMMAND: Command,
             and COMMAND == Command.DEV:
         start_fake_serial_device_emulator(logger, devices[1],
                                           INTERFACE_TYPE,
-                                          experimental=experimental)
+                                          experimental=experimental,
+                                          corruption=corruption)
     elif COMMAND == Command.SIMULATION:
         start_simulator(logger, devices[1])
     elif COMMAND == Command.REPLAY:
@@ -310,7 +315,7 @@ def run(gse_only):
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
-def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend, experimental):
+def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend, experimental, corruption):
     """Start software in development mode"""
     start_services(Command.DEV,
                    DOCKER=docker,
@@ -320,7 +325,8 @@ def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend, exper
                    nopendant=nopendant,
                    gse_only=gse_only,
                    frontend=frontend,
-                   experimental=experimental
+                   experimental=experimental,
+                   corruption=corruption,
                    )
 
 

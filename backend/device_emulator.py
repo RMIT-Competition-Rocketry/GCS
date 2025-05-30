@@ -560,12 +560,15 @@ def changing_bool(t: float, wait_time_s: float = 1):
 
 def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption: float = 0.3):
     """Corrupts data inside a packet with random bit flips
-    
+
     Args:
         packet (dict): Packet data to be corrupted
         corruption_chance (float): Chance of packet being corrupted [0, 1]
         max_corruption (float): Max percentage of bits flipped [0, 1]
     """
+    assert 0 <= corruption_chance <= 1, "Corruption chance must be between 0 and 1"
+    assert 0 <= max_corruption <= 1, "Max corruption must be between 0 and 1"
+
     if random.random() <= corruption_chance:
         corruption = max_corruption * random.random()
 
@@ -584,12 +587,21 @@ def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption
             # Only flip bits of supported value types
             if packed != None:
                 binary_str = ''.join(f'{byte:08b}' for byte in packed)
-                bytes_str = bytes(int(binary_str[i:i+8], 2) for i in range(0, len(binary_str), 8))
-                
+                bytes_str = bytes(int(binary_str[i:i+8], 2)
+                                  for i in range(0, len(binary_str), 8))
+
                 # Generate corruption mask to flip bits based on corruption % chance
-                binary_corrupt = ''.join(random.choices(['1', '0'], weights=[corruption, 1 - corruption], k=len(binary_str)))
-                bytes_corrupt = bytes(int(binary_corrupt[i:i+8], 2) for i in range(0, len(binary_corrupt), 8))
-                byte_data = bytes(a ^ b for a, b in zip(bytes_str, bytes_corrupt))
+                binary_corrupt = ''.join(
+                    random.choices(['1', '0'],
+                                   weights=[corruption, 1 - corruption],
+                                   k=len(binary_str))
+                )
+                bytes_corrupt = bytes(
+                    int(binary_corrupt[i:i+8], 2) for i in range(0, len(binary_corrupt), 8)
+                )
+                byte_data = bytes(
+                    a ^ b for a, b in zip(bytes_str, bytes_corrupt)
+                )
 
                 # Pack bits back into a value
                 if data_type == bool:
@@ -602,15 +614,13 @@ def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption
                     if not Metric.is_valid_float32(value_corrupt):
                         value_corrupt = 3.4028235e+38
 
-                # Limit range of quaternion values
-                if key in ['QW', 'QX', 'QY', 'QZ']:
-                    value_corrupt = min(max(-1.0, value_corrupt), 1.0)
-
                 # Add corrupt value to packet
                 packet[key] = value_corrupt
 
 
-def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPacket]:
+def get_sinusoid_packets(START_TIME: float,
+                         EXPERIMENTAL: bool,
+                         CORRUPTION: bool) -> List[MockPacket]:
     """Just generate packets with sinusoidal values over time.
     Values ranges should cover optimal operating conditions unless specified otherwise
 
@@ -729,11 +739,12 @@ def get_sinusoid_packets(START_TIME: float, EXPERIMENTAL: bool) -> List[MockPack
     }
 
     # Simulate random data corruption on packet
-    corrupt_packet(ARGS_AVtoGCSData1)
-    corrupt_packet(ARGS_AVtoGCSData2)
-    corrupt_packet(ARGS_AVtoGCSData3)
-    corrupt_packet(ARGS_GSEtoGCSData1)
-    corrupt_packet(ARGS_GSEtoGCSData2)
+    if CORRUPTION:
+        corrupt_packet(ARGS_AVtoGCSData1)
+        corrupt_packet(ARGS_AVtoGCSData2)
+        corrupt_packet(ARGS_AVtoGCSData3)
+        corrupt_packet(ARGS_GSEtoGCSData1)
+        corrupt_packet(ARGS_GSEtoGCSData2)
 
     return [
         AVtoGCSData1(**ARGS_AVtoGCSData1),
@@ -756,6 +767,7 @@ def main():
         raise
 
     experimental_cli_override = "--experimental" in sys.argv
+    corruption_cli_override = "--corruption" in sys.argv
 
     MockPacket.initialize_settings(
         config.load_config()['emulation'],
@@ -783,12 +795,14 @@ def main():
         experimental_cli_override or \
         CONFIG_LOADED['emulation']['experimental'].lower() == 'true'
 
+    CORRUPTION = corruption_cli_override
+
     if EXPERIMENTAL:
         slogger.warning(
             "Experimental mode enabled. Values may appear nonsensical.")
 
     while not service_helper.time_to_stop():
-        for packet in get_sinusoid_packets(START_TIME, EXPERIMENTAL):
+        for packet in get_sinusoid_packets(START_TIME, EXPERIMENTAL, CORRUPTION):
             device = packet.ORIGIN_DEVICE
             # As a cheeky sequence emulation, only write when the lock file is PRESENT
             if random.random() < MockPacket._PACKET_LOSS:
