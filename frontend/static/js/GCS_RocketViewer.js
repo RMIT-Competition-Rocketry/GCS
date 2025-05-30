@@ -89,12 +89,14 @@ window.addEventListener("DOMContentLoaded", () => {
             rocket.add(model);
             scene.add(rocket);
 
+            /*
             // Body-frame axis arrows
             xArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), origin, 2, 0xff0000);
             yArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), origin, 2, 0x00ff00);
             zArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), origin, 2, 0x0000ff);
             
             scene.add(xArrow, yArrow, zArrow);
+            */
 
             const size = box.getSize(new THREE.Vector3()).length();
             camera.position.set(0, 0, size * 1.5);
@@ -153,6 +155,7 @@ window.addEventListener("DOMContentLoaded", () => {
         const rocketPosition = new THREE.Vector3();
         rocket.getWorldPosition(rocketPosition);
 
+        /*
         xArrow.position.copy(origin);
         xArrow.setDirection(bodyX);
 
@@ -161,6 +164,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
         zArrow.position.copy(origin);
         zArrow.setDirection(bodyZ);
+        */
 
         // Euler angles for HUD
         euler.setFromQuaternion(quat, 'XYZ');
