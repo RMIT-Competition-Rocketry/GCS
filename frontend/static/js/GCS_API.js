@@ -56,8 +56,8 @@ const errorConditions = [
     {
         IDs: ["accelLowX", "accelLowY", "accelLowZ", "accelHighX", "accelHighY", "accelHighZ"],
         discard: {
-            min: -128,
-            max: 128
+            min: -32,
+            max: 32
         }
     },
     {
@@ -84,8 +84,8 @@ const errorConditions = [
     {
         IDs: ["gyroX", "gyroY", "gyroZ"],
         discard: {
-            min: -360,
-            max: 360
+            min: -295,
+            max: 295
         }
     },
     {
@@ -456,7 +456,7 @@ function checkErrorConditions(apiData) {
                     if (isDiscard) {
                         // Check for discards
                         logMessage(`Discarded ${id} (${apiData[id]})`, "warning");
-                        apiData[id] = apiDataType == "number" ? NaN : ""; // Flag invalid value
+                        apiData[id] = apiDataType == "number" ? null : ""; // Flag invalid value
                     }
                     
                     if (!isDiscard || isErrorApi) {
