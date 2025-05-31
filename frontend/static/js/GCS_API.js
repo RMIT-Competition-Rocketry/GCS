@@ -64,7 +64,7 @@ const errorConditions = [
         IDs: ["altitude"],
         discard: {
             min: -128,
-            max: 4096
+            max: 8192
         }
     },
     {
