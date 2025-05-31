@@ -10,12 +10,13 @@ import * as THREE from "./libraries/three.module.js";
 import { GLTFLoader } from "./libraries/GLTFLoader.js";
 
 let rocket = null;
-let quat = new THREE.Quaternion();
-let lastQuaternion = new THREE.Quaternion();
-let euler = new THREE.Euler();
+let targetQuat = new THREE.Quaternion();   // most-recent true attitude
 let hasReceivedQuaternion = false;
 
-let xArrow, yArrow, zArrow;
+// ———————— Time-based smoothing ————————
+const smoothingActivated = true;
+let lastFrameTs = performance.now();  // timestamp of last rendered frame
+const tau = 0.13;                     // time constant in seconds (0.1≈100 ms for 63% convergence)
 
 window.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("rocketViewerContainer");
@@ -110,6 +111,29 @@ window.addEventListener("DOMContentLoaded", () => {
 
     function animate() {
         requestAnimationFrame(animate);
+
+        const now = performance.now();
+        const dt = (now - lastFrameTs) / 1000;
+        lastFrameTs = now;
+
+        if (rocket && hasReceivedQuaternion) {
+            if (smoothingActivated) {
+                // compute frame-based alpha from time constant tau
+                // (smooth with variable dt because we're using unreliable UDP)
+                const alpha = 1 - Math.exp(-dt / tau);
+                // smoothly blend current orientation → target
+                rocket.quaternion.slerp(targetQuat, alpha);
+            } else {
+                // snap instantly to target orientation
+                rocket.quaternion.copy(targetQuat);
+            }
+            // Update HUD off the smoothed (or raw) orientation:
+            const hudEuler = new THREE.Euler().setFromQuaternion(rocket.quaternion, 'XYZ');
+            displaySetValue("rocket-pitch", THREE.MathUtils.radToDeg(hudEuler.x), 1);
+            displaySetValue("rocket-yaw", THREE.MathUtils.radToDeg(hudEuler.y), 1);
+            displaySetValue("rocket-roll", THREE.MathUtils.radToDeg(hudEuler.z), 1);
+        }
+
         renderer.render(scene, camera);
     }
 
@@ -126,34 +150,14 @@ window.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("resize", onResize);
 
-    function rocketUpdate(data) {
-        if (!rocket || !data) return;
-
+    window.rocketUpdate = function (data) {
         if (
-            typeof data.qw === "number" && !isNaN(data.qw) &&
-            typeof data.qx === "number" && !isNaN(data.qx) &&
-            typeof data.qy === "number" && !isNaN(data.qy) &&
-            typeof data.qz === "number" && !isNaN(data.qz)
-        ) {
-            quat.set(data.qx, data.qy, data.qz, data.qw).normalize();
-            lastQuaternion.copy(quat);
-            hasReceivedQuaternion = true;
-        } else if (hasReceivedQuaternion) {
-            quat.copy(lastQuaternion);
-        } else {
-            return;
-        }
+            data.qw == null || data.qx == null ||
+            data.qy == null || data.qz == null
+        ) return;
 
-        // No correction needed: assuming rocket points +Y already
-        rocket.setRotationFromQuaternion(quat);
-
-        // Update body-frame axes based on raw quaternion
-        const bodyX = new THREE.Vector3(1, 0, 0).applyQuaternion(quat);
-        const bodyY = new THREE.Vector3(0, 1, 0).applyQuaternion(quat);
-        const bodyZ = new THREE.Vector3(0, 0, 1).applyQuaternion(quat);
-
-        const rocketPosition = new THREE.Vector3();
-        rocket.getWorldPosition(rocketPosition);
+        targetQuat.set(data.qx, data.qy, data.qz, data.qw).normalize();
+        hasReceivedQuaternion = true;
 
         /*
         xArrow.position.copy(origin);
@@ -165,13 +169,5 @@ window.addEventListener("DOMContentLoaded", () => {
         zArrow.position.copy(origin);
         zArrow.setDirection(bodyZ);
         */
-
-        // Euler angles for HUD
-        euler.setFromQuaternion(quat, 'XYZ');
-        displaySetValue("rocket-pitch", THREE.MathUtils.radToDeg(euler.x), 1);
-        displaySetValue("rocket-yaw", THREE.MathUtils.radToDeg(euler.y), 1);
-        displaySetValue("rocket-roll", THREE.MathUtils.radToDeg(euler.z), 1);
-    }
-
-    window.rocketUpdate = rocketUpdate;
+    };
 });
