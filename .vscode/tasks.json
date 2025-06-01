@@ -297,6 +297,34 @@
             "problemMatcher": []
         },
         {
+            "label": "start frontend (EXPERIMENTAL MODE)",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "dev",
+                "--nopendant",
+                "--experimental",
+                "--corruption",
+                "--frontend",
+                "--interface",
+                "TEST"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "start frontend (replay simulation mode)",
             "type": "shell",
             "command": "source",

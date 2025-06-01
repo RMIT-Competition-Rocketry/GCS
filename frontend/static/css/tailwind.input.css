@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /*
-This is a template/config file required by Tailwind.
+This is a template/config file used to generate tailwind.css
 
 Please don't link to it from the site,
-and only modify it if you know what you're doing :)
+Only modify if you know what you're doing :-)
 */
 
 @font-face {
@@ -21,6 +21,23 @@ and only modify it if you know what you're doing :)
     --color-legacy: #f5e570;
 }
 
+@keyframes pulseError {
+  0%, 100% {
+    /* Darker colour */
+    background-color: var(--color-red-800);
+    border-color: var(--color-red-600);
+    /*background-size: 80% 80%;*/
+    filter: drop-shadow(0 0 2px var(--color-red-700)) drop-shadow(0 0 5px var(--color-red-800));
+  }
+  50% {
+    /* Lighter colour */
+    background-color: var(--color-red-600);
+    border-color: var(--color-white);
+    /*background-size: 120% 120%;*/
+    filter: drop-shadow(0 0 5px var(--color-red-500)) drop-shadow(0 0 10px var(--color-red-600));
+  }
+}
+
 @layer base {
     * {
         box-sizing: border-box;
@@ -33,24 +50,21 @@ and only modify it if you know what you're doing :)
         background-repeat: repeat;
         height: 100%;
         width: 100%;
-    }
 
-       
-    /* Hexagon background */
-    body::before {
-        /* empty content to allow background image to be visible */
-        content: "";
-        position: fixed;
-        inset: 0;
-        background-image: url('/img/hexagonal_background.svg');
-        background-size: cover;
-        background-repeat: repeat;
-        background-position: center;
-        opacity: 25%;
-        z-index: -1000;
-        pointer-events: none;
+        &::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            /* Hexagon background */
+            background-image: url('/img/hexagonal_background.svg');
+            background-size: cover;
+            background-repeat: repeat;
+            background-position: center;
+            opacity: 25%;
+            z-index: -1000;
+            pointer-events: none;
+        }
     }
-
 
     h2 {
         @apply font-mono font-bold text-hive m-0 -mt-0.5 -mb-3 uppercase;
@@ -58,16 +72,16 @@ and only modify it if you know what you're doing :)
 
     h3 {
         @apply font-mono font-bold text-center text-zinc-200 leading-none;
-    }
 
-    h3::before {
-        content: '< ';
-        @apply text-hive;
-    }
+        &::before {
+            @apply text-hive;
+            content: '< ';
+        }
 
-    h3::after {
-        content: " >";
-        @apply text-hive;
+        &::after {
+            @apply text-hive;
+            content: " >";
+        }
     }
 
     label {
@@ -76,11 +90,10 @@ and only modify it if you know what you're doing :)
 
     input {
         @apply text-base text-center text-white font-mono border border-zinc-700 rounded-sm max-w-full mx-0.5;
-    }
 
-    input.error {
-        @apply bg-red-600;
-        filter: drop-shadow(0 0 5px var(--color-red-600)) drop-shadow(0 0 10px var(--color-red-600));
+        &.error {
+            @apply font-bold text-red-500 outline-2 outline-red-700;
+        }
     }
 
     .flex input {
@@ -93,6 +106,10 @@ and only modify it if you know what you're doing :)
 }
 
 @layer components {
+
+    .logo-legacy {
+        @apply text-transparent font-fauna text-4xl bg-gradient-to-b from-amber-100 via-legacy to-amber-600 bg-clip-text
+    }
 
     /* Main layout components */
     .module {
@@ -130,43 +147,29 @@ and only modify it if you know what you're doing :)
         mask-repeat: no-repeat;
         -webkit-mask-size: contain;
         mask-size: contain;
+
+        &.icon-rocket {
+            -webkit-mask-image: url('/img/icons/rocket.svg');
+            mask-image: url('/img/icons/rocket.svg');
+        }
+
+        &.icon-gamepad {
+            -webkit-mask-image: url('/img/icons/gamepad.svg');
+            mask-image: url('/img/icons/gamepad.svg');
+        }
+
+        &.icon-video-camera {
+            -webkit-mask-image: url('/img/icons/video-camera.svg');
+            mask-image: url('/img/icons/video-camera.svg');
+        }
+
+        &.icon-sitemap {
+            -webkit-mask-image: url('/img/icons/sitemap.svg');
+            mask-image: url('/img/icons/sitemap.svg');
+        }
     }
 
-    .icon-rocket {
-        -webkit-mask-image: url('/img/icons/rocket.svg');
-        mask-image: url('/img/icons/rocket.svg');
-    }
-
-    .icon-gamepad {
-        -webkit-mask-image: url('/img/icons/gamepad.svg');
-        mask-image: url('/img/icons/gamepad.svg');
-    }
-
-    .icon-video-camera {
-        -webkit-mask-image: url('/img/icons/video-camera.svg');
-        mask-image: url('/img/icons/video-camera.svg');
-    }
-
-    .icon-sitemap {
-        -webkit-mask-image: url('/img/icons/sitemap.svg');
-        mask-image: url('/img/icons/sitemap.svg');
-    }
-
-    /* Specific module styles */
-    .rocket_frame {
-        background-image: url('/img/rocket_frame.svg#svgView(preserveAspectRatio(none))');
-        background-size: 100% 100%;
-        background-repeat: no-repeat;
-    }
-
-    #rocketCanvas {
-        --current-color: var(--color-emerald-600);
-        filter: drop-shadow(1px 1px 0 var(--current-color)) 
-            drop-shadow(-1px 1px 0 var(--current-color)) 
-            drop-shadow(-1px -1px 0 var(--current-color)) 
-            drop-shadow(1px -1px 0 var(--current-color));
-    }
-
+    /* Indicators */
     .indicator-state {
         @apply w-8 h-8 max-w-8 max-h-8 aspect-square rounded-full border border-hive mx-auto bg-black/20;
 
@@ -174,23 +177,37 @@ and only modify it if you know what you're doing :)
             @apply bg-hive/20;
         }
 
-        &.on, &.green {
-            @apply bg-green-400;
+        &.green {
+            @apply bg-green-400 border-green-800;
             filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
         }
 
-        &.idle, &.amber {
-            @apply bg-yellow-300;
-            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));
+        &.yellow {
+            @apply bg-yellow-400 border-yellow-800;
+            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));   
         }
 
-        &.error, &.red {
-            @apply bg-red-600;
+        &.red {
+            @apply bg-red-600 border-red-900;
             filter: drop-shadow(0 0 5px var(--color-red-600)) drop-shadow(0 0 10px var(--color-red-600));
+        }
+
+        &.timeout {
+            @apply bg-yellow-700 border-yellow-500 border-2 animate-[spin_5s_linear_infinite];
+            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));
+            background-image: url("/img/icons/hourglass.svg");
+            background-size: 50% 50%;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+
+        &.error {
+            @apply bg-red-600 border-white border-2;
             background-image: url("/img/icons/exclamation.svg");
             background-size: 100% 100%;
             background-position: center center;
-            background-repeat: none;
+            background-repeat: no-repeat;
+            animation: pulseError 2s linear infinite;
         }
     }
 
@@ -198,7 +215,7 @@ and only modify it if you know what you're doing :)
         @apply relative h-12 max-h-12;
 
         &::before {
-            @apply absolute z-10 w-[calc(100%-2.25rem)] h-1/3 top-1/3 border-y border-green-400 bg-green-600;
+            @apply absolute z-10 w-[calc(100%-2.25rem)] h-1/3 top-1/3 border-y border-green-500 bg-green-700;
             content: '';
         }
 
@@ -210,12 +227,12 @@ and only modify it if you know what you're doing :)
             @apply hidden;
         }
 
-        &.hidden + .indicator-flightstate::before {
+        &.hidden+.indicator-flightstate::before {
             @apply hidden;
         }
 
         & .indicator-state {
-            @apply relative bg-green-600 border-green-400 w-10 h-10 max-w-10 max-h-10 my-1;
+            @apply relative bg-green-700 border-green-500 w-10 h-10 max-w-10 max-h-10 my-1;
         }
 
         &.active {
@@ -225,11 +242,11 @@ and only modify it if you know what you're doing :)
             }
 
             &::before {
-                background: linear-gradient(90deg, var(--color-green-600) 10%, var(--color-green-400) 100%);
+                background: linear-gradient(90deg, var(--color-green-700) 10%, var(--color-green-400) 100%);
             }
         }
 
-        &.active ~ .indicator-flightstate {
+        &.active~.indicator-flightstate {
             & .indicator-state {
                 @apply z-5;
                 filter: none;
@@ -242,28 +259,54 @@ and only modify it if you know what you're doing :)
                 background: black;
             }
         }
+
+        &.error {
+            & .indicator-state {
+                @apply bg-red-600 border-white border-2;
+                background-image: url("/img/icons/exclamation.svg");
+                background-size: 100% 100%;
+                background-position: center center;
+                background-repeat: no-repeat;
+                animation: pulseError 2s linear infinite;
+            }
+
+            &::before {
+                @apply bg-red-600 border-white border-y-2;
+                animation: pulseError 2s linear infinite;
+            }
+        }
     }
 
-    /* Continuity module */
+    /* 6DOF Rocket */
+    .rocket_frame {
+        background-image: url('/img/rocket_frame.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+    }
+
+    #rocketCanvas {
+        --current-color: var(--color-emerald-600);
+        filter: drop-shadow(1px 1px 0 var(--current-color)) drop-shadow(-1px 1px 0 var(--current-color)) drop-shadow(-1px -1px 0 var(--current-color)) drop-shadow(1px -1px 0 var(--current-color));
+    }
+
+    /* Continuity (Single Operator) */
     .continuity-header {
         @apply font-mono text-hive border-r-1 border-hive-dark flex flex-row items-center text-center justify-center;
     }
 
     .continuity-button {
+        @apply cursor-pointer;
         background-image: url('/img/buttons/continuity_button.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
-        @apply cursor-pointer;
-    }
 
-    /* Hover*/
-    .continuity-button:hover {
-        background-image: url('/img/buttons/continuity_button_hover.svg#svgView(preserveAspectRatio(none))');
-    }
+        &:hover {
+            background-image: url('/img/buttons/continuity_button_hover.svg#svgView(preserveAspectRatio(none))');
+        }
 
-    /* Clicked/pressed */
-    .continuity-button:active {
-        background-image: url('/img/buttons/continuity_button_pressed.svg#svgView(preserveAspectRatio(none))');
+        &:active {
+            background-image: url('/img/buttons/continuity_button_pressed.svg#svgView(preserveAspectRatio(none))');
+        }
     }
 
     .continuity-variables-middle {
@@ -274,7 +317,7 @@ and only modify it if you know what you're doing :)
         @apply flex flex-row items-center justify-center p-2
     }
 
-    /* Pop test module */
+    /* Pop Test (Single Operator) */
     .pop_selector {
         background-image: url('/img/buttons/selector_active.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
@@ -295,24 +338,22 @@ and only modify it if you know what you're doing :)
     }
 
     .pop_button_active {
+        @apply cursor-pointer;
         background-image: url('/img/buttons/pop_button.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 100%;
-        @apply cursor-pointer;
+
+        &:hover {
+            background-image: url('/img/buttons/pop_button_hover.svg#svgView(preserveAspectRatio(none))');
+        }
+
+        &:active {
+            background-image: url('/img/buttons/pop_button_pressed.svg#svgView(preserveAspectRatio(none))');
+        }
     }
 
-    /* Hover */
-    .pop_button_active:hover {
-        background-image: url('/img/buttons/pop_button_hover.svg#svgView(preserveAspectRatio(none))');
-    }
-
-    /* Pressed */
-    .pop_button_active:active {
-        background-image: url('/img/buttons/pop_button_pressed.svg#svgView(preserveAspectRatio(none))');
-    }
-
-    /* Aux System module */
+    /* Aux System Buttons (Single Operator) */
     .solenoid_button_inactive {
         background-image: url('/img/buttons/solenoid_button_inactive.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
@@ -322,37 +363,34 @@ and only modify it if you know what you're doing :)
     }
 
     .solenoid_button_active {
+        @apply cursor-pointer;
         background-image: url('/img/buttons/solenoid_button_active.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 100%;
-        @apply cursor-pointer;
+
+        &:hover {
+            background-image: url('/img/buttons/solenoid_button_hover.svg#svgView(preserveAspectRatio(none))');
+        }
+
+        &:active {
+            background-image: url('/img/buttons/solenoid_button_pressed.svg#svgView(preserveAspectRatio(none))');
+        }
     }
 
-    .solenoid_button_active:hover {
-        background-image: url('/img/buttons/solenoid_button_hover.svg#svgView(preserveAspectRatio(none))');
-    }
-
-    .solenoid_button_active:active {
-        background-image: url('/img/buttons/solenoid_button_pressed.svg#svgView(preserveAspectRatio(none))');
-    }
-
-    /* Solenoid switches */
     .switch {
         position: relative;
         display: inline-block;
         width: 60px;
         height: 34px;
+
+        & input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
     }
-    
-    /* Hide default HTML checkbox */
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-    
-    /* The slider */
+
     .slider {
         position: absolute;
         cursor: pointer;
@@ -360,75 +398,63 @@ and only modify it if you know what you're doing :)
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: #ccc;
+        background-color: #444;
         -webkit-transition: .4s;
         transition: .4s;
-    }
-    
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 26px;
-        width: 26px;
-        left: 4px;
-        bottom: 4px;
-        background-color: white;
-        -webkit-transition: .4s;
-        transition: .4s;
-    }
-    
-    input:checked + .slider {
-        background-color: #4DFFC4;
-    }
-    
-    input:focus + .slider {
-        box-shadow: 0 0 1px #4DFFC4;
-    }
-    
-    input:checked + .slider:before {
-        -webkit-transform: translateX(26px);
-        -ms-transform: translateX(26px);
-        transform: translateX(26px);
-    }
-    
-    /* Rounded sliders */
-    .slider.round {
-        border-radius: 34px;
-    }
-    
-    .slider.round:before {
-        border-radius: 50%;
-    }
 
-    /* Disabled state */
-    input:disabled + .slider {
-        background-color: #888;
-        cursor: not-allowed;
-        opacity: 60%;
-    }
-    
-    input:disabled + .slider:before {
-        background-color: #ccc;
-    }
-    
-    /* Rounded sliders */
-    .slider.round {
-        border-radius: 34px;
-    }
-    
-    .slider.round:before {
-        border-radius: 50%;
-    }
-
-
-        .aux_modal {
-            background-image: url('/img/modal.svg#svgView(preserveAspectRatio(none))');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
+        &:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
         }
 
-        /* Placeholders */
-        .placeholder-graph {
-            @apply border-l-2 border-b-2 border-hive bg-black flex-1;
+        /* Rounded sliders */
+        &.round {
+            border-radius: 34px;
+
+            &:before {
+                border-radius: 50%;
+            }
         }
     }
+
+    input {
+        &:checked+.slider {
+            background-color: var(--color-emerald-500);
+
+            &:before {
+                background-color: white;
+                -webkit-transform: translateX(26px);
+                -ms-transform: translateX(26px);
+                transform: translateX(26px);
+            }
+        }
+
+        &:focus+.slider {
+            box-shadow: 0 0 1px var(--color-emerald-500);
+        }
+
+        /* Disabled state */
+        &:disabled+.slider {
+            background-color: #444;
+            cursor: not-allowed;
+            opacity: 60%;
+
+            &:before {
+                background-color: #666;
+            }
+        }
+    }
+
+    .aux_modal {
+        background-image: url('/img/modal.svg#svgView(preserveAspectRatio(none))');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+    }
+}

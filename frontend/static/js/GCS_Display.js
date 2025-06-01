@@ -66,7 +66,7 @@ document.querySelectorAll("nav a").forEach((elem) => {
 
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
 var verboseLogging = false;
-const indicatorStates = ["off", "on", "idle", "error"];
+const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 const timeouts = {};
 
 function displaySetValue(item, value, precision = 2, error = false) {
@@ -109,6 +109,20 @@ function displaySetString(item, string) {
     }
 }
 
+function displaySetError(item, error) {
+    // Adds/removed error class from element
+    let elements = document.querySelectorAll(`.${item}`);
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            if (error) {
+                elem.classList.add("error");
+            } else {
+                elem.classList.remove("error");
+            }
+        });
+    }
+}
+
 function displaySetState(item, value) {
     // Updates the state of an indicator
     if (verboseLogging) console.debug(`new state %c${item}%c ${value}`, 'color:orange', 'color:white');
@@ -136,6 +150,14 @@ function displaySetActiveFlightState(item) {
     // Updates active flight state to a specific html element
     let elements = document.querySelectorAll(`.${item}`);
 
+    // Remove error state
+    let fsElements = document.querySelectorAll(`.indicator-flightstate`);
+    if (fsElements && fsElements.length > 0) {
+        fsElements.forEach((elem) => {
+            elem.classList.remove("error");
+        });
+    }
+
     if (elements && elements.length > 0) {
         // Make sure we're actually updating this
         if (elements[0].classList.contains("active")) return;
@@ -157,10 +179,21 @@ function displaySetActiveFlightState(item) {
     // Launch timer
     if (item == "fs-state-preflight") {
         timers.launchTimestamp = 0;
-    } else if (item == "fs-state-launch") {
+    } else {
         if (timers.launchTimestamp == undefined || timers.launchTimestamp == 0) {
             timers.launchTimestamp = timestampApi;
         }
+    }
+}
+
+function displaySetErrorFlightState() {
+    // Add error state
+    let elements = document.querySelectorAll(`.indicator-flightstate`);
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            elem.classList.remove("active");
+            elem.classList.add("error");
+        });
     }
 }
 
@@ -177,8 +210,8 @@ function displayUpdateTime() {
             displaySetString("fs-launch-time", `T+${launchTime.toFixed(1)}`);
         }
     }
-    if (timestampLocal != 0) {
-        displaySetValue("fs-time-local", timestampLocal + timestampApiConnect - timeDrift, 1);
+    if (timestampLocal != undefined && timestampLocal != 0) {
+        displaySetString("fs-time-local", `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`);
     }
 }
 
@@ -239,26 +272,22 @@ function displayUpdateAuxData(data) {
         displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1)
     }
 
+    // Gas fill timer
+    if (timers.gasFillTimer != undefined && timers.gasFillTimer != 0) {
+        displaySetString("aux-gasbottle-time", `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`);
+    }
+
     // Rocket mass
     if (data?.analogVoltageInput1) {
         displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
-    // should be the solenoids
-   if (data?.stateFlags){
-    //purge / solenoid1
-    if (data.stateFlags?.manualPurgeActivated || data.stateFlags.manualPurgeActivated == true || data.stateFlags.manualPurgeActivated == false){
-         solenoidupdate(data.stateFlags.manualPurgeActivated,'solenoidsV7');
+    
+    // Solenoids
+    if (data?.stateFlags) {
+        hmiUpdateSolenoid("solenoidsV5", data.stateFlags.n20FillActivated);
+        hmiUpdateSolenoid("solenoidsV6", data.stateFlags.o2FillActivated);
+        hmiUpdateSolenoid("solenoidsV7", data.stateFlags.manualPurgeActivated); // Normally open
     }
-    // n2O fill / solenoid2
-    if (data.stateFlags?.o2FillActivated || data.stateFlags.o2FillActivated == true || data.stateFlags.o2FillActivated == false){
-         solenoidupdate(data.stateFlags.o2FillActivated,'solenoidsV6');
-    }
-    // O2 fill / solenoid3
-    if (data.stateFlags?.n20FillActivated || data.stateFlags.n20FillActivated == true || data.stateFlags.n20FillActivated == false ){
-         solenoidupdate(data.stateFlags.n20FillActivated,'solenoidsV5');
-    }
-   }
-
 }
 
 function displayUpdateAvionics(data) {
@@ -282,7 +311,7 @@ function displayUpdateAvionics(data) {
         if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "av-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 3
+                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 5 // green / error
             );
         }
 
@@ -329,6 +358,7 @@ function displayUpdateAvionics(data) {
 }
 
 function displayUpdateSystemFlags(data) {
+    // green : off
 	if (data?.stateFlags) {
 		if (data.stateFlags?.dualBoardConnectivityStateFlag) {
 			displaySetState("sysflags-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0);
@@ -348,42 +378,38 @@ function displayUpdateSystemFlags(data) {
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data?.flightState) {
+        displaySetError("fs-flightstate", false);
 
         let stateName = "";
-
         if (data.flightState == 0 || data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
             // Preflight (not ready)
             stateName = "Pre-flight (not ready)";
             displaySetActiveFlightState("fs-state-preflight");
-
         } else if (data.flightState == 1 || data.flightState == "LAUNCH") {
             // Launch
             stateName = "Launch";
             displaySetActiveFlightState("fs-state-launch");
-
         } else if (data.flightState == 2 || data.flightState == "COAST") {
             // Coast
             stateName = "Coast";
             displaySetActiveFlightState("fs-state-coast");
-
         } else if (data.flightState == 3 || data.flightState == "APOGEE") {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
-
-        } else if (data.flightState == 4 || data.flightState == "DESCENT" || data.flightState == "DESCENT") {
+        } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
             displaySetActiveFlightState("fs-state-descent");
-
         } else if (data.flightState == 5 || data.flightState == "LANDED") {
             // Landed successfully
             stateName = "Landed";
             displaySetActiveFlightState("fs-state-landed");
-
-        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "ON_NO" || data.flightState == "OH_NO") {
+        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "OH_NO") {
             // Oh no oh no what the oh no :(
-            stateName = "ERROR !!!";
+            stateName = "OH NO!";
+            displaySetErrorFlightState();
+            displaySetError("fs-flightstate", true);
         }
 
         displaySetString("fs-flightstate", stateName);
@@ -435,18 +461,20 @@ function displayUpdateRadio(data) {
         if (data.meta.radio == "av1") {
             // AVIONICS DATA
             // Connection indicators
-            displaySetState("radio-av-state", 1);
+            displaySetState("radio-av-state", 1); // green
 
             if (timeouts != undefined) {
+                // Show idle timeout error after 3 seconds
                 clearTimeout(timeouts?.radioAv1Idle);
                 timeouts.radioAv1Idle = setTimeout(() => {
-                    displaySetState("radio-av-state", 2);
-                }, 1000);
+                    displaySetState("radio-av-state", 4); // timeout
+                }, 3000);
 
+                // Show error after 10 seconds
                 clearTimeout(timeouts?.radioAv1Error);
                 timeouts.radioAv1Error = setTimeout(() => {
-                    displaySetState("radio-av-state", 3);
-                }, 5000);
+                    displaySetState("radio-av-state", 5); // error
+                }, 10000);
             }
 
             // Update avionics radio data
@@ -472,15 +500,17 @@ function displayUpdateRadio(data) {
             displaySetState("radio-gse-state", 1);
 
             if (timeouts != undefined) {
+                // Show idle timeout error after 3 seconds
                 clearTimeout(timeouts?.radioGseIdle);
                 timeouts.radioGseIdle = setTimeout(() => {
-                    displaySetState("radio-gse-state", 2);
-                }, 1000);
+                    displaySetState("radio-gse-state", 4); // timeout
+                }, 3000);
 
+                // Show error after 10 seconds
                 clearTimeout(timeouts?.radioGseError);
                 timeouts.radioGseError = setTimeout(() => {
-                    displaySetState("radio-gse-state", 3);
-                }, 5000);
+                    displaySetState("radio-gse-state", 5); // error
+                }, 10000);
             }
             
 
@@ -505,43 +535,6 @@ function displayUpdateRadio(data) {
 }
 
 // SINGLE OPERATOR PAGE
-
-// Continuity buttons
-// function continuityActivate() {
-//     const continuityA = document.getElementById("continuityA");
-//     const continuityB = document.getElementById("continuityB");
-//     const continuityC = document.getElementById("continuityC");
-//     const continuityD = document.getElementById("continuityD");
-
-//     continuityA.addEventListener("click", sendContinuityA)
-//     continuityB.addEventListener("click", sendContinuityB)
-//     continuityC.addEventListener("click", sendContinuityC)
-//     continuityD.addEventListener("click", sendContinuityD)
-
-// }
-
-// Continuity payload functions
-function sendContinuityA() {
-    const payload = [true, false, false, false];
-    continuityPayload(payload);
-}
-
-function sendContinuityB() {
-    const payload = [false, true, false, false];
-    continuityPayload(payload);
-}
-
-function sendContinuityC() {
-    const payload = [false, false, true, false];
-    continuityPayload(payload);
-}
-
-function sendContinuityD() {
-    const payload = [false, false,false, true];
-    continuityPayload(payload);
-}
-
-// Pop test buttons
 const mainPCheckbox = document.getElementById("optionMainP");
 const mainSCheckbox = document.getElementById("optionMainS");
 const apogeePCheckbox = document.getElementById("optionApogeeP");
@@ -549,48 +542,67 @@ const apogeeSCheckbox = document.getElementById("optionApogeeS");
 const popButton = document.getElementById("popButton");
 const prompt = document.getElementById("prompt");
 
+// Continuity payload functions
+function sendContinuityA() {
+    apiSendContinuityCheck([1, 0, 0, 0]);
+}
 
-mainPCheckbox.addEventListener("click", validateSelection);
-mainSCheckbox.addEventListener("click", validateSelection);
-apogeePCheckbox.addEventListener("click", validateSelection);
-apogeeSCheckbox.addEventListener("click", validateSelection);
+function sendContinuityB() {
+    apiSendContinuityCheck([0, 1, 0, 0]);
+}
 
-// Only one selection at a time
-mainPCheckbox.addEventListener("change", () => {
-    if (mainPCheckbox.checked) {
-        mainSCheckbox.checked = false;
-        apogeePCheckbox.checked = false;
-        apogeeSCheckbox.checked = false;
-    }
-    validateSelection();
-});
+function sendContinuityC() {
+    apiSendContinuityCheck([0, 0, 1, 0]);
+}
 
-mainSCheckbox.addEventListener("change", () => {
-    if (mainSCheckbox.checked) {
-        mainPCheckbox.checked = false;
-        apogeePCheckbox.checked = false;
-        apogeeSCheckbox.checked = false;
-    }
-    validateSelection();
-});
+function sendContinuityD() {
+    apiSendContinuityCheck([0, 0, 0, 1]);
+}
 
-apogeePCheckbox.addEventListener("change", () => {
-    if (apogeePCheckbox.checked) {
-        mainPCheckbox.checked = false;
-        mainSCheckbox.checked = false;
-        apogeeSCheckbox.checked = false;
-    }
-    validateSelection();
-});
+// Pop test buttons
+document.addEventListener("DOMContentLoaded", () => {
+    mainPCheckbox.addEventListener("click", validateSelection);
+    mainSCheckbox.addEventListener("click", validateSelection);
+    apogeePCheckbox.addEventListener("click", validateSelection);
+    apogeeSCheckbox.addEventListener("click", validateSelection);
 
-apogeeSCheckbox.addEventListener("change", () => {
-    if (apogeeSCheckbox.checked) {
-        mainPCheckbox.checked = false;
-        mainSCheckbox.checked = false;
-        apogeePCheckbox.checked = false;
-    }
-    validateSelection();
-});
+    // Only one selection at a time
+    mainPCheckbox.addEventListener("change", () => {
+        if (mainPCheckbox.checked) {
+            mainSCheckbox.checked = false;
+            apogeePCheckbox.checked = false;
+            apogeeSCheckbox.checked = false;
+        }
+        validateSelection();
+    });
+
+    mainSCheckbox.addEventListener("change", () => {
+        if (mainSCheckbox.checked) {
+            mainPCheckbox.checked = false;
+            apogeePCheckbox.checked = false;
+            apogeeSCheckbox.checked = false;
+        }
+        validateSelection();
+    });
+
+    apogeePCheckbox.addEventListener("change", () => {
+        if (apogeePCheckbox.checked) {
+            mainPCheckbox.checked = false;
+            mainSCheckbox.checked = false;
+            apogeeSCheckbox.checked = false;
+        }
+        validateSelection();
+    });
+
+    apogeeSCheckbox.addEventListener("change", () => {
+        if (apogeeSCheckbox.checked) {
+            mainPCheckbox.checked = false;
+            mainSCheckbox.checked = false;
+            apogeePCheckbox.checked = false;
+        }
+        validateSelection();
+    });
+})
 
 function validateSelection() {
 
@@ -615,7 +627,7 @@ function validateSelection() {
 
 
 popButton.addEventListener("click", function () {
-    popPayload();
+    apiSendPopTest();
 });
 
 
@@ -670,7 +682,7 @@ confirmYes.addEventListener("click", () => {
         });
         isSolenoidActive = true;
     }
-    solenoidPayload();
+    apiSendSolenoids();
 });
 
 // Send solenoid JSON packets to the websocket when clicked
@@ -685,7 +697,7 @@ solenoidCommand.addEventListener("click", () => {
         
     }, 150);
 
-    solenoidPayload();
+    apiSendSolenoids();
 });
 
 

@@ -7,7 +7,7 @@
  */
 
 const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
-const GRAPH_GAP_SIZE = 1.1; // Amount of seconds between data points before a line isn't drawn between them
+const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
 const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
@@ -229,22 +229,20 @@ function graphResize(chart) {
 
 // Render graph
 function graphRender(chart) {
-    if (chart && chart?.x && chart?.lines) {
+    if (chart && chart?.x && chart?.lines && typeof timestampLocal !== 'undefined') {
         // Get timestamp of data
         const now = Math.max(
             d3.max(chart.lines.flatMap(line => line.data), d => d.x),
             timestampLocal + timestampApiConnect - timeDrift);
-
-        // Data is held in buffer for extra 5 seconds
+            
         const windowStart = now - MAX_TIME;
 
         if (chart.lastRender != now) {
             chart.lastRender = now;
 
-            // Limit data to window
+            // Limit data to graph window
             chart.lines.forEach(line => {
-                // Data is held in buffer for extra 5 seconds in case there's timing issues
-                line.data = line.data.filter(d => d.x >= (windowStart - GRAPH_GAP_SIZE - 5));
+                line.data = line.data.filter(d => d.x >= (windowStart - GRAPH_GAP_SIZE));
             });
             const allPoints = chart.lines.flatMap(line => line.data);
             
