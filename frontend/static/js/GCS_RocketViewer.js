@@ -1,42 +1,47 @@
 /**
  * GCS Rocket Viewer
+ *
+ * This script renders a 3D rocket model using Three.js, and updates its orientation in real-time
+ * using quaternion data. Smooth interpolation is supported to improve visual stability during flight.
  * 
- * Uses three.js to animate a 6DOF 3D model of the rocket
- * 
- * Functions and constants should be prefixed with "rocket_" 
+ * Functions and constants should be prefixed with "rocket_" for clarity and namespace safety.
  */
 
 import * as THREE from "./libraries/three.module.js";
 import { GLTFLoader } from "./libraries/GLTFLoader.js";
 
-let rocket = null;
-let targetQuat = new THREE.Quaternion();   // most-recent true attitude
-let hasReceivedQuaternion = false;
+// === Core Variables ===
+let rocket = null;                                // The main rocket model group
+let targetQuat = new THREE.Quaternion();          // Most recent target orientation
+let hasReceivedQuaternion = false;                // Flag to begin rendering orientation once data is available
 
-// ———————— Time-based smoothing ————————
-const smoothingActivated = true;
-let lastFrameTs = performance.now();  // timestamp of last rendered frame
-const tau = 0.13;                     // time constant in seconds (0.1≈100 ms for 63% convergence)
+// === Orientation Smoothing Settings ===
+const smoothingActivated = true;                  // Toggle smooth transitions between updates
+const tau = 0.13;                                  // Time constant for exponential smoothing (in seconds)
+let lastFrameTs = performance.now();              // Timestamp of the last frame (used for dt calculation)
 
 window.addEventListener("DOMContentLoaded", () => {
+    // === Canvas and Renderer Setup ===
     const container = document.getElementById("rocketViewerContainer");
     const canvas = document.getElementById("rocketCanvas");
 
     const renderer = new THREE.WebGLRenderer({
         canvas,
-        antialias: true,
-        alpha: true,
+        antialias: true,       // Smooth edges
+        alpha: true            // Transparent background
     });
+
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
 
+    // === Create Scene ===
     const scene = new THREE.Scene();
-    scene.background = null;
+    scene.background = null; // Keep canvas transparent
 
+    // === Camera Setup (Orthographic for a clean top-down view) ===
     const aspect = container.clientWidth / container.clientHeight;
     const viewSize = 10;
-
     const camera = new THREE.OrthographicCamera(
         -aspect * viewSize / 2,  // left
         aspect * viewSize / 2,   // right
@@ -45,10 +50,10 @@ window.addEventListener("DOMContentLoaded", () => {
         0.1,
         1000
     );
-    camera.position.set(0, 0, 20); // Move back far enough for a full view
+    camera.position.set(0, 0, 20);
     camera.lookAt(0, 0, 0);
 
-
+    // === Lighting Configuration (balanced accordingly for model clarity) ===
     const lights = [
         new THREE.DirectionalLight(0xffffff, 36),
         new THREE.DirectionalLight(0xffffff, 24),
@@ -65,23 +70,23 @@ window.addEventListener("DOMContentLoaded", () => {
     lights[3].position.set(50, 0, 0);
     lights.forEach(light => scene.add(light));
 
+    // === Environment Texture (adds reflections and realism) ===
     const envTextureLoader = new THREE.CubeTextureLoader();
-    const origin = new THREE.Vector3(3, -3.75, 0);
+    const origin = new THREE.Vector3(3, -3.75, 0); // Not used in final render, just a helper reference
     scene.environment = envTextureLoader.load([
-        "/img/textures/posx.jpg",
-        "/img/textures/negx.jpg",
-        "/img/textures/posy.jpg",
-        "/img/textures/negy.jpg",
-        "/img/textures/posz.jpg",
-        "/img/textures/negz.jpg",
+        "/img/textures/posx.jpg", "/img/textures/negx.jpg",
+        "/img/textures/posy.jpg", "/img/textures/negy.jpg",
+        "/img/textures/posz.jpg", "/img/textures/negz.jpg",
     ]);
 
+    // === Load and Setup Rocket Model ===
     new GLTFLoader().load(
         "/static/models/rocket_model.glb",
         gltf => {
             const model = gltf.scene;
-            model.scale.set(2, 2, 2);
+            model.scale.set(2, 2, 2); // Resize for better visibility
 
+            // Center the model at the origin for rotation
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             model.position.sub(center);
@@ -90,25 +95,18 @@ window.addEventListener("DOMContentLoaded", () => {
             rocket.add(model);
             scene.add(rocket);
 
-            /*
-            // Body-frame axis arrows
-            xArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), origin, 2, 0xff0000);
-            yArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), origin, 2, 0x00ff00);
-            zArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), origin, 2, 0x0000ff);
-            
-            scene.add(xArrow, yArrow, zArrow);
-            */
-
+            // Dynamically position camera to fit model size
             const size = box.getSize(new THREE.Vector3()).length();
             camera.position.set(0, 0, size * 1.5);
             camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-            animate();
+            animate(); // Start render loop
         },
         xhr => console.log(`Loading: ${((xhr.loaded / xhr.total) * 100).toFixed(1)}%`),
         err => console.error("Error loading model:", err)
     );
 
+    // === Main Render Loop ===
     function animate() {
         requestAnimationFrame(animate);
 
@@ -116,6 +114,7 @@ window.addEventListener("DOMContentLoaded", () => {
         const dt = (now - lastFrameTs) / 1000;
         lastFrameTs = now;
 
+        // Only rotate model once we've received a quaternion
         if (rocket && hasReceivedQuaternion) {
             if (smoothingActivated) {
                 // compute frame-based alpha from time constant tau
@@ -127,7 +126,8 @@ window.addEventListener("DOMContentLoaded", () => {
                 // snap instantly to target orientation
                 rocket.quaternion.copy(targetQuat);
             }
-            // Update HUD off the smoothed (or raw) orientation:
+
+            // Extract Euler angles from smoothed quaternion for display
             const hudEuler = new THREE.Euler().setFromQuaternion(rocket.quaternion, 'XYZ');
             displaySetValue("rocket-pitch", THREE.MathUtils.radToDeg(hudEuler.x), 1);
             displaySetValue("rocket-yaw", THREE.MathUtils.radToDeg(hudEuler.y), 1);
@@ -137,6 +137,7 @@ window.addEventListener("DOMContentLoaded", () => {
         renderer.render(scene, camera);
     }
 
+    // === Responsive Canvas Resize ===
     function onResize() {
         renderer.setSize(container.clientWidth, container.clientHeight);
         const aspect = container.clientWidth / container.clientHeight;
@@ -145,11 +146,11 @@ window.addEventListener("DOMContentLoaded", () => {
         camera.top = viewSize / 2;
         camera.bottom = -viewSize / 2;
         camera.updateProjectionMatrix();
-
     }
-
     window.addEventListener("resize", onResize);
 
+    // === External Quaternion Update Entry Point ===
+    // Call this from elsewhere to update rocket orientation.
     window.rocketUpdate = function (data) {
         if (
             data.qw == null || data.qx == null ||
@@ -158,16 +159,5 @@ window.addEventListener("DOMContentLoaded", () => {
 
         targetQuat.set(data.qx, data.qy, data.qz, data.qw).normalize();
         hasReceivedQuaternion = true;
-
-        /*
-        xArrow.position.copy(origin);
-        xArrow.setDirection(bodyX);
-
-        yArrow.position.copy(origin);
-        yArrow.setDirection(bodyY);
-
-        zArrow.position.copy(origin);
-        zArrow.setDirection(bodyZ);
-        */
     };
 });
