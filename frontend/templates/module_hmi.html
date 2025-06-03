@@ -1,5 +1,5 @@
 <!-- HMI module -->
-<div class="flex w-full h-full justify-center items-center font-mono">
+<div class="flex w-full h-full justify-center items-center font-mono relative">
 <script>
     const color = ["#FF0000", "#00FF4D", "#FFF600"];
     const colorBoolean = ["#FF0000", "#00FF4D"];       // for valves only (on/off)
@@ -73,7 +73,9 @@
         solenoid.setAttribute("fill", colorBoolean[state ? 1 : 0]);
     } 
 </script>
-
+<label class="text-center absolute bottom-[40px] left-[1000px] bg-black border-2 border-[#00FF4D] p-2">
+    Rocket Fill Timer:<input readonly autocomplete="off" class="aux-gasbottle-time text-right" size="10">
+</label>
 <svg width="1300" height="887" viewBox="0 0 1300 887" fill="none" xmlns="http://www.w3.org/2000/svg" class="max-h-full">
 <g id="HMI">
 <g id="bottles">
