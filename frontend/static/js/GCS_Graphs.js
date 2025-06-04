@@ -425,7 +425,7 @@ function graphUpdatePosition(data) {
 }
 
 function graphUpdateAuxData(data) {
-    // AUXILLIARY DATA MODULE GRAPHS
+    // AUXILIARY DATA MODULE GRAPHS
     if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountGse) {
         const timestamp = data.meta.timestampS;
 
