@@ -1,4 +1,4 @@
-import backend.pendant_daemon as pendant_daemon
+import ..pendant_daemon as pendant_daemon
 
 
 def main():
