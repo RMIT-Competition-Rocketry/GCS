@@ -57,6 +57,9 @@ class Sequence {
     broadcast_flag_recieved_ = flag;
   }
 
+  bool get_camera_power() const { return camera_power_; }
+  void set_camera_power(bool flag) { camera_power_ = flag; }
+
  private:
   SequenceLock gse_write_lock_{"GSE", "\033[38;5;10m"};
   SequenceLock av_write_lock_{"AV", "\033[38;5;205m"};
@@ -69,4 +72,5 @@ class Sequence {
   long packet_count_gse_ = 0;
   bool start_sending_broadcast_flag_ = false;
   bool broadcast_flag_recieved_ = false;
+  bool camera_power_ = false;
 };

@@ -428,18 +428,34 @@ int main(int argc, char *argv[]) {
           slogger::debug("server got values from web control: " +
                          debug::vectorToHexString(web_control_data,
                                                   web_control_data.size()));
-          uint8_t manual_control_val = web_control_data.front();
+          uint8_t packet_byte_prefix = web_control_data.front();
           web_control_data.erase(
               web_control_data.begin());  // remove that first byte
-          bool manual_control = manual_control_val == 0xFF;
-          if (manual_control != sequence.manual_control_mode()) {
-            if (manual_control) {
-              slogger::warning("Manual control ENABLED");
-            } else {
-              slogger::warning("Manual control DISABLED");
+          // fucking stupid check because grpc didn't get done in time
+          // fuck
+          if (packet_byte_prefix == 123) {
+            // Yeah you're trying to activate power
+            if (sequence.get_camera_power() != true) {
+              slogger::warning("Camera power ON");
             }
+            sequence.set_camera_power(true);
+          } else if (packet_byte_prefix == 100) {
+            if (sequence.get_camera_power() != false) {
+              slogger::warning("Camera power OFF");
+            }
+            sequence.set_camera_power(false);
+          } else {
+            bool manual_control = packet_byte_prefix == 0xFF;
+            if (manual_control != sequence.manual_control_mode()) {
+              // manual control state value has changed
+              if (manual_control) {
+                slogger::warning("Manual control ENABLED");
+              } else {
+                slogger::warning("Manual control DISABLED");
+              }
+            }
+            sequence.set_manual_control_mode(manual_control);
           }
-          sequence.set_manual_control_mode(manual_control);
         }
       }
 
