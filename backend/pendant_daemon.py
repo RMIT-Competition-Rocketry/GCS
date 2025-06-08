@@ -195,7 +195,7 @@ class RPI_GPIO_Device(ControlDevice):
 
     def _setup_device(self):
         GPIO.setmode(GPIO.BCM)
-        for pin in self.pin_map:
+        for pin in RPI_GPIO_Device.pin_map:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
     def __init__(self):
