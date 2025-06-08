@@ -259,13 +259,24 @@ std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg) {
 }
 
 // Packet creator for GCS -> AV
-std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST) {
+std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
+                                           Sequence &sequence) {
   // DEBUG
   // For debug only, just send default values
+  bool camera_power = sequence.get_camera_power();
   std::vector<uint8_t> data;
-  data.push_back(0x01);        // ID
-  data.push_back(0b10100000);  // From excel sheet here and below
-  data.push_back(0b01011111);
+  data.push_back(0x01);  // ID
+
+  data.push_back(0b101);  // From excel sheet here and below
+  data.push_back(camera_power);
+  data.push_back(0b0000);
+
+  data.push_back(0b010);
+  data.push_back(!camera_power);
+  data.push_back(0b1111);
+
+  // data.push_back(0b10100000);  // From excel sheet here and below
+  // data.push_back(0b01011111);
   if (BROADCAST) {
     slogger::debug("@@@@@@@ Attempting to flag broadcast to FC @@@@@@@");
     data.push_back(0b10101010);
@@ -488,7 +499,7 @@ int main(int argc, char *argv[]) {
           // Wait for data from GSE (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_gse();  // Let read thread unlock this
           // Send data to AV
-          interface->write_data(create_GCS_TO_AV_data(broadcast));
+          interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           sequence.start_await_av();
           // Wait for data from AV (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_av();
@@ -496,7 +507,7 @@ int main(int argc, char *argv[]) {
         case Sequence::State::LOOP_IGNITION:
           // This stage is identical to pre-launch for GCS
           if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast));
+            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
         // It says once, but it's a conditional loop anyway.
@@ -504,26 +515,26 @@ int main(int argc, char *argv[]) {
           interface->write_data(gse_data);
           sequence.start_await_gse();
           sequence.sit_and_wait_for_gse();
-          interface->write_data(create_GCS_TO_AV_data(broadcast));
+          interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           sequence.start_await_av();
           sequence.sit_and_wait_for_av();
           break;
         case Sequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
           // Just listen. This thread can just close bassically
           if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast));
+            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
         case Sequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
           // Just listen. This thread can just close bassically
           if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast));
+            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
         case Sequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
           // Just listen. This thread can just close bassically
           if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast));
+            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
       }
