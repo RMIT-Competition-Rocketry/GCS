@@ -166,6 +166,10 @@ class ControlDevice(ABC):
                 "No inputs received from control device, using fallback state")
             state_table = StateTable.get_fallback_table()
         return self.state_table
+    
+    def get_states_dict(self) -> dict:
+        state_table = self.get_state_table()
+        return state_table.get_states_dict()
 
     def cleanup(self):
         """Code to run after controller is no longer needed."""
@@ -234,7 +238,7 @@ def send_packet():
             os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
         )
         CONTROL_TYPE = CONFIG['hardware']['controller']
-        controller: ControlDevice = get_control_device(CONTROL_TYPE)
+        controller: ControlDevice = get_control_device(CONTROL_TYPE)()
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
 
@@ -245,7 +249,7 @@ def send_packet():
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
             # These states are validated, error checked and include fallback
-            states = controller.get_state_table()
+            states = controller.get_states_dict()
             state_command = device_emulator.GCStoGSEStateCMD(**states)
             try:
                 push_socket.send(
