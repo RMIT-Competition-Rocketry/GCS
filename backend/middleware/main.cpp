@@ -258,35 +258,6 @@ std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg) {
   return cmd_data;
 }
 
-// Packet creator for GCS -> AV
-std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
-                                           Sequence &sequence) {
-  // DEBUG
-  // For debug only, just send default values
-  bool camera_power = sequence.get_camera_power();
-  std::vector<uint8_t> data;
-  data.push_back(0x01);  // ID
-
-  data.push_back(0b101);  // From excel sheet here and below
-  data.push_back(camera_power);
-  data.push_back(0b0000);
-
-  data.push_back(0b010);
-  data.push_back(!camera_power);
-  data.push_back(0b1111);
-
-  // data.push_back(0b10100000);  // From excel sheet here and below
-  // data.push_back(0b01011111);
-  if (BROADCAST) {
-    slogger::debug("@@@@@@@ Attempting to flag broadcast to FC @@@@@@@");
-    data.push_back(0b10101010);
-  } else {
-    data.push_back(0b00000000);
-  }
-
-  return data;
-}
-
 std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
                                            Sequence &sequence) {
   std::vector<uint8_t> data;
