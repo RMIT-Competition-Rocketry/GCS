@@ -3,7 +3,7 @@ import cli.proccess as process
 import os
 
 
-def start_pendant_daemon(logger: logging.Logger, SUB_SOCKET_PATH: str):
+def start_pendant_daemon(logger: logging.Logger):
     SERVICE_NAME = "pendant_daemon"
     try:
 

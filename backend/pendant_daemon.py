@@ -173,6 +173,8 @@ class RPI_GPIO_Device(ControlDevice):
         states = {
             attr: getattr(self, attr) for attr in RPI_GPIO_Device.PIN_MAP.values()
         }
+        # Temporary fix for emulating neutral state
+        self.NEUTRAL_ACTIVE = not self.N2O_ACTIVE and not self.PURGE_ACTIVE 
         self.state_table = StateTable(**states)
 
     def cleanup(self):
