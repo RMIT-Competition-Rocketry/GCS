@@ -287,6 +287,36 @@ std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
   return data;
 }
 
+std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
+                                           Sequence &sequence) {
+  std::vector<uint8_t> data;
+
+  const bool camera_power = sequence.get_camera_power();
+
+  // Byte 0: Packet ID
+  data.push_back(0x01);  // ID
+
+  // Byte 1: camera_power command
+  // [7:5] type = 0b101
+  // [4]   value = camera_power
+  // [3:0] padding/reserved = 0
+  uint8_t byte1 = (0b101 << 5) | (camera_power << 4);
+  data.push_back(byte1);
+
+  // Byte 2: camera_power disable command
+  // [7:5] type = 0b010
+  // [4]   value = !camera_power
+  // [3:0] padding/reserved = 0b1111
+  uint8_t byte2 = (0b010 << 5) | ((!camera_power) << 4) | 0b1111;
+  data.push_back(byte2);
+
+  // Byte 3: broadcast flag
+  // Set broadcast indicator
+  data.push_back(BROADCAST ? 0b10101010 : 0b00000000);
+
+  return data;
+}
+
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 

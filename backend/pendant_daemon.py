@@ -17,6 +17,7 @@ except (ImportError, RuntimeError):
     )
     slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
     class Button:
         def __init__(self, pin, pull_up=False): self.pin = pin
         @property
@@ -71,12 +72,12 @@ class StateTable():
         output += '\n'
         output += self.__str__()
         return output
-    
+
     def __eq__(self, other):
         if not isinstance(other, StateTable):
             return NotImplemented
         return self.get_states_dict() == other.get_states_dict()
-    
+
     def __ne__(self, other):
         return not self == other
 

@@ -1,6 +1,7 @@
 import backend.pendant_daemon as pendant_daemon
 import backend.includes_python.service_helper as service_helper
 
+
 def main():
     controller = pendant_daemon.RPI_GPIO_Device()
     last_state = None
