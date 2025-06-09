@@ -238,7 +238,7 @@ def start_services(COMMAND: Command,
         case InterfaceType.UART:
             logger.info("Starting UART interface")
             # Just leave second (emulator) device as None
-            devices = ("/dev/ttyAMA0", None)
+            devices = ("/dev/serial0", None)
         case InterfaceType.TEST_UART:
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TEST:
