@@ -6,22 +6,21 @@ import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 import config.config as config
 import threading
-try:
-    import RPi.GPIO as GPIO
-except (ImportError, RuntimeError):
-    slogger.error(
-        "RPi.GPIO not found, this library is only available on Raspberry Pi devices.")
-    # raise NotImplementedError(
-    # "Mocking not implemented yet. I don't have enough time right now")
-
-    class GPIOStub:
-        BCM = IN = PUD_DOWN = None
-        def setmode(self, mode): pass
-        def setup(self, pin, mode, pull_up_down=None): pass
-        def input(self, pin): return False
-        def cleanup(self): pass
-    GPIO = GPIOStub()
 from abc import ABC, abstractmethod
+try:
+    from gpiozero import Button
+except (ImportError, RuntimeError):
+    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    slogger.error(
+        "gpiozero not found, this library is only available on Raspberry Pi devices."
+    )
+    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    class Button:
+        def __init__(self, pin, pull_up=False): self.pin = pin
+        @property
+        def is_pressed(self): return False
 
 
 class StateTable():
@@ -47,7 +46,7 @@ class StateTable():
         for k, v in printable_dict.items():
             assert isinstance(v, bool)
             symbol = '🟩' if v else '🟥'
-            output += f"{k:<{MAX_KEY_LEN}} : {symbol}"
+            output += f"{k:<{MAX_KEY_LEN}} : {symbol}\n"
         return output
 
     def __str__(self):
@@ -72,6 +71,14 @@ class StateTable():
         output += '\n'
         output += self.__str__()
         return output
+    
+    def __eq__(self, other):
+        if not isinstance(other, StateTable):
+            return NotImplemented
+        return self.get_states_dict() == other.get_states_dict()
+    
+    def __ne__(self, other):
+        return not self == other
 
     def __init__(self,
                  SYS_ON: bool = True,
@@ -151,15 +158,13 @@ class ControlDevice(ABC):
     def get_state_table(self) -> StateTable:
         """Updates and gets the current states from the control device."""
         try:
-            state_table = None
-            state_table = self._update_state_table()
+            self._update_state_table()
         except Exception:
             slogger.warning("Failed to update pendant states")
-        if not state_table:
+        if not self.state_table:
             slogger.warning(
                 "No inputs received from control device, using fallback state")
             state_table = StateTable.get_fallback_table()
-        self.state_table = state_table
         return self.state_table
 
     def cleanup(self):
@@ -194,28 +199,23 @@ class RPI_GPIO_Device(ControlDevice):
     }
 
     def _setup_device(self):
-        GPIO.setmode(GPIO.BCM)
-        for pin in RPI_GPIO_Device.pin_map:
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        self.buttons = {
+            pin: Button(pin, pull_up=False, bounce_time=0.05) for pin in RPI_GPIO_Device.PIN_MAP
+        }
 
     def __init__(self):
         super().__init__()
-        self._setup_device()
 
     def _update_state_table(self):
         """Updates instance attributes and returns a dictionary of the current states."""
         for pin, attr in RPI_GPIO_Device.PIN_MAP.items():
-            setattr(self, attr, GPIO.input(pin))
+            setattr(self, attr, self.buttons[pin].is_pressed)
         states = {
             attr: getattr(self, attr) for attr in RPI_GPIO_Device.PIN_MAP.values()
         }
         # Temporary fix for neutral state which isn't wired
         self.NEUTRAL_ACTIVE = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
         self.state_table = StateTable(**states)
-
-    def cleanup(self):
-        super().cleanup()
-        GPIO.cleanup()
 
 
 def get_control_device(key: str) -> ControlDevice:
