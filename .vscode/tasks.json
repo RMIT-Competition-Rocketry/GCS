@@ -109,6 +109,23 @@
             "problemMatcher": []
         },
         {
+            "label": "start RPI pendant controller debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_rpi_pendant.py",
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "start websocket debug subscriber",
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/python",

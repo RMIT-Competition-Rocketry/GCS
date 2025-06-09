@@ -5,7 +5,7 @@ import time
 import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 import config.config as config
-import threading
+
 try:
     import RPi.GPIO as GPIO
 except (ImportError, RuntimeError):
@@ -195,7 +195,7 @@ class RPI_GPIO_Device(ControlDevice):
 
     def _setup_device(self):
         GPIO.setmode(GPIO.BCM)
-        for pin in RPI_GPIO_Device.pin_map:
+        for pin in RPI_GPIO_Device.PIN_MAP:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
     def __init__(self):

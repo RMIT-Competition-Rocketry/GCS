@@ -11,6 +11,7 @@ def main():
             updates += 1
             print(f"===== UPDATE [{updates}] =====")
             print(repr(controller))
+        last_state = states
 
 
 if __name__ == "__main__":
