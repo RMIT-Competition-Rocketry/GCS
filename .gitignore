@@ -3,6 +3,8 @@ notes/local.txt
 notes/visualParadigm/*
 notes/design/*
 
+TEMP_LOG_*
+
 # Device specific settings
 .vscode/c_cpp_properties.json
 
