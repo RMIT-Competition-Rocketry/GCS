@@ -41,15 +41,26 @@ The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, av
 
 ## Credit
 
+GCS Software Team
+
 | Name | Role | Year |
 | --- | --- | --- |
-| Freddy Mcloughlan (`mcloughlan`)  | GCS backend software engineer | 2025 |
-| Amber Taylor (`s4105951`)  | GCS frontend developer | 2025 |
+| [Freddy Mcloughlan](https://www.linkedin.com/in/freddy-mcloughlan/) (`mcloughlan`)  | GCS software lead & backend software engineer | 2025 |
+| Amber Taylor (`s4105951`)  | GCS frontend lead & developer | 2025 |
 | Caspar O'Neill (`s3899921`)  | GCS QA engineer & API integration | 2025 |
 | Anuk Jayasundara (`s3899921`)  | GCS frontend developer | 2025 |
 | Nathan La (`s4003562`)  | GCS data visualisation programmer | 2025 |
 | Jonathan Do (`s4003025`)  | GCS UI/UX designer | 2025 |
 | Tristan Le (`trist4nl3`) | GCS simulation integration | 2025 |
+
+Special thanks
+
+- Jonathan Chandler
+    - GCS Lead. The all-knowing being of ground control and operations
+- Matthew Ricci
+    - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
+
+And to all those at RMIT HIVE!
 
 ## Software Development Components
 
