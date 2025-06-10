@@ -46,18 +46,18 @@ GCS Software Team
 | Name | Role | Year |
 | --- | --- | --- |
 | [Freddy Mcloughlan](https://www.linkedin.com/in/freddy-mcloughlan/) (`mcloughlan`)  | GCS software lead & backend software engineer | 2025 |
-| Amber Taylor (`s4105951`)  | GCS frontend lead & developer | 2025 |
-| Caspar O'Neill (`s3899921`)  | GCS QA engineer & API integration | 2025 |
-| Anuk Jayasundara (`s3899921`)  | GCS frontend developer | 2025 |
-| Nathan La (`s4003562`)  | GCS data visualisation programmer | 2025 |
-| Jonathan Do (`s4003025`)  | GCS UI/UX designer | 2025 |
-| Tristan Le (`trist4nl3`) | GCS simulation integration | 2025 |
+| [Amber Taylor](https://www.linkedin.com/in/amber-taylor-20bb63264/) (`s4105951`)  | GCS frontend lead & software engineer | 2025 |
+| [Caspar O'Neill](https://www.linkedin.com/in/caspar-oneill/) (`s3899921`)  | GCS frontend API engineer | 2025 |
+| [Anuk Jayasundara](https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/) (`s3899921`)  | GCS 6DOF rocket visualisation | 2025 |
+| Jonathan Do (`s4003025`)  | GCS frontend UI/UX design | 2025 |
+| Nathan La (`s4003562`)  | GCS data visualisation | 2025 |
+| [Tristan Le](https://www.linkedin.com/in/trist4nl3/) (`trist4nl3`) | GCS simulation integration | 2025 |
 
 Special thanks
 
-- Jonathan Chandler
+- [Jonathan Chandler](https://www.linkedin.com/in/jonathan-chandler-03474b1ba/)
     - GCS Lead. The all-knowing being of ground control and operations
-- Matthew Ricci
+- [Matthew Ricci](https://www.linkedin.com/in/matthewricci-embedded/)
     - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
 
 And to all those at RMIT HIVE!
