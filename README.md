@@ -29,10 +29,10 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 - [Development](docs/development.md)
 - [Glossary](docs/glossary.md)
 
-### Notes
+<!-- ### Notes
 
 - [Brainstorming](notes/brainstorming.md)
-- [Data](notes/data.md)
+- [Data](notes/data.md) -->
 
 
 ## Description
