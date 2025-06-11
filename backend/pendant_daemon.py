@@ -24,6 +24,14 @@ except (ImportError, RuntimeError):
         def is_pressed(self): return False
 
 
+# ==============================
+# ==============================
+# TODO: add event based GPIO changes here, don't run polls.
+# ==============================
+# ==============================
+
+
+
 class StateTable():
     """
     Stores the states (argument) for the GSE to GCS packet. bonza cunt
