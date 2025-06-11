@@ -258,31 +258,32 @@ std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg) {
   return cmd_data;
 }
 
-// Packet creator for GCS -> AV
 std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
                                            Sequence &sequence) {
-  // DEBUG
-  // For debug only, just send default values
-  bool camera_power = sequence.get_camera_power();
   std::vector<uint8_t> data;
+
+  const bool camera_power = sequence.get_camera_power();
+
+  // Byte 0: Packet ID
   data.push_back(0x01);  // ID
 
-  data.push_back(0b101);  // From excel sheet here and below
-  data.push_back(camera_power);
-  data.push_back(0b0000);
+  // Byte 1: camera_power command
+  // [7:5] type = 0b101
+  // [4]   value = camera_power
+  // [3:0] padding/reserved = 0
+  uint8_t byte1 = (0b101 << 5) | (camera_power << 4);
+  data.push_back(byte1);
 
-  data.push_back(0b010);
-  data.push_back(!camera_power);
-  data.push_back(0b1111);
+  // Byte 2: camera_power disable command
+  // [7:5] type = 0b010
+  // [4]   value = !camera_power
+  // [3:0] padding/reserved = 0b1111
+  uint8_t byte2 = (0b010 << 5) | ((!camera_power) << 4) | 0b1111;
+  data.push_back(byte2);
 
-  // data.push_back(0b10100000);  // From excel sheet here and below
-  // data.push_back(0b01011111);
-  if (BROADCAST) {
-    slogger::debug("@@@@@@@ Attempting to flag broadcast to FC @@@@@@@");
-    data.push_back(0b10101010);
-  } else {
-    data.push_back(0b00000000);
-  }
+  // Byte 3: broadcast flag
+  // Set broadcast indicator
+  data.push_back(BROADCAST ? 0b10101010 : 0b00000000);
 
   return data;
 }

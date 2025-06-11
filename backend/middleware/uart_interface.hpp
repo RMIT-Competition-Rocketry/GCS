@@ -13,7 +13,7 @@
 class UartInterface : public LoraInterface {
  public:
   UartInterface(
-      const std::string &device_path = "/dev/ttyAMA0",
+      const std::string &device_path = "/dev/serial0",
       int baud_rate = B230400);  // Default to RPi ttyAMA0 and 230400 baud
   virtual ~UartInterface();
 
