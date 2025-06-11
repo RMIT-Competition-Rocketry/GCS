@@ -22,6 +22,8 @@ from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
 from cli.start_replay_system import start_replay_system, get_available_missions, SimulationType
+from cli.start_pendant_daemon import start_pendant_daemon
+
 
 logger: logging.Logger = None
 cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
@@ -42,6 +44,12 @@ class DecoratorSelector(enum.Enum):
     SIM = enum.auto()  # Give me the options for simulation
     GSE_ONLY = enum.auto()  # Give me just the GSE only option
     REPLAY = enum.auto()
+
+
+class ControllerTypes(enum.Enum):
+    """Nomenclature: this is also called a pendant"""
+    F710 = enum.auto()
+    RPI_GPIO_DEVICE = enum.auto()
 
 
 def cli_decorator_factory(SELECTOR: DecoratorSelector):
@@ -148,6 +156,21 @@ def start_docker_container(logger):
         raise
 
 
+def get_controller_enum() -> ControllerTypes:
+    pedant_config = config.load_config()["hardware"].get("controller")
+    if pedant_config is None or len(pedant_config) == 0:
+        # Nothing specified
+        raise RuntimeError("Pendant controller option not found in config.ini")
+    match pedant_config.lower().strip():
+        case "f710":
+            return ControllerTypes.F710
+        case "rpi_gpio_device":
+            return ControllerTypes.RPI_GPIO_DEVICE
+        case _:
+            raise RuntimeError(
+                "Pendant controller option not found in config.ini")
+
+
 def start_services(COMMAND: Command,
                    DOCKER: bool = False,
                    INTERFACE_ARG: Optional[InterfaceType] = None,
@@ -215,7 +238,7 @@ def start_services(COMMAND: Command,
         case InterfaceType.UART:
             logger.info("Starting UART interface")
             # Just leave second (emulator) device as None
-            devices = ("/dev/ttyAMA0", None)
+            devices = ("/dev/serial0", None)
         case InterfaceType.TEST_UART:
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TEST:
@@ -268,7 +291,13 @@ def start_services(COMMAND: Command,
 
     # 6. Start the pendent emulator
     if not nopendant:
-        start_pendant_emulator(logger)
+        controller_enum = get_controller_enum()
+        if controller_enum == ControllerTypes.F710:
+            start_pendant_emulator(logger)
+        elif controller_enum == ControllerTypes.RPI_GPIO_DEVICE:
+            start_pendant_daemon(logger)
+        else:
+            raise NotImplementedError("Controller service not supported")
 
     if frontend:
         # 7. Start the websocket / frontend API

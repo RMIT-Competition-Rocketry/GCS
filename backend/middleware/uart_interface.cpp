@@ -98,7 +98,7 @@ void UartInterface::at_setup() {
   // Returns like:
   // +TEST: RFCFG F:915000000, SF9, BW500K, TXPR:12, RXPR:16, POW:22dBm,
   // CRC:OFF, IQ:OFF, NET:OFF
-  at_send_command("AT+TEST=RFCFG,915,SF9,500,12,16,22,OFF,OFF,OFF",
+  at_send_command("AT+TEST=RFCFG,928,SF9,500,12,16,22,OFF,OFF,OFF",
                   "+TEST: RFCFG", AT_TIMEOUT_MS);
 
   // Uncomment to change baud rate (requires module reset)
