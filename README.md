@@ -18,6 +18,8 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
   <img src="docs/assets/serp2launch.jpg" height="200px">
 </p>
 
+© 2025 RMIT Competition Rocketry – Licensed under the MIT License
+
 ## Contents
 
 ### Documentation
@@ -89,3 +91,16 @@ This project was built using the following tools, languages and systems.
 ![CLI interface](docs/assets/cli.png)
 
 > CLI (nobody but me looks at this)
+
+## License and Attribution
+
+This project is licensed under the MIT License.
+
+If you use or modify this software, you **must retain** the original copyright
+notice and license in all copies or substantial portions of the Software.
+
+Attribution must be clearly displayed in any redistributed or derivative works.
+
+Please credit: **RMIT Competition Rocketry** and the **HIVE GCS Software Team**.
+
+See the [LICENSE](LICENSE) file for full terms.
