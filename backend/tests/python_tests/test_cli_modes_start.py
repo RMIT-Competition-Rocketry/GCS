@@ -165,7 +165,7 @@ class TestDevStartups(CliStartup):
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
             r"device emulator: \[STDOUT] Emulator starting",
             r"WebSocket server started at",
-            r"\* Serving Flask app 'frontend\.flask_server'"
+            r"\* Serving Flask app 'frontend\.server'"
         ]
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,

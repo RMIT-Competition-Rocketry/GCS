@@ -18,7 +18,7 @@ def start_frontend_webserver(logger: logging.Logger, debug: bool = False):
         FRONTEND_COMMAND = [
             "flask",
             "--app",
-            "frontend.flask_server",
+            "frontend.server",
             *(["--debug"] if debug else []),
             "run",
             "--host=0.0.0.0",

@@ -271,7 +271,7 @@
             "command": "flask",
             "args": [
                 "--app",
-                "frontend.flask_server",
+                "frontend.server",
                 "--debug",
                 "run",
                 "--port=8008"
