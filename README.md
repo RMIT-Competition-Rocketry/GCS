@@ -2,7 +2,7 @@
 
 <p>
     <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">
-    <img alt="Static Badge" src="https://img.shields.io/badge/status-work_in_progress-black">
+    <img alt="Static Badge" src="https://img.shields.io/badge/status-Deployed_for_IREC-limegreen">
     <img src="https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem">
     <!-- <img src="https://img.shields.io/github/v/release/RMIT-Competition-Rocketry/GCS?label=version" height="20rem"> -->
 </p>
@@ -18,6 +18,8 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
   <img src="docs/assets/serp2launch.jpg" height="200px">
 </p>
 
+© 2025 RMIT Competition Rocketry – Licensed under the MIT License
+
 ## Contents
 
 ### Documentation
@@ -25,14 +27,14 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 - [Setup](docs/setup.md)
 - [Usage](docs/usage.md)
 - [Pendant Emulator Quick Reference](docs/pendant_emulator.md)
-- [System Design](docs/system_design.md)
+- [System Design & features](docs/system_design.md)
 - [Development](docs/development.md)
 - [Glossary](docs/glossary.md)
 
-### Notes
+<!-- ### Notes
 
 - [Brainstorming](notes/brainstorming.md)
-- [Data](notes/data.md)
+- [Data](notes/data.md) -->
 
 
 ## Description
@@ -41,15 +43,26 @@ The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, av
 
 ## Credit
 
+GCS Software Team
+
 | Name | Role | Year |
 | --- | --- | --- |
-| Freddy Mcloughlan (`mcloughlan`)  | GCS backend software engineer | 2025 |
-| Amber Taylor (`s4105951`)  | GCS frontend developer | 2025 |
-| Caspar O'Neill (`s3899921`)  | GCS QA engineer & API integration | 2025 |
-| Anuk Jayasundara (`s3899921`)  | GCS frontend developer | 2025 |
-| Nathan La (`s4003562`)  | GCS data visualisation programmer | 2025 |
-| Jonathan Do (`s4003025`)  | GCS UI/UX designer | 2025 |
-| Tristan Le (`trist4nl3`) | GCS simulation integration | 2025 |
+| [Freddy Mcloughlan](https://www.linkedin.com/in/freddy-mcloughlan/) (`mcloughlan`)  | GCS software lead & backend software engineer | 2025 |
+| [Amber Taylor](https://www.linkedin.com/in/amber-taylor-20bb63264/) (`s4105951`)  | GCS frontend lead & software engineer | 2025 |
+| [Caspar O'Neill](https://www.linkedin.com/in/caspar-oneill/) (`s3899921`)  | GCS frontend API engineer | 2025 |
+| [Anuk Jayasundara](https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/) (`s3899921`)  | GCS 6DOF rocket visualisation | 2025 |
+| Jonathan Do (`s4003025`)  | GCS frontend UI/UX design | 2025 |
+| Nathan La (`s4003562`)  | GCS data visualisation | 2025 |
+| [Tristan Le](https://www.linkedin.com/in/trist4nl3/) (`trist4nl3`) | GCS simulation integration | 2025 |
+
+Special thanks
+
+- [Jonathan Chandler](https://www.linkedin.com/in/jonathan-chandler-03474b1ba/)
+    - GCS Lead. The all-knowing being of ground control and operations
+- [Matthew Ricci](https://www.linkedin.com/in/matthewricci-embedded/)
+    - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
+
+And to all those at RMIT HIVE!
 
 ## Software Development Components
 
@@ -71,6 +84,23 @@ This project was built using the following tools, languages and systems.
 
 > Web interface (main view)
 
+![HMI page](docs/assets/hmi-example.png)
+
+> Custom GSE HMI page
+
 ![CLI interface](docs/assets/cli.png)
 
 > CLI (nobody but me looks at this)
+
+## License and Attribution
+
+This project is licensed under the MIT License.
+
+If you use or modify this software, you **must retain** the original copyright
+notice and license in all copies or substantial portions of the Software.
+
+Attribution must be clearly displayed in any redistributed or derivative works.
+
+Please credit: **RMIT Competition Rocketry** and the **HIVE GCS Software Team**.
+
+See the [LICENSE](LICENSE) file for full terms.

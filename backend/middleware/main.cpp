@@ -258,20 +258,32 @@ std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg) {
   return cmd_data;
 }
 
-// Packet creator for GCS -> AV
-std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST) {
-  // DEBUG
-  // For debug only, just send default values
+std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
+                                           Sequence &sequence) {
   std::vector<uint8_t> data;
-  data.push_back(0x01);        // ID
-  data.push_back(0b10100000);  // From excel sheet here and below
-  data.push_back(0b01011111);
-  if (BROADCAST) {
-    slogger::debug("@@@@@@@ Attempting to flag broadcast to FC @@@@@@@");
-    data.push_back(0b10101010);
-  } else {
-    data.push_back(0b00000000);
-  }
+
+  const bool camera_power = sequence.get_camera_power();
+
+  // Byte 0: Packet ID
+  data.push_back(0x01);  // ID
+
+  // Byte 1: camera_power command
+  // [7:5] type = 0b101
+  // [4]   value = camera_power
+  // [3:0] padding/reserved = 0
+  uint8_t byte1 = (0b101 << 5) | (camera_power << 4);
+  data.push_back(byte1);
+
+  // Byte 2: camera_power disable command
+  // [7:5] type = 0b010
+  // [4]   value = !camera_power
+  // [3:0] padding/reserved = 0b1111
+  uint8_t byte2 = (0b010 << 5) | ((!camera_power) << 4) | 0b1111;
+  data.push_back(byte2);
+
+  // Byte 3: broadcast flag
+  // Set broadcast indicator
+  data.push_back(BROADCAST ? 0b10101010 : 0b00000000);
 
   return data;
 }
@@ -428,18 +440,34 @@ int main(int argc, char *argv[]) {
           slogger::debug("server got values from web control: " +
                          debug::vectorToHexString(web_control_data,
                                                   web_control_data.size()));
-          uint8_t manual_control_val = web_control_data.front();
+          uint8_t packet_byte_prefix = web_control_data.front();
           web_control_data.erase(
               web_control_data.begin());  // remove that first byte
-          bool manual_control = manual_control_val == 0xFF;
-          if (manual_control != sequence.manual_control_mode()) {
-            if (manual_control) {
-              slogger::warning("Manual control ENABLED");
-            } else {
-              slogger::warning("Manual control DISABLED");
+          // fucking stupid check because grpc didn't get done in time
+          // fuck
+          if (packet_byte_prefix == 123) {
+            // Yeah you're trying to activate power
+            if (sequence.get_camera_power() != true) {
+              slogger::warning("Camera power ON");
             }
+            sequence.set_camera_power(true);
+          } else if (packet_byte_prefix == 100) {
+            if (sequence.get_camera_power() != false) {
+              slogger::warning("Camera power OFF");
+            }
+            sequence.set_camera_power(false);
+          } else {
+            bool manual_control = packet_byte_prefix == 0xFF;
+            if (manual_control != sequence.manual_control_mode()) {
+              // manual control state value has changed
+              if (manual_control) {
+                slogger::warning("Manual control ENABLED");
+              } else {
+                slogger::warning("Manual control DISABLED");
+              }
+            }
+            sequence.set_manual_control_mode(manual_control);
           }
-          sequence.set_manual_control_mode(manual_control);
         }
       }
 
@@ -472,7 +500,7 @@ int main(int argc, char *argv[]) {
           // Wait for data from GSE (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_gse();  // Let read thread unlock this
           // Send data to AV
-          interface->write_data(create_GCS_TO_AV_data(broadcast));
+          interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           sequence.start_await_av();
           // Wait for data from AV (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_av();
@@ -480,7 +508,7 @@ int main(int argc, char *argv[]) {
         case Sequence::State::LOOP_IGNITION:
           // This stage is identical to pre-launch for GCS
           if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast));
+            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
         // It says once, but it's a conditional loop anyway.
@@ -488,26 +516,26 @@ int main(int argc, char *argv[]) {
           interface->write_data(gse_data);
           sequence.start_await_gse();
           sequence.sit_and_wait_for_gse();
-          interface->write_data(create_GCS_TO_AV_data(broadcast));
+          interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           sequence.start_await_av();
           sequence.sit_and_wait_for_av();
           break;
         case Sequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
           // Just listen. This thread can just close bassically
           if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast));
+            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
         case Sequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
           // Just listen. This thread can just close bassically
           if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast));
+            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
         case Sequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
           // Just listen. This thread can just close bassically
           if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast));
+            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
       }
