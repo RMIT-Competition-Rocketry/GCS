@@ -70,6 +70,10 @@ window.addEventListener("DOMContentLoaded", () => {
     lights[3].position.set(50, 0, 0);
     lights.forEach(light => scene.add(light));
 
+    // Ambient light
+    const light = new THREE.AmbientLight( 0x909090 ); // soft white light
+    scene.add( light );
+
     // === Environment Texture (adds reflections and realism) ===
     const envTextureLoader = new THREE.CubeTextureLoader();
     const origin = new THREE.Vector3(3, -3.75, 0); // Not used in final render, just a helper reference
