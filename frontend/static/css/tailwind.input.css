@@ -353,7 +353,7 @@ Only modify if you know what you're doing :-)
         }
     }
 
-    /* Aux System Buttons (Single Operator) */
+    /* Aux System Buttons (Single Operator). Switche referenced from https://www.w3schools.com/howto/howto_css_switch.asp*/
     .solenoid_button_inactive {
         background-image: url('/img/buttons/solenoid_button_inactive.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
