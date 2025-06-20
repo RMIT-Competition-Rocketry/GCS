@@ -39,9 +39,8 @@ def process_csv_packets(min_timestamp_ms: int, mission_path: str) -> List[Packet
 
         filename = os.path.join(mission_path, f"{packet_type.name}.csv")
         try:
-            with open(filename, 'r') as f:
+            with open(filename, 'r', encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
-
                 for row in reader:
                     timestamp_ms = float(row['timestamp_ms'])
                     if timestamp_ms > min_timestamp_ms:
