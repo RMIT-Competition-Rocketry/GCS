@@ -81,7 +81,7 @@ This project was built using the following tools, languages and systems.
     - Written in Python
     - Includes a device emulator for internal system tests that attaches from the hardware layer to create a fake unix device file at `/dev/`
 
-**Cool fact**: Our GCS uses < 1% CPU utlisation on our Raspberry pPi 5 during regular operation.
+**Cool fact**: Our GCS runs at less than 1% CPU utilization on a Raspberry Pi 5 during regular use.
 
 ## Screenshots
 
