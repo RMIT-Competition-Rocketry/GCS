@@ -1,5 +1,7 @@
 <img height=200px src="docs/assets/graphical-banner.png">
 
+<img alt="Static Badge" src="https://img.shields.io/badge/note-Temporarily_archived-9e6a05">
+
 <p>
     <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">
     <img alt="Static Badge" src="https://img.shields.io/badge/status-Deployed_for_IREC-limegreen">
@@ -12,6 +14,9 @@
 Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**). 
 
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
+
+> [!WARNING]
+> This repository is archived in it's 2025 IREC state. Development of the 2026 IREC GCS is ongoing in a private repo. When it is done it will be merged back into this repository. Updates will be posted on [Freddy's Linkedin](https://www.linkedin.com/in/freddy-mcloughlan/) over the next year.
 
 <p align="center">
   <img src="docs/assets/serp2launchSetup.jpg" height="200px"/>
